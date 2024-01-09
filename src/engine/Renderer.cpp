@@ -98,7 +98,7 @@ namespace fgl::engine
 		}
 
 		if ( result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR )
-			throw std::runtime_error( "Failed to acquire support chain image" );
+			throw std::runtime_error( "Failed to acquire swap chain image" );
 
 		is_frame_started = true;
 		auto command_buffer { getCurrentCommandbuffer() };
