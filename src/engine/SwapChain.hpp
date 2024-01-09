@@ -106,8 +106,8 @@ namespace fgl::engine
 
 		vk::Format findDepthFormat();
 
-		vk::Result acquireNextImage( uint32_t* imageIndex );
-		vk::Result submitCommandBuffers( const vk::CommandBuffer* buffers, uint32_t* imageIndex );
+		[[nodiscard]] vk::Result acquireNextImage( uint32_t* imageIndex );
+		[[nodiscard]] vk::Result submitCommandBuffers( const vk::CommandBuffer* buffers, uint32_t* imageIndex );
 	};
 
 } // namespace fgl::engine

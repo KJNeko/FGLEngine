@@ -108,10 +108,22 @@ namespace fgl::engine
 		if ( Device::getInstance().device().resetFences( 1, &inFlightFences[ currentFrame ] ) != vk::Result::eSuccess )
 			throw std::runtime_error( "failed to reset fences!" );
 
-		if ( Device::getInstance().graphicsQueue().submit( 1, &submitInfo, inFlightFences[ currentFrame ] )
-		     != vk::Result::eSuccess )
+		if ( auto result =
+		         Device::getInstance().graphicsQueue().submit( 1, &submitInfo, inFlightFences[ currentFrame ] );
+		     result != vk::Result::eSuccess )
 		{
-			throw std::runtime_error( "failed to submit draw command buffer!" );
+			switch ( result )
+			{
+				case vk::Result::eErrorOutOfDateKHR:
+					return vk::Result::eErrorOutOfDateKHR;
+				case vk::Result::eSuboptimalKHR:
+					return vk::Result::eSuboptimalKHR;
+				case vk::Result::eErrorDeviceLost:
+					throw std::runtime_error( "Device lost!" );
+				default:
+					throw std::runtime_error(
+						"failed to submit draw command buffer!: ID" + std::to_string( static_cast< int >( result ) ) );
+			}
 		}
 
 		vk::PresentInfoKHR presentInfo = {};
