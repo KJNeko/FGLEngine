@@ -420,9 +420,34 @@ namespace fgl::engine
 	{
 		for ( const auto& availablePresentMode : availablePresentModes )
 		{
+			switch ( availablePresentMode )
+			{
+				case vk::PresentModeKHR::eImmediate:
+					std::cout << "Present mode: Immediate" << std::endl;
+					break;
+				case vk::PresentModeKHR::eMailbox:
+					std::cout << "Present mode: Mailbox" << std::endl;
+					break;
+				case vk::PresentModeKHR::eFifo:
+					std::cout << "Present mode: V-Sync" << std::endl;
+					break;
+				case vk::PresentModeKHR::eFifoRelaxed:
+					std::cout << "Present mode: V-Sync: RELAXED" << std::endl;
+					break;
+				case vk::PresentModeKHR::eSharedDemandRefresh:
+					std::cout << "Present mode: Shared Demand Refresh" << std::endl;
+					break;
+				case vk::PresentModeKHR::eSharedContinuousRefresh:
+					std::cout << "Present mode: Shared Continuous Refresh" << std::endl;
+					break;
+			}
+		}
+
+		for ( const auto& availablePresentMode : availablePresentModes )
+		{
 			if ( availablePresentMode == vk::PresentModeKHR::eMailbox )
 			{
-				std::cout << "Present mode: Mailbox" << std::endl;
+				std::cout << "Present mode: Mailbox: ACTIVE" << std::endl;
 				return availablePresentMode;
 			}
 		}
@@ -434,7 +459,7 @@ namespace fgl::engine
 		//   }
 		// }
 
-		std::cout << "Present mode: V-Sync" << std::endl;
+		std::cout << "Present mode: V-Sync: ACTIVE" << std::endl;
 		return vk::PresentModeKHR::eFifo;
 	}
 
