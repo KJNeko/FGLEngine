@@ -214,6 +214,7 @@ namespace fgl::engine
 	{
 		auto command_buffer { Device::getInstance().beginSingleTimeCommands() };
 
+		/*
 		{
 			std::shared_ptr< Model > model { Model::createModel(
 				Device::getInstance(),
@@ -233,8 +234,8 @@ namespace fgl::engine
 
 				game_objects.emplace( night_heron.getId(), std::move( night_heron ) );
 			}
-		}
-		/*
+		}*/
+
 		{
 			std::shared_ptr< Model > model { Model::createModel(
 				Device::getInstance(),
@@ -286,7 +287,6 @@ namespace fgl::engine
 
 			game_objects.emplace( floor.getId(), std::move( floor ) );
 		}
-		 */
 
 		Device::getInstance().endSingleTimeCommands( command_buffer );
 
