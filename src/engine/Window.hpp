@@ -6,6 +6,8 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_handles.hpp>
 
 #include <cstdint>
 #include <string>
@@ -35,14 +37,14 @@ namespace fgl::engine
 
 		bool shouldClose() { return glfwWindowShouldClose( m_window ); }
 
-		void createWindowSurface( VkInstance instance, VkSurfaceKHR* surface );
+		vk::SurfaceKHR createWindowSurface( vk::Instance instance );
 
 		VkExtent2D getExtent()
 		{
 			return { static_cast< std::uint32_t >( m_width ), static_cast< std::uint32_t >( m_height ) };
 		}
 
-		GLFWwindow* window() { return m_window; }
+		GLFWwindow* window() const { return m_window; }
 
 		Window( const int w, const int h, std::string window_name );
 		Window() = delete;

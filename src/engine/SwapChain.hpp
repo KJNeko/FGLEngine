@@ -1,6 +1,9 @@
 #pragma once
 
 #include "Device.hpp"
+#include "FrameInfo.hpp"
+#include "RenderPass.hpp"
+#include "engine/image/Image.hpp"
 
 // vulkan headers
 #include <vulkan/vulkan.h>
@@ -12,68 +15,78 @@
 
 namespace fgl::engine
 {
+
 	class SwapChain
 	{
-		VkFormat m_swap_chain_format;
-		VkFormat m_swap_chain_depth_format;
-		VkExtent2D m_swap_chain_extent;
+		vk::Format m_swap_chain_format { vk::Format::eUndefined };
+		vk::Format m_swap_chain_depth_format { findDepthFormat() };
+		vk::Extent2D m_swap_chain_extent { 0, 0 };
 
-		std::vector< VkFramebuffer > m_swap_chain_buffers;
-		VkRenderPass m_render_pass;
+		std::vector< vk::Framebuffer > m_swap_chain_buffers {};
+		vk::RenderPass m_render_pass { VK_NULL_HANDLE };
+		std::unique_ptr< RenderPassResources > m_render_pass_resources { nullptr };
 
-		std::vector< VkImage > m_depth_images;
-		std::vector< VkDeviceMemory > m_depth_memory;
-		std::vector< VkImageView > m_depth_image_views;
-		std::vector< VkImage > m_swap_chain_images;
-		std::vector< VkImageView > m_swap_chain_views;
+		std::vector< Image > m_swap_chain_images {};
 
-		Device& device;
-		VkExtent2D windowExtent;
+		vk::Extent2D windowExtent;
 
-		VkSwapchainKHR swapChain;
-		std::shared_ptr< SwapChain > old_swap_chain;
+		vk::SwapchainKHR swapChain { VK_NULL_HANDLE };
+		std::shared_ptr< SwapChain > old_swap_chain {};
 
-		std::vector< VkSemaphore > imageAvailableSemaphores;
-		std::vector< VkSemaphore > renderFinishedSemaphores;
-		std::vector< VkFence > inFlightFences;
-		std::vector< VkFence > imagesInFlight;
+		std::vector< vk::Semaphore > imageAvailableSemaphores {};
+		std::vector< vk::Semaphore > renderFinishedSemaphores {};
+		std::vector< vk::Fence > inFlightFences {};
+		std::vector< vk::Fence > imagesInFlight {};
 		size_t currentFrame { 0 };
+
+		std::vector< vk::ClearValue > m_clear_values {};
 
 		void init();
 		void createSwapChain();
-		void createImageViews();
-		void createDepthResources();
 		void createRenderPass();
 		void createFramebuffers();
 		void createSyncObjects();
 
 		// Helper functions
-		VkSurfaceFormatKHR chooseSwapSurfaceFormat( const std::vector< VkSurfaceFormatKHR >& availableFormats );
-		VkPresentModeKHR chooseSwapPresentMode( const std::vector< VkPresentModeKHR >& availablePresentModes );
-		VkExtent2D chooseSwapExtent( const VkSurfaceCapabilitiesKHR& capabilities );
+		vk::SurfaceFormatKHR chooseSwapSurfaceFormat( const std::vector< vk::SurfaceFormatKHR >& availableFormats );
+		vk::PresentModeKHR chooseSwapPresentMode( const std::vector< vk::PresentModeKHR >& availablePresentModes );
+		vk::Extent2D chooseSwapExtent( const vk::SurfaceCapabilitiesKHR& capabilities );
 
 	  public:
 
-		static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
+		std::vector< vk::ClearValue > getClearValues() const { return m_clear_values; }
 
-		SwapChain( Device& deviceRef, VkExtent2D windowExtent );
-		SwapChain( Device& deviceRef, VkExtent2D windowExtent, std::shared_ptr< SwapChain > previous );
+		DescriptorSet& getGBufferDescriptor( std::uint8_t frame_idx ) const
+		{
+			assert( frame_idx < MAX_FRAMES_IN_FLIGHT && "Frame index out of range" );
+			assert(
+				m_gbuffer_descriptor_set.size() == MAX_FRAMES_IN_FLIGHT && "GBuffer descriptor set not initialized" );
+			return *m_gbuffer_descriptor_set[ frame_idx ];
+		}
+
+		static constexpr std::uint8_t MAX_FRAMES_IN_FLIGHT = 2;
+
+		std::array< std::unique_ptr< DescriptorSet >, MAX_FRAMES_IN_FLIGHT > m_gbuffer_descriptor_set {};
+
+		SwapChain( vk::Extent2D windowExtent );
+		SwapChain( vk::Extent2D windowExtent, std::shared_ptr< SwapChain > previous );
 		~SwapChain();
 
 		SwapChain( const SwapChain& ) = delete;
 		SwapChain& operator=( const SwapChain& ) = delete;
 
-		VkFramebuffer getFrameBuffer( int index ) const { return m_swap_chain_buffers[ index ]; }
+		vk::Framebuffer getFrameBuffer( int index ) const
+		{
+			return m_swap_chain_buffers[ static_cast< std::size_t >( index ) ];
+		}
 
-		VkRenderPass getRenderPass() const { return m_render_pass; }
+		vk::RenderPass getRenderPass() const { return m_render_pass; }
 
-		VkImageView getImageView( int index ) const { return m_swap_chain_views[ index ]; }
+		std::uint8_t imageCount() const { return static_cast< std::uint8_t >( m_swap_chain_images.size() ); }
 
-		size_t imageCount() const { return m_swap_chain_images.size(); }
+		vk::Format getSwapChainImageFormat() const { return m_swap_chain_format; }
 
-		VkFormat getSwapChainImageFormat() const { return m_swap_chain_format; }
-
-		VkExtent2D getSwapChainExtent() const { return m_swap_chain_extent; }
+		vk::Extent2D getSwapChainExtent() const { return m_swap_chain_extent; }
 
 		uint32_t width() const { return m_swap_chain_extent.width; }
 
@@ -91,10 +104,10 @@ namespace fgl::engine
 			     / static_cast< float >( m_swap_chain_extent.height );
 		}
 
-		VkFormat findDepthFormat();
+		vk::Format findDepthFormat();
 
-		VkResult acquireNextImage( uint32_t* imageIndex );
-		VkResult submitCommandBuffers( const VkCommandBuffer* buffers, uint32_t* imageIndex );
+		vk::Result acquireNextImage( uint32_t* imageIndex );
+		vk::Result submitCommandBuffers( const vk::CommandBuffer* buffers, uint32_t* imageIndex );
 	};
 
 } // namespace fgl::engine

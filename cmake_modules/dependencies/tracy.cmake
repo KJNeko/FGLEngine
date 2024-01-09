@@ -1,0 +1,5 @@
+#if (WIN32)
+add_subdirectory(${CMAKE_SOURCE_DIR}/dependencies/tracy)
+#else ()
+#find_package(tracy REQUIRED)
+#endif ()

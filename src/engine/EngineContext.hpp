@@ -12,26 +12,33 @@
 #include "Model.hpp"
 #include "Renderer.hpp"
 #include "Window.hpp"
+#include "engine/descriptors/DescriptorPool.hpp"
+#include "engine/systems/EntityRendererSystem.hpp"
 
 namespace fgl::engine
 {
 
 	class EngineContext
 	{
-		static constexpr int DEFAULT_WIDTH { 800 };
-		static constexpr int DEFAULT_HEIGHT { 600 };
+		static constexpr int DEFAULT_WIDTH { 1920 };
+		static constexpr int DEFAULT_HEIGHT { 1080 };
 
 		Window m_window { DEFAULT_WIDTH, DEFAULT_HEIGHT, "titor Engine" };
-		Device m_device { m_window };
-		Renderer m_renderer { m_window, m_device };
+		Renderer m_renderer { m_window };
 
-		std::vector< GameObject > game_objects;
+		GameObject::Map game_objects {};
+
+		EntityRendererSystem m_entity_renderer { Device::getInstance(), m_renderer.getSwapChainRenderPass() };
 
 		void loadGameObjects();
+
+		void initImGui();
+		void cleanupImGui();
 
 	  public:
 
 		EngineContext();
+		~EngineContext();
 		EngineContext( EngineContext&& other ) = delete;
 		EngineContext( const EngineContext& other ) = delete;
 		EngineContext& operator=( const EngineContext& other ) = delete;

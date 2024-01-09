@@ -8,43 +8,97 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
+#include <algorithm>
+#include <filesystem>
+#include <memory>
 #include <vector>
 
 #include "Device.hpp"
+#include "engine/buffers/Buffer.hpp"
+#include "engine/buffers/BufferSuballocation.hpp"
+#include "engine/buffers/vector/DeviceVector.hpp"
+#include "engine/buffers/vector/HostVector.hpp"
+#include "utils.hpp"
 
 namespace fgl::engine
 {
 
+	struct Vertex
+	{
+		glm::vec3 m_position { 0.0f, 0.0f, 0.0f };
+		glm::vec3 m_color { 1.0f, 1.0f, 1.0f };
+		glm::vec3 m_normal { 0.0f, 0.0f, 0.0f };
+		glm::vec2 m_uv { 0.0f, 0.0f };
+
+		static std::vector< vk::VertexInputBindingDescription > getBindingDescriptions();
+		static std::vector< vk::VertexInputAttributeDescription > getAttributeDescriptions();
+
+		bool operator==( const Vertex& other ) const
+		{
+			return m_position == other.m_position && m_color == other.m_color && m_normal == other.m_normal
+			    && m_uv == other.m_uv;
+		}
+	};
+
+	struct ModelMatrixInfo
+	{
+		glm::mat4 model_matrix;
+		glm::mat4 normal_matrix;
+	};
+
+	using VertexBufferSuballocation = DeviceVector< Vertex >;
+
+	using IndexBufferSuballocation = DeviceVector< std::uint32_t >;
+
+	using DrawParameterBufferSuballocation = HostVector< vk::DrawIndexedIndirectCommand >;
+
+	using ModelMatrixInfoBufferSuballocation = HostVector< ModelMatrixInfo >;
+
 	class Model
 	{
 		Device& m_device;
-		VkBuffer m_vertex_buffer;
-		VkDeviceMemory m_buffer_memory;
-		std::uint32_t m_vertex_count;
+		VertexBufferSuballocation m_vertex_buffer;
+
+		bool has_index_buffer { false };
+		IndexBufferSuballocation m_index_buffer;
+
+		vk::DrawIndexedIndirectCommand
+			buildParameters( VertexBufferSuballocation& vertex_buffer, IndexBufferSuballocation& index_buffer );
+
+		vk::DrawIndexedIndirectCommand m_draw_parameters;
 
 	  public:
 
-		struct Vertex
+		struct Builder
 		{
-			glm::vec3 m_pos;
-			glm::vec3 m_color;
+			std::vector< Vertex > verts {};
+			std::vector< std::uint32_t > indicies {};
+			Buffer& m_vertex_buffer;
+			Buffer& m_index_buffer;
 
-			static std::vector< VkVertexInputBindingDescription > getBindingDescriptions();
-			static std::vector< VkVertexInputAttributeDescription > getAttributeDescriptions();
+			Builder() = delete;
+
+			Builder( Buffer& parent_vertex_buffer, Buffer& parent_index_buffer ) :
+			  m_vertex_buffer( parent_vertex_buffer ),
+			  m_index_buffer( parent_index_buffer )
+			{}
+
+			void loadModel( const std::filesystem::path& filepath );
 		};
 
-	  private:
+		vk::DrawIndexedIndirectCommand getDrawCommand() const { return m_draw_parameters; }
 
-		void createVertexBuffers( const std::vector< Vertex >& verts );
+		static std::unique_ptr< Model > createModel(
+			Device& device, const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer );
 
-	  public:
+		void syncBuffers( vk::CommandBuffer& cmd_buffer );
 
-		void bind( VkCommandBuffer buffer );
-		void draw( VkCommandBuffer buffer );
+		void bind( vk::CommandBuffer& cmd_buffer );
+		void draw( vk::CommandBuffer& cmd_buffer );
 
-		Model( Device& device, const std::vector< Vertex >& verts );
+		Model( Device& device, const Builder& builder );
 
-		~Model();
+		~Model() = default;
 
 		Model( const Model& model ) = delete;
 		Model& operator=( const Model& other ) = delete;

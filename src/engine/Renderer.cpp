@@ -16,22 +16,19 @@
 #include "Device.hpp"
 #include "SwapChain.hpp"
 #include "Window.hpp"
-#include "engine/debug_gui/DebugGUI.hpp"
 
 //clang-format: off
-#include <Tracy/tracy/TracyVulkan.hpp>
+#include <tracy/TracyVulkan.hpp>
 
 //clang-format: on
 
 namespace fgl::engine
 {
 
-	Renderer::Renderer( Window& window, Device& device ) : m_window( window ), m_device( device )
+	Renderer::Renderer( Window& window ) : m_window( window )
 	{
 		recreateSwapchain();
 		createCommandBuffers();
-
-		debug::initDebugGUI();
 	}
 
 	Renderer::~Renderer()
@@ -43,27 +40,20 @@ namespace fgl::engine
 	{
 		m_command_buffer.resize( SwapChain::MAX_FRAMES_IN_FLIGHT );
 
-		VkCommandBufferAllocateInfo alloc_info { .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-			                                     .commandPool = m_device.getCommandPool(),
-			                                     .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-			                                     .commandBufferCount =
-			                                         static_cast< std::uint32_t >( m_command_buffer.size() ) };
+		vk::CommandBufferAllocateInfo alloc_info {};
+		alloc_info.pNext = VK_NULL_HANDLE;
+		alloc_info.commandPool = Device::getInstance().getCommandPool();
+		alloc_info.level = vk::CommandBufferLevel::ePrimary;
+		alloc_info.commandBufferCount = static_cast< std::uint32_t >( m_command_buffer.size() );
 
-		if ( vkAllocateCommandBuffers( m_device.device(), &alloc_info, m_command_buffer.data() ) != VK_SUCCESS )
+		if ( Device::getInstance().device().allocateCommandBuffers( &alloc_info, m_command_buffer.data() )
+		     != vk::Result::eSuccess )
 			throw std::runtime_error( "Failed to allocate command buffers" );
-
-#ifdef TRACY_ENABLE
-		for ( auto& cmd_buffer : m_command_buffer )
-		{
-			auto context =
-				TracyVkContext( m_device.phyDevice(), m_device.device(), m_device.graphicsQueue(), cmd_buffer )
-					m_tracy_ctx.emplace_back( context );
-		}
-#endif
 	}
 
 	void Renderer::recreateSwapchain()
 	{
+		std::cout << "Rebuilding swap chain" << std::endl;
 		auto extent { m_window.getExtent() };
 
 		while ( extent.width == 0 || extent.height == 0 )
@@ -72,14 +62,14 @@ namespace fgl::engine
 			glfwWaitEvents();
 		}
 
-		vkDeviceWaitIdle( m_device.device() );
+		Device::getInstance().device().waitIdle();
 
 		if ( m_swapchain == nullptr )
-			m_swapchain = std::make_unique< SwapChain >( m_device, extent );
+			m_swapchain = std::make_unique< SwapChain >( extent );
 		else
 		{
 			std::shared_ptr< SwapChain > old_swap_chain { std::move( m_swapchain ) };
-			m_swapchain = std::make_unique< SwapChain >( m_device, extent, old_swap_chain );
+			m_swapchain = std::make_unique< SwapChain >( extent, old_swap_chain );
 
 			if ( !old_swap_chain->compareSwapFormats( *m_swapchain.get() ) )
 				throw std::runtime_error( "Swap chain image(or depth) format has changed!" );
@@ -90,40 +80,35 @@ namespace fgl::engine
 	{
 		if ( m_command_buffer.size() == 0 ) return;
 
-		for ( auto& ctx : m_tracy_ctx ) TracyVkDestroy( ctx );
-
-		vkFreeCommandBuffers(
-			m_device.device(),
-			m_device.getCommandPool(),
+		Device::getInstance().device().freeCommandBuffers(
+			Device::getInstance().getCommandPool(),
 			static_cast< std::uint32_t >( m_command_buffer.size() ),
 			m_command_buffer.data() );
 	}
 
-	VkCommandBuffer Renderer::beginFrame()
+	vk::CommandBuffer Renderer::beginFrame()
 	{
 		assert( !is_frame_started && "Cannot begin frame while frame is already in progress" );
-		auto result { m_swapchain->acquireNextImage( &current_image_idx ) };
+		vk::Result result { m_swapchain->acquireNextImage( &current_image_idx ) };
 
-		if ( result == VK_ERROR_OUT_OF_DATE_KHR )
+		if ( result == vk::Result::eErrorOutOfDateKHR )
 		{
 			recreateSwapchain();
 			return nullptr;
 		}
 
-		if ( result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR )
+		if ( result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR )
 			throw std::runtime_error( "Failed to acquire support chain image" );
 
 		is_frame_started = true;
 		auto command_buffer { getCurrentCommandbuffer() };
 
-		VkCommandBufferBeginInfo begin_info {
-			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-		};
+		vk::CommandBufferBeginInfo begin_info {};
+		begin_info.pNext = VK_NULL_HANDLE;
+		begin_info.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+		begin_info.pInheritanceInfo = VK_NULL_HANDLE;
 
-		if ( vkBeginCommandBuffer( command_buffer, &begin_info ) != VK_SUCCESS )
-			throw std::runtime_error( "Failed to begin recording to command buffer" );
-
-		TracyVkCollect( getCurrentTracyCTX(), command_buffer );
+		command_buffer.begin( begin_info );
 
 		return command_buffer;
 	}
@@ -139,54 +124,73 @@ namespace fgl::engine
 
 		const auto result { m_swapchain->submitCommandBuffers( &command_buffer, &current_image_idx ) };
 
-		if ( result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_window.wasWindowResized() )
+		if ( result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR
+		     || m_window.wasWindowResized() )
 		{
 			m_window.resetWindowResizedFlag();
 			recreateSwapchain();
 		}
-		else if ( result != VK_SUCCESS )
+		else if ( result != vk::Result::eSuccess )
 			throw std::runtime_error( "Failed to submit commmand buffer" );
 
 		is_frame_started = false;
-		current_frame_idx = ( current_frame_idx + 1 ) % SwapChain::MAX_FRAMES_IN_FLIGHT;
+		current_frame_idx = static_cast< std::uint8_t >( ( current_frame_idx + 1 ) % SwapChain::MAX_FRAMES_IN_FLIGHT );
 	}
 
-	void Renderer::beginSwapchainRendererPass( VkCommandBuffer buffer )
+	void Renderer::beginSwapchainRendererPass( vk::CommandBuffer buffer )
 	{
 		assert( is_frame_started && "Cannot call beginSwapChainRenderPass if frame is not in progress" );
 		assert(
 			buffer == getCurrentCommandbuffer()
 			&& "Cannot begin render pass on command buffer from a different frame" );
 
-		std::array< VkClearValue, 2 > clear_values {};
-		clear_values[ 0 ].color = { { 0.1f, 0.1f, 0.1f, 0.1f } };
-		clear_values[ 1 ].depthStencil = { 1.0f, 0 };
+		//TODO: Attach this stuff into the swapchain creation via attachments and request it again here
+		//std::array< vk::ClearValue, 5 > clear_values {};
 
-		VkRenderPassBeginInfo render_pass_info { .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-			                                     .renderPass = m_swapchain->getRenderPass(),
-			                                     .framebuffer = m_swapchain->getFrameBuffer( current_image_idx ),
-			                                     .renderArea = { .offset = { 0, 0 },
-			                                                     .extent = m_swapchain->getSwapChainExtent() },
-			                                     .clearValueCount = static_cast< std::uint32_t >( clear_values.size() ),
-			                                     .pClearValues = clear_values.data() };
+		std::vector< vk::ClearValue > clear_values { m_swapchain->getClearValues() };
 
-		vkCmdBeginRenderPass( buffer, &render_pass_info, VK_SUBPASS_CONTENTS_INLINE );
+		vk::RenderPassBeginInfo render_pass_info {};
+		render_pass_info.pNext = VK_NULL_HANDLE;
+		render_pass_info.renderPass = m_swapchain->getRenderPass();
+		render_pass_info.framebuffer = m_swapchain->getFrameBuffer( static_cast< int >( current_image_idx ) );
+		render_pass_info.renderArea = { .offset = { 0, 0 }, .extent = m_swapchain->getSwapChainExtent() };
+		render_pass_info.clearValueCount = static_cast< std::uint32_t >( clear_values.size() );
+		render_pass_info.pClearValues = clear_values.data();
 
-		VkViewport viewport {
-			.x = 0.0f,
-			.y = 0.0f,
-			.width = static_cast< float >( m_swapchain->getSwapChainExtent().width ),
-			.height = static_cast< float >( m_swapchain->getSwapChainExtent().height ),
-			.minDepth = 0.0f,
-			.maxDepth = 1.0f,
-		};
+		buffer.beginRenderPass( &render_pass_info, vk::SubpassContents::eInline );
 
-		VkRect2D scissor { { 0, 0 }, m_swapchain->getSwapChainExtent() };
-		vkCmdSetViewport( buffer, 0, 1, &viewport );
-		vkCmdSetScissor( buffer, 0, 1, &scissor );
+		vk::Viewport viewport {};
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = static_cast< float >( m_swapchain->getSwapChainExtent().width );
+		viewport.height = static_cast< float >( m_swapchain->getSwapChainExtent().height );
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+
+		vk::Rect2D scissor { { 0, 0 }, m_swapchain->getSwapChainExtent() };
+		buffer.setViewport( 0, 1, &viewport );
+		buffer.setScissor( 0, 1, &scissor );
 	}
 
-	void Renderer::endSwapchainRendererPass( VkCommandBuffer buffer )
+	void Renderer::nextPass()
+	{
+		vk::Viewport viewport {};
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = static_cast< float >( m_swapchain->getSwapChainExtent().width );
+		viewport.height = static_cast< float >( m_swapchain->getSwapChainExtent().height );
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+
+		vk::Rect2D scissor { { 0, 0 }, m_swapchain->getSwapChainExtent() };
+
+		auto buffer = getCurrentCommandbuffer();
+		buffer.nextSubpass( vk::SubpassContents::eInline );
+		buffer.setViewport( 0, 1, &viewport );
+		buffer.setScissor( 0, 1, &scissor );
+	}
+
+	void Renderer::endSwapchainRendererPass( vk::CommandBuffer buffer )
 	{
 		assert( is_frame_started && "Cannot call endSwapChainRenderPass if frame is not in progress" );
 		assert(

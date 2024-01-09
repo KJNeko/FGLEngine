@@ -15,7 +15,7 @@
 #include "Window.hpp"
 
 //clang-format: off
-#include <Tracy/tracy/TracyVulkan.hpp>
+#include <tracy/TracyVulkan.hpp>
 
 //clang-format: on
 
@@ -25,24 +25,28 @@ namespace fgl::engine
 	class Renderer
 	{
 		Window& m_window;
-		Device& m_device;
-		std::unique_ptr< SwapChain > m_swapchain { std::make_unique< SwapChain >( m_device, m_window.getExtent() ) };
+		std::unique_ptr< SwapChain > m_swapchain { std::make_unique< SwapChain >( m_window.getExtent() ) };
 
-		std::vector< VkCommandBuffer > m_command_buffer;
+		std::vector< vk::CommandBuffer > m_command_buffer {};
 
-		std::vector< TracyVkCtx > m_tracy_ctx;
+		std::vector< TracyVkCtx > m_tracy_ctx {};
 
 		void createCommandBuffers();
 		void freeCommandBuffers();
 		void recreateSwapchain();
 
 		uint32_t current_image_idx {};
-		int current_frame_idx { 0 };
+		std::uint8_t current_frame_idx { 0 };
 		bool is_frame_started { false };
 
 	  public:
 
-		int getFrameIndex() const
+		DescriptorSet& getGBufferDescriptor( std::uint8_t frame_idx ) const
+		{
+			return m_swapchain->getGBufferDescriptor( frame_idx );
+		}
+
+		std::uint8_t getFrameIndex() const
 		{
 			assert( is_frame_started && "Cannot get frame index while frame not in progress" );
 			return current_frame_idx;
@@ -50,28 +54,36 @@ namespace fgl::engine
 
 		bool isFrameInProgress() const { return is_frame_started; }
 
-		VkCommandBuffer getCurrentCommandbuffer() const
+		vk::CommandBuffer getCurrentCommandbuffer() const
 		{
 			assert( is_frame_started && "Cannot get command buffer while frame not in progress" );
 			return m_command_buffer[ current_frame_idx ];
 		}
 
-		TracyVkCtx getCurrentTracyCTX() const { return m_tracy_ctx[ current_image_idx ]; }
+		TracyVkCtx getCurrentTracyCTX() const
+		{
+#ifdef TRACY_ENABLED
+			return m_tracy_ctx[ current_frame_idx ];
+#else
+			return nullptr;
+#endif
+		}
 
-		VkRenderPass getSwapChainRenderPass() const { return m_swapchain->getRenderPass(); }
+		vk::RenderPass getSwapChainRenderPass() const { return m_swapchain->getRenderPass(); }
 
 		float getAspectRatio() const { return m_swapchain->extentAspectRatio(); }
 
-		VkCommandBuffer beginFrame();
+		vk::CommandBuffer beginFrame();
 		void endFrame();
-		void beginSwapchainRendererPass( VkCommandBuffer buffer );
-		void endSwapchainRendererPass( VkCommandBuffer buffer );
+		void beginSwapchainRendererPass( vk::CommandBuffer buffer );
+		void endSwapchainRendererPass( vk::CommandBuffer buffer );
 
-		Renderer( Window& window, Device& device );
+		Renderer( Window& window );
 		~Renderer();
 		Renderer( Renderer&& other ) = delete;
 		Renderer( const Renderer& other ) = delete;
 		Renderer& operator=( const Renderer& other ) = delete;
+		void nextPass();
 	};
 
 } // namespace fgl::engine
