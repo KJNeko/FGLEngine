@@ -6,6 +6,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include <variant>
+
 #include "engine/buffers/Buffer.hpp"
 #include "engine/buffers/BufferSuballocation.hpp"
 #include "engine/image/ImageView.hpp"
