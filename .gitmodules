@@ -34,3 +34,6 @@
 [submodule "dependencies/glfw3"]
 	path = dependencies/glfw3
 	url = https://github.com/glfw/glfw.git
+[submodule "dependencies/tinygltf"]
+	path = dependencies/tinygltf
+	url = https://github.com/syoyo/tinygltf.git

@@ -4,55 +4,29 @@
 
 #pragma once
 
-#include "Buffer.hpp"
 #include "engine/Device.hpp"
 #include "engine/concepts/is_suballocation.hpp"
 
 namespace fgl::engine
 {
+	class Buffer;
+	class BufferHandle;
+	class SuballocationView;
+
+	struct BufferSuballocationHandle;
 
 	class BufferSuballocation
 	{
 	  protected:
 
-		Buffer& m_buffer;
-		BufferSuballocationInfo m_info {};
+		std::shared_ptr< BufferSuballocationHandle > m_handle;
 
-		void* m_mapped { nullptr };
+		vk::DeviceSize m_offset { 0 };
+		vk::DeviceSize m_size { 0 };
 
-		void flush( vk::DeviceSize beg, vk::DeviceSize end )
-		{
-			assert( m_mapped != nullptr && "BufferSuballocationT::flush() called before map()" );
-			vk::MappedMemoryRange range {};
-			range.memory = m_buffer.getMemory();
-			range.offset = m_info.offset + beg;
+		void flush( vk::DeviceSize beg, vk::DeviceSize end );
 
-			const vk::DeviceSize min_atom_size { Device::getInstance().m_properties.limits.nonCoherentAtomSize };
-			const auto size { end - beg };
-
-			range.size = align( size, min_atom_size );
-
-			if ( range.size > m_info.size ) range.size = VK_WHOLE_SIZE;
-
-			if ( Device::getInstance().device().flushMappedMemoryRanges( 1, &range ) != vk::Result::eSuccess )
-				throw std::runtime_error( "Failed to flush memory" );
-		}
-
-		BufferSuballocation& operator=( BufferSuballocation&& other )
-		{
-			//Free ourselves if we are valid
-			if ( this->m_info.offset != std::numeric_limits< decltype( m_info.offset ) >::max() )
-				m_buffer.free( m_info );
-
-			//Take their info
-			m_info = other.m_info;
-
-			//Set other to be invalid
-			other.m_info.offset = std::numeric_limits< decltype( m_info.offset ) >::max();
-			other.m_info.size = 0;
-
-			return *this;
-		}
+		BufferSuballocation& operator=( BufferSuballocation&& other );
 
 	  public:
 
@@ -62,57 +36,26 @@ namespace fgl::engine
 		BufferSuballocation( const BufferSuballocation& ) = delete;
 		BufferSuballocation& operator=( const BufferSuballocation& ) = delete;
 
-		BufferSuballocation( BufferSuballocation&& other ) : m_buffer( other.m_buffer )
-		{
-			if ( this->m_info.offset != std::numeric_limits< decltype( m_info.offset ) >::max() )
-				m_buffer.free( m_info );
+		BufferSuballocation( std::shared_ptr< BufferSuballocationHandle > handle );
+		BufferSuballocation( BufferSuballocation&& other );
 
-			m_info = other.m_info;
-			m_mapped = other.m_mapped;
+		SuballocationView view( const vk::DeviceSize offset, const vk::DeviceSize size ) const;
 
-			other.m_info.offset = std::numeric_limits< decltype( m_info.offset ) >::max();
-			other.m_info.size = 0;
-			other.m_mapped = nullptr;
-		}
+		void* ptr() const;
 
-		BufferSuballocation( Buffer& buffer, const std::size_t memory_size, const std::uint32_t alignment = 1 ) :
-		  m_buffer( buffer ),
-		  m_info( buffer.suballocate( memory_size, alignment ) ),
-		  m_mapped( m_buffer.isMappable() ? buffer.map( m_info ) : nullptr )
-		{
-			assert( memory_size != 0 && "BufferSuballocation::BufferSuballocation() called with memory_size == 0" );
-		}
+		vk::DeviceSize size() const { return m_size; }
 
-		BufferSuballocation(
-			std::unique_ptr< Buffer >& buffer_ptr, const std::size_t memory_size, const std::uint32_t alignment = 1 ) :
-		  BufferSuballocation( *buffer_ptr.get(), memory_size, alignment )
-		{
-			assert( buffer_ptr != nullptr && "BufferSuballocation::BufferSuballocation() called with nullptr" );
-		}
+		Buffer& getBuffer() const;
 
-		vk::DeviceSize size() const { return m_info.size; }
+		vk::Buffer getVkBuffer() const;
 
-		Buffer& getBuffer() const { return m_buffer; }
+		vk::DeviceSize getOffset() const { return m_offset; }
 
-		vk::Buffer getVkBuffer() const { return m_buffer.getBuffer(); }
+		vk::DeviceSize offset() const { return m_offset; }
 
-		vk::DeviceSize getOffset() const { return m_info.offset; }
+		vk::DescriptorBufferInfo descriptorInfo() const;
 
-		vk::DeviceSize offset() const { return m_info.offset; }
-
-		vk::DescriptorBufferInfo descriptorInfo() const
-		{
-			vk::DescriptorBufferInfo info {};
-			info.buffer = m_buffer.getBuffer();
-			info.offset = m_info.offset;
-			info.range = m_info.size;
-			return info;
-		}
-
-		~BufferSuballocation()
-		{
-			if ( m_info.offset != std::numeric_limits< decltype( m_info.offset ) >::max() ) m_buffer.free( m_info );
-		}
+		~BufferSuballocation() = default;
 	};
 
 	//! Single element allocation of T
@@ -126,20 +69,20 @@ namespace fgl::engine
 		HostSingleT( HostSingleT&& ) = delete;
 		HostSingleT& operator=( const HostSingleT& ) = delete;
 
-		HostSingleT( Buffer& buffer ) : BufferSuballocation( buffer, sizeof( T ), alignof( T ) ) {}
+		HostSingleT( Buffer& buffer ) : BufferSuballocation( buffer.suballocate( sizeof( T ), alignof( T ) ) ) {}
 
 		HostSingleT& operator=( T& t )
 		{
 			ZoneScoped;
 
-			*static_cast< T* >( this->m_mapped ) = t;
+			*static_cast< T* >( this->ptr() ) = t;
 
 			flush();
 
 			return *this;
 		}
 
-		void flush() { BufferSuballocation::flush( 0, this->m_info.size ); }
+		void flush() { BufferSuballocation::flush( 0, this->m_size ); }
 	};
 
 	template < typename T >

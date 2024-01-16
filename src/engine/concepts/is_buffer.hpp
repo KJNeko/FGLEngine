@@ -10,8 +10,6 @@
 
 namespace fgl::engine
 {
-	struct BufferSuballocationInfo;
-
 	template < typename T > concept is_buffer = std::same_as< T, Buffer >;
 
 	template < typename T > concept is_buffer_ref = is_buffer< std::remove_reference_t< T > >;

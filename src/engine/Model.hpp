@@ -33,6 +33,8 @@ namespace fgl::engine
 		static std::vector< vk::VertexInputBindingDescription > getBindingDescriptions();
 		static std::vector< vk::VertexInputAttributeDescription > getAttributeDescriptions();
 
+		Vertex() noexcept = default;
+
 		bool operator==( const Vertex& other ) const
 		{
 			return m_position == other.m_position && m_color == other.m_color && m_normal == other.m_normal
@@ -54,27 +56,39 @@ namespace fgl::engine
 
 	using ModelMatrixInfoBufferSuballocation = HostVector< ModelMatrixInfo >;
 
+	struct Primitive
+	{
+		VertexBufferSuballocation m_vertex_buffer;
+		IndexBufferSuballocation m_index_buffer;
+
+		Primitive( VertexBufferSuballocation&& vertex_buffer, IndexBufferSuballocation&& index_buffer ) :
+		  m_vertex_buffer( std::move( vertex_buffer ) ),
+		  m_index_buffer( std::move( index_buffer ) )
+		{}
+
+		Primitive() = delete;
+		Primitive( const Primitive& other ) = delete;
+		Primitive( Primitive&& other ) = default;
+	};
+
 	class Model
 	{
 		Device& m_device;
-		VertexBufferSuballocation m_vertex_buffer;
 
-		bool has_index_buffer { false };
-		IndexBufferSuballocation m_index_buffer;
+		std::vector< ::fgl::engine::Primitive > m_primitives {};
 
-		vk::DrawIndexedIndirectCommand
-			buildParameters( VertexBufferSuballocation& vertex_buffer, IndexBufferSuballocation& index_buffer );
+		std::vector< vk::DrawIndexedIndirectCommand > buildParameters( const std::vector< Primitive >& primitives );
 
-		vk::DrawIndexedIndirectCommand m_draw_parameters;
+		std::vector< vk::DrawIndexedIndirectCommand > m_draw_parameters;
 
 	  public:
 
 		struct Builder
 		{
-			std::vector< Vertex > verts {};
-			std::vector< std::uint32_t > indicies {};
 			Buffer& m_vertex_buffer;
 			Buffer& m_index_buffer;
+
+			std::vector< ::fgl::engine::Primitive > m_primitives {};
 
 			Builder() = delete;
 
@@ -84,19 +98,18 @@ namespace fgl::engine
 			{}
 
 			void loadModel( const std::filesystem::path& filepath );
+			void loadObj( const std::filesystem::path& filepath );
+			void loadGltf( const std::filesystem::path& filepath );
 		};
 
-		vk::DrawIndexedIndirectCommand getDrawCommand() const { return m_draw_parameters; }
+		std::vector< vk::DrawIndexedIndirectCommand > getDrawCommand( const std::uint32_t index ) const;
 
 		static std::unique_ptr< Model > createModel(
 			Device& device, const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer );
 
 		void syncBuffers( vk::CommandBuffer& cmd_buffer );
 
-		void bind( vk::CommandBuffer& cmd_buffer );
-		void draw( vk::CommandBuffer& cmd_buffer );
-
-		Model( Device& device, const Builder& builder );
+		Model( Device& device, Builder& builder );
 
 		~Model() = default;
 

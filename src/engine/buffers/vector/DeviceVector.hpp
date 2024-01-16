@@ -36,9 +36,9 @@ namespace fgl::engine
 			assert( m_staging_buffer && "DeviceVector::stage() called without staging buffer" );
 
 			//Copy
-			vk::BufferCopy copy_region { m_staging_buffer->offset(), this->m_info.offset, this->m_info.size };
+			vk::BufferCopy copy_region { m_staging_buffer->offset(), this->m_offset, this->m_size };
 
-			command_buffer.copyBuffer( m_staging_buffer->getVkBuffer(), this->m_buffer.getVkBuffer(), copy_region );
+			command_buffer.copyBuffer( m_staging_buffer->getVkBuffer(), this->getVkBuffer(), copy_region );
 		}
 
 		void dropStaging() { m_staging_buffer.reset(); }

@@ -40,7 +40,7 @@ namespace fgl::engine
 		{
 			if ( this->m_stride == sizeof( T ) )
 			{
-				std::memcpy( this->m_mapped, vec.data(), this->count() * sizeof( T ) );
+				std::memcpy( this->ptr(), vec.data(), this->count() * sizeof( T ) );
 			}
 			else
 				assert( "Stride must be equal to sizeof(T)" );
@@ -73,7 +73,7 @@ namespace fgl::engine
 
 			if ( this->m_stride == sizeof( T ) )
 			{
-				std::memcpy( this->m_mapped, vec.data(), this->count() * sizeof( T ) );
+				std::memcpy( this->ptr(), vec.data(), this->count() * sizeof( T ) );
 			}
 			else
 				assert( "Stride must be equal to sizeof(T)" );

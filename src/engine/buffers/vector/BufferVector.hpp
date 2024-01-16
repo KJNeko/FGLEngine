@@ -24,18 +24,21 @@ namespace fgl::engine
 		BufferVector() = delete;
 
 		BufferVector( Buffer& buffer, std::uint32_t count, std::uint32_t stride ) :
-		  BufferSuballocation( buffer, count * stride, 1 ),
+		  BufferSuballocation( buffer.suballocate( count * stride ) ),
 		  m_count( count ),
 		  m_stride( stride )
 		{}
 
 		BufferVector( const BufferVector& ) = delete;
-		BufferVector( BufferVector&& ) = delete;
+		BufferVector( BufferVector&& ) = default;
 
 		BufferVector& operator=( BufferVector&& other )
 		{
-			this->m_buffer.free( this->m_info );
-			this->m_info = other.m_info;
+			m_count = other.m_count;
+			m_stride = other.m_stride;
+
+			BufferSuballocation::operator=( std::move( other ) );
+
 			return *this;
 		}
 
@@ -44,9 +47,9 @@ namespace fgl::engine
 	  public:
 
 		//! Returns the offset count from the start of the buffer to the first element
-		[[nodiscard]] std::uint32_t getOffsetCount()
+		[[nodiscard]] std::uint32_t getOffsetCount() const
 		{
-			return static_cast< std::uint32_t >( this->m_info.offset / m_stride );
+			return static_cast< std::uint32_t >( this->m_offset / m_stride );
 		}
 
 		[[nodiscard]] std::uint32_t count() const noexcept { return m_count; }
@@ -55,9 +58,9 @@ namespace fgl::engine
 
 		void resize( const std::uint32_t count )
 		{
-			BufferVector other { this->m_buffer, count, m_stride };
+			BufferVector other { this->getBuffer(), count, m_stride };
 
-			Device::getInstance().copyBuffer( this->m_buffer, other.m_buffer, 0, 0, this->size() );
+			Device::getInstance().copyBuffer( this->getBuffer(), other.getBuffer(), 0, 0, this->size() );
 
 			*this = std::move( other );
 		}

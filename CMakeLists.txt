@@ -38,13 +38,13 @@ file(GLOB VERT_SHADERS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.vert")
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/bin/shaders")
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/bin/models")
 
-file(GLOB MODELS "${CMAKE_CURRENT_SOURCE_DIR}/models/*.obj")
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/models" DESTINATION "${CMAKE_BINARY_DIR}/bin")
 
 foreach (MODEL IN LISTS MODELS)
 	get_filename_component(FILENAME ${MODEL} NAME)
 	add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/bin/models/${FILENAME}
 			COMMAND ${CMAKE_COMMAND} -E copy ${MODEL} ${CMAKE_BINARY_DIR}/bin/models/${FILENAME}
-			COMMENT "Copying ${MODEL}")
+			COMMENT " Copying ${MODEL} ")
 	list(APPEND OBJ_MODELS ${CMAKE_BINARY_DIR}/bin/models/${FILENAME})
 endforeach ()
 

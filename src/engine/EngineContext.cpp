@@ -239,6 +239,23 @@ namespace fgl::engine
 		{
 			std::shared_ptr< Model > model { Model::createModel(
 				Device::getInstance(),
+				"models/khronos-sponza/Sponza.gltf",
+				m_entity_renderer.getVertexBuffer(),
+				m_entity_renderer.getIndexBuffer() ) };
+
+			auto sponza = GameObject::createGameObject();
+			sponza.model = model;
+			sponza.transform.translation = { 0.0f, 0.0f, 0.0f };
+			sponza.transform.scale = { 0.007f, 0.007f, 0.007f };
+
+			sponza.model->syncBuffers( command_buffer );
+
+			game_objects.emplace( sponza.getId(), std::move( sponza ) );
+		}
+
+		{
+			std::shared_ptr< Model > model { Model::createModel(
+				Device::getInstance(),
 				"models/smooth_vase.obj",
 				m_entity_renderer.getVertexBuffer(),
 				m_entity_renderer.getIndexBuffer() ) };
@@ -253,6 +270,8 @@ namespace fgl::engine
 
 			game_objects.emplace( smooth_vase.getId(), std::move( smooth_vase ) );
 		}
+		/*
+
 		{
 			std::shared_ptr< Model > flat_model { Model::createModel(
 				Device::getInstance(),
@@ -287,6 +306,7 @@ namespace fgl::engine
 
 			game_objects.emplace( floor.getId(), std::move( floor ) );
 		}
+		 */
 
 		Device::getInstance().endSingleTimeCommands( command_buffer );
 

@@ -7,15 +7,6 @@
 #include <cassert>
 #include <cstring>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-
-#define TINYOBJLOADER_IMPLEMENTATION
-#include "tinyobjloader/tiny_obj_loader.h"
-
-#pragma GCC diagnostic pop
-
 #define GLM_ENABLE_EXPERIMENTAL
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -25,11 +16,19 @@
 #include <unordered_map>
 
 #include "engine/buffers/Buffer.hpp"
+#include "engine/buffers/SuballocationView.hpp"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#include "objectloaders/tiny_gltf.h"
+#include "objectloaders/tiny_obj_loader.h"
+#pragma GCC diagnostic pop
+
 #include "utils.hpp"
 
 namespace std
 {
-
 	template <>
 	struct hash< fgl::engine::Vertex >
 	{
@@ -46,29 +45,48 @@ namespace std
 namespace fgl::engine
 {
 
-	vk::DrawIndexedIndirectCommand Model::
-		buildParameters( VertexBufferSuballocation& vertex_buffer, IndexBufferSuballocation& index_buffer )
+	std::vector< vk::DrawIndexedIndirectCommand > Model::buildParameters( const std::vector< Primitive >& primitives )
 	{
-		vk::DrawIndexedIndirectCommand cmd;
+		std::vector< vk::DrawIndexedIndirectCommand > draw_parameters;
 
-		cmd.indexCount = index_buffer.count();
-		cmd.firstIndex = index_buffer.getOffsetCount();
+		for ( const auto& primitive : primitives )
+		{
+			vk::DrawIndexedIndirectCommand cmd;
+			cmd.indexCount = primitive.m_index_buffer.count();
+			cmd.firstIndex = primitive.m_index_buffer.getOffsetCount();
 
-		cmd.vertexOffset = static_cast< std::int32_t >( vertex_buffer.getOffsetCount() );
+			cmd.vertexOffset = static_cast< std::int32_t >( primitive.m_vertex_buffer.getOffsetCount() );
 
-		cmd.firstInstance = 0;
-		cmd.instanceCount = 1;
+			cmd.firstInstance = 0;
+			cmd.instanceCount = 1;
 
-		return cmd;
+			draw_parameters.emplace_back( std::move( cmd ) );
+		}
+
+		return draw_parameters;
 	}
 
-	Model::Model( Device& device, const Builder& builder ) :
+	std::vector< vk::DrawIndexedIndirectCommand > Model::getDrawCommand( const std::uint32_t index ) const
+	{
+		std::vector< vk::DrawIndexedIndirectCommand > draw_commands;
+		draw_commands.reserve( m_primitives.size() );
+		for ( const auto& cmd : m_draw_parameters )
+		{
+			auto new_cmd { cmd };
+			new_cmd.firstInstance = index;
+
+			draw_commands.push_back( new_cmd );
+		}
+
+		return draw_commands;
+	}
+
+	Model::Model( Device& device, Builder& builder ) :
 	  m_device( device ),
-	  m_vertex_buffer( builder.m_vertex_buffer, builder.verts ),
-	  has_index_buffer( builder.m_index_buffer.size() > 0 ),
-	  m_index_buffer( builder.m_index_buffer, builder.indicies ),
-	  m_draw_parameters( buildParameters( m_vertex_buffer, m_index_buffer ) )
-	{}
+	  m_draw_parameters( buildParameters( builder.m_primitives ) )
+	{
+		m_primitives = std::move( builder.m_primitives );
+	}
 
 	std::unique_ptr< Model > Model::
 		createModel( Device& device, const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer )
@@ -81,28 +99,11 @@ namespace fgl::engine
 
 	void Model::syncBuffers( vk::CommandBuffer& cmd_buffer )
 	{
-		m_vertex_buffer.stage( cmd_buffer );
-
-		m_index_buffer.stage( cmd_buffer );
-	}
-
-	void Model::bind( vk::CommandBuffer& cmd_buffer )
-	{
-		std::vector< vk::Buffer > vertex_buffers { m_vertex_buffer.getVkBuffer() };
-
-		cmd_buffer.bindVertexBuffers( 0, vertex_buffers, { 0 } );
-
-		if ( has_index_buffer ) cmd_buffer.bindIndexBuffer( m_index_buffer.getVkBuffer(), 0, vk::IndexType::eUint32 );
-	}
-
-	void Model::draw( vk::CommandBuffer& cmd_buffer )
-	{
-		cmd_buffer.drawIndexed(
-			m_draw_parameters.indexCount,
-			m_draw_parameters.instanceCount,
-			m_draw_parameters.firstIndex,
-			m_draw_parameters.vertexOffset,
-			m_draw_parameters.firstInstance );
+		for ( auto& primitive : m_primitives )
+		{
+			primitive.m_vertex_buffer.stage( cmd_buffer );
+			primitive.m_index_buffer.stage( cmd_buffer );
+		}
 	}
 
 	std::vector< vk::VertexInputBindingDescription > Vertex::getBindingDescriptions()
@@ -143,8 +144,160 @@ namespace fgl::engine
 
 	void Model::Builder::loadModel( const std::filesystem::path& filepath )
 	{
-		verts.clear();
-		indicies.clear();
+		if ( filepath.extension() == ".obj" )
+		{
+			loadObj( filepath );
+		}
+		else if ( filepath.extension() == ".gltf" )
+		{
+			loadGltf( filepath );
+		}
+		else
+			//Dunno
+			throw std::runtime_error( "Unknown model file extension" );
+	}
+
+	void Model::Builder::loadGltf( const std::filesystem::path& filepath )
+	{
+		std::cout << "Loading gltf model " << filepath << std::endl;
+
+		if ( !std::filesystem::exists( filepath ) ) throw std::runtime_error( "File does not exist" );
+
+		m_primitives.clear();
+
+		tinygltf::Model model {};
+		tinygltf::TinyGLTF loader {};
+		std::string err;
+		std::string warn;
+
+		loader.RemoveImageLoader();
+
+		loader.LoadASCIIFromFile( &model, &err, &warn, filepath );
+
+		if ( !err.empty() ) throw std::runtime_error( err );
+
+		if ( !warn.empty() )
+			std::cout << "Warning while loading model \"" << filepath << "\"\nWarning:" << warn << std::endl;
+
+		for ( const tinygltf::Mesh& mesh : model.meshes )
+		{
+			for ( const tinygltf::Primitive& primitive : mesh.primitives )
+			{
+				//TODO: Implement modes
+
+				//Load indicies
+				std::vector< std::uint32_t > indicies_data;
+				{
+					auto& indicies_accessor { model.accessors.at( primitive.indices ) };
+					auto& buffer_view { model.bufferViews.at( indicies_accessor.bufferView ) };
+					auto& buffer { model.buffers.at( buffer_view.buffer ) };
+
+					indicies_data.resize( static_cast< std::uint64_t >( indicies_accessor.count ) );
+
+					assert( indicies_accessor.type == TINYGLTF_TYPE_SCALAR );
+
+					if ( indicies_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT )
+					{
+						unsigned short* data { reinterpret_cast< unsigned short* >(
+							buffer.data.data() + buffer_view.byteOffset + indicies_accessor.byteOffset ) };
+						for ( std::size_t i = 0; i < indicies_accessor.count; i++ )
+						{
+							indicies_data[ i ] = data[ i ];
+						}
+					}
+					else if ( indicies_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT )
+					{
+						std::memcpy(
+							indicies_data.data(),
+							buffer.data.data() + buffer_view.byteOffset + indicies_accessor.byteOffset,
+							static_cast< std::uint64_t >( indicies_accessor.count ) * sizeof( std::uint32_t ) );
+					}
+					else
+						throw std::runtime_error( "Unknown index type" );
+				}
+
+				//Load positions
+				std::vector< glm::vec3 > position_data;
+				{
+					auto& position_accessor { model.accessors.at( primitive.attributes.at( "POSITION" ) ) };
+					auto& buffer_view { model.bufferViews.at( position_accessor.bufferView ) };
+					auto& buffer { model.buffers.at( buffer_view.buffer ) };
+
+					position_data.resize( static_cast< std::uint64_t >( position_accessor.count ) );
+
+					//Check the type
+					assert( position_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT );
+					assert( position_accessor.type == TINYGLTF_TYPE_VEC3 );
+					static_assert( sizeof( glm::vec3 ) == sizeof( float ) * 3, "glm::vec3 is not three floats" );
+
+					std::memcpy(
+						position_data.data(),
+						buffer.data.data() + buffer_view.byteOffset + position_accessor.byteOffset,
+						static_cast< std::uint64_t >( position_accessor.count ) * sizeof( glm::vec3 ) );
+				}
+
+				std::vector< glm::vec3 > normals;
+
+				if ( primitive.attributes.find( "NORMAL" ) != primitive.attributes.end() )
+				{
+					auto& normal_accessor { model.accessors.at( primitive.attributes.at( "NORMAL" ) ) };
+					auto& buffer_view { model.bufferViews.at( normal_accessor.bufferView ) };
+					auto& buffer { model.buffers.at( buffer_view.buffer ) };
+
+					normals.resize( static_cast< std::uint64_t >( normal_accessor.count ) );
+
+					//Check the type
+					assert( normal_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT );
+					assert( normal_accessor.type == TINYGLTF_TYPE_VEC3 );
+
+					std::memcpy(
+						normals.data(),
+						buffer.data.data() + buffer_view.byteOffset + normal_accessor.byteOffset,
+						static_cast< std::uint64_t >( normal_accessor.count ) * sizeof( glm::vec3 ) );
+				}
+				else
+					normals.resize( position_data.size() );
+
+				std::vector< Vertex > verts;
+				verts.resize( position_data.size() );
+				for ( std::size_t i = 0; i < position_data.size(); i++ )
+				{
+					//Fix position to be -Z UP
+					//verts[ i ].m_position = position_data[ i ];
+					verts[ i ].m_position = { position_data[ i ].x, -position_data[ i ].y, position_data[ i ].z };
+					verts[ i ].m_normal = normals[ i ];
+				}
+
+				VertexBufferSuballocation vertex_buffer { m_vertex_buffer, verts };
+				IndexBufferSuballocation index_buffer { m_index_buffer, indicies_data };
+
+				Primitive prim { std::move( vertex_buffer ), std::move( index_buffer ) };
+
+				m_primitives.emplace_back( std::move( prim ) );
+			}
+
+			std::cout << "Mesh has " << mesh.primitives.size() << " primitives" << std::endl;
+		}
+
+		for ( const tinygltf::Scene& scene : model.scenes )
+		{
+			std::cout << "Loading scene " << scene.name << std::endl;
+			std::cout << "Scene has " << scene.nodes.size() << " nodes" << std::endl;
+
+			for ( auto child : scene.nodes )
+			{
+				std::cout << "Child: " << child << std::endl;
+			}
+		}
+
+		std::cout << "Scenes: " << model.scenes.size() << std::endl;
+
+		std::cout << "Meshes: " << model.meshes.size() << std::endl;
+	}
+
+	void Model::Builder::loadObj( const std::filesystem::path& filepath )
+	{
+		m_primitives.clear();
 
 		tinyobj::attrib_t attrib {};
 		std::vector< tinyobj::shape_t > shapes {};
@@ -156,6 +309,9 @@ namespace fgl::engine
 			throw std::runtime_error( warn + error );
 
 		std::unordered_map< Vertex, std::uint32_t > unique_verts {};
+
+		std::vector< Vertex > verts;
+		std::vector< std::uint32_t > indicies;
 
 		for ( const auto& shape : shapes )
 		{
@@ -212,6 +368,10 @@ namespace fgl::engine
 				}
 			}
 		}
+
+		m_primitives.emplace_back(
+			VertexBufferSuballocation( m_vertex_buffer, std::move( verts ) ),
+			IndexBufferSuballocation( m_index_buffer, std::move( indicies ) ) );
 
 		std::cout << unique_verts.size() << " unique verts" << std::endl;
 	}

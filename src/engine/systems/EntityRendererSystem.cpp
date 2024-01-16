@@ -72,8 +72,6 @@ namespace fgl::engine
 		std::vector< vk::DrawIndexedIndirectCommand > draw_commands;
 		std::vector< ModelMatrixInfo > model_matrices;
 
-		GameObject* previous_obj { nullptr };
-
 		for ( auto& [ key, obj ] : info.game_objects )
 		{
 			TracyVkZone( info.tracy_ctx, command_buffer, "Render game object" );
@@ -82,24 +80,19 @@ namespace fgl::engine
 			ModelMatrixInfo matrix_info { .model_matrix = obj.transform.mat4(),
 				                          .normal_matrix = obj.transform.normalMatrix() };
 
+			std::vector< vk::DrawIndexedIndirectCommand > cmds { obj.model->getDrawCommand( model_matrices.size() ) };
+
 			model_matrices.push_back( matrix_info );
 
-			//Does the previous draw_command use the same model as us?
-			if ( !draw_commands.empty() && previous_obj && previous_obj->model == obj.model )
-			{
-				//If so, we can just increment the instance count
-				draw_commands.back().instanceCount++;
-			}
-			else
-			{
-				//Otherwise we need to create a new draw command
-				draw_commands.push_back( obj.model->getDrawCommand() );
+			//TODO: Implement batching
 
-				draw_commands.back().firstInstance = static_cast< std::uint32_t >( model_matrices.size() - 1 );
-			}
+			//draw_commands.push_back( obj.model->getDrawCommand() );
 
-			previous_obj = &obj;
+			//Push back draw commands
+			draw_commands.insert( draw_commands.end(), cmds.begin(), cmds.end() );
 		}
+
+		assert( draw_commands.size() > 0 && "No draw commands to render" );
 
 		auto& draw_parameter_buffer { m_draw_parameter_buffers[ info.frame_idx ] };
 

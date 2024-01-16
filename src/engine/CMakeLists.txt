@@ -21,7 +21,7 @@ target_precompile_headers(FGLEngine PRIVATE
 
 target_compile_definitions(FGLEngine PUBLIC VULKAN_HPP_FLAGS_MASK_TYPE_AS_PUBLIC)
 
-target_link_libraries(FGLEngine PUBLIC Vulkan::Vulkan glfw glm FGLImGui Tracy::TracyClient VMA)
+target_link_libraries(FGLEngine PUBLIC Vulkan::Vulkan glfw glm FGLImGui Tracy::TracyClient VMA FGLLoader)
 target_include_directories(FGLEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
 set_target_properties(FGLEngine PROPERTIES COMPILE_FLAGS ${FGL_FLAGS})
 #target_compile_definitions(FGLEngine PRIVATE TRACY_ENABLE=1)
