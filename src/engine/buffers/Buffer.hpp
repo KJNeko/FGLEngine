@@ -61,13 +61,21 @@ namespace fgl::engine
 			vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties );
 
 		~BufferHandle();
+
+		auto address() const { return m_alloc_info.deviceMemory; }
+
+		auto size() const { return m_alloc_info.size; }
 	};
 
 	class Buffer
 	{
+		inline static std::vector< std::weak_ptr< BufferHandle > > m_buffer_handles {};
+
 		std::shared_ptr< BufferHandle > m_handle;
 
 	  public:
+
+		static std::vector< std::weak_ptr< BufferHandle > > getActiveBufferHandles();
 
 		vk::Buffer& getVkBuffer() { return m_handle->m_buffer; }
 
@@ -85,6 +93,7 @@ namespace fgl::engine
 		Buffer( const Buffer& other ) = delete;
 		Buffer( Buffer&& other ) = delete;
 		Buffer& operator=( const Buffer& other ) = delete;
+		Buffer& operator=( Buffer&& other ) = default;
 
 	  private:
 

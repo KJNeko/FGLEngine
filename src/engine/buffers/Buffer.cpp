@@ -86,6 +86,23 @@ namespace fgl::engine
 		vmaGetAllocationInfo( Device::getInstance().allocator(), m_allocation, &m_alloc_info );
 	}
 
+	std::vector< std::weak_ptr< BufferHandle > > Buffer::getActiveBufferHandles()
+	{
+		std::vector< std::weak_ptr< BufferHandle > > handles;
+		handles.reserve( m_buffer_handles.size() );
+
+		for ( auto& handle : m_buffer_handles )
+		{
+			if ( auto ptr = handle.lock() )
+			{
+				handles.push_back( ptr );
+			}
+		}
+
+		m_buffer_handles = handles;
+		return handles;
+	}
+
 	vk::DeviceSize Buffer::alignment()
 	{
 		vk::DeviceSize size { 0 };
@@ -253,6 +270,7 @@ namespace fgl::engine
 	  m_memory_properties( memory_properties )
 	{
 		m_free_blocks.insert( m_free_blocks.begin(), { 0, memory_size } );
+		m_buffer_handles.emplace_back( m_handle );
 	}
 
 } // namespace fgl::engine

@@ -117,7 +117,7 @@ namespace fgl::engine
 			const float aspect { m_renderer.getAspectRatio() };
 
 			//camera.setOrthographicProjection( -aspect, aspect, -1, 1, -1, 1 );
-			camera.setPerspectiveProjection( glm::radians( 50.0f ), aspect, 0.1f, 10.f );
+			camera.setPerspectiveProjection( glm::radians( 50.0f ), aspect, 0.1f, 100.f );
 
 			if ( auto command_buffer = m_renderer.beginFrame(); command_buffer )
 			{
@@ -160,7 +160,6 @@ namespace fgl::engine
 					if ( ImGui::CollapsingHeader( "Camera" ) )
 					{
 						ImGui::PushItemWidth( 80 );
-						ImGui::Text( "Position: " );
 						ImGui::SameLine();
 						ImGui::DragFloat( "Pos X", &viewer.transform.translation.x, 0.1f );
 						ImGui::SameLine();
@@ -172,7 +171,6 @@ namespace fgl::engine
 						ImGui::Separator();
 
 						ImGui::PushItemWidth( 80 );
-						ImGui::Text( "Rotation: " );
 						ImGui::SameLine();
 						ImGui::DragFloat( "Rot X", &viewer.transform.rotation.x, 0.1f, 0.0f, glm::two_pi< float >() );
 						ImGui::SameLine();
@@ -181,6 +179,78 @@ namespace fgl::engine
 						ImGui::DragFloat( "Rot Z", &viewer.transform.rotation.z, 0.1f, 0.0f, glm::two_pi< float >() );
 						ImGui::PopItemWidth();
 					}
+
+					if ( ImGui::CollapsingHeader( "Models" ) )
+					{
+						for ( auto& [ id, game_object ] : game_objects )
+						{
+							if ( game_object.model == nullptr ) continue;
+
+							if ( ImGui::TreeNode( game_object.model->getName().c_str() ) )
+							{
+								ImGui::PushID( game_object.model->getName().c_str() );
+								{
+									ImGui::PushID( "Position" );
+									ImGui::PushItemWidth( 80 );
+									ImGui::Text( "Position" );
+									ImGui::SameLine();
+									ImGui::DragFloat( "X", &game_object.transform.translation.x, 0.1f );
+									ImGui::SameLine();
+									ImGui::DragFloat( "Y", &game_object.transform.translation.y, 0.1f );
+									ImGui::SameLine();
+									ImGui::DragFloat( "Z", &game_object.transform.translation.z, 0.1f );
+									ImGui::PopID();
+								}
+
+								ImGui::Separator();
+
+								{
+									ImGui::PushID( "Rotation" );
+									ImGui::PushItemWidth( 80 );
+									ImGui::Text( "Rotation" );
+									ImGui::SameLine();
+									ImGui::DragFloat(
+										"X", &game_object.transform.rotation.x, 0.1f, 0.0f, glm::two_pi< float >() );
+									ImGui::SameLine();
+									ImGui::DragFloat(
+										"Y", &game_object.transform.rotation.y, 0.1f, 0.0f, glm::two_pi< float >() );
+									ImGui::SameLine();
+									ImGui::DragFloat(
+										"Z", &game_object.transform.rotation.z, 0.1f, 0.0f, glm::two_pi< float >() );
+									ImGui::PopID();
+								}
+
+								ImGui::Separator();
+
+								{
+									ImGui::PushID( "Scale" );
+									ImGui::PushItemWidth( 80 );
+									ImGui::Text( "Scale" );
+									ImGui::SameLine();
+									ImGui::DragFloat( "X", &game_object.transform.scale.x, 0.1f );
+									ImGui::SameLine();
+									ImGui::DragFloat( "Y", &game_object.transform.scale.y, 0.1f );
+									ImGui::SameLine();
+									ImGui::DragFloat( "Z", &game_object.transform.scale.z, 0.1f );
+									ImGui::TreePop();
+									ImGui::PopID();
+								}
+
+								ImGui::PopID();
+							}
+						}
+					}
+
+					//TODO: Add in a collapsable header to view all buffers, And their suballocations
+					/*
+					if ( ImGui::CollapsingHeader( "Buffer allocations" ) )
+					{
+						for ( const auto& buffer : Buffer::getActiveBufferHandles() )
+						{
+							ImGui::Text( "Address: %p", buffer.lock()->address() );
+							ImGui::Text( "Size: %zu", buffer.lock()->size() );
+						}
+					}*/
 
 					ImGui::End();
 				}
@@ -253,6 +323,7 @@ namespace fgl::engine
 			game_objects.emplace( sponza.getId(), std::move( sponza ) );
 		}
 
+		/*
 		{
 			std::shared_ptr< Model > model { Model::createModel(
 				Device::getInstance(),
@@ -270,7 +341,6 @@ namespace fgl::engine
 
 			game_objects.emplace( smooth_vase.getId(), std::move( smooth_vase ) );
 		}
-		/*
 
 		{
 			std::shared_ptr< Model > flat_model { Model::createModel(

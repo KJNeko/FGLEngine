@@ -81,6 +81,8 @@ namespace fgl::engine
 
 		std::vector< vk::DrawIndexedIndirectCommand > m_draw_parameters;
 
+		std::string m_name { "Unnamed model" };
+
 	  public:
 
 		struct Builder
@@ -108,6 +110,8 @@ namespace fgl::engine
 			Device& device, const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer );
 
 		void syncBuffers( vk::CommandBuffer& cmd_buffer );
+
+		const std::string& getName() const { return m_name; }
 
 		Model( Device& device, Builder& builder );
 
