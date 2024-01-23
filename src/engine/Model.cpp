@@ -360,10 +360,14 @@ namespace fgl::engine
 										runtime_error( "Failed to translate wrapping filter to vk address mode" );
 								case GL_REPEAT:
 									return vk::SamplerAddressMode::eRepeat;
+#ifdef GL_CLAMP_TO_BORDER
 								case GL_CLAMP_TO_BORDER:
 									return vk::SamplerAddressMode::eClampToBorder;
+#endif
+#ifdef GL_CLAMP_TO_BORDER
 								case GL_CLAMP_TO_EDGE:
 									return vk::SamplerAddressMode::eClampToEdge;
+#endif
 							}
 						};
 
