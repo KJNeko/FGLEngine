@@ -171,12 +171,12 @@ namespace fgl::engine
 
 		loader.RemoveImageLoader();
 
-		loader.LoadASCIIFromFile( &model, &err, &warn, filepath );
+		loader.LoadASCIIFromFile( &model, &err, &warn, filepath.string() );
 
 		if ( !err.empty() ) throw std::runtime_error( err );
 
 		if ( !warn.empty() )
-			std::cout << "Warning while loading model \"" << filepath << "\"\nWarning:" << warn << std::endl;
+			std::cout << "Warning while loading model \"" << filepath.string() << "\"\nWarning:" << warn << std::endl;
 
 		for ( const tinygltf::Mesh& mesh : model.meshes )
 		{
