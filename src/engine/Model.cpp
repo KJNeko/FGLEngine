@@ -364,7 +364,7 @@ namespace fgl::engine
 								case GL_CLAMP_TO_BORDER:
 									return vk::SamplerAddressMode::eClampToBorder;
 #endif
-#ifdef GL_CLAMP_TO_BORDER
+#ifdef GL_CLAMP_TO_EDGE
 								case GL_CLAMP_TO_EDGE:
 									return vk::SamplerAddressMode::eClampToEdge;
 #endif
