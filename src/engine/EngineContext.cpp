@@ -184,6 +184,8 @@ namespace fgl::engine
 						{
 							if ( game_object.model == nullptr ) continue;
 
+							ImGui::PushID( std::to_string( id ).c_str() );
+
 							if ( ImGui::TreeNode( game_object.model->getName().c_str() ) )
 							{
 								ImGui::PushID( game_object.model->getName().c_str() );
@@ -274,6 +276,7 @@ namespace fgl::engine
 
 								ImGui::PopID();
 							}
+							ImGui::PopID();
 						}
 					}
 
