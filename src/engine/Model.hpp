@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "Device.hpp"

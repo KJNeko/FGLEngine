@@ -6,6 +6,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include <optional>
+
 #include "Image.hpp"
 #include "ImageHandle.hpp"
 #include "Sampler.hpp"
