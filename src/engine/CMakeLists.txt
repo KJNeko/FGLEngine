@@ -18,6 +18,7 @@ target_precompile_headers(FGLEngine PRIVATE
 		<array>
 		<chrono>
 		<optional>
+		<imgui/imgui.h>
 )
 
 target_compile_definitions(FGLEngine PUBLIC VULKAN_HPP_FLAGS_MASK_TYPE_AS_PUBLIC)
