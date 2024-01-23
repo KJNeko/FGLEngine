@@ -17,6 +17,7 @@ target_precompile_headers(FGLEngine PRIVATE
 		<glm/gtc/constants.hpp>
 		<array>
 		<chrono>
+		<optional>
 )
 
 target_compile_definitions(FGLEngine PUBLIC VULKAN_HPP_FLAGS_MASK_TYPE_AS_PUBLIC)
