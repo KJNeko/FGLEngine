@@ -64,11 +64,11 @@ namespace fgl::engine
 		instance.destroyDebugUtilsMessengerEXT( debugMessenger );
 	}
 
-	inline static Device* global_device { nullptr };
+	inline static std::unique_ptr< Device > global_device { nullptr };
 
 	Device& Device::init( Window& window )
 	{
-		global_device = new Device( window );
+		global_device = std::make_unique< Device >( window );
 		DescriptorPool::init( *global_device );
 		return *global_device;
 	}
@@ -196,6 +196,12 @@ namespace fgl::engine
 		deviceFeatures.samplerAnisotropy = VK_TRUE;
 		deviceFeatures.multiDrawIndirect = VK_TRUE;
 
+		vk::PhysicalDeviceDescriptorIndexingFeatures indexing_features {};
+		indexing_features.setRuntimeDescriptorArray( true );
+		indexing_features.setDescriptorBindingPartiallyBound( true );
+		indexing_features.setShaderSampledImageArrayNonUniformIndexing( true );
+		indexing_features.setDescriptorBindingSampledImageUpdateAfterBind( true );
+
 		vk::DeviceCreateInfo createInfo {};
 		createInfo.queueCreateInfoCount = static_cast< uint32_t >( queueCreateInfos.size() );
 		createInfo.pQueueCreateInfos = queueCreateInfos.data();
@@ -203,6 +209,8 @@ namespace fgl::engine
 		createInfo.pEnabledFeatures = &deviceFeatures;
 		createInfo.enabledExtensionCount = static_cast< uint32_t >( deviceExtensions.size() );
 		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+
+		createInfo.setPNext( &indexing_features );
 
 		//Get device extension list
 		const auto supported_extensions { m_physical_device.enumerateDeviceExtensionProperties() };
@@ -614,11 +622,13 @@ namespace fgl::engine
 
 	vk::Result Device::setDebugUtilsObjectName( const vk::DebugUtilsObjectNameInfoEXT& nameInfo )
 	{
+#ifndef NDEBUG
 		if ( device().setDebugUtilsObjectNameEXT( &nameInfo ) != vk::Result::eSuccess )
 		{
 			std::cout << "Failed to set debug object name" << std::endl;
 			throw std::runtime_error( "Failed to set debug object name" );
 		}
+#endif
 		return vk::Result::eSuccess;
 	}
 

@@ -17,13 +17,16 @@ namespace fgl::engine
 		std::uint16_t binding_idx,
 		vk::DescriptorType descriptor_type,
 		vk::ShaderStageFlags stage_flags = vk::ShaderStageFlagBits::eAll,
-		std::uint16_t binding_count = 1 >
+		std::uint16_t binding_count = 1,
+		vk::DescriptorBindingFlags binding_flags = static_cast< vk::DescriptorBindingFlags >( 0 ) >
 	struct Descriptor
 	{
 		static constexpr std::uint16_t m_binding_idx { binding_idx };
 		static constexpr std::uint16_t m_count { binding_count };
 
 		static constexpr vk::DescriptorType m_descriptor_type { descriptor_type };
+
+		static constexpr auto m_binding_flags { binding_flags };
 
 		consteval static vk::DescriptorSetLayoutBinding generateLayoutBinding()
 		{

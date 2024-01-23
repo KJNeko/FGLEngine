@@ -14,6 +14,7 @@ namespace fgl::engine
 		auto device { Device::getInstance().device() };
 
 		vk::RenderPassCreateInfo info;
+
 		info.attachmentCount = static_cast< std::uint32_t >( attachment_descriptions.size() );
 		info.pAttachments = attachment_descriptions.data();
 		info.subpassCount = static_cast< std::uint32_t >( subpass_descriptions.size() );

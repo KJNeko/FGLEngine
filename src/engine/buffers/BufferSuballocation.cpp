@@ -85,4 +85,8 @@ namespace fgl::engine
 		return { m_handle, offset, size };
 	}
 
+	BufferSuballocation::BufferSuballocation( Buffer& buffer, const vk::DeviceSize size ) :
+	  BufferSuballocation( buffer.suballocate( size ) )
+	{}
+
 } // namespace fgl::engine

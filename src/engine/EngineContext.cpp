@@ -38,11 +38,11 @@ namespace fgl::engine
 	EngineContext::EngineContext()
 	{
 		using namespace fgl::literals::size_literals;
-		initGlobalStagingBuffer( 128_MiB );
-		loadGameObjects();
+		initGlobalStagingBuffer( 256_MiB );
 #ifdef ENABLE_IMGUI
 		initImGui();
 #endif
+		loadGameObjects();
 	}
 
 	void EngineContext::run()
@@ -160,7 +160,6 @@ namespace fgl::engine
 					if ( ImGui::CollapsingHeader( "Camera" ) )
 					{
 						ImGui::PushItemWidth( 80 );
-						ImGui::SameLine();
 						ImGui::DragFloat( "Pos X", &viewer.transform.translation.x, 0.1f );
 						ImGui::SameLine();
 						ImGui::DragFloat( "Pos Y", &viewer.transform.translation.y, 0.1f );
@@ -171,7 +170,6 @@ namespace fgl::engine
 						ImGui::Separator();
 
 						ImGui::PushItemWidth( 80 );
-						ImGui::SameLine();
 						ImGui::DragFloat( "Rot X", &viewer.transform.rotation.x, 0.1f, 0.0f, glm::two_pi< float >() );
 						ImGui::SameLine();
 						ImGui::DragFloat( "Rot Y", &viewer.transform.rotation.y, 0.1f, 0.0f, glm::two_pi< float >() );
@@ -233,6 +231,44 @@ namespace fgl::engine
 									ImGui::SameLine();
 									ImGui::DragFloat( "Z", &game_object.transform.scale.z, 0.1f );
 									ImGui::TreePop();
+									ImGui::PopID();
+								}
+
+								if ( ImGui::CollapsingHeader( "Textures" ) )
+								{
+									std::vector< TextureID > textures;
+
+									ImGui::PushID( "Textures" );
+
+									for ( auto& primitive : game_object.model->m_primitives )
+									{
+										if ( !primitive.m_texture.has_value() ) continue;
+
+										auto& texture { primitive.m_texture.value() };
+
+										const auto& extent { texture.getExtent() };
+
+										auto& image_view { texture.getImageView() };
+										auto& sampler { image_view.getSampler() };
+
+										if ( !sampler.has_value() ) continue;
+
+										ImVec2 size;
+										size.x = extent.width;
+										size.y = extent.height;
+
+										if ( std::find( textures.begin(), textures.end(), texture.getID() )
+										     == textures.end() )
+										{
+											textures.emplace_back( texture.getID() );
+
+											ImGui::Image(
+												static_cast< ImTextureID >( primitive.m_texture
+											                                    ->getImGuiDescriptorSet() ),
+												size );
+										}
+									}
+
 									ImGui::PopID();
 								}
 
@@ -306,17 +342,19 @@ namespace fgl::engine
 			}
 		}*/
 
-		{
-			std::shared_ptr< Model > model { Model::createModel(
-				Device::getInstance(),
-				"models/khronos-sponza/Sponza.gltf",
-				m_entity_renderer.getVertexBuffer(),
-				m_entity_renderer.getIndexBuffer() ) };
+		std::shared_ptr< Model > model { Model::createModel(
+			Device::getInstance(),
+			"models/khronos-sponza/Sponza.gltf",
+			m_entity_renderer.getVertexBuffer(),
+			m_entity_renderer.getIndexBuffer() ) };
 
+		for ( int i = 0; i < 4; ++i )
+		{
 			auto sponza = GameObject::createGameObject();
 			sponza.model = model;
-			sponza.transform.translation = { 0.0f, 0.0f, 0.0f };
+			sponza.transform.translation = { 0.0f, 1.0f, 0.0f + ( i * 50 ) };
 			sponza.transform.scale = { 0.007f, 0.007f, 0.007f };
+			sponza.transform.rotation = { 0.0f, 1.4f, 0.0f };
 
 			sponza.model->syncBuffers( command_buffer );
 
@@ -403,7 +441,7 @@ namespace fgl::engine
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io { ImGui::GetIO() };
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
 		ImGui::StyleColorsDark();
 

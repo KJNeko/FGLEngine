@@ -143,8 +143,8 @@ namespace fgl::engine
 
 		if ( itter == m_free_blocks.end() )
 		{
-			std::cout << "======    !!! OOM !!!   ======\n"
-						 "====== Allocated Blocks ======\n";
+			std::cout << "========= !!! OOM !!! =========\n"
+						 "========= Free Blocks =========\n";
 
 			for ( auto [ offset, size ] : m_free_blocks )
 			{
@@ -166,7 +166,7 @@ namespace fgl::engine
 					  << "Attempted to allocate block of size: "
 					  << fgl::literals::size_literals::to_string( memory_size ) << std::endl;
 
-			throw std::runtime_error( "Failed to find free space" );
+			throw exceptions::AllocationException();
 		}
 
 		//Allocate

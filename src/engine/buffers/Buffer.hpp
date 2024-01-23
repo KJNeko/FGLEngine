@@ -21,6 +21,20 @@
 #include "engine/literals/size.hpp"
 #include "vma/vma_impl.hpp"
 
+namespace fgl::engine::exceptions
+{
+	struct EngineError : public std::runtime_error
+	{
+		EngineError( const char* msg ) : std::runtime_error( msg ) {}
+	};
+
+	struct AllocationException : public EngineError
+	{
+		AllocationException() : EngineError( "Failed to allocate memory" ) {}
+	};
+
+} // namespace fgl::engine::exceptions
+
 namespace fgl::engine
 {
 

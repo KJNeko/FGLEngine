@@ -10,12 +10,13 @@
 
 #include "engine/buffers/Buffer.hpp"
 #include "engine/buffers/BufferSuballocation.hpp"
-#include "engine/image/ImageView.hpp"
 
 namespace fgl::engine
 {
 
 	class BufferSuballocation;
+	class Texture;
+	class ImageView;
 
 	class DescriptorSet
 	{
@@ -58,6 +59,10 @@ namespace fgl::engine
 
 		void bindAttachment(
 			std::uint32_t binding_idx, ImageView& view, vk::ImageLayout layout, vk::Sampler sampler = VK_NULL_HANDLE );
+
+		void bindTexture( std::uint32_t binding_idx, Texture& tex );
+
+		void setName( const std::string str );
 	};
 
 } // namespace fgl::engine

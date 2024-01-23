@@ -20,7 +20,8 @@ namespace fgl::engine
 		pool_info.setPoolSizeCount( static_cast< std::uint32_t >( pool_sizes.size() ) );
 		pool_info.setPPoolSizes( pool_sizes.data() );
 		pool_info.setMaxSets( set_count );
-		pool_info.setFlags( vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet );
+		pool_info.setFlags(
+			vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet | vk::DescriptorPoolCreateFlagBits::eUpdateAfterBind );
 
 		vk::Device vk_device { device.device() };
 		if ( vk_device.createDescriptorPool( &pool_info, nullptr, &m_pool ) != vk::Result::eSuccess )

@@ -27,7 +27,7 @@ namespace fgl::engine
 		{
 			std::vector< vk::ImageView > views;
 
-			for ( auto& view : m_image_views.at( frame ) ) views.push_back( view->view() );
+			for ( auto& view : m_image_views.at( frame ) ) views.push_back( view->getVkView() );
 
 			return views;
 		}

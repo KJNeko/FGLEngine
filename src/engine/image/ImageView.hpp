@@ -8,19 +8,26 @@
 
 #include "Image.hpp"
 #include "ImageHandle.hpp"
+#include "Sampler.hpp"
 #include "engine/Device.hpp"
 #include "engine/concepts/is_image.hpp"
 
 namespace fgl::engine
 {
 
-	struct ImageView
+	class ImageView
 	{
 		std::shared_ptr< ImageHandle > m_resource;
+
+		std::optional< Sampler > m_sampler;
 
 		vk::DescriptorImageInfo m_descriptor_info {};
 
 		vk::ImageView m_image_view { VK_NULL_HANDLE };
+
+	  public:
+
+		void setName( const std::string str );
 
 		ImageView() = delete;
 		ImageView( const ImageView& ) = delete;
@@ -44,9 +51,16 @@ namespace fgl::engine
 
 		ImageView( std::shared_ptr< ImageHandle >& img );
 
-		vk::ImageView& view() { return m_image_view; }
+		vk::Extent2D getExtent() const;
+
+		vk::ImageView& getVkView();
+
+		vk::Image& getVkImage();
+
+		std::optional< Sampler >& getSampler() { return m_sampler; };
 
 		vk::DescriptorImageInfo descriptorInfo( vk::Sampler sampler, vk::ImageLayout layout ) const;
+		vk::DescriptorImageInfo descriptorInfo( vk::ImageLayout layout ) const;
 	};
 
 } // namespace fgl::engine

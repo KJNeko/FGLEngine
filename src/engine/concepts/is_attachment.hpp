@@ -6,7 +6,7 @@
 
 namespace fgl::engine
 {
-	struct ImageView;
+	class ImageView;
 	class Image;
 	struct AttachmentResources;
 

@@ -11,10 +11,10 @@
 #include <memory>
 #include <unordered_map>
 
-#include "Model.hpp"
-
 namespace fgl::engine
 {
+
+	class Model;
 
 	struct TransformComponent
 	{

@@ -13,11 +13,12 @@
 
 namespace fgl::engine
 {
-	struct ImageView;
+	class ImageView;
 
 	class Image
 	{
 		std::shared_ptr< ImageHandle > m_handle;
+		std::weak_ptr< ImageView > view;
 
 	  public:
 
@@ -34,6 +35,8 @@ namespace fgl::engine
 		  m_handle( std::make_shared< ImageHandle >( extent, format, image, usage ) )
 		{}
 
+		[[nodiscard]] vk::Image& getVkImage();
+
 		void setName( const std::string str );
 
 		Image(
@@ -45,7 +48,7 @@ namespace fgl::engine
 		  m_handle( std::make_shared< ImageHandle >( extent, format, usage, inital_layout, final_layout ) )
 		{}
 
-		std::shared_ptr< ImageView > view();
+		[[nodiscard]] std::shared_ptr< ImageView > getView();
 	};
 
 } // namespace fgl::engine

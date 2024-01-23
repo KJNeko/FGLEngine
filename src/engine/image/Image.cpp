@@ -9,14 +9,26 @@
 namespace fgl::engine
 {
 
-	std::shared_ptr< ImageView > Image::view()
+	std::shared_ptr< ImageView > Image::getView()
 	{
-		return std::make_shared< ImageView >( m_handle );
+		if ( !view.expired() )
+			return view.lock();
+		else
+		{
+			auto ptr { std::make_shared< ImageView >( m_handle ) };
+			view = ptr;
+			return ptr;
+		}
 	}
 
 	void Image::setName( const std::string str )
 	{
 		m_handle->setName( str );
+	}
+
+	vk::Image& Image::getVkImage()
+	{
+		return m_handle->m_image;
 	}
 
 } // namespace fgl::engine

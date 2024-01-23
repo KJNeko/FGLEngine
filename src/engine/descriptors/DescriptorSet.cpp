@@ -8,6 +8,8 @@
 
 #include "DescriptorPool.hpp"
 #include "engine/buffers/BufferSuballocation.hpp"
+#include "engine/image/ImageView.hpp"
+#include "engine/texture/Texture.hpp"
 
 namespace fgl::engine
 {
@@ -62,9 +64,31 @@ namespace fgl::engine
 		descriptor_writes.push_back( write );
 	}
 
+	void DescriptorSet::bindTexture( std::uint32_t binding_idx, Texture& tex )
+	{
+		assert( binding_idx < m_infos.size() && "Binding index out of range" );
+		assert(
+			std::holds_alternative< std::monostate >( m_infos[ binding_idx ] )
+			&& "Update must be called between each array bind" );
+
+		m_infos[ binding_idx ] = tex.getImageView().descriptorInfo(
+			tex.getImageView().getSampler()->getVkSampler(), vk::ImageLayout::eShaderReadOnlyOptimal );
+
+		vk::WriteDescriptorSet write {};
+		write.dstSet = m_set;
+		write.dstBinding = binding_idx;
+		write.dstArrayElement = tex.getID();
+		write.descriptorCount = 1;
+		write.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+		write.pImageInfo = &( std::get< vk::DescriptorImageInfo >( m_infos.data()[ binding_idx ] ) );
+
+		descriptor_writes.push_back( write );
+	}
+
 	void DescriptorSet::update()
 	{
 		Device::getInstance().device().updateDescriptorSets( descriptor_writes, {} );
+		reset();
 	}
 
 	void DescriptorSet::reset()
@@ -101,5 +125,15 @@ namespace fgl::engine
 		write.pTexelBufferView = VK_NULL_HANDLE;
 
 		descriptor_writes.push_back( write );
+	}
+
+	void DescriptorSet::setName( const std::string str )
+	{
+		vk::DebugUtilsObjectNameInfoEXT info {};
+		info.objectType = vk::ObjectType::eDescriptorSet;
+		info.pObjectName = str.c_str();
+		info.setObjectHandle( reinterpret_cast< std::uint64_t >( static_cast< VkDescriptorSet >( m_set ) ) );
+
+		Device::getInstance().setDebugUtilsObjectName( info );
 	}
 } // namespace fgl::engine

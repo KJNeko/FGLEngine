@@ -19,7 +19,7 @@ namespace fgl::engine
 		std::uint16_t current_idx,
 		is_valid_pipeline_input CurrentSet,
 		is_valid_pipeline_input... Sets >
-	void createDescriptorSets( std::array< vk::DescriptorSetLayout, size >& out, Device& device )
+	void createDescriptorSets( std::array< vk::DescriptorSetLayout, size >& out )
 	{
 		if constexpr ( size == 0 )
 			return;
@@ -30,16 +30,15 @@ namespace fgl::engine
 
 			if constexpr ( is_descriptor_set< CurrentSet > )
 			{
-				out[ current_idx ] = CurrentSet::createDescriptorSetLayout( device );
+				out[ current_idx ] = CurrentSet::createDescriptorSetLayout();
 				assert( out[ current_idx ] != VK_NULL_HANDLE && "createDescriptorSetLayout returned VK_NULL_HANDLE" );
 				std::cout << "Created descriptor set layout for binding set " << current_idx << std::endl;
-				if constexpr ( sizeof...( Sets ) > 0 )
-					createDescriptorSets< size, current_idx + 1, Sets... >( out, device );
+				if constexpr ( sizeof...( Sets ) > 0 ) createDescriptorSets< size, current_idx + 1, Sets... >( out );
 			}
 			else if constexpr ( is_constant_range< CurrentSet > )
 			{
 				if constexpr ( sizeof...( Sets ) > 0 ) // We don't want to increase the size
-					createDescriptorSets< size, current_idx, Sets... >( out, device );
+					createDescriptorSets< size, current_idx, Sets... >( out );
 				else
 					return;
 			}
@@ -150,7 +149,7 @@ namespace fgl::engine
 
 			std::array< vk::DescriptorSetLayout, sizeof...( DescriptorSets ) - has_constant_range > layouts;
 
-			createDescriptorSets< layouts.size(), 0, DescriptorSets... >( layouts, device );
+			createDescriptorSets< layouts.size(), 0, DescriptorSets... >( layouts );
 
 			vk::PipelineLayoutCreateInfo pipeline_layout_info {};
 			pipeline_layout_info.setLayoutCount = has_binding_sets ? static_cast< uint32_t >( layouts.size() ) : 0;

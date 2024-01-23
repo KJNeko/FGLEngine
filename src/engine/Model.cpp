@@ -17,6 +17,9 @@
 
 #include "engine/buffers/Buffer.hpp"
 #include "engine/buffers/SuballocationView.hpp"
+#include "engine/descriptors/DescriptorSet.hpp"
+#include "engine/image/ImageView.hpp"
+#include "engine/image/Sampler.hpp"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -126,18 +129,14 @@ namespace fgl::engine
 		attribute_descriptions.emplace_back( 3, 0, vk::Format::eR32G32Sfloat, offsetof( Vertex, m_uv ) );
 
 		//Normal Matrix
-		attribute_descriptions.emplace_back( 4, 1, vk::Format::eR32G32B32A32Sfloat, 0 * sizeof( glm::vec4 ) );
+		attribute_descriptions.emplace_back( 4, 1, vk::Format::eR32G32B32A32Sfloat, 0 );
 		attribute_descriptions.emplace_back( 5, 1, vk::Format::eR32G32B32A32Sfloat, 1 * sizeof( glm::vec4 ) );
 		attribute_descriptions.emplace_back( 6, 1, vk::Format::eR32G32B32A32Sfloat, 2 * sizeof( glm::vec4 ) );
 		attribute_descriptions.emplace_back( 7, 1, vk::Format::eR32G32B32A32Sfloat, 3 * sizeof( glm::vec4 ) );
 
-		//Normal Matrix
-		attribute_descriptions.emplace_back( 8, 1, vk::Format::eR32G32B32A32Sfloat, 4 * sizeof( glm::vec4 ) );
-		attribute_descriptions.emplace_back( 9, 1, vk::Format::eR32G32B32A32Sfloat, 5 * sizeof( glm::vec4 ) );
-		attribute_descriptions.emplace_back( 10, 1, vk::Format::eR32G32B32A32Sfloat, 6 * sizeof( glm::vec4 ) );
-		attribute_descriptions.emplace_back( 11, 1, vk::Format::eR32G32B32A32Sfloat, 7 * sizeof( glm::vec4 ) );
+		attribute_descriptions.emplace_back( 8, 1, vk::Format::eR32Sint, 4 * sizeof( glm::vec4 ) );
 
-		static_assert( 8 * sizeof( glm::vec4 ) == sizeof( ModelMatrixInfo ) );
+		static_assert( 4 * sizeof( glm::vec4 ) + sizeof( int ) == sizeof( ModelMatrixInfo ) );
 
 		return attribute_descriptions;
 	}
@@ -184,6 +183,13 @@ namespace fgl::engine
 			for ( const tinygltf::Primitive& primitive : mesh.primitives )
 			{
 				//TODO: Implement modes
+
+				std::cout << "Attributes: \n";
+				for ( const auto& thing : primitive.attributes )
+				{
+					std::cout << "\t" << thing.first << "\n";
+				}
+				std::cout << std::endl;
 
 				//Load indicies
 				std::vector< std::uint32_t > indicies_data;
@@ -258,6 +264,47 @@ namespace fgl::engine
 				else
 					normals.resize( position_data.size() );
 
+				//TODO: Implement TANGENT reading
+				std::vector< glm::vec3 > tangents;
+
+				std::vector< glm::vec2 > texcoords;
+
+				for ( const auto& [ attr_name, attr_idx ] : primitive.attributes )
+				{
+					if ( attr_name.starts_with( "TEXCOORD_" ) )
+					{
+						//Rip out name and figure out index
+						const auto idx { std::stoi( attr_name.substr( strlen( "TEXCOORD_" ) ) ) };
+
+						if ( idx != 0 ) throw std::runtime_error( "Multiple tex coordinates not supported" );
+
+						auto& texcoord_accessor { model.accessors.at( idx ) };
+
+						auto& buffer_view { model.bufferViews.at( texcoord_accessor.bufferView ) };
+						auto& buffer { model.buffers.at( buffer_view.buffer ) };
+
+						texcoords.resize( static_cast< std::size_t >( texcoord_accessor.count ) );
+
+						assert( texcoord_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT );
+						assert( texcoord_accessor.type == TINYGLTF_TYPE_SCALAR );
+
+						std::vector< unsigned short > coords;
+						coords.resize( static_cast< std::size_t >( texcoord_accessor.count ) );
+
+						std::memcpy(
+							coords.data(),
+							buffer.data.data() + buffer_view.byteOffset + texcoord_accessor.byteOffset,
+							coords.size() * sizeof( unsigned short ) );
+
+						//Convert to glm::vec2
+
+						for ( int i = 0; i < coords.size(); i += 2 )
+						{
+							texcoords[ i / 2 ] = glm::vec2( coords[ i ], coords[ i + 1 ] );
+						}
+					}
+				}
+
 				std::vector< Vertex > verts;
 				verts.resize( position_data.size() );
 				for ( std::size_t i = 0; i < position_data.size(); i++ )
@@ -266,10 +313,94 @@ namespace fgl::engine
 					//verts[ i ].m_position = position_data[ i ];
 					verts[ i ].m_position = { position_data[ i ].x, -position_data[ i ].y, position_data[ i ].z };
 					verts[ i ].m_normal = normals[ i ];
+					verts[ i ].m_uv = texcoords[ i ];
 				}
 
 				VertexBufferSuballocation vertex_buffer { m_vertex_buffer, verts };
 				IndexBufferSuballocation index_buffer { m_index_buffer, indicies_data };
+
+				if ( primitive.material >= 0 && primitive.material < model.materials.size() )
+				{
+					const auto& material { model.materials.at( primitive.material ) };
+
+					//TODO: Implement material normals
+
+					//Color texture
+					if ( material.values.contains( "baseColorTexture" ) )
+					{
+						const auto& color_texture { material.values.at( "baseColorTexture" ) };
+						const auto color_index { color_texture.TextureIndex() };
+
+						const auto& texture { model.textures.at( color_index ) };
+
+						const auto& source { model.images.at( texture.source ) };
+						const auto& sampler { model.samplers.at( texture.sampler ) };
+
+						auto translateFilterToVK = []( const int val ) -> vk::Filter
+						{
+							switch ( val )
+							{
+								default:
+									throw std::runtime_error( "Failed to translate filter value to vk filter value" );
+								case GL_NEAREST:
+									return vk::Filter::eNearest;
+								case GL_LINEAR:
+									[[fallthrough]];
+								case GL_LINEAR_MIPMAP_LINEAR:
+									return vk::Filter::eLinear;
+								case GL_CUBIC_EXT:
+									return vk::Filter::eCubicEXT;
+							}
+						};
+
+						auto translateWarppingToVk = []( const int val ) -> vk::SamplerAddressMode
+						{
+							switch ( val )
+							{
+								default:
+									throw std::
+										runtime_error( "Failed to translate wrapping filter to vk address mode" );
+								case GL_REPEAT:
+									return vk::SamplerAddressMode::eRepeat;
+								case GL_CLAMP_TO_BORDER:
+									return vk::SamplerAddressMode::eClampToBorder;
+								case GL_CLAMP_TO_EDGE:
+									return vk::SamplerAddressMode::eClampToEdge;
+							}
+						};
+
+						assert(
+							sampler.wrapS == sampler.wrapT
+							&& "Can't support different wrap modes for textures on each axis" );
+
+						Texture tex { Texture::loadFromFile( filepath.parent_path() / source.uri ) };
+						Sampler smp { translateFilterToVK( sampler.minFilter ),
+							          translateFilterToVK( sampler.magFilter ),
+							          vk::SamplerMipmapMode::eLinear,
+							          translateWarppingToVk( sampler.wrapS ) };
+
+						tex.getImageView().getSampler() = std::move( smp );
+						tex.createImGuiSet();
+
+						Texture::getTextureDescriptorSet().bindTexture( 0, tex );
+						Texture::getTextureDescriptorSet().update();
+
+						//Stage texture
+						auto cmd { Device::getInstance().beginSingleTimeCommands() };
+
+						tex.stage( cmd );
+						Device::getInstance().endSingleTimeCommands( cmd );
+						tex.dropStaging();
+
+						Primitive prim { std::move( vertex_buffer ), std::move( index_buffer ), std::move( tex ) };
+
+						m_primitives.emplace_back( std::move( prim ) );
+
+						continue;
+					}
+				}
+				else
+					std::cout << "No material" << std::endl;
 
 				Primitive prim { std::move( vertex_buffer ), std::move( index_buffer ) };
 

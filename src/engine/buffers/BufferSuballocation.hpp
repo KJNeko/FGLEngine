@@ -37,6 +37,7 @@ namespace fgl::engine
 		BufferSuballocation& operator=( const BufferSuballocation& ) = delete;
 
 		BufferSuballocation( std::shared_ptr< BufferSuballocationHandle > handle );
+		BufferSuballocation( Buffer& buffer, const vk::DeviceSize size );
 		BufferSuballocation( BufferSuballocation&& other );
 
 		SuballocationView view( const vk::DeviceSize offset, const vk::DeviceSize size ) const;
@@ -51,7 +52,7 @@ namespace fgl::engine
 
 		vk::DeviceSize getOffset() const { return m_offset; }
 
-		vk::DeviceSize offset() const { return m_offset; }
+		[[deprecated]] vk::DeviceSize offset() const { return m_offset; }
 
 		vk::DescriptorBufferInfo descriptorInfo() const;
 

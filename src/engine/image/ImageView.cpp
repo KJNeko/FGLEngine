@@ -31,13 +31,40 @@ namespace fgl::engine
 
 	vk::DescriptorImageInfo ImageView::descriptorInfo( vk::Sampler sampler, vk::ImageLayout layout ) const
 	{
-		vk::DescriptorImageInfo info {};
+		vk::DescriptorImageInfo info { descriptorInfo( layout ) };
 
-		info.imageLayout = layout;
-		info.imageView = m_image_view;
 		info.sampler = sampler;
 
 		return info;
+	}
+
+	vk::DescriptorImageInfo ImageView::descriptorInfo( vk::ImageLayout layout ) const
+	{
+		vk::DescriptorImageInfo info {};
+		info.imageLayout = layout;
+		info.imageView = m_image_view;
+
+		return info;
+	}
+
+	vk::ImageView& ImageView::getVkView()
+	{
+		return m_image_view;
+	}
+
+	vk::Image& ImageView::getVkImage()
+	{
+		return m_resource->getVkImage();
+	}
+
+	vk::Extent2D ImageView::getExtent() const
+	{
+		return m_resource->extent();
+	}
+
+	void ImageView::setName( const std::string str )
+	{
+		m_resource->setName( str );
 	}
 
 } // namespace fgl::engine

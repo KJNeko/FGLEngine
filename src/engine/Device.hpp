@@ -114,12 +114,10 @@ namespace fgl::engine
 
 		vk::Result setDebugUtilsObjectName( const vk::DebugUtilsObjectNameInfoEXT& nameInfo );
 
-	  private:
+	  public:
 
 		Device( Window& window );
 		~Device();
-
-	  public:
 
 		// Not copyable or movable
 		Device( const Device& ) = delete;

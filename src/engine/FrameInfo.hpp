@@ -47,6 +47,15 @@ namespace fgl::engine
 
 	using GlobalDescriptorSet = DescriptorSetLayout< 0, CameraDescriptor, EmptyDescriptor< 1 >, LightDescriptor >;
 
+	using TextureDescriptor = Descriptor<
+		0,
+		vk::DescriptorType::eCombinedImageSampler,
+		vk::ShaderStageFlagBits::eAllGraphics,
+		512,
+		vk::DescriptorBindingFlagBits::eUpdateAfterBind | vk::DescriptorBindingFlagBits::ePartiallyBound >;
+
+	using TextureDescriptorSet = DescriptorSetLayout< 1, TextureDescriptor >;
+
 	using PositionDescriptor = AttachmentDescriptor< 0, vk::ShaderStageFlagBits::eFragment >;
 	using NormalDescriptor = AttachmentDescriptor< 1, vk::ShaderStageFlagBits::eFragment >;
 	using AlbedoDescriptor = AttachmentDescriptor< 2, vk::ShaderStageFlagBits::eFragment >;

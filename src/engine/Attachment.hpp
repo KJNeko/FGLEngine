@@ -72,7 +72,7 @@ namespace fgl::engine
 			image_views[ frame_idx ] = std::move( image_view );
 		}
 
-		void linkImage( std::uint16_t frame_idx, Image& image ) { attachImageView( frame_idx, image.view() ); }
+		void linkImage( std::uint16_t frame_idx, Image& image ) { attachImageView( frame_idx, image.getView() ); }
 
 		void linkImages( std::vector< Image >& images )
 		{
@@ -94,7 +94,7 @@ namespace fgl::engine
 					usage | vk::ImageUsageFlagBits::eInputAttachment,
 					inital_layout,
 					final_layout ) );
-				image_views.emplace_back( images.back()->view() );
+				image_views.emplace_back( images.back()->getView() );
 			}
 		}
 

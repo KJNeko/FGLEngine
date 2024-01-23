@@ -43,7 +43,6 @@ namespace fgl::engine
 	{
 		vk::ImageCreateInfo image_info {};
 
-		//TODO: Maybe make this a template parameter
 		image_info.imageType = vk::ImageType::e2D;
 
 		image_info.extent.width = extent.width;

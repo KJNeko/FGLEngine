@@ -18,6 +18,7 @@
 #include "engine/buffers/BufferSuballocation.hpp"
 #include "engine/buffers/vector/DeviceVector.hpp"
 #include "engine/buffers/vector/HostVector.hpp"
+#include "engine/texture/Texture.hpp"
 #include "utils.hpp"
 
 namespace fgl::engine
@@ -45,7 +46,7 @@ namespace fgl::engine
 	struct ModelMatrixInfo
 	{
 		glm::mat4 model_matrix;
-		glm::mat4 normal_matrix;
+		std::uint32_t texture_idx;
 	};
 
 	using VertexBufferSuballocation = DeviceVector< Vertex >;
@@ -61,9 +62,18 @@ namespace fgl::engine
 		VertexBufferSuballocation m_vertex_buffer;
 		IndexBufferSuballocation m_index_buffer;
 
+		std::optional< Texture > m_texture { std::nullopt };
+
 		Primitive( VertexBufferSuballocation&& vertex_buffer, IndexBufferSuballocation&& index_buffer ) :
 		  m_vertex_buffer( std::move( vertex_buffer ) ),
 		  m_index_buffer( std::move( index_buffer ) )
+		{}
+
+		Primitive(
+			VertexBufferSuballocation&& vertex_buffer, IndexBufferSuballocation&& index_buffer, Texture&& texture ) :
+		  m_vertex_buffer( std::move( vertex_buffer ) ),
+		  m_index_buffer( std::move( index_buffer ) ),
+		  m_texture( std::move( texture ) )
 		{}
 
 		Primitive() = delete;
@@ -75,8 +85,6 @@ namespace fgl::engine
 	{
 		Device& m_device;
 
-		std::vector< ::fgl::engine::Primitive > m_primitives {};
-
 		std::vector< vk::DrawIndexedIndirectCommand > buildParameters( const std::vector< Primitive >& primitives );
 
 		std::vector< vk::DrawIndexedIndirectCommand > m_draw_parameters;
@@ -84,6 +92,8 @@ namespace fgl::engine
 		std::string m_name { "Unnamed model" };
 
 	  public:
+
+		std::vector< ::fgl::engine::Primitive > m_primitives {};
 
 		struct Builder
 		{

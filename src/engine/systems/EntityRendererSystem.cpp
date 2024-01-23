@@ -68,28 +68,43 @@ namespace fgl::engine
 		m_pipeline->bind( command_buffer );
 
 		m_pipeline->bindDescriptor( command_buffer, 0, info.global_descriptor_set );
+		m_pipeline->bindDescriptor( command_buffer, 1, Texture::getTextureDescriptorSet() );
 
 		std::vector< vk::DrawIndexedIndirectCommand > draw_commands;
 		std::vector< ModelMatrixInfo > model_matrices;
+
+		GameObject* previous { nullptr };
+		auto previous_end { draw_commands.end() };
 
 		for ( auto& [ key, obj ] : info.game_objects )
 		{
 			TracyVkZone( info.tracy_ctx, command_buffer, "Render game object" );
 			if ( obj.model == nullptr ) continue;
 
-			ModelMatrixInfo matrix_info { .model_matrix = obj.transform.mat4(),
-				                          .normal_matrix = obj.transform.normalMatrix() };
+			const ModelMatrixInfo matrix_info { .model_matrix = obj.transform.mat4() };
+			//.normal_matrix = obj.transform.normalMatrix() };
 
-			std::vector< vk::DrawIndexedIndirectCommand > cmds { obj.model->getDrawCommand( model_matrices.size() ) };
+			// If the previous model is identical to the current one then we can simply add a count to the previous commands instead of adding our own
+			if ( previous && previous->model == obj.model )
+			{
+				//Simply push the model matrix back and add to the counter
+				auto func = []( vk::DrawIndexedIndirectCommand& cmd ) { cmd.instanceCount++; };
+
+				std::for_each( previous_end, draw_commands.end(), func );
+			}
+			else
+			{
+				std::vector< vk::DrawIndexedIndirectCommand > cmds {
+					obj.model->getDrawCommand( model_matrices.size() )
+				};
+
+				assert( cmds.size() > 0 && "Expected at least 1 draw command from model" );
+
+				previous = &obj;
+				previous_end = draw_commands.insert( draw_commands.end(), cmds.begin(), cmds.end() );
+			}
 
 			model_matrices.push_back( matrix_info );
-
-			//TODO: Implement batching
-
-			//draw_commands.push_back( obj.model->getDrawCommand() );
-
-			//Push back draw commands
-			draw_commands.insert( draw_commands.end(), cmds.begin(), cmds.end() );
 		}
 
 		assert( draw_commands.size() > 0 && "No draw commands to render" );
@@ -122,7 +137,7 @@ namespace fgl::engine
 		std::vector< vk::Buffer > vertex_buffers { m_vertex_buffer->getVkBuffer(),
 			                                       model_matricies_suballoc->getVkBuffer() };
 
-		command_buffer.bindVertexBuffers( 0, vertex_buffers, { 0, model_matricies_suballoc->offset() } );
+		command_buffer.bindVertexBuffers( 0, vertex_buffers, { 0, model_matricies_suballoc->getOffset() } );
 		command_buffer.bindIndexBuffer( m_index_buffer->getVkBuffer(), 0, vk::IndexType::eUint32 );
 
 		command_buffer.drawIndexedIndirect(

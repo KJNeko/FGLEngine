@@ -22,7 +22,7 @@ namespace fgl::engine
 	{
 		Device& m_device;
 
-		using Pipeline = PipelineT< GlobalDescriptorSet >;
+		using Pipeline = PipelineT< GlobalDescriptorSet, TextureDescriptorSet >;
 		using CompositionPipeline = PipelineT< GBufferDescriptorSet >;
 
 		std::unique_ptr< Pipeline > m_pipeline {};
