@@ -28,7 +28,9 @@ namespace fgl::engine
 		int y { 0 };
 		int channels { 0 };
 
-		const auto data_c { stbi_load( path.c_str(), &x, &y, &channels, 4 ) };
+		std::string path_str { path.string() };
+
+		const auto data_c { stbi_load( path_str.data(), &x, &y, &channels, 4 ) };
 
 		std::cout << "Loaded image with " << x << "x" << y << " Image had " << channels << " channels" << std::endl;
 
