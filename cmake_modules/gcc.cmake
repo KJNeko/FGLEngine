@@ -117,14 +117,8 @@
 				set(FGL_OPTIMIZATION_FLAGS_SYSTEM "-march=native -flto=auto -fdeclone-ctor-dtor -fgcse -fgcse-las -fgcse-sm -ftree-loop-im -fivopts -ftree-loop-ivcanon -fira-hoist-pressure -fsched-pressure -fsched-spec-load -fipa-pta -s -ffat-lto-objects -fno-enforce-eh-specs -fstrict-enums") # System specific flags. Probably not portable
 				set(FGL_OPTIMIZATION_FLAGS_RELWITHDEBINFO "-O2 -g -fdevirtualize-at-ltrans -fdevirtualize-speculatively -fdeclone-ctor-dtor -funroll-loops")
 
-				# Final flag sets
-				set(FGL_FLAGS_DEBUG "${FGL_CONFIG} ${FGL_WARNINGS} ${FGL_DEBUG}")
-				set(FGL_FLAGS_SYSTEM "${FGL_CONFIG} ${FGL_SYSTEM_SAFE} ${FGL_SYSTEM_SPECIFIC}")
-				set(FGL_FLAGS_RELEASE "${FGL_CONFIG} ${FGL_SYSTEM_SAFE} ${FGL_WARNINGS}")
-				set(FGL_FLAGS_RELWITHDEBINFO "${FGL_CONFIG} ${FGL_SYSTEM_SAFE} ${FGL_SYSTEM_SPECIFIC}")
-
 				# Final sets
-				set(FGL_FLAGS "${FGL_OPTIMIZATION_FLAGS_${UPPER_BUILD_TYPE}} ${FGL_FLAGS_${UPPER_BUILD_TYPE}}" PARENT_SCOPE) # Flags for our shit
+				set(FGL_FLAGS "${FGL_OPTIMIZATION_FLAGS_${UPPER_BUILD_TYPE}} ${FLG_WARNINGS}" PARENT_SCOPE) # Flags for our shit
 				#set(FGL_FLAGS "${FGL_OPTIMIZATION_FLAGS_${UPPER_BUILD_TYPE}}" PARENT_SCOPE)
 				set(FGL_CHILD_FLAGS "${FGL_OPTIMIZATION_FLAGS_${UPPER_BUILD_TYPE}}" PARENT_SCOPE) # Child flags for adding optmization to anything we build ourselves but doesn't follow our standard
 				#set(CMAKE_CXX_FLAGS "${FGL_CHILD_FLAGS}")
