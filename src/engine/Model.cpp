@@ -348,8 +348,6 @@ namespace fgl::engine
 									[[fallthrough]];
 								case GL_LINEAR_MIPMAP_LINEAR:
 									return vk::Filter::eLinear;
-								case GL_CUBIC_EXT:
-									return vk::Filter::eCubicEXT;
 							}
 						};
 
