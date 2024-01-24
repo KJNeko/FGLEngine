@@ -50,7 +50,6 @@ namespace fgl::engine
 		     != vk::Result::eSuccess )
 			throw std::runtime_error( "Failed to allocate command buffers" );
 
-#ifdef TRACY_ENABLE
 #if TRACY_ENABLE
 		m_tracy_ctx.resize( SwapChain::MAX_FRAMES_IN_FLIGHT );
 
@@ -62,7 +61,6 @@ namespace fgl::engine
 			m_tracy_ctx[ i ] =
 				TracyVkContext( phy_dev, dev, Device::getInstance().graphicsQueue(), m_command_buffer[ i ] );
 		}
-#endif
 #endif
 	}
 

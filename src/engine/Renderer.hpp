@@ -61,7 +61,7 @@ namespace fgl::engine
 
 		TracyVkCtx getCurrentTracyCTX() const
 		{
-#ifdef TRACY_ENABLE
+#if TRACY_ENABLE
 			return m_tracy_ctx[ current_frame_idx ];
 #else
 			return nullptr;

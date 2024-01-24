@@ -40,7 +40,7 @@ namespace fgl::engine
 	{
 		using namespace fgl::literals::size_literals;
 		initGlobalStagingBuffer( 256_MiB );
-#ifdef ENABLE_IMGUI
+#if ENABLE_IMGUI
 		initImGui();
 #endif
 		loadGameObjects();
@@ -138,11 +138,8 @@ namespace fgl::engine
 					                   draw_parameter_buffers[ frame_index ],
 					                   m_renderer.getGBufferDescriptor( frame_index ) };
 
-#ifdef TRACY_ENABLE
 #if TRACY_ENABLE
 				auto& tracy_ctx { frame_info.tracy_ctx };
-
-#endif
 #endif
 
 				CameraInfo current_camera_info { .projection = camera.getProjectionMatrix(),
@@ -151,7 +148,7 @@ namespace fgl::engine
 
 				camera_info[ frame_index ] = current_camera_info;
 
-#ifdef ENABLE_IMGUI
+#if ENABLE_IMGUI
 				{
 					ZoneScopedN( "ImGui recording" );
 					ImGui_ImplVulkan_NewFrame();
@@ -331,12 +328,10 @@ namespace fgl::engine
 
 				m_entity_renderer.pass( frame_info );
 
-#ifdef ENABLE_IMGUI
+#if ENABLE_IMGUI
 				{
-#ifdef TRACY_ENABLE
 #if TRACY_ENABLE
 					TracyVkZone( tracy_ctx, command_buffer, "ImGui Rendering" );
-#endif
 #endif
 					ImGui_ImplVulkan_RenderDrawData( data, command_buffer );
 				}
@@ -344,10 +339,8 @@ namespace fgl::engine
 
 				m_renderer.endSwapchainRendererPass( command_buffer );
 
-#ifdef TRACY_ENABLE
 #if TRACY_ENABLE
 				TracyVkCollect( frame_info.tracy_ctx, command_buffer );
-#endif
 #endif
 
 				m_renderer.endFrame();
@@ -516,7 +509,7 @@ namespace fgl::engine
 
 	EngineContext::~EngineContext()
 	{
-#ifdef ENABLE_IMGUI
+#if ENABLE_IMGUI
 		cleanupImGui();
 #endif
 	}

@@ -25,5 +25,9 @@ target_link_libraries(FGLEngine PUBLIC Vulkan::Vulkan glfw glm FGLImGui Tracy::T
 target_include_directories(FGLEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
 set_target_properties(FGLEngine PROPERTIES COMPILE_FLAGS ${FGL_FLAGS})
 
-target_compile_definitions(FGLEngine PRIVATE TRACY_ENABLE=1)
-target_compile_definitions(FGLEngine PRIVATE ENABLE_IMGUI=1)
+string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_UPPER_BUILD_TYPE)
+if (CMAKE_UPPER_BUILD_TYPE STREQUAL "DEBUG")
+	target_compile_definitions(FGLEngine PRIVATE ENABLE_IMGUI=1)
+else ()
+	target_compile_definitions(FGLEngine PRIVATE ENABLE_IMGUI=0)
+endif ()
