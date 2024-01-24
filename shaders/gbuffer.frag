@@ -31,6 +31,7 @@ float linearDepth(float depth)
 
 void main()
 {
+
     out_position = vec4(in_world_pos, 1.0f);
 
     vec3 N = normalize(in_normal);
@@ -38,6 +39,12 @@ void main()
     out_normal = vec4(N, 1.0);
 
     vec4 tex_value = texture(tex[in_tex_idx], in_tex_coord);
+
+    if (tex_value.a < 1.0)
+    {
+        discard;
+    }
+
 
     out_albedo = tex_value;
 
