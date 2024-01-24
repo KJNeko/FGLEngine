@@ -36,12 +36,12 @@ namespace fgl::engine
 
 		std::vector< unsigned char > data {};
 
-		data.resize( x * y * channels );
-		std::memcpy( data.data(), data_c, x * y * channels );
+		data.resize( x * y * 4 );
+		std::memcpy( data.data(), data_c, x * y * 4 );
 
 		stbi_image_free( data_c );
 
-		return { std::move( data ), x, y, channels };
+		return { std::move( data ), x, y, 4 };
 	}
 
 	Texture Texture::loadFromFile( const std::filesystem::path& path )
