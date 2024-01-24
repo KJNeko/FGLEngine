@@ -22,7 +22,7 @@ namespace fgl::engine
 		info.rasterization_info.depthClampEnable = VK_FALSE;
 		info.rasterization_info.rasterizerDiscardEnable = VK_FALSE;
 		info.rasterization_info.polygonMode = vk::PolygonMode::eFill;
-		info.rasterization_info.cullMode = vk::CullModeFlagBits::eNone;
+		info.rasterization_info.cullMode = vk::CullModeFlagBits::eBack;
 		info.rasterization_info.frontFace = vk::FrontFace::eClockwise;
 		info.rasterization_info.depthBiasEnable = VK_FALSE;
 		info.rasterization_info.depthBiasConstantFactor = 0.0f;
