@@ -195,7 +195,9 @@ namespace fgl::engine
 		VkImageView vk_view { view->getVkView() };
 		VkSampler vk_sampler { view->getSampler()->getVkSampler() };
 
+#ifdef IMGUI_ENABLE
 		m_handle->m_imgui_set = ImGui_ImplVulkan_AddTexture( vk_sampler, vk_view, VK_IMAGE_LAYOUT_GENERAL );
+#endif
 	}
 
 	vk::DescriptorSet& Texture::getImGuiDescriptorSet()
