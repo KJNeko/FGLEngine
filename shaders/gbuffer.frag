@@ -39,7 +39,7 @@ void main()
 
     vec4 tex_value = texture(tex[in_tex_idx], in_tex_coord);
 
-    out_albedo.rbg = tex_value.rgb * tex_value.a;
+    out_albedo = tex_value;
 
     out_position.a = linearDepth(out_position.z);
 

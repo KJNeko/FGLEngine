@@ -30,12 +30,13 @@ void main()
 
     #define ambient 0.05
 
-    vec3 frag_color = albedo.rbg * ambient;
-
     // Calculate sun light
-    vec3 sun_dir = normalize(vec3(0.0, -0.5, 0.5));
-    float sun_intensity = max(0.0, dot(normal, sun_dir));
-    frag_color += sun_intensity * 0.5;
+    vec3 sun_color = vec3(0.2);
+    vec3 sun_dir = normalize(vec3(0.0, -0.5, 0.5) - position);
+    float diff = max(dot(normalize(normal), sun_dir), 0.0);
+    vec3 diffuse = diff * sun_color;
+
+    vec3 frag_color = (ambient + diffuse) * albedo;
 
 /*
     for (int i = 0; i < 4; i++)
