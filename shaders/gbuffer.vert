@@ -35,4 +35,6 @@ void main() {
     out_color = color;
 
     out_tex_coord = uv;
+
+    out_texture_idx = in_texture_id;
 }
