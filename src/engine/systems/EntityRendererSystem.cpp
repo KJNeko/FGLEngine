@@ -8,11 +8,13 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ON
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include <tracy/TracyC.h>
 #include <vulkan/vulkan.hpp>
 
 #include <array>
 #include <chrono>
 #include <iostream>
+#include <set>
 #include <stdexcept>
 #include <thread>
 
@@ -60,6 +62,18 @@ namespace fgl::engine
 	EntityRendererSystem::~EntityRendererSystem()
 	{}
 
+	using DrawPair = std::pair< vk::DrawIndexedIndirectCommand, std::vector< ModelMatrixInfo > >;
+
+	bool operator<( const DrawPair& left, const DrawPair& right )
+	{
+		return left.first.firstIndex < right.first.firstIndex;
+	}
+
+	bool operator==( const DrawPair& left, const DrawPair& right )
+	{
+		return left.first.firstIndex == right.first.firstIndex && left.first.indexCount && right.first.indexCount;
+	}
+
 	void EntityRendererSystem::pass( FrameInfo& info )
 	{
 		ZoneScoped;
@@ -73,8 +87,7 @@ namespace fgl::engine
 			m_pipeline->bindDescriptor( command_buffer, 0, info.global_descriptor_set );
 			m_pipeline->bindDescriptor( command_buffer, 1, Texture::getTextureDescriptorSet() );
 
-			std::vector< vk::DrawIndexedIndirectCommand > draw_commands;
-			std::vector< ModelMatrixInfo > model_matrices;
+			std::set< DrawPair > draw_pairs;
 
 			for ( auto& [ key, obj ] : info.game_objects )
 			{
@@ -83,7 +96,7 @@ namespace fgl::engine
 
 				for ( const auto& primitive : obj.model->m_primitives )
 				{
-					ZoneScopedN( "Render primitive" );
+					ZoneScopedN( "Queue Primitive" );
 					const ModelMatrixInfo matrix_info { .model_matrix = obj.transform.mat4(),
 						                                .texture_idx = primitive.m_texture->getID() };
 					//.normal_matrix = obj.transform.normalMatrix() };
@@ -95,16 +108,73 @@ namespace fgl::engine
 
 					cmd.vertexOffset = primitive.m_vertex_buffer.getOffsetCount();
 
-					cmd.firstInstance = model_matrices.size();
 					cmd.instanceCount = 1;
 
-					draw_commands.emplace_back( cmd );
-					model_matrices.emplace_back( matrix_info );
+					TracyCZoneN( search_zone_TRACY, "Draw pair deduplicate search", true );
+					auto itter = std::find(
+						draw_pairs.begin(), draw_pairs.end(), std::make_pair( cmd, std::vector< ModelMatrixInfo >() ) );
+					TracyCZoneEnd( search_zone_TRACY );
+
+					if ( itter != draw_pairs.end() )
+					{
+						ZoneScopedN( "Increment existing render call" );
+						//Draw command for this mesh already exists. Simply add a count to it
+						auto [ existing_cmd, model_matrix ] = *itter;
+
+						//Sort each model matrix by distance from camera. Render closest first
+						const auto camera_pos { info.camera.getPosition() };
+
+						{
+							ZoneScopedN( "Sort model matricies by distance" );
+							std::sort(
+								model_matrix.begin(),
+								model_matrix.end(),
+								[ camera_pos ]( const ModelMatrixInfo& first, const ModelMatrixInfo& second ) -> bool
+								{
+									const auto& first_pos_v4 { first.model_matrix[ 3 ] };
+									const auto& second_pos_v4 { second.model_matrix[ 3 ] };
+
+									const glm::vec3 first_pos { first_pos_v4.x, first_pos_v4.y, first_pos_v4.z };
+									const glm::vec3 second_pos { second_pos_v4.x, second_pos_v4.y, second_pos_v4.z };
+
+									const auto first_distance { glm::distance( first_pos, camera_pos ) };
+									const auto second_distance { glm::distance( second_pos, camera_pos ) };
+
+									return first_distance < second_distance;
+								} );
+						}
+
+						draw_pairs.erase( itter );
+						existing_cmd.instanceCount++;
+						model_matrix.emplace_back( matrix_info );
+						draw_pairs.emplace( existing_cmd, std::move( model_matrix ) );
+					}
+					else
+					{
+						ZoneScopedN( "Create new render call" );
+						draw_pairs.emplace( cmd, std::vector< ModelMatrixInfo > { matrix_info } );
+					}
 				}
 			}
 
+			std::vector< vk::DrawIndexedIndirectCommand > draw_commands;
+			std::vector< ModelMatrixInfo > model_matrices;
+
+			TracyCZoneN( filter_zone_TRACY, "Reorganize draw commands", true );
+			for ( auto& itter : draw_pairs )
+			{
+				auto cmd { itter.first };
+				cmd.firstInstance = model_matrices.size();
+				auto& matricies { itter.second };
+
+				draw_commands.emplace_back( cmd );
+				model_matrices.insert( model_matrices.end(), matricies.begin(), matricies.end() );
+			}
+			TracyCZoneEnd( filter_zone_TRACY );
+
 			assert( draw_commands.size() > 0 && "No draw commands to render" );
 
+			TracyCZoneN( draw_zone_TRACY, "Submit draw data", true );
 			auto& draw_parameter_buffer { m_draw_parameter_buffers[ info.frame_idx ] };
 
 			if ( draw_parameter_buffer == nullptr || draw_parameter_buffer->count() != draw_commands.size() )
@@ -117,6 +187,7 @@ namespace fgl::engine
 				//Simply set and flush
 				*draw_parameter_buffer = draw_commands;
 			}
+			TracyCZoneEnd( draw_zone_TRACY );
 
 			draw_parameter_buffer->flush();
 
