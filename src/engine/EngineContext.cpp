@@ -8,6 +8,7 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include <tracy/TracyVulkan.hpp>
 
 #include <array>
 #include <chrono>
@@ -102,6 +103,7 @@ namespace fgl::engine
 
 		while ( !m_window.shouldClose() )
 		{
+			ZoneScopedN( "Poll" );
 			glfwPollEvents();
 
 			const auto new_time { std::chrono::high_resolution_clock::now() };
@@ -121,6 +123,7 @@ namespace fgl::engine
 
 			if ( auto command_buffer = m_renderer.beginFrame(); command_buffer )
 			{
+				ZoneScopedN( "Render" );
 				//Update
 				const std::uint8_t frame_index { m_renderer.getFrameIndex() };
 
@@ -135,6 +138,13 @@ namespace fgl::engine
 					                   draw_parameter_buffers[ frame_index ],
 					                   m_renderer.getGBufferDescriptor( frame_index ) };
 
+#ifdef TRACY_ENABLE
+#if TRACY_ENABLE
+				auto& tracy_ctx { frame_info.tracy_ctx };
+
+#endif
+#endif
+
 				CameraInfo current_camera_info { .projection = camera.getProjectionMatrix(),
 					                             .view = camera.getViewMatrix(),
 					                             .inverse_view = camera.getInverseView() };
@@ -142,146 +152,163 @@ namespace fgl::engine
 				camera_info[ frame_index ] = current_camera_info;
 
 #ifdef ENABLE_IMGUI
-				ImGui_ImplVulkan_NewFrame();
-				ImGui_ImplGlfw_NewFrame();
-				ImGui::NewFrame();
-
 				{
-					ImGui::Begin( "Titor Dev Menu" );
+					ZoneScopedN( "ImGui recording" );
+					ImGui_ImplVulkan_NewFrame();
+					ImGui_ImplGlfw_NewFrame();
+					ImGui::NewFrame();
 
-					ImGui::Text( "Framerate" );
-					ImGui::SameLine();
-					ImGui::Text( "%.1f FPS", ImGui::GetIO().Framerate );
-
-					ImGui::Text( "Frame Time" );
-					ImGui::SameLine();
-					ImGui::Text( "%.3f ms", 1000.0f / ImGui::GetIO().Framerate );
-
-					if ( ImGui::CollapsingHeader( "Camera" ) )
 					{
-						ImGui::PushItemWidth( 80 );
-						ImGui::DragFloat( "Pos X", &viewer.transform.translation.x, 0.1f );
-						ImGui::SameLine();
-						ImGui::DragFloat( "Pos Y", &viewer.transform.translation.y, 0.1f );
-						ImGui::SameLine();
-						ImGui::DragFloat( "Pos Z", &viewer.transform.translation.z, 0.1f );
-						ImGui::PopItemWidth();
+						ImGui::Begin( "Titor Dev Menu" );
 
-						ImGui::Separator();
-
-						ImGui::PushItemWidth( 80 );
-						ImGui::DragFloat( "Rot X", &viewer.transform.rotation.x, 0.1f, 0.0f, glm::two_pi< float >() );
+						ImGui::Text( "Framerate" );
 						ImGui::SameLine();
-						ImGui::DragFloat( "Rot Y", &viewer.transform.rotation.y, 0.1f, 0.0f, glm::two_pi< float >() );
-						ImGui::SameLine();
-						ImGui::DragFloat( "Rot Z", &viewer.transform.rotation.z, 0.1f, 0.0f, glm::two_pi< float >() );
-						ImGui::PopItemWidth();
-					}
+						ImGui::Text( "%.1f FPS", ImGui::GetIO().Framerate );
 
-					if ( ImGui::CollapsingHeader( "Models" ) )
-					{
-						for ( auto& [ id, game_object ] : game_objects )
+						ImGui::Text( "Frame Time" );
+						ImGui::SameLine();
+						ImGui::Text( "%.3f ms", 1000.0f / ImGui::GetIO().Framerate );
+
+						if ( ImGui::CollapsingHeader( "Camera" ) )
 						{
-							if ( game_object.model == nullptr ) continue;
+							ImGui::PushItemWidth( 80 );
+							ImGui::DragFloat( "Pos X", &viewer.transform.translation.x, 0.1f );
+							ImGui::SameLine();
+							ImGui::DragFloat( "Pos Y", &viewer.transform.translation.y, 0.1f );
+							ImGui::SameLine();
+							ImGui::DragFloat( "Pos Z", &viewer.transform.translation.z, 0.1f );
+							ImGui::PopItemWidth();
 
-							ImGui::PushID( std::to_string( id ).c_str() );
+							ImGui::Separator();
 
-							if ( ImGui::TreeNode( game_object.model->getName().c_str() ) )
+							ImGui::PushItemWidth( 80 );
+							ImGui::
+								DragFloat( "Rot X", &viewer.transform.rotation.x, 0.1f, 0.0f, glm::two_pi< float >() );
+							ImGui::SameLine();
+							ImGui::
+								DragFloat( "Rot Y", &viewer.transform.rotation.y, 0.1f, 0.0f, glm::two_pi< float >() );
+							ImGui::SameLine();
+							ImGui::
+								DragFloat( "Rot Z", &viewer.transform.rotation.z, 0.1f, 0.0f, glm::two_pi< float >() );
+							ImGui::PopItemWidth();
+						}
+
+						if ( ImGui::CollapsingHeader( "Models" ) )
+						{
+							for ( auto& [ id, game_object ] : game_objects )
 							{
-								ImGui::PushID( game_object.model->getName().c_str() );
+								if ( game_object.model == nullptr ) continue;
+
+								ImGui::PushID( std::to_string( id ).c_str() );
+
+								if ( ImGui::TreeNode( game_object.model->getName().c_str() ) )
 								{
-									ImGui::PushID( "Position" );
-									ImGui::PushItemWidth( 80 );
-									ImGui::Text( "Position" );
-									ImGui::SameLine();
-									ImGui::DragFloat( "X", &game_object.transform.translation.x, 0.1f );
-									ImGui::SameLine();
-									ImGui::DragFloat( "Y", &game_object.transform.translation.y, 0.1f );
-									ImGui::SameLine();
-									ImGui::DragFloat( "Z", &game_object.transform.translation.z, 0.1f );
-									ImGui::PopID();
-								}
-
-								ImGui::Separator();
-
-								{
-									ImGui::PushID( "Rotation" );
-									ImGui::PushItemWidth( 80 );
-									ImGui::Text( "Rotation" );
-									ImGui::SameLine();
-									ImGui::DragFloat(
-										"X", &game_object.transform.rotation.x, 0.1f, 0.0f, glm::two_pi< float >() );
-									ImGui::SameLine();
-									ImGui::DragFloat(
-										"Y", &game_object.transform.rotation.y, 0.1f, 0.0f, glm::two_pi< float >() );
-									ImGui::SameLine();
-									ImGui::DragFloat(
-										"Z", &game_object.transform.rotation.z, 0.1f, 0.0f, glm::two_pi< float >() );
-									ImGui::PopID();
-								}
-
-								ImGui::Separator();
-
-								{
-									ImGui::PushID( "Scale" );
-									ImGui::PushItemWidth( 80 );
-									ImGui::Text( "Scale" );
-									ImGui::SameLine();
-									ImGui::DragFloat( "X", &game_object.transform.scale.x, 0.1f );
-									ImGui::SameLine();
-									ImGui::DragFloat( "Y", &game_object.transform.scale.y, 0.1f );
-									ImGui::SameLine();
-									ImGui::DragFloat( "Z", &game_object.transform.scale.z, 0.1f );
-									ImGui::TreePop();
-									ImGui::PopID();
-								}
-
-								if ( ImGui::CollapsingHeader( "Textures" ) )
-								{
-									std::vector< TextureID > textures;
-
-									ImGui::PushID( "Textures" );
-
-									for ( auto& primitive : game_object.model->m_primitives )
+									ImGui::PushID( game_object.model->getName().c_str() );
 									{
-										if ( !primitive.m_texture.has_value() ) continue;
+										ImGui::PushID( "Position" );
+										ImGui::PushItemWidth( 80 );
+										ImGui::Text( "Position" );
+										ImGui::SameLine();
+										ImGui::DragFloat( "X", &game_object.transform.translation.x, 0.1f );
+										ImGui::SameLine();
+										ImGui::DragFloat( "Y", &game_object.transform.translation.y, 0.1f );
+										ImGui::SameLine();
+										ImGui::DragFloat( "Z", &game_object.transform.translation.z, 0.1f );
+										ImGui::PopID();
+									}
 
-										auto& texture { primitive.m_texture.value() };
+									ImGui::Separator();
 
-										const auto& extent { texture.getExtent() };
+									{
+										ImGui::PushID( "Rotation" );
+										ImGui::PushItemWidth( 80 );
+										ImGui::Text( "Rotation" );
+										ImGui::SameLine();
+										ImGui::DragFloat(
+											"X",
+											&game_object.transform.rotation.x,
+											0.1f,
+											0.0f,
+											glm::two_pi< float >() );
+										ImGui::SameLine();
+										ImGui::DragFloat(
+											"Y",
+											&game_object.transform.rotation.y,
+											0.1f,
+											0.0f,
+											glm::two_pi< float >() );
+										ImGui::SameLine();
+										ImGui::DragFloat(
+											"Z",
+											&game_object.transform.rotation.z,
+											0.1f,
+											0.0f,
+											glm::two_pi< float >() );
+										ImGui::PopID();
+									}
 
-										auto& image_view { texture.getImageView() };
-										auto& sampler { image_view.getSampler() };
+									ImGui::Separator();
 
-										if ( !sampler.has_value() ) continue;
+									{
+										ImGui::PushID( "Scale" );
+										ImGui::PushItemWidth( 80 );
+										ImGui::Text( "Scale" );
+										ImGui::SameLine();
+										ImGui::DragFloat( "X", &game_object.transform.scale.x, 0.1f );
+										ImGui::SameLine();
+										ImGui::DragFloat( "Y", &game_object.transform.scale.y, 0.1f );
+										ImGui::SameLine();
+										ImGui::DragFloat( "Z", &game_object.transform.scale.z, 0.1f );
+										ImGui::TreePop();
+										ImGui::PopID();
+									}
 
-										ImVec2 size;
-										size.x = extent.width;
-										size.y = extent.height;
+									if ( ImGui::CollapsingHeader( "Textures" ) )
+									{
+										std::vector< TextureID > textures;
 
-										if ( std::find( textures.begin(), textures.end(), texture.getID() )
-										     == textures.end() )
+										ImGui::PushID( "Textures" );
+
+										for ( auto& primitive : game_object.model->m_primitives )
 										{
-											textures.emplace_back( texture.getID() );
+											if ( !primitive.m_texture.has_value() ) continue;
 
-											ImGui::Image(
-												static_cast< ImTextureID >( primitive.m_texture
-											                                    ->getImGuiDescriptorSet() ),
-												size );
+											auto& texture { primitive.m_texture.value() };
+
+											const auto& extent { texture.getExtent() };
+
+											auto& image_view { texture.getImageView() };
+											auto& sampler { image_view.getSampler() };
+
+											if ( !sampler.has_value() ) continue;
+
+											ImVec2 size;
+											size.x = extent.width;
+											size.y = extent.height;
+
+											if ( std::find( textures.begin(), textures.end(), texture.getID() )
+											     == textures.end() )
+											{
+												textures.emplace_back( texture.getID() );
+
+												ImGui::Image(
+													static_cast< ImTextureID >( primitive.m_texture
+												                                    ->getImGuiDescriptorSet() ),
+													size );
+											}
 										}
+
+										ImGui::PopID();
 									}
 
 									ImGui::PopID();
 								}
-
 								ImGui::PopID();
 							}
-							ImGui::PopID();
 						}
-					}
 
-					//TODO: Add in a collapsable header to view all buffers, And their suballocations
-					/*
+						//TODO: Add in a collapsable header to view all buffers, And their suballocations
+						/*
 					if ( ImGui::CollapsingHeader( "Buffer allocations" ) )
 					{
 						for ( const auto& buffer : Buffer::getActiveBufferHandles() )
@@ -291,11 +318,12 @@ namespace fgl::engine
 						}
 					}*/
 
-					ImGui::End();
-				}
+						ImGui::End();
+					}
 
-				//Render
-				ImGui::Render();
+					//Render
+					ImGui::Render();
+				}
 				ImDrawData* data { ImGui::GetDrawData() };
 #endif
 
@@ -304,10 +332,24 @@ namespace fgl::engine
 				m_entity_renderer.pass( frame_info );
 
 #ifdef ENABLE_IMGUI
-				ImGui_ImplVulkan_RenderDrawData( data, command_buffer );
+				{
+#ifdef TRACY_ENABLE
+#if TRACY_ENABLE
+					TracyVkZone( tracy_ctx, command_buffer, "ImGui Rendering" );
+#endif
+#endif
+					ImGui_ImplVulkan_RenderDrawData( data, command_buffer );
+				}
 #endif
 
 				m_renderer.endSwapchainRendererPass( command_buffer );
+
+#ifdef TRACY_ENABLE
+#if TRACY_ENABLE
+				TracyVkCollect( frame_info.tracy_ctx, command_buffer );
+#endif
+#endif
+
 				m_renderer.endFrame();
 				FrameMark;
 			}

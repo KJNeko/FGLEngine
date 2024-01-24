@@ -22,6 +22,7 @@ namespace fgl::engine
 
 	std::tuple< std::vector< unsigned char >, int, int, int > loadTexture( const std::filesystem::path& path )
 	{
+		ZoneScoped;
 		if ( !std::filesystem::exists( path ) ) throw std::runtime_error( "Failed to open file: " + path.string() );
 
 		int x { 0 };
@@ -46,6 +47,7 @@ namespace fgl::engine
 
 	Texture Texture::loadFromFile( const std::filesystem::path& path )
 	{
+		ZoneScoped;
 		//TODO: Make some way of cleaning the map when loading textures
 
 		if ( texture_map.contains( path.string() ) )
@@ -87,6 +89,7 @@ namespace fgl::engine
 
 	void Texture::stage( vk::CommandBuffer& cmd )
 	{
+		ZoneScoped;
 		assert( m_handle && "Attempted to stage invalid texture (No handle)" );
 
 		//assert( m_handle->m_staging && "Can't stage. No staging buffer made" );

@@ -16,6 +16,7 @@ namespace fgl::engine
 		TextureHandle( const std::vector< unsigned char >& data, const vk::Extent2D extent, const int channels ) :
 	  m_extent( extent )
 	{
+		ZoneScoped;
 		static TextureID tex_counter { 0 };
 
 		constexpr auto format { vk::Format::eR8G8B8A8Unorm };

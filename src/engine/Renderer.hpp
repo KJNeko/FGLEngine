@@ -16,7 +16,6 @@
 
 //clang-format: off
 #include <tracy/TracyVulkan.hpp>
-
 //clang-format: on
 
 namespace fgl::engine
@@ -62,7 +61,7 @@ namespace fgl::engine
 
 		TracyVkCtx getCurrentTracyCTX() const
 		{
-#ifdef TRACY_ENABLED
+#ifdef TRACY_ENABLE
 			return m_tracy_ctx[ current_frame_idx ];
 #else
 			return nullptr;

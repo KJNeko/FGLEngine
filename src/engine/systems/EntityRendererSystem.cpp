@@ -32,6 +32,7 @@ namespace fgl::engine
 
 	EntityRendererSystem::EntityRendererSystem( Device& device, VkRenderPass render_pass ) : m_device( device )
 	{
+		ZoneScoped;
 		PipelineConfigInfo info { render_pass };
 
 		for ( int i = 0; i < 4; ++i ) PipelineConfigInfo::addColorAttachmentConfig( info );
@@ -61,6 +62,7 @@ namespace fgl::engine
 
 	void EntityRendererSystem::pass( FrameInfo& info )
 	{
+		ZoneScoped;
 		auto& command_buffer { info.command_buffer };
 		{
 			TracyVkZone( info.tracy_ctx, command_buffer, "Render game objects" );
@@ -81,6 +83,7 @@ namespace fgl::engine
 
 				for ( const auto& primitive : obj.model->m_primitives )
 				{
+					ZoneScopedN( "Render primitive" );
 					const ModelMatrixInfo matrix_info { .model_matrix = obj.transform.mat4(),
 						                                .texture_idx = primitive.m_texture->getID() };
 					//.normal_matrix = obj.transform.normalMatrix() };

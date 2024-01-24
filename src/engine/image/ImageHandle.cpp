@@ -41,6 +41,7 @@ namespace fgl::engine
 	  m_initial_layout( inital_layout ),
 	  m_final_layout( final_layout )
 	{
+		ZoneScoped;
 		vk::ImageCreateInfo image_info {};
 
 		image_info.imageType = vk::ImageType::e2D;

@@ -49,6 +49,21 @@ namespace fgl::engine
 		if ( Device::getInstance().device().allocateCommandBuffers( &alloc_info, m_command_buffer.data() )
 		     != vk::Result::eSuccess )
 			throw std::runtime_error( "Failed to allocate command buffers" );
+
+#ifdef TRACY_ENABLE
+#if TRACY_ENABLE
+		m_tracy_ctx.resize( SwapChain::MAX_FRAMES_IN_FLIGHT );
+
+		for ( int i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
+		{
+			VkPhysicalDevice phy_dev { Device::getInstance().phyDevice() };
+			VkDevice dev { Device::getInstance().device() };
+
+			m_tracy_ctx[ i ] =
+				TracyVkContext( phy_dev, dev, Device::getInstance().graphicsQueue(), m_command_buffer[ i ] );
+		}
+#endif
+#endif
 	}
 
 	void Renderer::recreateSwapchain()
