@@ -156,6 +156,70 @@ namespace fgl::engine
 			throw std::runtime_error( "Unknown model file extension" );
 	}
 
+	template < typename T >
+	std::vector< T > extractData( const tinygltf::Model& model, const tinygltf::Accessor& accessor )
+	{
+		if ( accessor.sparse.isSparse )
+		{
+			//Sparse loading required
+
+			throw std::runtime_error( "Sparse loading not implemeneted" );
+		}
+		else
+		{
+			auto& buffer_view { model.bufferViews.at( accessor.bufferView ) };
+			auto& buffer { model.buffers.at( buffer_view.buffer ) };
+
+			std::vector< T > data;
+
+			std::uint16_t copy_size { 0 };
+			switch ( accessor.componentType )
+			{
+				default:
+					throw std::runtime_error( "Unhandled access size" );
+				case TINYGLTF_COMPONENT_TYPE_FLOAT:
+					copy_size = sizeof( float );
+					break;
+				case TINYGLTF_COMPONENT_TYPE_BYTE:
+					copy_size = sizeof( std::byte );
+					break;
+				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
+					copy_size = sizeof( unsigned int );
+					break;
+				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
+					copy_size = sizeof( unsigned short );
+					break;
+			}
+
+			switch ( accessor.type )
+			{
+				default:
+					throw std::runtime_error( "UNhandled access type" );
+				case TINYGLTF_TYPE_VEC3:
+					copy_size *= 3;
+					break;
+				case TINYGLTF_TYPE_VEC2:
+					copy_size *= 2;
+					break;
+				case TINYGLTF_TYPE_SCALAR:
+					//noop
+					break;
+			}
+
+			constexpr auto T_SIZE { sizeof( T ) };
+
+			assert( T_SIZE == copy_size && "Accessor copy values not greater than or matching sizeof(T)" );
+
+			const auto real_size { copy_size * accessor.count };
+
+			data.resize( real_size );
+
+			std::memcpy( data.data(), buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset, real_size );
+
+			return data;
+		}
+	};
+
 	void Model::Builder::loadGltf( const std::filesystem::path& filepath )
 	{
 		std::cout << "Loading gltf model " << filepath << std::endl;
@@ -192,76 +256,38 @@ namespace fgl::engine
 				std::cout << std::endl;
 
 				//Load indicies
-				std::vector< std::uint32_t > indicies_data;
+				auto& indicies_accessor { model.accessors.at( primitive.indices ) };
+
+				std::vector< std::uint32_t > indicies_data {};
+
+				if ( indicies_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT )
 				{
-					auto& indicies_accessor { model.accessors.at( primitive.indices ) };
-					auto& buffer_view { model.bufferViews.at( indicies_accessor.bufferView ) };
-					auto& buffer { model.buffers.at( buffer_view.buffer ) };
+					indicies_data = extractData< std::uint32_t >( model, model.accessors.at( primitive.indices ) );
+				}
+				else if ( indicies_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT )
+				{
+					auto tmp { extractData< std::uint16_t >( model, model.accessors.at( primitive.indices ) ) };
 
-					indicies_data.resize( static_cast< std::uint64_t >( indicies_accessor.count ) );
+					indicies_data.reserve( tmp.size() );
 
-					assert( indicies_accessor.type == TINYGLTF_TYPE_SCALAR );
-
-					if ( indicies_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT )
+					for ( auto& val : tmp )
 					{
-						unsigned short* data { reinterpret_cast< unsigned short* >(
-							buffer.data.data() + buffer_view.byteOffset + indicies_accessor.byteOffset ) };
-						for ( std::size_t i = 0; i < indicies_accessor.count; i++ )
-						{
-							indicies_data[ i ] = data[ i ];
-						}
+						indicies_data.emplace_back( val );
 					}
-					else if ( indicies_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT )
-					{
-						std::memcpy(
-							indicies_data.data(),
-							buffer.data.data() + buffer_view.byteOffset + indicies_accessor.byteOffset,
-							static_cast< std::uint64_t >( indicies_accessor.count ) * sizeof( std::uint32_t ) );
-					}
-					else
-						throw std::runtime_error( "Unknown index type" );
 				}
 
 				//Load positions
-				std::vector< glm::vec3 > position_data;
-				{
-					auto& position_accessor { model.accessors.at( primitive.attributes.at( "POSITION" ) ) };
-					auto& buffer_view { model.bufferViews.at( position_accessor.bufferView ) };
-					auto& buffer { model.buffers.at( buffer_view.buffer ) };
-
-					position_data.resize( static_cast< std::uint64_t >( position_accessor.count ) );
-
-					//Check the type
-					assert( position_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT );
-					assert( position_accessor.type == TINYGLTF_TYPE_VEC3 );
-					static_assert( sizeof( glm::vec3 ) == sizeof( float ) * 3, "glm::vec3 is not three floats" );
-
-					std::memcpy(
-						position_data.data(),
-						buffer.data.data() + buffer_view.byteOffset + position_accessor.byteOffset,
-						static_cast< std::uint64_t >( position_accessor.count ) * sizeof( glm::vec3 ) );
-				}
+				auto& position_accessor { model.accessors.at( primitive.attributes.at( "POSITION" ) ) };
+				std::vector< glm::vec3 > position_data { extractData< glm::vec3 >( model, position_accessor ) };
 
 				std::vector< glm::vec3 > normals;
 
 				if ( primitive.attributes.find( "NORMAL" ) != primitive.attributes.end() )
 				{
-					auto& normal_accessor { model.accessors.at( primitive.attributes.at( "NORMAL" ) ) };
-					auto& buffer_view { model.bufferViews.at( normal_accessor.bufferView ) };
-					auto& buffer { model.buffers.at( buffer_view.buffer ) };
-
-					normals.resize( static_cast< std::uint64_t >( normal_accessor.count ) );
-
-					//Check the type
-					assert( normal_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT );
-					assert( normal_accessor.type == TINYGLTF_TYPE_VEC3 );
-
-					std::memcpy(
-						normals.data(),
-						buffer.data.data() + buffer_view.byteOffset + normal_accessor.byteOffset,
-						static_cast< std::uint64_t >( normal_accessor.count ) * sizeof( glm::vec3 ) );
+					normals =
+						extractData< glm::vec3 >( model, model.accessors.at( primitive.attributes.at( "NORMAL" ) ) );
 				}
-				else
+				else // TODO: Precompute normals if required
 					normals.resize( position_data.size() );
 
 				//TODO: Implement TANGENT reading
@@ -278,30 +304,9 @@ namespace fgl::engine
 
 						if ( idx != 0 ) throw std::runtime_error( "Multiple tex coordinates not supported" );
 
-						auto& texcoord_accessor { model.accessors.at( idx ) };
+						auto& texcoord_accessor { model.accessors.at( attr_idx ) };
 
-						auto& buffer_view { model.bufferViews.at( texcoord_accessor.bufferView ) };
-						auto& buffer { model.buffers.at( buffer_view.buffer ) };
-
-						texcoords.resize( static_cast< std::size_t >( texcoord_accessor.count ) );
-
-						assert( texcoord_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT );
-						assert( texcoord_accessor.type == TINYGLTF_TYPE_SCALAR );
-
-						std::vector< unsigned short > coords;
-						coords.resize( static_cast< std::size_t >( texcoord_accessor.count ) );
-
-						std::memcpy(
-							coords.data(),
-							buffer.data.data() + buffer_view.byteOffset + texcoord_accessor.byteOffset,
-							coords.size() * sizeof( unsigned short ) );
-
-						//Convert to glm::vec2
-
-						for ( int i = 0; i < coords.size(); i += 2 )
-						{
-							texcoords[ i / 2 ] = glm::vec2( coords[ i ], coords[ i + 1 ] );
-						}
+						texcoords = extractData< glm::vec2 >( model, texcoord_accessor );
 					}
 				}
 
