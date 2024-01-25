@@ -103,7 +103,7 @@ namespace fgl::engine
 		if ( glfwGetKey( window, key_mappings.move_down ) == GLFW_PRESS ) move_dir -= up_dir;
 
 		if ( glm::dot( move_dir, move_dir ) > std::numeric_limits< float >::epsilon() )
-			target.transform.translation += move_speed * dt * glm::normalize( move_dir );
+			target.transform.translation += ( move_speed * dt ) * glm::normalize( move_dir );
 	}
 
 } // namespace fgl::engine

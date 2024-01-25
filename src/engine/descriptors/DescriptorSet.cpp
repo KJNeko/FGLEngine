@@ -21,7 +21,30 @@ namespace fgl::engine
 
 	DescriptorSet::~DescriptorSet()
 	{
-		DescriptorPool::getInstance().deallocSet( m_set );
+		if ( m_set != VK_NULL_HANDLE ) DescriptorPool::getInstance().deallocSet( m_set );
+	}
+
+	DescriptorSet::DescriptorSet( DescriptorSet&& other ) :
+	  m_infos( std::move( other.m_infos ) ),
+	  descriptor_writes( std::move( other.descriptor_writes ) ),
+	  m_resources( std::move( other.m_resources ) ),
+	  m_layout( std::move( other.m_layout ) ),
+	  m_set( std::move( other.m_set ) ),
+	  m_max_idx( other.m_max_idx )
+	{
+		other.m_set = VK_NULL_HANDLE;
+	}
+
+	DescriptorSet& DescriptorSet::operator=( DescriptorSet&& other )
+	{
+		m_infos = std::move( other.m_infos );
+		descriptor_writes = std::move( other.descriptor_writes );
+		m_resources = std::move( other.m_resources );
+		m_layout = std::move( other.m_layout );
+		m_set = std::move( other.m_set );
+		other.m_set = VK_NULL_HANDLE;
+		m_max_idx = other.m_max_idx;
+		return *this;
 	}
 
 	void DescriptorSet::bindUniformBuffer( std::uint32_t binding_idx, BufferSuballocation& buffer )

@@ -49,8 +49,8 @@ namespace fgl::engine
 		DescriptorSet& operator=( const DescriptorSet& other ) = delete;
 
 		//Move
-		DescriptorSet( DescriptorSet&& other ) = delete;
-		DescriptorSet& operator=( DescriptorSet&& other ) = delete;
+		DescriptorSet( DescriptorSet&& other );
+		DescriptorSet& operator=( DescriptorSet&& other );
 
 		void bindImage(
 			std::uint32_t binding_idx, ImageView& view, vk::ImageLayout layout, vk::Sampler sampler = VK_NULL_HANDLE );

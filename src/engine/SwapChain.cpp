@@ -39,6 +39,7 @@ namespace fgl::engine
 
 	SwapChain::~SwapChain()
 	{
+		ZoneScoped;
 		if ( swapChain != nullptr )
 		{
 			vkDestroySwapchainKHR( Device::getInstance().device(), swapChain, nullptr );
@@ -61,34 +62,39 @@ namespace fgl::engine
 		}
 	}
 
-	vk::Result SwapChain::acquireNextImage( uint32_t* imageIndex )
+	std::pair< vk::Result, std::uint32_t > SwapChain::acquireNextImage()
 	{
+		ZoneScoped;
 		if ( Device::getInstance()
 		         .device()
 		         .waitForFences( 1, &inFlightFences[ currentFrame ], VK_TRUE, std::numeric_limits< uint64_t >::max() )
 		     != vk::Result::eSuccess )
 			throw std::runtime_error( "failed to wait for fences!" );
 
+		std::uint32_t image_idx { 0 };
+
 		vk::Result result { Device::getInstance().device().acquireNextImageKHR(
 			swapChain,
 			std::numeric_limits< uint64_t >::max(),
 			imageAvailableSemaphores[ currentFrame ], // must be a not signaled semaphore
 			VK_NULL_HANDLE,
-			imageIndex ) };
+			&image_idx ) };
 
-		return result;
+		return { result, image_idx };
 	}
 
-	vk::Result SwapChain::submitCommandBuffers( const vk::CommandBuffer* buffers, uint32_t* imageIndex )
+	vk::Result SwapChain::submitCommandBuffers( const vk::CommandBuffer* buffers, std::uint32_t imageIndex )
 	{
-		if ( imagesInFlight[ *imageIndex ] != VK_NULL_HANDLE )
+		ZoneScoped;
+		if ( imagesInFlight[ imageIndex ] != VK_NULL_HANDLE )
 		{
-			if ( Device::getInstance().device().waitForFences(
-					 1, &imagesInFlight[ *imageIndex ], VK_TRUE, std::numeric_limits< uint64_t >::max() )
+			if ( Device::getInstance()
+			         .device()
+			         .waitForFences( 1, &imagesInFlight[ imageIndex ], VK_TRUE, std::numeric_limits< uint64_t >::max() )
 			     != vk::Result::eSuccess )
 				throw std::runtime_error( "failed to wait for fences!" );
 		}
-		imagesInFlight[ *imageIndex ] = inFlightFences[ currentFrame ];
+		imagesInFlight[ imageIndex ] = inFlightFences[ currentFrame ];
 
 		vk::SubmitInfo submitInfo {};
 
@@ -135,7 +141,8 @@ namespace fgl::engine
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = swapChains;
 
-		presentInfo.pImageIndices = imageIndex;
+		std::array< std::uint32_t, 1 > indicies { imageIndex };
+		presentInfo.setImageIndices( indicies );
 
 		if ( auto present_result = Device::getInstance().presentQueue().presentKHR( &presentInfo );
 		     present_result != vk::Result::eSuccess )
@@ -152,6 +159,7 @@ namespace fgl::engine
 
 	void SwapChain::createSwapChain()
 	{
+		ZoneScoped;
 		SwapChainSupportDetails swapChainSupport { Device::getInstance().getSwapChainSupport() };
 
 		vk::SurfaceFormatKHR surfaceFormat { chooseSwapSurfaceFormat( swapChainSupport.formats ) };
@@ -221,6 +229,7 @@ namespace fgl::engine
 
 	void SwapChain::createRenderPass()
 	{
+		ZoneScoped;
 		//Present attachment
 		ColoredPresentAttachment colorAttachment { getSwapChainImageFormat() };
 
@@ -236,28 +245,17 @@ namespace fgl::engine
 		ColorAttachment g_buffer_normal { vk::Format::eR16G16B16A16Sfloat };
 		ColorAttachment g_buffer_albedo { vk::Format::eR8G8B8A8Unorm };
 
-		g_buffer_position.createResources( imageCount(), getSwapChainExtent() );
-		g_buffer_normal.createResources( imageCount(), getSwapChainExtent() );
-		g_buffer_albedo.createResources( imageCount(), getSwapChainExtent() );
+		g_buffer_position.createResourceSpread( imageCount(), getSwapChainExtent() );
+		g_buffer_normal.createResourceSpread( imageCount(), getSwapChainExtent() );
+		g_buffer_albedo.createResourceSpread( imageCount(), getSwapChainExtent() );
 
 		g_buffer_position.setClear( vk::ClearColorValue( std::array< float, 4 > { 0.0f, 0.0f, 0.0f, 0.0f } ) );
 		g_buffer_normal.setClear( vk::ClearColorValue( std::array< float, 4 > { 0.0f, 0.0f, 0.0f, 0.0f } ) );
 		g_buffer_albedo.setClear( vk::ClearColorValue( std::array< float, 4 > { 0.0f, 0.0f, 0.0f, 0.0f } ) );
 
-		for ( int i = 0; i < imageCount(); ++i )
-		{
-			g_buffer_position.m_attachment_resources.m_images[ i ]
-				->setName( "GBufferPosition: " + std::to_string( i ) );
-		}
-
-		for ( int i = 0; i < imageCount(); ++i )
-		{
-			g_buffer_normal.m_attachment_resources.m_images[ i ]->setName( "GBufferNormal: " + std::to_string( i ) );
-		}
-		for ( int i = 0; i < imageCount(); ++i )
-		{
-			g_buffer_albedo.m_attachment_resources.m_images[ i ]->setName( "GBufferAlbedo: " + std::to_string( i ) );
-		}
+		g_buffer_position.m_attachment_resources.m_images[ 0 ]->setName( "GBufferPosition" );
+		g_buffer_normal.m_attachment_resources.m_images[ 0 ]->setName( "GBufferNormal" );
+		g_buffer_albedo.m_attachment_resources.m_images[ 0 ]->setName( "GBufferAlbedo" );
 
 		RenderPass render_pass {};
 
@@ -360,15 +358,15 @@ namespace fgl::engine
 
 	void SwapChain::createFramebuffers()
 	{
+		ZoneScoped;
 		m_swap_chain_buffers.resize( imageCount() );
 		for ( uint8_t i = 0; i < imageCount(); i++ )
 		{
-			//TODO: Fix image shit. It's dying because the image is being nuked
 			std::vector< vk::ImageView > attachments { m_render_pass_resources->forFrame( i ) };
 
 			//Fill attachments for this frame
 			const vk::Extent2D swapChainExtent { getSwapChainExtent() };
-			vk::FramebufferCreateInfo framebufferInfo = {};
+			vk::FramebufferCreateInfo framebufferInfo {};
 			framebufferInfo.renderPass = m_render_pass;
 			framebufferInfo.attachmentCount = static_cast< uint32_t >( attachments.size() );
 			framebufferInfo.pAttachments = attachments.data();
@@ -388,6 +386,7 @@ namespace fgl::engine
 
 	void SwapChain::createSyncObjects()
 	{
+		ZoneScoped;
 		imageAvailableSemaphores.resize( MAX_FRAMES_IN_FLIGHT );
 		renderFinishedSemaphores.resize( MAX_FRAMES_IN_FLIGHT );
 		inFlightFences.resize( MAX_FRAMES_IN_FLIGHT );
@@ -415,6 +414,7 @@ namespace fgl::engine
 	vk::SurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat( const std::vector< vk::SurfaceFormatKHR >&
 	                                                             availableFormats )
 	{
+		ZoneScoped;
 		for ( const auto& availableFormat : availableFormats )
 		{
 			if ( availableFormat.format == vk::Format::eB8G8R8A8Srgb
@@ -430,6 +430,7 @@ namespace fgl::engine
 	vk::PresentModeKHR SwapChain::chooseSwapPresentMode( const std::vector< vk::PresentModeKHR >&
 	                                                         availablePresentModes )
 	{
+		ZoneScoped;
 		for ( const auto& availablePresentMode : availablePresentModes )
 		{
 			switch ( availablePresentMode )
@@ -477,6 +478,7 @@ namespace fgl::engine
 
 	vk::Extent2D SwapChain::chooseSwapExtent( const vk::SurfaceCapabilitiesKHR& capabilities )
 	{
+		ZoneScoped;
 		if ( capabilities.currentExtent.width != std::numeric_limits< uint32_t >::max() )
 		{
 			return capabilities.currentExtent;
@@ -497,6 +499,7 @@ namespace fgl::engine
 
 	vk::Format SwapChain::findDepthFormat()
 	{
+		ZoneScoped;
 		return Device::getInstance().findSupportedFormat(
 			{ vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint },
 			vk::ImageTiling::eOptimal,

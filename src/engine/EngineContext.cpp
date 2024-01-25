@@ -62,28 +62,26 @@ namespace fgl::engine
 		constexpr std::uint32_t matrix_default_size { 16_MiB };
 		constexpr std::uint32_t draw_parameter_default_size { 16_MiB };
 
-		std::array< Buffer, SwapChain::MAX_FRAMES_IN_FLIGHT > matrix_info_buffers {
-			{ { matrix_default_size,
-			    vk::BufferUsageFlagBits::eVertexBuffer,
-			    vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible },
-			  { matrix_default_size,
-			    vk::BufferUsageFlagBits::eVertexBuffer,
-			    vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible } }
-			// Should be in the BAR area
-		};
+		std::vector< Buffer > matrix_info_buffers {};
 
-		std::array< Buffer, SwapChain::MAX_FRAMES_IN_FLIGHT > draw_parameter_buffers {
-			{ { draw_parameter_default_size,
-			    vk::BufferUsageFlagBits::eIndirectBuffer,
-			    vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible },
-			  { draw_parameter_default_size,
-			    vk::BufferUsageFlagBits::eIndirectBuffer,
-			    vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible } }
-		};
+		std::vector< Buffer > draw_parameter_buffers {};
 
-		std::array< DescriptorSet, SwapChain::MAX_FRAMES_IN_FLIGHT > global_descriptor_sets {
-			{ { GlobalDescriptorSet::createLayout() }, { GlobalDescriptorSet::createLayout() } }
-		};
+		std::vector< DescriptorSet > global_descriptor_sets {};
+
+		for ( int i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
+		{
+			matrix_info_buffers.emplace_back(
+				matrix_default_size,
+				vk::BufferUsageFlagBits::eVertexBuffer,
+				vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible );
+
+			draw_parameter_buffers.emplace_back(
+				draw_parameter_default_size,
+				vk::BufferUsageFlagBits::eIndirectBuffer,
+				vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible );
+
+			global_descriptor_sets.emplace_back( GlobalDescriptorSet::createLayout() );
+		}
 
 		for ( std::uint8_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
 		{
@@ -125,7 +123,7 @@ namespace fgl::engine
 			{
 				ZoneScopedN( "Render" );
 				//Update
-				const std::uint8_t frame_index { m_renderer.getFrameIndex() };
+				const std::uint16_t frame_index { m_renderer.getFrameIndex() };
 
 				FrameInfo frame_info { frame_index,
 					                   delta_time,
@@ -165,6 +163,10 @@ namespace fgl::engine
 						ImGui::Text( "Frame Time" );
 						ImGui::SameLine();
 						ImGui::Text( "%.3f ms", 1000.0f / ImGui::GetIO().Framerate );
+
+						ImGui::Text( "Frame: " );
+						ImGui::SameLine();
+						ImGui::Text( "%i", frame_info.frame_idx );
 
 						if ( ImGui::CollapsingHeader( "Camera" ) )
 						{
@@ -347,8 +349,12 @@ namespace fgl::engine
 				FrameMark;
 			}
 
-			using namespace std::chrono_literals;
-			//std::this_thread::sleep_until( new_time + 12ms );
+			{
+				ZoneScopedN( "Sleep for sustained fps" );
+				using namespace std::chrono_literals;
+				//				std::this_thread::sleep_until( new_time + 16.66ms );
+				std::this_thread::sleep_until( new_time + 16.66ms );
+			}
 		}
 
 		Device::getInstance().device().waitIdle();

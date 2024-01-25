@@ -66,7 +66,7 @@ namespace fgl::engine
 
 	struct FrameInfo
 	{
-		int frame_idx;
+		std::uint16_t frame_idx;
 		float frame_time;
 		vk::CommandBuffer command_buffer;
 		Camera& camera;

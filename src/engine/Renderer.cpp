@@ -66,6 +66,7 @@ namespace fgl::engine
 
 	void Renderer::recreateSwapchain()
 	{
+		ZoneScoped;
 		std::cout << "Rebuilding swap chain" << std::endl;
 		auto extent { m_window.getExtent() };
 
@@ -102,7 +103,10 @@ namespace fgl::engine
 	vk::CommandBuffer Renderer::beginFrame()
 	{
 		assert( !is_frame_started && "Cannot begin frame while frame is already in progress" );
-		vk::Result result { m_swapchain->acquireNextImage( &current_image_idx ) };
+		auto [ result, image_idx ] = m_swapchain->acquireNextImage();
+		current_image_idx = image_idx;
+		std::cout << "Acquired next image at index: " << current_image_idx << " for frame " << current_frame_idx
+				  << std::endl;
 
 		if ( result == vk::Result::eErrorOutOfDateKHR )
 		{
@@ -114,11 +118,11 @@ namespace fgl::engine
 			throw std::runtime_error( "Failed to acquire swap chain image" );
 
 		is_frame_started = true;
-		auto command_buffer { getCurrentCommandbuffer() };
+		auto& command_buffer { getCurrentCommandbuffer() };
 
 		vk::CommandBufferBeginInfo begin_info {};
 		begin_info.pNext = VK_NULL_HANDLE;
-		begin_info.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+		//begin_info.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
 		begin_info.pInheritanceInfo = VK_NULL_HANDLE;
 
 		command_buffer.begin( begin_info );
@@ -128,6 +132,7 @@ namespace fgl::engine
 
 	void Renderer::endFrame()
 	{
+		ZoneScopedN( "Ending frame" );
 		assert( is_frame_started && "Cannot call end frame while frame is not in progress" );
 
 		auto command_buffer { getCurrentCommandbuffer() };
@@ -135,7 +140,7 @@ namespace fgl::engine
 		if ( vkEndCommandBuffer( command_buffer ) != VK_SUCCESS )
 			throw std::runtime_error( "Failed to end recording command buffer" );
 
-		const auto result { m_swapchain->submitCommandBuffers( &command_buffer, &current_image_idx ) };
+		const auto result { m_swapchain->submitCommandBuffers( &command_buffer, current_image_idx ) };
 
 		if ( result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR
 		     || m_window.wasWindowResized() )
@@ -147,7 +152,7 @@ namespace fgl::engine
 			throw std::runtime_error( "Failed to submit commmand buffer" );
 
 		is_frame_started = false;
-		current_frame_idx = static_cast< std::uint8_t >( ( current_frame_idx + 1 ) % SwapChain::MAX_FRAMES_IN_FLIGHT );
+		current_frame_idx = ( current_frame_idx + 1 ) % SwapChain::MAX_FRAMES_IN_FLIGHT;
 	}
 
 	void Renderer::beginSwapchainRendererPass( vk::CommandBuffer buffer )
@@ -181,24 +186,6 @@ namespace fgl::engine
 		viewport.maxDepth = 1.0f;
 
 		vk::Rect2D scissor { { 0, 0 }, m_swapchain->getSwapChainExtent() };
-		buffer.setViewport( 0, 1, &viewport );
-		buffer.setScissor( 0, 1, &scissor );
-	}
-
-	void Renderer::nextPass()
-	{
-		vk::Viewport viewport {};
-		viewport.x = 0.0f;
-		viewport.y = 0.0f;
-		viewport.width = static_cast< float >( m_swapchain->getSwapChainExtent().width );
-		viewport.height = static_cast< float >( m_swapchain->getSwapChainExtent().height );
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
-
-		vk::Rect2D scissor { { 0, 0 }, m_swapchain->getSwapChainExtent() };
-
-		auto buffer = getCurrentCommandbuffer();
-		buffer.nextSubpass( vk::SubpassContents::eInline );
 		buffer.setViewport( 0, 1, &viewport );
 		buffer.setScissor( 0, 1, &scissor );
 	}

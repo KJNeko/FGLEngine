@@ -105,8 +105,9 @@ namespace fgl::engine
 		Buffer( vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties );
 
 		Buffer( const Buffer& other ) = delete;
-		Buffer( Buffer&& other ) = delete;
 		Buffer& operator=( const Buffer& other ) = delete;
+
+		Buffer( Buffer&& other ) = default;
 		Buffer& operator=( Buffer&& other ) = default;
 
 	  private:

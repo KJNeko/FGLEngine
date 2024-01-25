@@ -92,9 +92,9 @@ namespace fgl::engine
 				assert(
 					attachment.m_image_views.size() == frame_count
 					&& "Attachment image views must be equal to frame count" );
-				for ( std::uint16_t i = 0; i < attachment.m_image_views.size(); ++i )
+				for ( std::uint16_t frame_idx = 0; frame_idx < attachment.m_image_views.size(); ++frame_idx )
 				{
-					views[ i ].emplace_back( attachment.m_image_views[ i ] );
+					views[ frame_idx ].emplace_back( attachment.m_image_views[ frame_idx ] );
 				}
 			}
 

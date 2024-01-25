@@ -86,15 +86,31 @@ namespace fgl::engine
 		{
 			for ( std::uint16_t i = 0; i < count; ++i )
 			{
-				auto& images = m_attachment_resources.m_images;
-				auto& image_views = m_attachment_resources.m_image_views;
-				images.emplace_back( std::make_shared< Image >(
+				auto& images { m_attachment_resources.m_images };
+				auto& image_views { m_attachment_resources.m_image_views };
+				auto& itter { images.emplace_back( std::make_shared< Image >(
 					extent,
 					description.format,
 					usage | vk::ImageUsageFlagBits::eInputAttachment,
 					inital_layout,
-					final_layout ) );
-				image_views.emplace_back( images.back()->getView() );
+					final_layout ) ) };
+				image_views.emplace_back( itter->getView() );
+			}
+		}
+
+		//! Creates a resource that is used across all frames
+		void createResourceSpread( const std::uint32_t count, vk::Extent2D extent )
+		{
+			auto image { std::make_shared< Image >(
+				extent,
+				description.format,
+				usage | vk::ImageUsageFlagBits::eInputAttachment,
+				inital_layout,
+				final_layout ) };
+			for ( std::uint32_t i = 0; i < count; ++i )
+			{
+				m_attachment_resources.m_images.emplace_back( image );
+				m_attachment_resources.m_image_views.emplace_back( image->getView() );
 			}
 		}
 

@@ -18,6 +18,12 @@ namespace fgl::engine
 
 	class SwapChain
 	{
+	  public:
+
+		static constexpr std::uint16_t MAX_FRAMES_IN_FLIGHT = 2;
+
+	  private:
+
 		vk::Format m_swap_chain_format { vk::Format::eUndefined };
 		vk::Format m_swap_chain_depth_format { findDepthFormat() };
 		vk::Extent2D m_swap_chain_extent { 0, 0 };
@@ -52,21 +58,20 @@ namespace fgl::engine
 		vk::PresentModeKHR chooseSwapPresentMode( const std::vector< vk::PresentModeKHR >& availablePresentModes );
 		vk::Extent2D chooseSwapExtent( const vk::SurfaceCapabilitiesKHR& capabilities );
 
+		std::array< std::unique_ptr< DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT > m_gbuffer_descriptor_set {};
+
 	  public:
 
 		std::vector< vk::ClearValue > getClearValues() const { return m_clear_values; }
 
-		DescriptorSet& getGBufferDescriptor( std::uint8_t frame_idx ) const
+		DescriptorSet& getGBufferDescriptor( std::uint16_t frame_idx ) const
 		{
-			assert( frame_idx < MAX_FRAMES_IN_FLIGHT && "Frame index out of range" );
+			assert( frame_idx < SwapChain::MAX_FRAMES_IN_FLIGHT && "Frame index out of range" );
 			assert(
-				m_gbuffer_descriptor_set.size() == MAX_FRAMES_IN_FLIGHT && "GBuffer descriptor set not initialized" );
+				m_gbuffer_descriptor_set.size() == SwapChain::MAX_FRAMES_IN_FLIGHT
+				&& "GBuffer descriptor set not initialized" );
 			return *m_gbuffer_descriptor_set[ frame_idx ];
 		}
-
-		static constexpr std::uint8_t MAX_FRAMES_IN_FLIGHT = 2;
-
-		std::array< std::unique_ptr< DescriptorSet >, MAX_FRAMES_IN_FLIGHT > m_gbuffer_descriptor_set {};
 
 		SwapChain( vk::Extent2D windowExtent );
 		SwapChain( vk::Extent2D windowExtent, std::shared_ptr< SwapChain > previous );
@@ -75,14 +80,14 @@ namespace fgl::engine
 		SwapChain( const SwapChain& ) = delete;
 		SwapChain& operator=( const SwapChain& ) = delete;
 
-		vk::Framebuffer getFrameBuffer( int index ) const
+		vk::Framebuffer getFrameBuffer( std::uint32_t index ) const
 		{
 			return m_swap_chain_buffers[ static_cast< std::size_t >( index ) ];
 		}
 
 		vk::RenderPass getRenderPass() const { return m_render_pass; }
 
-		std::uint8_t imageCount() const { return static_cast< std::uint8_t >( m_swap_chain_images.size() ); }
+		std::uint16_t imageCount() const { return static_cast< std::uint16_t >( m_swap_chain_images.size() ); }
 
 		vk::Format getSwapChainImageFormat() const { return m_swap_chain_format; }
 
@@ -106,8 +111,8 @@ namespace fgl::engine
 
 		vk::Format findDepthFormat();
 
-		[[nodiscard]] vk::Result acquireNextImage( uint32_t* imageIndex );
-		[[nodiscard]] vk::Result submitCommandBuffers( const vk::CommandBuffer* buffers, uint32_t* imageIndex );
+		[[nodiscard]] std::pair< vk::Result, std::uint32_t > acquireNextImage();
+		[[nodiscard]] vk::Result submitCommandBuffers( const vk::CommandBuffer* buffers, std::uint32_t imageIndex );
 	};
 
 } // namespace fgl::engine
