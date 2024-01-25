@@ -160,9 +160,6 @@ namespace fgl::engine
 			buffer == getCurrentCommandbuffer()
 			&& "Cannot begin render pass on command buffer from a different frame" );
 
-		//TODO: Attach this stuff into the swapchain creation via attachments and request it again here
-		//std::array< vk::ClearValue, 5 > clear_values {};
-
 		std::vector< vk::ClearValue > clear_values { m_swapchain->getClearValues() };
 
 		vk::RenderPassBeginInfo render_pass_info {};
