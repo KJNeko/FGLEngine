@@ -105,8 +105,6 @@ namespace fgl::engine
 		assert( !is_frame_started && "Cannot begin frame while frame is already in progress" );
 		auto [ result, image_idx ] = m_swapchain->acquireNextImage();
 		current_image_idx = image_idx;
-		std::cout << "Acquired next image at index: " << current_image_idx << " for frame " << current_frame_idx
-				  << std::endl;
 
 		if ( result == vk::Result::eErrorOutOfDateKHR )
 		{
