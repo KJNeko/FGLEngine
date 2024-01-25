@@ -398,17 +398,20 @@ namespace fgl::engine
 			m_entity_renderer.getVertexBuffer(),
 			m_entity_renderer.getIndexBuffer() ) };
 
-		for ( int i = 0; i < 4; ++i )
+		for ( int x = 0; x < 4; ++x )
 		{
-			auto sponza = GameObject::createGameObject();
-			sponza.model = model;
-			sponza.transform.translation = { 0.0f, 1.0f, 0.0f + ( i * 50 ) };
-			sponza.transform.scale = { 0.007f, 0.007f, 0.007f };
-			sponza.transform.rotation = { 0.0f, 1.4f, 0.0f };
+			for ( int y = 0; y < 4; ++y )
+			{
+				auto sponza = GameObject::createGameObject();
+				sponza.model = model;
+				sponza.transform.translation = { 0.0f + ( y * 30 ), 1.0f, 0.0f + ( x * 20 ) };
+				sponza.transform.scale = { 0.007f, 0.007f, 0.007f };
+				sponza.transform.rotation = { 0.0f, 0.0f, 0.0f };
 
-			sponza.model->syncBuffers( command_buffer );
+				sponza.model->syncBuffers( command_buffer );
 
-			game_objects.emplace( sponza.getId(), std::move( sponza ) );
+				game_objects.emplace( sponza.getId(), std::move( sponza ) );
+			}
 		}
 
 		/*
