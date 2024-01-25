@@ -361,13 +361,6 @@ namespace fgl::engine
 				m_renderer.endFrame();
 				FrameMark;
 			}
-
-			{
-				ZoneScopedN( "Sleep for sustained fps" );
-				using namespace std::chrono_literals;
-				//				std::this_thread::sleep_until( new_time + 16.66ms );
-				std::this_thread::sleep_until( new_time + 16.66ms );
-			}
 		}
 
 		Device::getInstance().device().waitIdle();
