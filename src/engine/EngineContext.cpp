@@ -15,6 +15,7 @@
 #include <thread>
 
 #include "KeyboardMovementController.hpp"
+#include "engine/Average.hpp"
 #include "engine/buffers/UniqueFrameSuballocation.hpp"
 #include "engine/descriptors/Descriptor.hpp"
 #include "engine/descriptors/DescriptorPool.hpp"
@@ -45,6 +46,8 @@ namespace fgl::engine
 #endif
 		loadGameObjects();
 	}
+
+	static Average< float, 120 > rolling_ms_average;
 
 	void EngineContext::run()
 	{
@@ -99,15 +102,28 @@ namespace fgl::engine
 
 		auto current_time { std::chrono::high_resolution_clock::now() };
 
+		auto previous_frame_start { std::chrono::high_resolution_clock::now() };
+
 		while ( !m_window.shouldClose() )
 		{
 			ZoneScopedN( "Poll" );
 			glfwPollEvents();
 
 			const auto new_time { std::chrono::high_resolution_clock::now() };
+
+			{
+				//Calculate time change from previous frame and add to accumulator
+				const auto time_diff { new_time - previous_frame_start };
+				rolling_ms_average.push(
+					static_cast< float >( std::chrono::duration_cast< std::chrono::microseconds >( time_diff ).count() )
+					/ 1000.0f );
+				previous_frame_start = new_time;
+			}
+
 			auto delta_time {
 				std::chrono::duration< float, std::chrono::seconds::period >( new_time - current_time ).count()
 			};
+
 			current_time = new_time;
 			delta_time = glm::min( delta_time, MAX_DELTA_TIME );
 
@@ -163,10 +179,7 @@ namespace fgl::engine
 						ImGui::Text( "Frame Time" );
 						ImGui::SameLine();
 						ImGui::Text( "%.3f ms", 1000.0f / ImGui::GetIO().Framerate );
-
-						ImGui::Text( "Frame: " );
-						ImGui::SameLine();
-						ImGui::Text( "%i", frame_info.frame_idx );
+						ImGui::Text( "Average rolling frametime: %.3f ms", rolling_ms_average.average() );
 
 						if ( ImGui::CollapsingHeader( "Camera" ) )
 						{
