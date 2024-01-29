@@ -1,6 +1,6 @@
 # /CMakeLists.txt
 
-cmake_minimum_required(VERSION 3.26.4)
+cmake_minimum_required(VERSION 3.25.0)
 project(Game LANGUAGES CXX C)
 set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/appicon.rc")
 

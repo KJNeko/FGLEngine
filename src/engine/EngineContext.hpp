@@ -9,10 +9,10 @@
 
 #include "Device.hpp"
 #include "GameObject.hpp"
-#include "Model.hpp"
 #include "Renderer.hpp"
 #include "Window.hpp"
 #include "engine/descriptors/DescriptorPool.hpp"
+#include "engine/model/Model.hpp"
 #include "engine/systems/EntityRendererSystem.hpp"
 
 namespace fgl::engine

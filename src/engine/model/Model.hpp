@@ -14,13 +14,14 @@
 #include <optional>
 #include <vector>
 
-#include "Device.hpp"
+#include "BoundingBox.hpp"
+#include "engine/Device.hpp"
 #include "engine/buffers/Buffer.hpp"
 #include "engine/buffers/BufferSuballocation.hpp"
 #include "engine/buffers/vector/DeviceVector.hpp"
 #include "engine/buffers/vector/HostVector.hpp"
 #include "engine/texture/Texture.hpp"
-#include "utils.hpp"
+#include "engine/utils.hpp"
 
 namespace fgl::engine
 {
@@ -62,18 +63,27 @@ namespace fgl::engine
 	{
 		VertexBufferSuballocation m_vertex_buffer;
 		IndexBufferSuballocation m_index_buffer;
+		BoundingBox m_bounding_box;
 
 		std::optional< Texture > m_texture { std::nullopt };
 
-		Primitive( VertexBufferSuballocation&& vertex_buffer, IndexBufferSuballocation&& index_buffer ) :
+		Primitive(
+			VertexBufferSuballocation&& vertex_buffer,
+			IndexBufferSuballocation&& index_buffer,
+			BoundingBox& bounding_box ) :
 		  m_vertex_buffer( std::move( vertex_buffer ) ),
-		  m_index_buffer( std::move( index_buffer ) )
+		  m_index_buffer( std::move( index_buffer ) ),
+		  m_bounding_box( bounding_box )
 		{}
 
 		Primitive(
-			VertexBufferSuballocation&& vertex_buffer, IndexBufferSuballocation&& index_buffer, Texture&& texture ) :
+			VertexBufferSuballocation&& vertex_buffer,
+			IndexBufferSuballocation&& index_buffer,
+			BoundingBox& bounding_box,
+			Texture&& texture ) :
 		  m_vertex_buffer( std::move( vertex_buffer ) ),
 		  m_index_buffer( std::move( index_buffer ) ),
+		  m_bounding_box( bounding_box ),
 		  m_texture( std::move( texture ) )
 		{}
 
@@ -82,38 +92,48 @@ namespace fgl::engine
 		Primitive( Primitive&& other ) = default;
 	};
 
+	struct ModelBuilder
+	{
+		Buffer& m_vertex_buffer;
+		Buffer& m_index_buffer;
+
+		std::vector< ::fgl::engine::Primitive > m_primitives {};
+
+		ModelBuilder() = delete;
+
+		ModelBuilder( Buffer& parent_vertex_buffer, Buffer& parent_index_buffer ) :
+		  m_vertex_buffer( parent_vertex_buffer ),
+		  m_index_buffer( parent_index_buffer )
+		{}
+
+		void loadModel( const std::filesystem::path& filepath );
+		void loadObj( const std::filesystem::path& filepath );
+		void loadGltf( const std::filesystem::path& filepath );
+	};
+
 	class Model
 	{
 		Device& m_device;
 
-		std::vector< vk::DrawIndexedIndirectCommand > buildParameters( const std::vector< Primitive >& primitives );
+		static std::vector< vk::DrawIndexedIndirectCommand > buildParameters( const std::vector< Primitive >&
+		                                                                          primitives );
+		static BoundingBox buildBoundingBox( const std::vector< Primitive >& primitives );
 
 		std::vector< vk::DrawIndexedIndirectCommand > m_draw_parameters;
 
 		std::string m_name { "Unnamed model" };
 
+		//! Bounding box of the model
+		BoundingBox m_bounding_box;
+
 	  public:
 
+		//! Returns the bounding box in model space
+		const BoundingBox& getBoundingBox() const { return m_bounding_box; }
+
+		BoundingBox getBoundingBox( const glm::mat4 matrix ) const { return m_bounding_box * matrix; }
+
 		std::vector< ::fgl::engine::Primitive > m_primitives {};
-
-		struct Builder
-		{
-			Buffer& m_vertex_buffer;
-			Buffer& m_index_buffer;
-
-			std::vector< ::fgl::engine::Primitive > m_primitives {};
-
-			Builder() = delete;
-
-			Builder( Buffer& parent_vertex_buffer, Buffer& parent_index_buffer ) :
-			  m_vertex_buffer( parent_vertex_buffer ),
-			  m_index_buffer( parent_index_buffer )
-			{}
-
-			void loadModel( const std::filesystem::path& filepath );
-			void loadObj( const std::filesystem::path& filepath );
-			void loadGltf( const std::filesystem::path& filepath );
-		};
 
 		std::vector< vk::DrawIndexedIndirectCommand > getDrawCommand( const std::uint32_t index ) const;
 
@@ -124,7 +144,7 @@ namespace fgl::engine
 
 		const std::string& getName() const { return m_name; }
 
-		Model( Device& device, Builder& builder );
+		Model( Device& device, ModelBuilder& builder, const BoundingBox bounding_box );
 
 		~Model() = default;
 

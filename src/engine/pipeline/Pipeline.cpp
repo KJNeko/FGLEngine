@@ -7,7 +7,7 @@
 #include <array>
 #include <fstream>
 
-#include "engine/Model.hpp"
+#include "engine/model/Model.hpp"
 
 namespace fgl::engine
 {

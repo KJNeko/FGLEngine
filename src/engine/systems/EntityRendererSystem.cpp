@@ -8,6 +8,9 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ON
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/intersect.hpp>
+#include <imgui/imgui.h>
 #include <tracy/TracyC.h>
 #include <vulkan/vulkan.hpp>
 
@@ -18,6 +21,7 @@
 #include <stdexcept>
 #include <thread>
 
+#include "engine/debug/drawers.hpp"
 #include "engine/literals/size.hpp"
 
 namespace fgl::engine
@@ -94,6 +98,12 @@ namespace fgl::engine
 				TracyVkZone( info.tracy_ctx, command_buffer, "Render game object" );
 				if ( obj.model == nullptr ) continue;
 
+				const BoundingBox model_bounding_box { obj.model->getBoundingBox( obj.transform.mat4() ) };
+
+				debug::world::drawBoundingBox( model_bounding_box, info.camera );
+
+				if ( !model_bounding_box.isInFrustum( info.camera_frustum ) ) continue;
+
 				for ( const auto& primitive : obj.model->m_primitives )
 				{
 					ZoneScopedN( "Queue Primitive" );
@@ -157,6 +167,13 @@ namespace fgl::engine
 				}
 			}
 
+			if ( draw_pairs.empty() )
+			{
+				std::cout << "Nothing to draw!" << std::endl;
+				command_buffer.nextSubpass( vk::SubpassContents::eInline );
+				return;
+			}
+
 			std::vector< vk::DrawIndexedIndirectCommand > draw_commands;
 			std::vector< ModelMatrixInfo > model_matrices;
 
@@ -171,8 +188,6 @@ namespace fgl::engine
 				model_matrices.insert( model_matrices.end(), matricies.begin(), matricies.end() );
 			}
 			TracyCZoneEnd( filter_zone_TRACY );
-
-			assert( draw_commands.size() > 0 && "No draw commands to render" );
 
 			TracyCZoneN( draw_zone_TRACY, "Submit draw data", true );
 			auto& draw_parameter_buffer { m_draw_parameter_buffers[ info.frame_idx ] };

@@ -28,7 +28,7 @@
 #include "objectloaders/tiny_obj_loader.h"
 #pragma GCC diagnostic pop
 
-#include "utils.hpp"
+#include "engine/utils.hpp"
 
 namespace std
 {
@@ -69,6 +69,19 @@ namespace fgl::engine
 		return draw_parameters;
 	}
 
+	BoundingBox Model::buildBoundingBox( const std::vector< Primitive >& primitives )
+	{
+		//TODO:
+		BoundingBox box;
+
+		for ( const auto& primitive : primitives )
+		{
+			box = box.combine( primitive.m_bounding_box );
+		}
+
+		return box;
+	}
+
 	std::vector< vk::DrawIndexedIndirectCommand > Model::getDrawCommand( const std::uint32_t index ) const
 	{
 		std::vector< vk::DrawIndexedIndirectCommand > draw_commands;
@@ -84,20 +97,25 @@ namespace fgl::engine
 		return draw_commands;
 	}
 
-	Model::Model( Device& device, Builder& builder ) :
+	Model::Model( Device& device, ModelBuilder& builder, const BoundingBox bounding_box ) :
 	  m_device( device ),
-	  m_draw_parameters( buildParameters( builder.m_primitives ) )
+	  m_draw_parameters( buildParameters( builder.m_primitives ) ),
+	  m_bounding_box( bounding_box )
 	{
+		assert( bounding_box.middle != DEFAULT_COORDINATE_VEC3 );
 		m_primitives = std::move( builder.m_primitives );
 	}
 
 	std::unique_ptr< Model > Model::
 		createModel( Device& device, const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer )
 	{
-		Builder builder { vertex_buffer, index_buffer };
+		ModelBuilder builder { vertex_buffer, index_buffer };
 		builder.loadModel( path );
 
-		return std::make_unique< Model >( device, builder );
+		//Calculate bounding box
+		BoundingBox bounding_box { buildBoundingBox( builder.m_primitives ) };
+
+		return std::make_unique< Model >( device, builder, bounding_box );
 	}
 
 	void Model::syncBuffers( vk::CommandBuffer& cmd_buffer )
@@ -141,7 +159,7 @@ namespace fgl::engine
 		return attribute_descriptions;
 	}
 
-	void Model::Builder::loadModel( const std::filesystem::path& filepath )
+	void ModelBuilder::loadModel( const std::filesystem::path& filepath )
 	{
 		if ( filepath.extension() == ".obj" )
 		{
@@ -220,7 +238,7 @@ namespace fgl::engine
 		}
 	};
 
-	void Model::Builder::loadGltf( const std::filesystem::path& filepath )
+	void ModelBuilder::loadGltf( const std::filesystem::path& filepath )
 	{
 		std::cout << "Loading gltf model " << filepath << std::endl;
 
@@ -244,6 +262,8 @@ namespace fgl::engine
 
 		for ( const tinygltf::Mesh& mesh : model.meshes )
 		{
+			std::vector< glm::vec3 > model_positions;
+
 			for ( const tinygltf::Primitive& primitive : mesh.primitives )
 			{
 				//TODO: Implement modes
@@ -279,6 +299,9 @@ namespace fgl::engine
 				//Load positions
 				auto& position_accessor { model.accessors.at( primitive.attributes.at( "POSITION" ) ) };
 				std::vector< glm::vec3 > position_data { extractData< glm::vec3 >( model, position_accessor ) };
+				model_positions.insert( model_positions.end(), position_data.begin(), position_data.end() );
+
+				BoundingBox bounding_box { generateBoundingFromPoints( position_data ) };
 
 				std::vector< glm::vec3 > normals;
 
@@ -399,7 +422,9 @@ namespace fgl::engine
 						Device::getInstance().endSingleTimeCommands( cmd );
 						tex.dropStaging();
 
-						Primitive prim { std::move( vertex_buffer ), std::move( index_buffer ), std::move( tex ) };
+						Primitive prim {
+							std::move( vertex_buffer ), std::move( index_buffer ), bounding_box, std::move( tex )
+						};
 
 						m_primitives.emplace_back( std::move( prim ) );
 
@@ -409,7 +434,7 @@ namespace fgl::engine
 				else
 					std::cout << "No material" << std::endl;
 
-				Primitive prim { std::move( vertex_buffer ), std::move( index_buffer ) };
+				Primitive prim { std::move( vertex_buffer ), std::move( index_buffer ), bounding_box };
 
 				m_primitives.emplace_back( std::move( prim ) );
 			}
@@ -433,7 +458,7 @@ namespace fgl::engine
 		std::cout << "Meshes: " << model.meshes.size() << std::endl;
 	}
 
-	void Model::Builder::loadObj( const std::filesystem::path& filepath )
+	void ModelBuilder::loadObj( const std::filesystem::path& filepath )
 	{
 		m_primitives.clear();
 
@@ -507,9 +532,18 @@ namespace fgl::engine
 			}
 		}
 
+		std::vector< glm::vec3 > vert_pos;
+		for ( const auto& vert : verts )
+		{
+			vert_pos.emplace_back( vert.m_position );
+		}
+
+		BoundingBox bounding_box { generateBoundingFromPoints( vert_pos ) };
+
 		m_primitives.emplace_back(
 			VertexBufferSuballocation( m_vertex_buffer, std::move( verts ) ),
-			IndexBufferSuballocation( m_index_buffer, std::move( indicies ) ) );
+			IndexBufferSuballocation( m_index_buffer, std::move( indicies ) ),
+			bounding_box );
 
 		std::cout << unique_verts.size() << " unique verts" << std::endl;
 	}

@@ -27,6 +27,7 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #pragma GCC diagnostic ignored "-Wconversion"
+#include "engine/debug/drawers.hpp"
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_vulkan.h"
@@ -104,6 +105,10 @@ namespace fgl::engine
 
 		auto previous_frame_start { std::chrono::high_resolution_clock::now() };
 
+		//camera.setOrthographicProjection( -aspect, aspect, -1, 1, -1, 1 );
+		const float aspect { m_renderer.getAspectRatio() };
+		camera.setPerspectiveProjection( glm::radians( 50.0f ), aspect, 0.1f, 100.f );
+
 		while ( !m_window.shouldClose() )
 		{
 			ZoneScopedN( "Poll" );
@@ -127,19 +132,24 @@ namespace fgl::engine
 			current_time = new_time;
 			delta_time = glm::min( delta_time, MAX_DELTA_TIME );
 
+#if ENABLE_IMGUI
+			{
+				ImGui_ImplVulkan_NewFrame();
+				ImGui_ImplGlfw_NewFrame();
+				ImGui::NewFrame();
+			}
+#endif
+
 			camera_controller.moveInPlaneXZ( m_window.window(), delta_time, viewer );
 			camera.setViewYXZ( viewer.transform.translation, viewer.transform.rotation );
-
-			const float aspect { m_renderer.getAspectRatio() };
-
-			//camera.setOrthographicProjection( -aspect, aspect, -1, 1, -1, 1 );
-			camera.setPerspectiveProjection( glm::radians( 50.0f ), aspect, 0.1f, 100.f );
 
 			if ( auto command_buffer = m_renderer.beginFrame(); command_buffer )
 			{
 				ZoneScopedN( "Render" );
 				//Update
 				const std::uint16_t frame_index { m_renderer.getFrameIndex() };
+
+				const auto view_frustum { camera.getFrustumBounds() };
 
 				FrameInfo frame_info { frame_index,
 					                   delta_time,
@@ -150,177 +160,184 @@ namespace fgl::engine
 					                   m_renderer.getCurrentTracyCTX(),
 					                   matrix_info_buffers[ frame_index ],
 					                   draw_parameter_buffers[ frame_index ],
-					                   m_renderer.getGBufferDescriptor( frame_index ) };
+					                   m_renderer.getGBufferDescriptor( frame_index ),
+					                   view_frustum };
 
 #if TRACY_ENABLE
 				auto& tracy_ctx { frame_info.tracy_ctx };
 #endif
 
 				CameraInfo current_camera_info { .projection = camera.getProjectionMatrix(),
-					                             .view = camera.getViewMatrix(),
-					                             .inverse_view = camera.getInverseView() };
+					                             .view = camera.getViewMatrix() };
 
 				camera_info[ frame_index ] = current_camera_info;
 
 #if ENABLE_IMGUI
 				{
 					ZoneScopedN( "ImGui recording" );
-					ImGui_ImplVulkan_NewFrame();
-					ImGui_ImplGlfw_NewFrame();
-					ImGui::NewFrame();
 
+					ImGui::Begin( "Titor Dev Menu" );
+
+					ImGui::Text( "Framerate" );
+					ImGui::SameLine();
+					ImGui::Text( "%.1f FPS", ImGui::GetIO().Framerate );
+
+					ImGui::Text( "Frame Time" );
+					ImGui::SameLine();
+					ImGui::Text( "%.3f ms", 1000.0f / ImGui::GetIO().Framerate );
+					ImGui::Text( "Average rolling frametime: %.3f ms", rolling_ms_average.average() );
+
+					if ( ImGui::CollapsingHeader( "Camera" ) )
 					{
-						ImGui::Begin( "Titor Dev Menu" );
-
-						ImGui::Text( "Framerate" );
+						ImGui::PushItemWidth( 80 );
+						ImGui::DragFloat( "Pos X", &viewer.transform.translation.x, 0.1f );
 						ImGui::SameLine();
-						ImGui::Text( "%.1f FPS", ImGui::GetIO().Framerate );
-
-						ImGui::Text( "Frame Time" );
+						ImGui::DragFloat( "Pos Y", &viewer.transform.translation.y, 0.1f );
 						ImGui::SameLine();
-						ImGui::Text( "%.3f ms", 1000.0f / ImGui::GetIO().Framerate );
-						ImGui::Text( "Average rolling frametime: %.3f ms", rolling_ms_average.average() );
+						ImGui::DragFloat( "Pos Z", &viewer.transform.translation.z, 0.1f );
+						ImGui::PopItemWidth();
 
-						if ( ImGui::CollapsingHeader( "Camera" ) )
+						ImGui::Separator();
+
+						ImGui::PushItemWidth( 80 );
+						ImGui::DragFloat( "Rot X", &viewer.transform.rotation.x, 0.1f, 0.0f, glm::two_pi< float >() );
+						ImGui::SameLine();
+						ImGui::DragFloat( "Rot Y", &viewer.transform.rotation.y, 0.1f, 0.0f, glm::two_pi< float >() );
+						ImGui::SameLine();
+						ImGui::DragFloat( "Rot Z", &viewer.transform.rotation.z, 0.1f, 0.0f, glm::two_pi< float >() );
+						ImGui::PopItemWidth();
+					}
+
+					if ( ImGui::CollapsingHeader( "View Frustum" ) )
+					{
+						const auto& frustum { camera.getFrustumBounds() };
+
+						auto printVec3 = []( const glm::vec3& vec )
+						{ ImGui::Text( "(%.2f, %.2f, %.2f)", vec.x, vec.y, vec.z ); };
+
+						auto printPlane = [ printVec3 ]( const Plane& plane, const std::string name )
 						{
-							ImGui::PushItemWidth( 80 );
-							ImGui::DragFloat( "Pos X", &viewer.transform.translation.x, 0.1f );
-							ImGui::SameLine();
-							ImGui::DragFloat( "Pos Y", &viewer.transform.translation.y, 0.1f );
-							ImGui::SameLine();
-							ImGui::DragFloat( "Pos Z", &viewer.transform.translation.z, 0.1f );
-							ImGui::PopItemWidth();
+							const std::string name_str { "Plane " + name + ": " };
 
-							ImGui::Separator();
-
-							ImGui::PushItemWidth( 80 );
-							ImGui::
-								DragFloat( "Rot X", &viewer.transform.rotation.x, 0.1f, 0.0f, glm::two_pi< float >() );
+							ImGui::Text( name_str.c_str() );
+							ImGui::SameLine( 120.0f );
+							printVec3( plane.direction() );
 							ImGui::SameLine();
-							ImGui::
-								DragFloat( "Rot Y", &viewer.transform.rotation.y, 0.1f, 0.0f, glm::two_pi< float >() );
-							ImGui::SameLine();
-							ImGui::
-								DragFloat( "Rot Z", &viewer.transform.rotation.z, 0.1f, 0.0f, glm::two_pi< float >() );
-							ImGui::PopItemWidth();
-						}
+							ImGui::Text( "Distance: %.6f", plane.distance() );
+						};
 
-						if ( ImGui::CollapsingHeader( "Models" ) )
+						printPlane( frustum.near, "Near" );
+						printPlane( frustum.far, "Far" );
+						printPlane( frustum.top, "Top" );
+						printPlane( frustum.bottom, "Bottom" );
+						printPlane( frustum.right, "Right" );
+						printPlane( frustum.left, "Left" );
+					}
+
+					if ( ImGui::CollapsingHeader( "Models" ) )
+					{
+						for ( auto& [ id, game_object ] : game_objects )
 						{
-							for ( auto& [ id, game_object ] : game_objects )
+							if ( game_object.model == nullptr ) continue;
+
+							ImGui::PushID( std::to_string( id ).c_str() );
+
+							if ( ImGui::TreeNode( game_object.model->getName().c_str() ) )
 							{
-								if ( game_object.model == nullptr ) continue;
-
-								ImGui::PushID( std::to_string( id ).c_str() );
-
-								if ( ImGui::TreeNode( game_object.model->getName().c_str() ) )
+								ImGui::PushID( game_object.model->getName().c_str() );
 								{
-									ImGui::PushID( game_object.model->getName().c_str() );
+									ImGui::PushID( "Position" );
+									ImGui::PushItemWidth( 80 );
+									ImGui::Text( "Position" );
+									ImGui::SameLine();
+									ImGui::DragFloat( "X", &game_object.transform.translation.x, 0.1f );
+									ImGui::SameLine();
+									ImGui::DragFloat( "Y", &game_object.transform.translation.y, 0.1f );
+									ImGui::SameLine();
+									ImGui::DragFloat( "Z", &game_object.transform.translation.z, 0.1f );
+									ImGui::PopID();
+								}
+
+								ImGui::Separator();
+
+								{
+									ImGui::PushID( "Rotation" );
+									ImGui::PushItemWidth( 80 );
+									ImGui::Text( "Rotation" );
+									ImGui::SameLine();
+									ImGui::DragFloat(
+										"X", &game_object.transform.rotation.x, 0.1f, 0.0f, glm::two_pi< float >() );
+									ImGui::SameLine();
+									ImGui::DragFloat(
+										"Y", &game_object.transform.rotation.y, 0.1f, 0.0f, glm::two_pi< float >() );
+									ImGui::SameLine();
+									ImGui::DragFloat(
+										"Z", &game_object.transform.rotation.z, 0.1f, 0.0f, glm::two_pi< float >() );
+									ImGui::PopID();
+								}
+
+								ImGui::Separator();
+
+								{
+									ImGui::PushID( "Scale" );
+									ImGui::PushItemWidth( 80 );
+									ImGui::Text( "Scale" );
+									ImGui::SameLine();
+									ImGui::DragFloat( "X", &game_object.transform.scale.x, 0.1f );
+									ImGui::SameLine();
+									ImGui::DragFloat( "Y", &game_object.transform.scale.y, 0.1f );
+									ImGui::SameLine();
+									ImGui::DragFloat( "Z", &game_object.transform.scale.z, 0.1f );
+									ImGui::TreePop();
+									ImGui::PopID();
+								}
+
+								if ( ImGui::CollapsingHeader( "Textures" ) )
+								{
+									std::vector< TextureID > textures;
+
+									ImGui::PushID( "Textures" );
+
+									for ( auto& primitive : game_object.model->m_primitives )
 									{
-										ImGui::PushID( "Position" );
-										ImGui::PushItemWidth( 80 );
-										ImGui::Text( "Position" );
-										ImGui::SameLine();
-										ImGui::DragFloat( "X", &game_object.transform.translation.x, 0.1f );
-										ImGui::SameLine();
-										ImGui::DragFloat( "Y", &game_object.transform.translation.y, 0.1f );
-										ImGui::SameLine();
-										ImGui::DragFloat( "Z", &game_object.transform.translation.z, 0.1f );
-										ImGui::PopID();
-									}
+										if ( !primitive.m_texture.has_value() ) continue;
 
-									ImGui::Separator();
+										auto& texture { primitive.m_texture.value() };
 
-									{
-										ImGui::PushID( "Rotation" );
-										ImGui::PushItemWidth( 80 );
-										ImGui::Text( "Rotation" );
-										ImGui::SameLine();
-										ImGui::DragFloat(
-											"X",
-											&game_object.transform.rotation.x,
-											0.1f,
-											0.0f,
-											glm::two_pi< float >() );
-										ImGui::SameLine();
-										ImGui::DragFloat(
-											"Y",
-											&game_object.transform.rotation.y,
-											0.1f,
-											0.0f,
-											glm::two_pi< float >() );
-										ImGui::SameLine();
-										ImGui::DragFloat(
-											"Z",
-											&game_object.transform.rotation.z,
-											0.1f,
-											0.0f,
-											glm::two_pi< float >() );
-										ImGui::PopID();
-									}
+										const auto& extent { texture.getExtent() };
 
-									ImGui::Separator();
+										auto& image_view { texture.getImageView() };
+										auto& sampler { image_view.getSampler() };
 
-									{
-										ImGui::PushID( "Scale" );
-										ImGui::PushItemWidth( 80 );
-										ImGui::Text( "Scale" );
-										ImGui::SameLine();
-										ImGui::DragFloat( "X", &game_object.transform.scale.x, 0.1f );
-										ImGui::SameLine();
-										ImGui::DragFloat( "Y", &game_object.transform.scale.y, 0.1f );
-										ImGui::SameLine();
-										ImGui::DragFloat( "Z", &game_object.transform.scale.z, 0.1f );
-										ImGui::TreePop();
-										ImGui::PopID();
-									}
+										if ( !sampler.has_value() ) continue;
 
-									if ( ImGui::CollapsingHeader( "Textures" ) )
-									{
-										std::vector< TextureID > textures;
+										ImVec2 size;
+										size.x = extent.width;
+										size.y = extent.height;
 
-										ImGui::PushID( "Textures" );
-
-										for ( auto& primitive : game_object.model->m_primitives )
+										if ( std::find( textures.begin(), textures.end(), texture.getID() )
+										     == textures.end() )
 										{
-											if ( !primitive.m_texture.has_value() ) continue;
+											textures.emplace_back( texture.getID() );
 
-											auto& texture { primitive.m_texture.value() };
-
-											const auto& extent { texture.getExtent() };
-
-											auto& image_view { texture.getImageView() };
-											auto& sampler { image_view.getSampler() };
-
-											if ( !sampler.has_value() ) continue;
-
-											ImVec2 size;
-											size.x = extent.width;
-											size.y = extent.height;
-
-											if ( std::find( textures.begin(), textures.end(), texture.getID() )
-											     == textures.end() )
-											{
-												textures.emplace_back( texture.getID() );
-
-												ImGui::Image(
-													static_cast< ImTextureID >( primitive.m_texture
-												                                    ->getImGuiDescriptorSet() ),
-													size );
-											}
+											ImGui::Image(
+												static_cast< ImTextureID >( primitive.m_texture
+											                                    ->getImGuiDescriptorSet() ),
+												size );
 										}
-
-										ImGui::PopID();
 									}
 
 									ImGui::PopID();
 								}
+
 								ImGui::PopID();
 							}
+							ImGui::PopID();
 						}
+					}
 
-						//TODO: Add in a collapsable header to view all buffers, And their suballocations
-						/*
+					//TODO: Add in a collapsable header to view all buffers, And their suballocations
+					/*
 					if ( ImGui::CollapsingHeader( "Buffer allocations" ) )
 					{
 						for ( const auto& buffer : Buffer::getActiveBufferHandles() )
@@ -329,14 +346,7 @@ namespace fgl::engine
 							ImGui::Text( "Size: %zu", buffer.lock()->size() );
 						}
 					}*/
-
-						ImGui::End();
-					}
-
-					//Render
-					ImGui::Render();
 				}
-				ImDrawData* data { ImGui::GetDrawData() };
 #endif
 
 				m_renderer.beginSwapchainRendererPass( command_buffer );
@@ -348,6 +358,13 @@ namespace fgl::engine
 #if TRACY_ENABLE
 					TracyVkZone( tracy_ctx, command_buffer, "ImGui Rendering" );
 #endif
+
+					debug::world::drawPointText( { 0.0f, 0.0f, 0.0f }, camera, { 1.0f, 0.0f, 0.0f } );
+
+					ImGui::End();
+					ImGui::Render();
+
+					ImDrawData* data { ImGui::GetDrawData() };
 					ImGui_ImplVulkan_RenderDrawData( data, command_buffer );
 				}
 #endif
@@ -359,6 +376,9 @@ namespace fgl::engine
 #endif
 
 				m_renderer.endFrame();
+
+				std::this_thread::sleep_until( new_time + std::chrono::milliseconds( 16 ) );
+
 				FrameMark;
 			}
 		}
@@ -398,9 +418,9 @@ namespace fgl::engine
 			m_entity_renderer.getVertexBuffer(),
 			m_entity_renderer.getIndexBuffer() ) };
 
-		for ( int x = 0; x < 4; ++x )
+		for ( int x = 0; x < 1; ++x )
 		{
-			for ( int y = 0; y < 4; ++y )
+			for ( int y = 0; y < 1; ++y )
 			{
 				auto sponza = GameObject::createGameObject();
 				sponza.model = model;

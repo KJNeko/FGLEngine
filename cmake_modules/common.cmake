@@ -13,8 +13,16 @@ if ((${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU") OR (${CMAKE_CXX_PLATFORM_ID} STREQ
 elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
 	include(clang)
 elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-	message()
 	include(msvc)
+else ()
+	message(WARNING "Unknown Compiler")
+	#Define dummy PreCompilerSetup for unknown compilers. Later on, this will be replaced by a proper error message
+	function(PreCompilerSetup)
+		message(WARNING "Unknown Compiler! Dummy PreCompilerSetup")
+	endfunction()
+	function(PostCompilerSetup)
+		message(WARNING "Unknown Compiler! Dummy PostCompilerSetup")
+	endfunction()
 endif ()
 
 if ((WIN32))

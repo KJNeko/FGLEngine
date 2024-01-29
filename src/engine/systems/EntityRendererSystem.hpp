@@ -11,8 +11,8 @@
 #include "engine/Device.hpp"
 #include "engine/FrameInfo.hpp"
 #include "engine/GameObject.hpp"
-#include "engine/Model.hpp"
 #include "engine/SwapChain.hpp"
+#include "engine/model/Model.hpp"
 #include "engine/pipeline/PipelineT.hpp"
 
 namespace fgl::engine
