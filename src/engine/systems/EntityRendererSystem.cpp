@@ -4,12 +4,9 @@
 
 #include "EntityRendererSystem.hpp"
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ON
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/intersect.hpp>
 #include <imgui/imgui.h>
 #include <tracy/TracyC.h>
 #include <vulkan/vulkan.hpp>
@@ -102,7 +99,7 @@ namespace fgl::engine
 
 				debug::world::drawBoundingBox( model_bounding_box, info.camera );
 
-				if ( !model_bounding_box.isInFrustum( info.camera_frustum ) ) continue;
+				//if ( !model_bounding_box.isInFrustum( info.camera_frustum ) ) continue;
 
 				for ( const auto& primitive : obj.model->m_primitives )
 				{

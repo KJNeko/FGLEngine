@@ -4,6 +4,9 @@
 
 #include "Camera.hpp"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
+
 #include <cassert>
 #include <limits>
 
@@ -13,13 +16,7 @@ namespace fgl::engine
 	void Camera::setOrthographicProjection( float left, float right, float top, float bottom, float near, float far )
 	{
 		ZoneScoped;
-		projection_matrix = glm::mat4 { 1.0f };
-		projection_matrix[ 0 ][ 0 ] = 2.0f / ( right - left );
-		projection_matrix[ 1 ][ 1 ] = 2.0f / ( bottom - top );
-		projection_matrix[ 2 ][ 2 ] = 1.0f / ( far - near );
-		projection_matrix[ 3 ][ 0 ] = -( right + left ) / ( right - left );
-		projection_matrix[ 3 ][ 1 ] = -( bottom + top ) / ( bottom - top );
-		projection_matrix[ 3 ][ 2 ] = -near / ( far - near );
+		projection_matrix = glm::orthoLH( left, right, bottom, top, near, far );
 
 		//TODO: Figure out frustum culling for orthographic projection. (If we even wanna use it)
 	}
@@ -27,14 +24,7 @@ namespace fgl::engine
 	void Camera::setPerspectiveProjection( float fovy, float aspect, float near, float far )
 	{
 		ZoneScoped;
-		assert( glm::abs( aspect - std::numeric_limits< float >::epsilon() ) > 0 );
-		const float tan_half_fovy { std::tan( fovy / 2.0f ) };
-		projection_matrix = glm::mat4 { 0.0f };
-		projection_matrix[ 0 ][ 0 ] = 1.0f / ( aspect * tan_half_fovy );
-		projection_matrix[ 1 ][ 1 ] = 1.0f / ( tan_half_fovy );
-		projection_matrix[ 2 ][ 2 ] = far / ( far - near );
-		projection_matrix[ 2 ][ 3 ] = 1.0f;
-		projection_matrix[ 3 ][ 2 ] = -( far * near ) / ( far - near );
+		projection_matrix = glm::perspectiveLH( fovy, aspect, near, far );
 
 		base_frustum = createFrustum( *this, aspect, fovy, near, far );
 	}
@@ -42,40 +32,9 @@ namespace fgl::engine
 	void Camera::setViewDirection( glm::vec3 position, glm::vec3 direction, glm::vec3 up )
 	{
 		ZoneScoped;
-		const glm::vec3 w_direction { glm::normalize( direction ) };
-		const glm::vec3 u_right { glm::normalize( glm::cross( w_direction, up ) ) };
-		const glm::vec3 v_up { glm::cross( w_direction, u_right ) };
-
-		/*
-		 * view_matrix
-		 * u_r = view_right
-		 * v_u = view_up
-		 * w_d = view_direction
-		 *
-		 * | u_r.x  u_r.y  u_r.z  0 |
-		 * | v_u.x  v_u.y  v_u.z  0 |
-		 * | w_d.x  w_d.y  w_d.z  0 |
-		 * | 0      0      0      1 |
-		 */
-
-		view_matrix = glm::mat4 { 1.0f };
-		view_matrix[ 0 ][ 0 ] = u_right.x;
-		view_matrix[ 1 ][ 0 ] = u_right.y;
-		view_matrix[ 2 ][ 0 ] = u_right.z;
-
-		view_matrix[ 0 ][ 1 ] = v_up.x;
-		view_matrix[ 1 ][ 1 ] = v_up.y;
-		view_matrix[ 2 ][ 1 ] = v_up.z;
-
-		view_matrix[ 0 ][ 2 ] = w_direction.x;
-		view_matrix[ 1 ][ 2 ] = w_direction.y;
-		view_matrix[ 2 ][ 2 ] = w_direction.z;
-
-		view_matrix[ 3 ][ 0 ] = -glm::dot( u_right, position );
-		view_matrix[ 3 ][ 1 ] = -glm::dot( v_up, position );
-		view_matrix[ 3 ][ 2 ] = -glm::dot( w_direction, position );
-
+		glm::lookAt( position, position + direction, up );
 		frustum = base_frustum * view_matrix;
+		return;
 	}
 
 	void Camera::setViewTarget( glm::vec3 position, glm::vec3 target, glm::vec3 up )
@@ -83,37 +42,110 @@ namespace fgl::engine
 		setViewDirection( position, glm::normalize( target - position ), up );
 	}
 
-	void Camera::setViewYXZ( glm::vec3 position, glm::vec3 rotation )
+	enum RotationOrder
 	{
-		ZoneScoped;
+		XYZ,
+		XZY,
+		YXZ,
+		YZX,
+		ZXY,
+		ZYX
+	};
+
+	glm::mat4 taitBryanMatrix( const glm::vec3 rotation, const RotationOrder order = XYZ )
+	{
+		glm::mat4 mat { 1.0f };
+
+		const float c1 { glm::cos( rotation.x ) };
+		const float s1 { glm::sin( rotation.x ) };
+
+		const float c2 { glm::cos( rotation.y ) };
+		const float s2 { glm::sin( rotation.y ) };
+
 		const float c3 { glm::cos( rotation.z ) };
 		const float s3 { glm::sin( rotation.z ) };
-		const float c2 { glm::cos( rotation.x ) };
-		const float s2 { glm::sin( rotation.x ) };
-		const float c1 { glm::cos( rotation.y ) };
-		const float s1 { glm::sin( rotation.y ) };
-		const glm::vec3 u { ( c1 * c3 + s1 * s2 * s3 ), ( c2 * s3 ), ( c1 * s2 * s3 - c3 * s1 ) };
-		const glm::vec3 v { ( c3 * s1 * s2 - c1 * s3 ), ( c2 * c3 ), ( c1 * c3 * s2 + s1 * s3 ) };
-		const glm::vec3 w { ( c2 * s1 ), ( -s2 ), ( c1 * c2 ) };
 
-		view_matrix = glm::mat4 { 1.0f };
-		view_matrix[ 0 ][ 0 ] = u.x;
-		view_matrix[ 1 ][ 0 ] = u.y;
-		view_matrix[ 2 ][ 0 ] = u.z;
+		switch ( order )
+		{
+			case RotationOrder::XYZ: // Pitch, Yaw, Roll
+				{
+					const glm::vec3 row_0 { ( c2 * c3 ), -( c2 * s3 ), s2 };
+					const glm::vec3 row_1 { ( c1 * s3 ) + ( c3 * s1 * s2 ),
+						                    ( c1 * c3 ) - ( s1 * s2 * s3 ),
+						                    -( c2 * s1 ) };
+					const glm::vec3 row_2 { ( s1 * s3 ) - ( c1 * c3 * s2 ),
+						                    ( c3 * s1 ) + ( c1 * s2 * s3 ),
+						                    ( c1 * c2 ) };
 
-		view_matrix[ 0 ][ 1 ] = v.x;
-		view_matrix[ 1 ][ 1 ] = v.y;
-		view_matrix[ 2 ][ 1 ] = v.z;
+					mat[ 0 ] = glm::vec4( row_0, 0.0f );
+					mat[ 1 ] = glm::vec4( row_1, 0.0f );
+					mat[ 2 ] = glm::vec4( row_2, 0.0f );
+					return mat;
+				}
+			case RotationOrder::ZYX: // Yaw, Roll, Pitch
+				{
+					const glm::vec3 row_0 { ( c1 * c2 ),
+						                    ( c1 * s2 * s3 ) - ( c3 * s1 ),
+						                    ( s1 * s3 ) + ( c1 * c3 * s2 ) };
+					const glm::vec3 row_1 { ( c2 * s1 ),
+						                    ( c1 * c3 ) + ( s1 * s2 * s3 ),
+						                    ( c3 * s1 * s2 ) - ( c1 * s3 ) };
+					const glm::vec3 row_2 { -s2, c2 * s3, c2 * c3 };
 
-		view_matrix[ 0 ][ 2 ] = w.x;
-		view_matrix[ 1 ][ 2 ] = w.y;
-		view_matrix[ 2 ][ 2 ] = w.z;
+					mat[ 0 ] = glm::vec4( row_0, 0.0f );
+					mat[ 1 ] = glm::vec4( row_1, 0.0f );
+					mat[ 2 ] = glm::vec4( row_2, 0.0f );
+					return mat;
+				}
+			case RotationOrder::YXZ: // Roll, Pitch, Yaw
+				{
+					const glm::vec3 row_0 { ( c1 * c3 ) + ( s1 * s2 * s3 ), ( c3 * s1 * s2 ) - ( c1 * s3 ), c2 * s1 };
+					const glm::vec3 row_1 { c2 * s3, c2 * c3, -s2 };
+					const glm::vec3 row_2 { ( c1 * s2 * s3 ) - ( c3 * s1 ), ( c1 * c3 * s2 ) + ( s1 * s3 ), c1 * c2 };
+
+					mat[ 0 ] = glm::vec4( row_0, 0.0f );
+					mat[ 1 ] = glm::vec4( row_1, 0.0f );
+					mat[ 2 ] = glm::vec4( row_2, 0.0f );
+					return mat;
+				}
+			default:
+				throw std::runtime_error( "Unimplemented rotation order" );
+		}
+	}
+
+	void Camera::setViewYXZ( glm::vec3 position, glm::vec3 rotation, const ViewMode mode )
+	{
+		ZoneScoped;
+
+		switch ( mode )
+		{
+			case ViewMode::TaitBryan:
+				{
+					const glm::mat4 rotation_matrix { taitBryanMatrix( rotation ) };
+
+					const glm::vec3 forward { rotation_matrix * glm::vec4( constants::WORLD_FORWARD, 0.0f ) };
+
+					const glm::vec3 camera_up { rotation_matrix * glm::vec4( constants::WORLD_UP, 0.0f ) };
 
 		view_matrix[ 3 ][ 0 ] = -glm::dot( u, position );
 		view_matrix[ 3 ][ 1 ] = -glm::dot( v, position );
 		view_matrix[ 3 ][ 2 ] = -glm::dot( w, position );
+					view_matrix = glm::lookAtLH( position, position + forward, camera_up );
+
+					break;
+				}
+			case ViewMode::Euler:
+				{
+					//TODO: Implement
+					//view_matrix = glm::lookAtLH(position, position + );
+				}
+			default:
+				throw std::runtime_error( "Unimplemented view mode" );
+		}
 
 		frustum = base_frustum * view_matrix;
+
+		return;
 	}
 
 	Frustum

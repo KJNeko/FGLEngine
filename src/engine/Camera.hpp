@@ -70,9 +70,16 @@ namespace fgl::engine
 
 		const glm::vec3 getDown() const { return -getUp(); }
 
-		void setViewDirection( glm::vec3 pos, glm::vec3 direction, glm::vec3 up = WORLD_UP );
-		void setViewTarget( glm::vec3 pos, glm::vec3 target, glm::vec3 up = WORLD_UP );
-		void setViewYXZ( glm::vec3 pos, glm::vec3 rotation );
+		void setViewDirection( glm::vec3 pos, glm::vec3 direction, glm::vec3 up = constants::WORLD_UP );
+		void setViewTarget( glm::vec3 pos, glm::vec3 target, glm::vec3 up = constants::WORLD_UP );
+
+		enum ViewMode
+		{
+			Euler,
+			TaitBryan
+		};
+
+		void setViewYXZ( glm::vec3 pos, glm::vec3 rotation, const ViewMode mode = TaitBryan );
 	};
 
 } // namespace fgl::engine

@@ -31,3 +31,6 @@ if (CMAKE_UPPER_BUILD_TYPE STREQUAL "DEBUG")
 else ()
 	target_compile_definitions(FGLEngine PRIVATE ENABLE_IMGUI=0)
 endif ()
+
+#GLM settings
+target_compile_definitions(FGLEngine PUBLIC GLM_FORCE_RADIANS GLM_FORCE_DEPTH_ZERO_TO_ONE)

@@ -98,7 +98,7 @@ namespace fgl::engine
 		Camera camera {};
 
 		auto viewer { GameObject::createGameObject() };
-		viewer.transform.translation.z = -2.5f;
+		viewer.transform.translation = constants::WORLD_CENTER + glm::vec3( 0.0f, 0.0f, -2.5f );
 		KeyboardMovementController camera_controller {};
 
 		auto current_time { std::chrono::high_resolution_clock::now() };

@@ -12,7 +12,6 @@
 				# Generic warnings.
 				set(FGL_WARNINGS "-Wall -Wundef -Wextra -Wpedantic")
 
-
 				#AppendFlag("-Wno-changes-meaning") # Prevents accidently changing the type of things. Cannot define 1 things as another later
 				AppendFlag("-Wdouble-promotion") #Prevents issue where you can do math as a double which might not be intended.
 				AppendFlag("-Wnonnull") #Prevents passing null as an argument marked as nonnull attribute
@@ -109,7 +108,7 @@
 
 				#set(FGL_WARNINGS "${FGL_WARNINGS_GENERIC} -Wpessimizing-move -Wpedantic -Weffc++ -pedantic-errors -Wnoexcept -Wuninitialized -Wunused -Wunused-parameter -Winit-self -Wconversion -Wuseless-cast -Wextra-semi -Wsuggest-final-types -Wsuggest-final-methods -Wsuggest-override -Wformat-signedness -Wno-format-zero-length -Wmissing-include-dirs -Wshift-overflow=2 -Walloc-zero -Walloca -Wsign-promo -Wconversion -Wduplicated-branches -Wduplicated-cond -Wshadow -Wshadow=local -Wvirtual-inheritance -Wno-virtual-move-assign -Wunsafe-loop-optimizations -Wnormalized -Wpacked -Wredundant-decls -Wctor-dtor-privacy -Wdeprecated-copy-dtor -Wstrict-null-sentinel -Wold-style-cast -Woverloaded-virtual -Wzero-as-null-pointer-constant -Wconditionally-supported -Wwrite-strings -Wunused-const-variable=2 -Wdouble-promotion -Wpointer-arith -Wcast-align=strict -Wcast-qual -Wconversion -Wsign-conversion -Wimplicit-fallthrough=1 -Wmisleading-indentation -Wdangling-else -Wdate-time -Wformat=2 -Wformat-overflow=2 -Wformat-signedness -Wformat-truncation=2 -Wswitch-default -Wstringop-overflow=4 -Warray-bounds=2 -Wattribute-alias=2 -Wcatch-value=2 -Wplacement-new=2 -Wtrampolines -Winvalid-imported-macros -Winvalid-imported-macros")
 
-				set(FGL_CONFIG "-std=c++20 -fmax-errors=3 -fconcepts-diagnostics-depth=8")
+				set(FGL_CONFIG "-std=c++20 -fmax-errors=1 -fconcepts-diagnostics-depth=8 -Werror")
 
 				# Optimization flags
 				set(FGL_OPTIMIZATION_FLAGS_RELEASE "-O2 -s -fdevirtualize-at-ltrans -fdevirtualize-speculatively -funroll-loops") # System agonistc flags
@@ -118,7 +117,7 @@
 				set(FGL_OPTIMIZATION_FLAGS_RELWITHDEBINFO "-O2 -g -fdevirtualize-at-ltrans -fdevirtualize-speculatively -fdeclone-ctor-dtor -funroll-loops")
 
 				# Final sets
-				set(FGL_FLAGS "${FGL_OPTIMIZATION_FLAGS_${UPPER_BUILD_TYPE}} ${FLG_WARNINGS}" PARENT_SCOPE) # Flags for our shit
+				set(FGL_FLAGS "${FGL_CONFIG} ${FGL_OPTIMIZATION_FLAGS_${UPPER_BUILD_TYPE}} ${FLG_WARNINGS}" PARENT_SCOPE) # Flags for our shit
 				#set(FGL_FLAGS "${FGL_OPTIMIZATION_FLAGS_${UPPER_BUILD_TYPE}}" PARENT_SCOPE)
 				set(FGL_CHILD_FLAGS "${FGL_OPTIMIZATION_FLAGS_${UPPER_BUILD_TYPE}}" PARENT_SCOPE) # Child flags for adding optmization to anything we build ourselves but doesn't follow our standard
 				#set(CMAKE_CXX_FLAGS "${FGL_CHILD_FLAGS}")

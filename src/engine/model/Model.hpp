@@ -4,8 +4,6 @@
 
 #pragma once
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
 #include <algorithm>
@@ -15,6 +13,7 @@
 #include <vector>
 
 #include "BoundingBox.hpp"
+#include "Vertex.hpp"
 #include "engine/Device.hpp"
 #include "engine/buffers/Buffer.hpp"
 #include "engine/buffers/BufferSuballocation.hpp"
@@ -25,25 +24,6 @@
 
 namespace fgl::engine
 {
-
-	struct Vertex
-	{
-		glm::vec3 m_position { 0.0f, 0.0f, 0.0f };
-		glm::vec3 m_color { 1.0f, 1.0f, 1.0f };
-		glm::vec3 m_normal { 0.0f, 0.0f, 0.0f };
-		glm::vec2 m_uv { 0.0f, 0.0f };
-
-		static std::vector< vk::VertexInputBindingDescription > getBindingDescriptions();
-		static std::vector< vk::VertexInputAttributeDescription > getAttributeDescriptions();
-
-		Vertex() noexcept = default;
-
-		bool operator==( const Vertex& other ) const
-		{
-			return m_position == other.m_position && m_color == other.m_color && m_normal == other.m_normal
-			    && m_uv == other.m_uv;
-		}
-	};
 
 	struct ModelMatrixInfo
 	{
