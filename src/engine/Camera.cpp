@@ -127,9 +127,6 @@ namespace fgl::engine
 
 					const glm::vec3 camera_up { rotation_matrix * glm::vec4( constants::WORLD_UP, 0.0f ) };
 
-		view_matrix[ 3 ][ 0 ] = -glm::dot( u, position );
-		view_matrix[ 3 ][ 1 ] = -glm::dot( v, position );
-		view_matrix[ 3 ][ 2 ] = -glm::dot( w, position );
 					view_matrix = glm::lookAtLH( position, position + forward, camera_up );
 
 					break;
