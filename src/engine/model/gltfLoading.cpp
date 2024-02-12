@@ -163,7 +163,7 @@ namespace fgl::engine
 				};
 				model_positions.insert( model_positions.end(), position_data.begin(), position_data.end() );
 
-				ModelBoundingBox bounding_box { generateBoundingFromPoints< CoordinateType::Model >( position_data ) };
+				ModelBoundingBox bounding_box { generateBoundingFromPoints( position_data ) };
 
 				std::vector< glm::vec3 > normals;
 

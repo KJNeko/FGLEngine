@@ -9,15 +9,20 @@
 #include <array>
 #include <vector>
 
-#include "engine/coordinates/WorldCoordinate.hpp"
+#include "engine/constants.hpp"
+#include "engine/primitives/Coordinate.hpp"
+#include "engine/primitives/Line.hpp"
+#include "engine/primitives/Matrix.hpp"
 
 namespace fgl::engine
 {
+	template < CoordinateSpace type >
 	class Frustum;
 
+	template < CoordinateSpace CType >
 	struct BoundingBox
 	{
-		glm::vec3 middle { DEFAULT_COORDINATE_VEC3 };
+		Coordinate< CType > middle { constants::DEFAULT_VEC3 };
 		glm::vec3 scale { 0.0f };
 
 		//! Returns the top left (-x, -y, -z) coordinate
@@ -31,16 +36,27 @@ namespace fgl::engine
 
 		consteval static std::array< std::uint32_t, indicies_count > triangleIndicies();
 
-		std::vector< glm::vec3 > points() const;
-		std::vector< std::pair< glm::vec3, glm::vec3 > > lines() const;
+		std::vector< Coordinate< CType > > points() const;
+		std::vector< Line< CType > > lines() const;
 
-		bool isInFrustum( const Frustum& frustum ) const;
+		bool isInFrustum( const Frustum< CType >& frustum ) const;
 
 		BoundingBox combine( const BoundingBox& other ) const;
-
-		BoundingBox operator*( glm::mat4 matrix ) const;
 	};
 
-	BoundingBox generateBoundingFromPoints( std::vector< glm::vec3 >& points );
+	template < CoordinateSpace CType, MatrixType MType >
+	BoundingBox< EvolvedType< MType >() >
+		operator*( const Matrix< MType > matrix, const BoundingBox< CType > bounding_box )
+	{
+		ZoneScoped;
+		const Coordinate< EvolvedType< MType >() > new_middle { matrix * bounding_box.middle };
+		const glm::vec3 new_scale { matrix * glm::vec4( bounding_box.scale, 0.0f ) };
+		return BoundingBox< EvolvedType< MType >() >( new_middle, new_scale );
+	}
+
+	template < CoordinateSpace CType >
+	BoundingBox< CType > generateBoundingFromPoints( const std::vector< Coordinate< CType > >& points );
+
+	using ModelBoundingBox = BoundingBox< CoordinateSpace::Model >;
 
 } // namespace fgl::engine

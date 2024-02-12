@@ -16,7 +16,7 @@ namespace fgl::engine
 	void Camera::setOrthographicProjection( float left, float right, float top, float bottom, float near, float far )
 	{
 		ZoneScoped;
-		projection_matrix = glm::orthoLH( left, right, bottom, top, near, far );
+		projection_matrix = Matrix< MatrixType::CameraToScreen >( glm::orthoLH( left, right, bottom, top, near, far ) );
 
 		//TODO: Figure out frustum culling for orthographic projection. (If we even wanna use it)
 	}
@@ -24,7 +24,7 @@ namespace fgl::engine
 	void Camera::setPerspectiveProjection( float fovy, float aspect, float near, float far )
 	{
 		ZoneScoped;
-		projection_matrix = glm::perspectiveLH( fovy, aspect, near, far );
+		projection_matrix = Matrix< MatrixType::CameraToScreen >( glm::perspectiveLH( fovy, aspect, near, far ) );
 
 		base_frustum = createFrustum( *this, aspect, fovy, near, far );
 	}
@@ -33,7 +33,7 @@ namespace fgl::engine
 	{
 		ZoneScoped;
 		glm::lookAt( position, position + direction, up );
-		frustum = base_frustum * view_matrix;
+		//frustum = view_matrix * base_frustum;
 		return;
 	}
 
@@ -127,7 +127,8 @@ namespace fgl::engine
 
 					const glm::vec3 camera_up { rotation_matrix * glm::vec4( constants::WORLD_UP, 0.0f ) };
 
-					view_matrix = glm::lookAtLH( position, position + forward, camera_up );
+					view_matrix =
+						Matrix< MatrixType::WorldToCamera >( glm::lookAtLH( position, position + forward, camera_up ) );
 
 					break;
 				}
@@ -140,16 +141,16 @@ namespace fgl::engine
 				throw std::runtime_error( "Unimplemented view mode" );
 		}
 
-		frustum = base_frustum * view_matrix;
+		//frustum = base_frustum * view_matrix;
 
 		return;
 	}
 
-	Frustum
+	Frustum< CoordinateSpace::Model >
 		createFrustum( const Camera& camera, const float aspect, const float fov_y, const float near, const float far )
 	{
-		Plane near_plane { camera.getForward(), near };
-		Plane far_plane { camera.getBackward(), far };
+		Plane< CoordinateSpace::Model > near_plane { camera.getForward(), near };
+		Plane< CoordinateSpace::Model > far_plane { camera.getBackward(), far };
 
 		const float half_width { near * glm::tan( fov_y / 2.0f ) }; // halfHSide
 		const float half_height { half_width / aspect }; //halfVSide
@@ -162,12 +163,12 @@ namespace fgl::engine
 		const auto far_up { camera.getUp() * half_height };
 		const glm::vec3 top_dir { glm::normalize( far_up + far_forward ) };
 
-		Plane top_plane { glm::cross( top_dir, camera.getUp() ), 0.0f };
-		Plane bottom_plane { glm::cross( top_dir, camera.getDown() ), 0.0f };
+		Plane< CoordinateSpace::Model > top_plane { glm::cross( top_dir, camera.getUp() ), 0.0f };
+		Plane< CoordinateSpace::Model > bottom_plane { glm::cross( top_dir, camera.getDown() ), 0.0f };
 
 		const glm::vec3 right_dir { glm::normalize( camera.getRight() * half_width + far_forward ) };
-		Plane right_plane { glm::cross( right_dir, camera.getRight() ), 0.0f };
-		Plane left_plane { glm::cross( right_dir, camera.getLeft() ), 0.0f };
+		Plane< CoordinateSpace::Model > right_plane { glm::cross( right_dir, camera.getRight() ), 0.0f };
+		Plane< CoordinateSpace::Model > left_plane { glm::cross( right_dir, camera.getLeft() ), 0.0f };
 
 		return { near_plane, far_plane, top_plane, bottom_plane, right_plane, left_plane };
 	}

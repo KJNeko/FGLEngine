@@ -89,7 +89,7 @@ namespace fgl::engine
 			}
 		}
 
-		std::vector< ModelCoordinate > vert_pos;
+		std::vector< Coordinate< CoordinateSpace::Model > > vert_pos;
 		for ( const auto& vert : verts )
 		{
 			vert_pos.emplace_back( vert.m_position );

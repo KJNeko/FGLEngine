@@ -6,24 +6,36 @@
 
 #include <array>
 
-#include "engine/coordinates/WorldCoordinate.hpp"
+#include "engine/primitives/Coordinate.hpp"
+#include "engine/primitives/Frustum.hpp"
+#include "engine/primitives/Matrix.hpp"
 
 namespace fgl::engine
 {
 
-	bool engine::BoundingBox::isInFrustum( const Frustum& frustum ) const
+	template < CoordinateSpace CType >
+	bool BoundingBox< CType >::isInFrustum( const Frustum< CType >& frustum ) const
 	{
-		ZoneScoped;
-		const auto points { this->points() };
-		for ( const auto& point : points )
+		if constexpr ( CType != CoordinateSpace::World )
 		{
-			if ( frustum.pointInside( point ) ) return true;
+			//TODO: Figure out how to make this a compiler error
+			throw std::runtime_error( "Frustum and bounding box must be in World coordinate space!" );
 		}
+		else
+		{
+			ZoneScoped;
+			const std::vector< Coordinate< CType > >& points { this->points() };
+			for ( const auto& point : points )
+			{
+				if ( frustum.pointInside( point ) ) return true;
+			}
 
-		return false;
+			return false;
+		}
 	}
 
-	consteval std::array< std::uint32_t, BoundingBox::indicies_count > BoundingBox::triangleIndicies()
+	template < CoordinateSpace CType >
+	consteval std::array< std::uint32_t, BoundingBox< CType >::indicies_count > BoundingBox< CType >::triangleIndicies()
 	{
 		/**
 		 * Order (Top)
@@ -89,11 +101,12 @@ namespace fgl::engine
 		return data;
 	}
 
-	std::vector< glm::vec3 > BoundingBox::points() const
+	template < CoordinateSpace CType >
+	std::vector< Coordinate< CType > > BoundingBox< CType >::points() const
 	{
-		assert( middle != DEFAULT_COORDINATE_VEC3 );
+		assert( middle != constants::DEFAULT_VEC3 );
 		assert( scale != glm::vec3( 0.0f ) );
-		std::vector< glm::vec3 > points;
+		std::vector< Coordinate< CType > > points;
 
 		// xp == x positive (Highest x point)
 		// xn == x negative (Lowest x point)
@@ -161,34 +174,28 @@ namespace fgl::engine
 		return points;
 	}
 
-	BoundingBox BoundingBox::combine( const BoundingBox& other ) const
+	template < CoordinateSpace CType >
+	BoundingBox< CType > BoundingBox< CType >::combine( const BoundingBox< CType >& other ) const
 	{
 		ZoneScoped;
-		if ( middle == DEFAULT_COORDINATE_VEC3 )
+		if ( middle == constants::DEFAULT_VEC3 && scale != glm::vec3( 0.0f ) )
 			return other;
 		else
 		{
 			const auto& other_points { other.points() };
-			std::vector< glm::vec3 > points { this->points() };
+			std::vector< Coordinate< CType > > points { this->points() };
 			points.insert( points.end(), other_points.begin(), other_points.end() );
 
 			//TODO: There might be a way to do this without needing to do yet another point calculation.
-			return generateBoundingFromPoints( points );
+			return generateBoundingFromPoints< CType >( points );
 		}
 	}
 
-	BoundingBox BoundingBox::operator*( const glm::mat4 matrix ) const
-	{
-		ZoneScoped;
-		const glm::vec3 new_middle { matrix * glm::vec4( middle, 1.0f ) };
-		const glm::vec3 new_scale { matrix * glm::vec4( scale, 0.0f ) };
-		return { new_middle, new_scale };
-	}
-
-	std::vector< std::pair< glm::vec3, glm::vec3 > > BoundingBox::lines() const
+	template < CoordinateSpace CType >
+	std::vector< Line< CType > > BoundingBox< CType >::lines() const
 	{
 		const auto points { this->points() };
-		std::vector< std::pair< glm::vec3, glm::vec3 > > lines;
+		std::vector< Line< CType > > lines;
 		for ( std::uint32_t i = 0; i < points.size() - 1; ++i )
 		{
 			lines.emplace_back( points[ i ], points[ i + 1 ] );
@@ -197,7 +204,8 @@ namespace fgl::engine
 		return lines;
 	}
 
-	BoundingBox generateBoundingFromPoints( std::vector< glm::vec3 >& points )
+	template < CoordinateSpace CType >
+	BoundingBox< CType > generateBoundingFromPoints( const std::vector< Coordinate< CType > >& points )
 	{
 		ZoneScoped;
 		assert( points.size() > 0 );
@@ -209,13 +217,13 @@ namespace fgl::engine
 
 		for ( const auto& pos : points )
 		{
-			top_left_front.x = std::min( pos.x, top_left_front.x );
-			top_left_front.y = std::min( pos.y, top_left_front.y );
-			top_left_front.z = std::min( pos.z, top_left_front.z );
+			top_left_front.x = std::min( static_cast< glm::vec3 >( pos ).x, top_left_front.x );
+			top_left_front.y = std::min( static_cast< glm::vec3 >( pos ).y, top_left_front.y );
+			top_left_front.z = std::min( static_cast< glm::vec3 >( pos ).z, top_left_front.z );
 
-			bottom_right_back.x = std::max( pos.x, bottom_right_back.x );
-			bottom_right_back.y = std::max( pos.y, bottom_right_back.y );
-			bottom_right_back.z = std::max( pos.z, bottom_right_back.z );
+			bottom_right_back.x = std::max( static_cast< glm::vec3 >( pos ).x, bottom_right_back.x );
+			bottom_right_back.y = std::max( static_cast< glm::vec3 >( pos ).y, bottom_right_back.y );
+			bottom_right_back.z = std::max( static_cast< glm::vec3 >( pos ).z, bottom_right_back.z );
 		}
 
 		//Calculate midpoint
@@ -226,7 +234,11 @@ namespace fgl::engine
 				  << " " << midpoint.y << " " << midpoint.z << "\n\tScale:" << scale.x << " " << scale.y << " "
 				  << scale.z << std::endl;
 
-		return { midpoint, scale };
+		return { Coordinate< CType >( midpoint ), scale };
 	}
+
+	//Instantiate the template
+	template class BoundingBox< CoordinateSpace::Model >;
+	template class BoundingBox< CoordinateSpace::World >;
 
 } // namespace fgl::engine

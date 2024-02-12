@@ -79,7 +79,7 @@ namespace fgl::engine
 
 		DescriptorSet& gbuffer_descriptor_set;
 
-		const Frustum& camera_frustum;
+		const Frustum< CoordinateSpace::World >& camera_frustum;
 	};
 
 } // namespace fgl::engine

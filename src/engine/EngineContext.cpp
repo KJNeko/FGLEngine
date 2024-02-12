@@ -4,8 +4,6 @@
 
 #include "EngineContext.hpp"
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include <tracy/TracyVulkan.hpp>
@@ -215,7 +213,7 @@ namespace fgl::engine
 						auto printVec3 = []( const glm::vec3& vec )
 						{ ImGui::Text( "(%.2f, %.2f, %.2f)", vec.x, vec.y, vec.z ); };
 
-						auto printPlane = [ printVec3 ]( const Plane& plane, const std::string name )
+						auto printPlane = [ printVec3 ]( const auto& plane, const std::string name )
 						{
 							const std::string name_str { "Plane " + name + ": " };
 
@@ -359,7 +357,8 @@ namespace fgl::engine
 					TracyVkZone( tracy_ctx, command_buffer, "ImGui Rendering" );
 #endif
 
-					debug::world::drawPointText( { 0.0f, 0.0f, 0.0f }, camera, { 1.0f, 0.0f, 0.0f } );
+					debug::world::drawPointText(
+						Coordinate< CoordinateSpace::World >( 0.0f, 0.0f, 0.0f ), camera, { 1.0f, 0.0f, 0.0f } );
 
 					ImGui::End();
 					ImGui::Render();

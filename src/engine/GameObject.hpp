@@ -22,6 +22,7 @@ namespace fgl::engine
 		glm::vec3 scale { 1.0f, 1.0f, 1.0f };
 		glm::vec3 rotation { 0.0f, 0.0f, 0.0f };
 
+		//TODO: Figure this out and replace TransformComponent with a template of CType instead
 		glm::mat4 mat4() const;
 
 		glm::mat3 normalMatrix() const;

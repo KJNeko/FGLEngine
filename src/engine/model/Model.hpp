@@ -43,14 +43,14 @@ namespace fgl::engine
 	{
 		VertexBufferSuballocation m_vertex_buffer;
 		IndexBufferSuballocation m_index_buffer;
-		BoundingBox m_bounding_box;
+		BoundingBox< CoordinateSpace::Model > m_bounding_box;
 
 		std::optional< Texture > m_texture { std::nullopt };
 
 		Primitive(
 			VertexBufferSuballocation&& vertex_buffer,
 			IndexBufferSuballocation&& index_buffer,
-			BoundingBox& bounding_box ) :
+			BoundingBox< CoordinateSpace::Model >& bounding_box ) :
 		  m_vertex_buffer( std::move( vertex_buffer ) ),
 		  m_index_buffer( std::move( index_buffer ) ),
 		  m_bounding_box( bounding_box )
@@ -59,7 +59,7 @@ namespace fgl::engine
 		Primitive(
 			VertexBufferSuballocation&& vertex_buffer,
 			IndexBufferSuballocation&& index_buffer,
-			BoundingBox& bounding_box,
+			BoundingBox< CoordinateSpace::Model >& bounding_box,
 			Texture&& texture ) :
 		  m_vertex_buffer( std::move( vertex_buffer ) ),
 		  m_index_buffer( std::move( index_buffer ) ),
@@ -97,21 +97,24 @@ namespace fgl::engine
 
 		static std::vector< vk::DrawIndexedIndirectCommand > buildParameters( const std::vector< Primitive >&
 		                                                                          primitives );
-		static BoundingBox buildBoundingBox( const std::vector< Primitive >& primitives );
+		static BoundingBox< CoordinateSpace::Model > buildBoundingBox( const std::vector< Primitive >& primitives );
 
 		std::vector< vk::DrawIndexedIndirectCommand > m_draw_parameters;
 
 		std::string m_name { "Unnamed model" };
 
 		//! Bounding box of the model
-		BoundingBox m_bounding_box;
+		BoundingBox< CoordinateSpace::Model > m_bounding_box;
 
 	  public:
 
 		//! Returns the bounding box in model space
-		const BoundingBox& getBoundingBox() const { return m_bounding_box; }
+		const BoundingBox< CoordinateSpace::Model >& getBoundingBox() const { return m_bounding_box; }
 
-		BoundingBox getBoundingBox( const glm::mat4 matrix ) const { return m_bounding_box * matrix; }
+		BoundingBox< CoordinateSpace::World > getBoundingBox( const Matrix< MatrixType::ModelToWorld > matrix ) const
+		{
+			return matrix * m_bounding_box;
+		}
 
 		std::vector< ::fgl::engine::Primitive > m_primitives {};
 
@@ -124,7 +127,7 @@ namespace fgl::engine
 
 		const std::string& getName() const { return m_name; }
 
-		Model( Device& device, ModelBuilder& builder, const BoundingBox bounding_box );
+		Model( Device& device, ModelBuilder& builder, const BoundingBox< CoordinateSpace::Model > bounding_box );
 
 		~Model() = default;
 

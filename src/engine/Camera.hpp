@@ -4,11 +4,12 @@
 
 #pragma once
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
-#include "engine/coordinates/WorldCoordinate.hpp"
+#include "constants.hpp"
+#include "engine/primitives/Coordinate.hpp"
+#include "engine/primitives/Frustum.hpp"
+#include "engine/primitives/Matrix.hpp"
 
 namespace fgl::engine
 {
@@ -16,33 +17,38 @@ namespace fgl::engine
 
 	class Camera;
 
-	Frustum
+	Frustum< CoordinateSpace::Model >
 		createFrustum( const Camera& camera, const float aspect, const float fovy, const float near, const float far );
 
 	class Camera
 	{
-		glm::mat4 projection_matrix { 1.0f };
+		Matrix< MatrixType::CameraToScreen > projection_matrix { 1.0f };
 
-		glm::mat4 view_matrix { 1.0f };
+		Matrix< MatrixType::WorldToCamera > view_matrix { 1.0f };
 
 		//! Frustum of the camera in model space relative to the camera
 		//! @note Must be transformed by the inverse view matrix to get the frustum in world space
-		Frustum base_frustum {};
-		Frustum frustum {};
+		Frustum< CoordinateSpace::Model > base_frustum {};
+		Frustum< CoordinateSpace::World > frustum {};
 
-		friend Frustum createFrustum(
+		friend Frustum< CoordinateSpace::Model > createFrustum(
 			const Camera& camera, const float aspect, const float fovy, const float near, const float far );
 
 	  public:
 
+		const Frustum< CoordinateSpace::Model >& getBaseFrustum() const { return base_frustum; }
+
 		//! Returns the frustum of the camera in world space
-		const Frustum& getFrustumBounds() const { return frustum; }
+		const Frustum< CoordinateSpace::World >& getFrustumBounds() const { return frustum; }
 
-		const glm::mat4& getProjectionMatrix() const { return projection_matrix; }
+		const Matrix< MatrixType::CameraToScreen >& getProjectionMatrix() const { return projection_matrix; }
 
-		const glm::mat4& getViewMatrix() const { return view_matrix; }
+		const Matrix< MatrixType::WorldToCamera > getViewMatrix() const { return view_matrix; }
 
-		const glm::mat4 getProjectionViewMatrix() const { return projection_matrix * view_matrix; }
+		const Matrix< MatrixType::WorldToScreen > getProjectionViewMatrix() const
+		{
+			return projection_matrix * view_matrix;
+		}
 
 		void setOrthographicProjection( float left, float right, float top, float bottom, float near, float far );
 		void setPerspectiveProjection( float fovy, float aspect, float near, float far );

@@ -95,7 +95,9 @@ namespace fgl::engine
 				TracyVkZone( info.tracy_ctx, command_buffer, "Render game object" );
 				if ( obj.model == nullptr ) continue;
 
-				const BoundingBox model_bounding_box { obj.model->getBoundingBox( obj.transform.mat4() ) };
+				const BoundingBox model_bounding_box {
+					obj.model->getBoundingBox( Matrix< MatrixType::ModelToWorld >( obj.transform.mat4() ) )
+				};
 
 				debug::world::drawBoundingBox( model_bounding_box, info.camera );
 
