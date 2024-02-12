@@ -10,6 +10,7 @@
 #include <glm/vec4.hpp>
 
 #include "Coordinate.hpp"
+#include "Matrix.hpp"
 #include "Vector.hpp"
 #include "engine/constants.hpp"
 
@@ -32,8 +33,11 @@ namespace fgl::engine
 		  Plane( glm::normalize( normal ), glm::dot( glm::normalize( normal ), point ) )
 		{}
 
+		Plane( const Vector vector, const float distance ) : m_distance( distance ), m_direction( vector ) {}
+
 		Plane() = default;
 
+		/*
 		Plane operator*( glm::mat4 matrix ) const
 		{
 			assert( valid() );
@@ -41,12 +45,12 @@ namespace fgl::engine
 			Plane result = *this;
 			const glm::vec3 new_direction { matrix * glm::vec4( m_direction, 1.0f ) };
 
-			const auto new_distance { glm::dot( new_direction, m_direction ) + m_distance };
+			const float new_distance { glm::dot( new_direction, m_direction ) + m_distance };
 			result.m_direction = glm::normalize( new_direction );
 			result.m_distance = new_distance;
 
 			return result;
-		}
+		}*/
 
 		//! Returns the closest point on the plane to the 0,0,0 origin
 		Coordinate< CType > getPosition() const
@@ -76,5 +80,22 @@ namespace fgl::engine
 
 		float distance() const { return m_distance; }
 	};
+
+	template < CoordinateSpace CType, MatrixType MType >
+	Plane< EvolvedType< MType >() > operator*( const Matrix< MType >& matrix, const Plane< CType >& plane )
+	{
+		constexpr auto NewCT { EvolvedType< MType >() };
+		constexpr auto OldCT { CType };
+
+		const Coordinate< OldCT > old_center { plane.getPosition() };
+
+		//Translate old_center using matrix
+		const Coordinate< NewCT > new_center { matrix * old_center };
+
+		//Calculate distance between new_center and 0,0,0
+		const float new_distance { glm::dot( plane.direction(), new_center ) };
+
+		return { glm::normalize( new_center ), new_distance };
+	}
 
 } // namespace fgl::engine

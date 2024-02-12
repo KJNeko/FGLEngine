@@ -237,7 +237,7 @@ namespace fgl::engine
 		return { Coordinate< CType >( midpoint ), scale };
 	}
 
-	//Instantiate the template
+	//Synthesize the template
 	template class BoundingBox< CoordinateSpace::Model >;
 	template class BoundingBox< CoordinateSpace::World >;
 

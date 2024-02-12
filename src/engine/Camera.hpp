@@ -13,8 +13,6 @@
 
 namespace fgl::engine
 {
-	constexpr static auto WORLD_UP { glm::vec3 { 0.0f, 1.0f, 0.0f } };
-
 	class Camera;
 
 	Frustum< CoordinateSpace::Model >
@@ -33,6 +31,8 @@ namespace fgl::engine
 
 		friend Frustum< CoordinateSpace::Model > createFrustum(
 			const Camera& camera, const float aspect, const float fovy, const float near, const float far );
+
+		const Matrix< MatrixType::ModelToWorld > frustumTranslationMatrix() const;
 
 	  public:
 
@@ -53,28 +53,31 @@ namespace fgl::engine
 		void setOrthographicProjection( float left, float right, float top, float bottom, float near, float far );
 		void setPerspectiveProjection( float fovy, float aspect, float near, float far );
 
-		const glm::vec3 getPosition() const { return glm::vec3( -view_matrix[ 3 ] ); }
+		const Coordinate< CoordinateSpace::World > getPosition() const { return WorldCoordinate( -view_matrix[ 3 ] ); }
 
-		const glm::vec3 getUp() const
+		const Vector getUp() const
 		{
-			return glm::normalize( glm::vec3( view_matrix[ 0 ][ 1 ], view_matrix[ 1 ][ 1 ], view_matrix[ 2 ][ 1 ] ) );
+			return Vector(
+				glm::normalize( glm::vec3( view_matrix[ 0 ][ 1 ], view_matrix[ 1 ][ 1 ], view_matrix[ 2 ][ 1 ] ) ) );
 		}
 
-		const glm::vec3 getRight() const
+		const Vector getRight() const
 		{
-			return glm::normalize( glm::vec3( view_matrix[ 0 ][ 0 ], view_matrix[ 1 ][ 0 ], view_matrix[ 2 ][ 0 ] ) );
+			return Vector(
+				glm::normalize( glm::vec3( view_matrix[ 0 ][ 0 ], view_matrix[ 1 ][ 0 ], view_matrix[ 2 ][ 0 ] ) ) );
 		}
 
-		const glm::vec3 getForward() const
+		const Vector getForward() const
 		{
-			return glm::normalize( glm::vec3( view_matrix[ 0 ][ 2 ], view_matrix[ 1 ][ 2 ], view_matrix[ 2 ][ 2 ] ) );
+			return Vector(
+				glm::normalize( glm::vec3( view_matrix[ 0 ][ 2 ], view_matrix[ 1 ][ 2 ], view_matrix[ 2 ][ 2 ] ) ) );
 		}
 
-		const glm::vec3 getLeft() const { return -getRight(); }
+		const Vector getLeft() const { return -getRight(); }
 
-		const glm::vec3 getBackward() const { return -getForward(); }
+		const Vector getBackward() const { return -getForward(); }
 
-		const glm::vec3 getDown() const { return -getUp(); }
+		const Vector getDown() const { return -getUp(); }
 
 		void setViewDirection( glm::vec3 pos, glm::vec3 direction, glm::vec3 up = constants::WORLD_UP );
 		void setViewTarget( glm::vec3 pos, glm::vec3 target, glm::vec3 up = constants::WORLD_UP );

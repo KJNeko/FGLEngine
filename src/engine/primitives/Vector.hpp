@@ -23,6 +23,11 @@ namespace fgl::engine
 		Vector operator*( const float scalar ) const { return Vector( static_cast< glm::vec3 >( *this ) * scalar ); }
 	};
 
+	inline Vector operator-( const Vector vec )
+	{
+		return Vector( -static_cast< glm::vec3 >( vec ) );
+	}
+
 } // namespace fgl::engine
 
 namespace glm

@@ -55,35 +55,28 @@ namespace fgl::engine
 			assert( near_plane.direction() != far_plane.direction() );
 		}
 
-		template < MatrixType MType >
-		Frustum< EvolvedType< MType >() > operator*( Matrix< MType > matrix ) const
-		{
-			Frustum< EvolvedType< MType >() > result = *this;
-			result.near = near * matrix;
-			result.far = far * matrix;
-			result.top = top * matrix;
-			result.bottom = bottom * matrix;
-			result.right = right * matrix;
-			result.left = left * matrix;
-
-			return result;
-		}
-
 		bool pointInside( const WorldCoordinate& coord ) const
 		{
-			// clang-format off
-			return
-				near.isForward( coord ) && far.isForward( coord )
-				&& top.isForward( coord ) && bottom.isForward( coord )
-				&& right.isForward( coord ) && left.isForward( coord );
-			// clang-format on
+			static_assert(
+				CType == CoordinateSpace::World, "pointInside can only be called on World coordinate Frustums" );
+
+			return near.isForward( coord ) && far.isForward( coord ) && top.isForward( coord )
+			    && bottom.isForward( coord ) && right.isForward( coord ) && left.isForward( coord );
 		}
 	};
 
 	template < CoordinateSpace CType, MatrixType MType >
 	Frustum< EvolvedType< MType >() > operator*( const Matrix< MType >& matrix, const Frustum< CType >& frustum )
 	{
-		return frustum * matrix;
+		Frustum< EvolvedType< MType >() > result {};
+		result.near = matrix * frustum.near;
+		result.far = matrix * frustum.far;
+		result.top = matrix * frustum.top;
+		result.bottom = matrix * frustum.bottom;
+		result.right = matrix * frustum.right;
+		result.left = matrix * frustum.left;
+
+		return result;
 	}
 
 } // namespace fgl::engine

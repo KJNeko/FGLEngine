@@ -141,7 +141,7 @@ namespace fgl::engine
 				throw std::runtime_error( "Unimplemented view mode" );
 		}
 
-		//frustum = base_frustum * view_matrix;
+		frustum = frustumTranslationMatrix() * base_frustum;
 
 		return;
 	}
@@ -171,6 +171,20 @@ namespace fgl::engine
 		Plane< CoordinateSpace::Model > left_plane { glm::cross( right_dir, camera.getLeft() ), 0.0f };
 
 		return { near_plane, far_plane, top_plane, bottom_plane, right_plane, left_plane };
+	}
+
+	const Matrix< MatrixType::ModelToWorld > Camera::frustumTranslationMatrix() const
+	{
+		glm::mat4 translation { 1.0f };
+
+		translation[ 3 ] = glm::vec4( getPosition(), 1.0f );
+
+		//Apply rotation
+		translation[ 0 ] = glm::vec4( getRight(), 0.0f );
+		translation[ 1 ] = glm::vec4( getUp(), 0.0f );
+		translation[ 2 ] = glm::vec4( getForward(), 0.0f );
+
+		return Matrix< MatrixType::ModelToWorld >( translation );
 	}
 
 } // namespace fgl::engine
