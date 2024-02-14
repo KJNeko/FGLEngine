@@ -2,7 +2,8 @@
 
 cmake_minimum_required(VERSION 3.25.0)
 project(Game LANGUAGES CXX C)
-set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/appicon.rc")
+
+enable_testing()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
@@ -31,6 +32,7 @@ include(dependencies/tracy)
 include(dependencies/vulkan)
 
 add_subdirectory(src)
+add_subdirectory(tests)
 
 file(GLOB FRAG_SHADERS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.frag")
 file(GLOB VERT_SHADERS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.vert")

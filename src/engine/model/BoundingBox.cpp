@@ -4,6 +4,9 @@
 
 #include "BoundingBox.hpp"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
+
 #include <array>
 
 #include "engine/primitives/Coordinate.hpp"
@@ -122,6 +125,10 @@ namespace fgl::engine
 		const auto yp { xp_yp_zp.y };
 		const auto zp { xp_yp_zp.z };
 
+		assert( xp > xn );
+		assert( yp > yn );
+		assert( zp > zn );
+
 		//Top
 		const glm::vec3 xn_yp_zp { xn, yp, zp }; // (- + +)
 		const glm::vec3 xn_yp_zn { xn, yp, zn }; // (- + -)
@@ -177,18 +184,19 @@ namespace fgl::engine
 	template < CoordinateSpace CType >
 	BoundingBox< CType > BoundingBox< CType >::combine( const BoundingBox< CType >& other ) const
 	{
-		ZoneScoped;
-		if ( middle == constants::DEFAULT_VEC3 && scale != glm::vec3( 0.0f ) )
-			return other;
-		else
-		{
-			const auto& other_points { other.points() };
-			std::vector< Coordinate< CType > > points { this->points() };
-			points.insert( points.end(), other_points.begin(), other_points.end() );
+		assert( middle != constants::DEFAULT_VEC3 );
+		assert( scale != glm::vec3( 0.0f ) );
 
-			//TODO: There might be a way to do this without needing to do yet another point calculation.
-			return generateBoundingFromPoints< CType >( points );
-		}
+		assert( other.middle != constants::DEFAULT_VEC3 );
+		assert( other.scale != glm::vec3( 0.0f ) );
+
+		ZoneScoped;
+		const auto& other_points { other.points() };
+		std::vector< Coordinate< CType > > points { this->points() };
+		points.insert( points.end(), other_points.begin(), other_points.end() );
+
+		//TODO: There might be a way to do this without needing to do yet another point calculation.
+		return generateBoundingFromPoints< CType >( points );
 	}
 
 	template < CoordinateSpace CType >
@@ -230,7 +238,7 @@ namespace fgl::engine
 		const glm::vec3 midpoint { ( top_left_front + bottom_right_back ) / glm::vec3( 2.0f ) };
 		const glm::vec3 scale { bottom_right_back - midpoint };
 
-		std::cout << "Generated bounding box from " << points.size() << "points. Output:\n\tMidpoint:" << midpoint.x
+		std::cout << "Generated bounding box from " << points.size() << " points. Output:\n\tMidpoint:" << midpoint.x
 				  << " " << midpoint.y << " " << midpoint.z << "\n\tScale:" << scale.x << " " << scale.y << " "
 				  << scale.z << std::endl;
 

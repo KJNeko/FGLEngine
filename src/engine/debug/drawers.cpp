@@ -17,10 +17,12 @@ namespace fgl::engine::debug
 	}
 
 	Coordinate< CoordinateSpace::Screen >
-		toScreenSpace( const Coordinate< CoordinateSpace::World > world_point, const Camera& camera )
+		toScreenSpace( Coordinate< CoordinateSpace::World > world_point, const Camera& camera )
 	{
 		ZoneScoped;
 		const ImVec2 window_size { windowSize() };
+
+		world_point.z = -world_point.z;
 
 		return Coordinate< CoordinateSpace::Screen >( glm::project(
 			static_cast< glm::vec3 >( world_point ),
@@ -39,11 +41,16 @@ namespace fgl::engine::debug
 		return glmToImgui( static_cast< glm::vec3 >( coordinate ) );
 	}
 
+	bool isBehind( const glm::vec3 point )
+	{
+		return point.z > 1.0f || point.z < 0.0f;
+	}
+
 	bool inView( const glm::vec3 point )
 	{
 		const ImVec2 window_size { windowSize() };
 
-		return point.z > 0.0f && ( point.x > 0.0f && point.x < window_size.x )
+		return !isBehind( point ) && ( point.x > 0.0f && point.x < window_size.x )
 		    && ( point.y > 0.0f && point.y < window_size.y );
 	}
 
@@ -70,6 +77,8 @@ namespace fgl::engine::debug
 			const Coordinate< CoordinateSpace::Screen > end_screen { toScreenSpace( line.end, camera ) };
 
 			if ( !inView( start_screen ) && !inView( end_screen ) ) return;
+
+			if ( isBehind( start_screen ) || isBehind( end_screen ) ) return;
 
 			ImGui::GetForegroundDrawList()
 				->AddLine( glmToImgui( start_screen ), glmToImgui( end_screen ), ImColor( color.x, color.y, color.z ) );

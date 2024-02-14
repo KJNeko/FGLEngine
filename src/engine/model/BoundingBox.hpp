@@ -5,6 +5,7 @@
 #pragma once
 
 #include <glm/vec3.hpp>
+#include <tracy/Tracy.hpp>
 
 #include <array>
 #include <vector>
@@ -19,6 +20,8 @@ namespace fgl::engine
 	template < CoordinateSpace type >
 	class Frustum;
 
+	class Vertex;
+
 	template < CoordinateSpace CType >
 	struct BoundingBox
 	{
@@ -26,10 +29,10 @@ namespace fgl::engine
 		glm::vec3 scale { 0.0f };
 
 		//! Returns the top left (-x, -y, -z) coordinate
-		inline glm::vec3 topLeftFront() const { return middle - scale; }
+		inline glm::vec3 bottomLeftBack() const { return middle - scale; }
 
 		//! Returns the bottom right (x, y, z) coordinate
-		inline glm::vec3 bottomRightBack() const { return middle + scale; }
+		inline glm::vec3 topRightForward() const { return middle + scale; }
 
 		// 6 sides, 2 triangles each, 3 verts per triangle
 		constexpr static std::uint32_t indicies_count { 6 * 2 * 3 };

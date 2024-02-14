@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
+#include <glm/glm.hpp>
 
 #include "engine/constants.hpp"
 
@@ -76,7 +75,8 @@ namespace fgl::engine
 namespace glm
 {
 
-	inline double dot( const fgl::engine::WorldCoordinate coord, const fgl::engine::WorldCoordinate other )
+	template < fgl::engine::CoordinateSpace CType >
+	inline double dot( const fgl::engine::Coordinate< CType > coord, const fgl::engine::Coordinate< CType > other )
 	{
 		return glm::dot( static_cast< glm::vec3 >( coord ), static_cast< glm::vec3 >( other ) );
 	}
