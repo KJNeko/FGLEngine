@@ -6,6 +6,8 @@
 
 #include <functional>
 
+#include "engine/primitives/Vector.hpp"
+
 namespace fgl::engine
 {
 
@@ -25,12 +27,14 @@ namespace fgl::engine
 
 	void KeyboardMovementController::moveInPlaneXZ( GLFWwindow* window, float dt, fgl::engine::GameObject& target )
 	{
-		glm::vec3 rotate { 0.0f };
+		ImGui::Begin( "CameraMovement" );
 
-		if ( glfwGetKey( window, key_mappings.look_right ) == GLFW_PRESS ) rotate.y += 1.f;
-		if ( glfwGetKey( window, key_mappings.look_left ) == GLFW_PRESS ) rotate.y -= 1.f;
-		if ( glfwGetKey( window, key_mappings.look_up ) == GLFW_PRESS ) rotate.x += 1.f;
-		if ( glfwGetKey( window, key_mappings.look_down ) == GLFW_PRESS ) rotate.x -= 1.f;
+		Vector rotate { 0.0f };
+
+		if ( glfwGetKey( window, key_mappings.look_right ) == GLFW_PRESS ) rotate.yaw -= 1.f;
+		if ( glfwGetKey( window, key_mappings.look_left ) == GLFW_PRESS ) rotate.yaw += 1.f;
+		if ( glfwGetKey( window, key_mappings.look_up ) == GLFW_PRESS ) rotate.pitch += 1.f;
+		if ( glfwGetKey( window, key_mappings.look_down ) == GLFW_PRESS ) rotate.pitch -= 1.f;
 
 		static bool cursor_enabled { true };
 		static bool cursor_restored { false };
@@ -73,26 +77,26 @@ namespace fgl::engine
 			const auto xpos { pos.x };
 			const auto ypos { pos.y };
 
-			target.transform.rotation.y +=
+			target.transform.rotation.yaw +=
 				static_cast< float >( ( xpos * 0.006 ) * static_cast< double >( look_speed ) );
-			target.transform.rotation.x -=
+			target.transform.rotation.pitch -=
 				static_cast< float >( ( ypos * 0.006 ) * static_cast< double >( look_speed ) );
 
 			setCursorPos( window, { 0, 0 } );
 		}
 		else
 		{
-			if ( glm::dot( rotate, rotate ) > std::numeric_limits< float >::epsilon() )
+			if ( glm::dot( static_cast< glm::vec3 >( rotate ), static_cast< glm::vec3 >( rotate ) )
+			     > std::numeric_limits< float >::epsilon() )
 				target.transform.rotation += look_speed * dt * glm::normalize( rotate );
 
-			target.transform.rotation.x = glm::clamp( target.transform.rotation.x, -1.5f, 1.5f );
-			target.transform.rotation.y = glm::mod( target.transform.rotation.y, glm::two_pi< float >() );
+			target.transform.rotation.pitch = glm::clamp( target.transform.rotation.pitch, -1.5f, 1.5f );
+			target.transform.rotation.yaw = glm::mod( target.transform.rotation.yaw, glm::two_pi< float >() );
 		}
 
-		const float yaw { target.transform.rotation.y };
-		const glm::vec3 forward_dir { std::sin( yaw ), 0.0f, std::cos( yaw ) };
-		const glm::vec3 right_dir { forward_dir.z, 0.0f, -forward_dir.x };
-		const glm::vec3 up_dir { 0.0f, -0.1f, 0.0f };
+		const glm::vec3 forward_dir { target.transform.rotation.forward() };
+		const glm::vec3 right_dir { target.transform.rotation.right() };
+		const glm::vec3 up_dir { constants::WORLD_UP };
 
 		glm::vec3 move_dir { 0.0f };
 		if ( glfwGetKey( window, key_mappings.move_forward ) == GLFW_PRESS ) move_dir += forward_dir;
@@ -104,6 +108,13 @@ namespace fgl::engine
 
 		if ( glm::dot( move_dir, move_dir ) > std::numeric_limits< float >::epsilon() )
 			target.transform.translation += ( move_speed * dt ) * glm::normalize( move_dir );
+
+		ImGui::Text( "Transform" );
+		ImGui::InputFloat( "X", &target.transform.translation.x, -10.0, 10.0 );
+		ImGui::InputFloat( "Y", &target.transform.translation.y, -10.0, 10.0 );
+		ImGui::InputFloat( "Z", &target.transform.translation.z, -10.0, 10.0 );
+
+		ImGui::End();
 	}
 
 } // namespace fgl::engine

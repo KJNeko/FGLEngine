@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "Coordinate.hpp"
+
 namespace fgl::engine
 {
 
@@ -14,13 +16,34 @@ namespace fgl::engine
 	{
 	  public:
 
-		explicit Vector( const glm::vec3 direction ) : glm::vec3( direction ) {}
+		float& roll { y };
+		float& pitch { x };
+		float& yaw { z };
+
+		explicit Vector( const float value ) : glm::vec3( value ) {}
+
+		explicit Vector( const glm::vec3 vec ) : glm::vec3( vec ) {}
+
+		explicit Vector( const float x, const float y, const float z ) : glm::vec3( x, y, z ) {}
 
 		operator glm::vec4() const { return glm::vec4( static_cast< glm::vec3 >( *this ), 0.0f ); }
 
 		Vector norm() const { return Vector( glm::normalize( static_cast< glm::vec3 >( *this ) ) ); }
 
 		Vector operator*( const float scalar ) const { return Vector( static_cast< glm::vec3 >( *this ) * scalar ); }
+
+		glm::vec3 right() const;
+		glm::vec3 forward() const;
+
+		//Copy
+		Vector( const Vector& other );
+		Vector& operator=( const Vector& other );
+
+		//Move (Should never really move?)
+		Vector( Vector&& other );
+		Vector& operator=( const Vector&& other );
+
+		Vector& operator=( const std::initializer_list< float > list );
 	};
 
 	inline Vector operator-( const Vector vec )

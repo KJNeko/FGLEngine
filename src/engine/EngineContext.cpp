@@ -105,7 +105,9 @@ namespace fgl::engine
 
 		//camera.setOrthographicProjection( -aspect, aspect, -1, 1, -1, 1 );
 		const float aspect { m_renderer.getAspectRatio() };
-		camera.setPerspectiveProjection( glm::radians( 50.0f ), aspect, 0.1f, 100.f );
+		camera.setPerspectiveProjection( glm::radians( 90.0f ), aspect, 0.1f, 100.f );
+
+		const auto old_aspect_ratio { m_renderer.getAspectRatio() };
 
 		while ( !m_window.shouldClose() )
 		{
@@ -137,6 +139,11 @@ namespace fgl::engine
 				ImGui::NewFrame();
 			}
 #endif
+
+			if ( old_aspect_ratio != m_renderer.getAspectRatio() )
+			{
+				camera.setPerspectiveProjection( glm::radians( 90.0f ), m_renderer.getAspectRatio(), 0.1f, 100.f );
+			}
 
 			camera_controller.moveInPlaneXZ( m_window.window(), delta_time, viewer );
 			camera.setViewYXZ( viewer.transform.translation, viewer.transform.rotation );
@@ -489,23 +496,6 @@ namespace fgl::engine
 		 */
 
 		Device::getInstance().endSingleTimeCommands( command_buffer );
-
-		std::vector< glm::vec3 > lightColors {
-			{ 1.f, .1f, .1f }, { .1f, .1f, 1.f }, { .1f, 1.f, .1f },
-			{ 1.f, 1.f, .1f }, { .1f, 1.f, 1.f }, { 1.f, 1.f, 1.f } //
-		};
-
-		for ( std::size_t i = 0; i < lightColors.size(); ++i )
-		{
-			auto point_light { GameObject::makePointLight( 0.2f ) };
-			point_light.color = lightColors[ i ];
-			auto rotate_light = glm::rotate(
-				glm::mat4( 1.0f ),
-				( static_cast< float >( i ) * glm::two_pi< float >() ) / static_cast< float >( lightColors.size() ),
-				{ 0.0f, -1.0f, 0.0f } );
-			point_light.transform.translation = glm::vec3( rotate_light * glm::vec4( -1.0f, -1.0f, -1.0f, -1.0f ) );
-			game_objects.emplace( point_light.getId(), std::move( point_light ) );
-		}
 	}
 
 	void EngineContext::initImGui()

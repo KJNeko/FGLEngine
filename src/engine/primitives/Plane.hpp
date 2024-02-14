@@ -37,21 +37,6 @@ namespace fgl::engine
 
 		Plane() = default;
 
-		/*
-		Plane operator*( glm::mat4 matrix ) const
-		{
-			assert( valid() );
-
-			Plane result = *this;
-			const glm::vec3 new_direction { matrix * glm::vec4( m_direction, 1.0f ) };
-
-			const float new_distance { glm::dot( new_direction, m_direction ) + m_distance };
-			result.m_direction = glm::normalize( new_direction );
-			result.m_distance = new_distance;
-
-			return result;
-		}*/
-
 		//! Returns the closest point on the plane to the 0,0,0 origin
 		Coordinate< CType > getPosition() const
 		{

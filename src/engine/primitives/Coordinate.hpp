@@ -29,6 +29,12 @@ namespace fgl::engine
 
 	  public:
 
+		float& up() { return y; }
+
+		float& right() { return x; }
+
+		float& forward() { return z; }
+
 		Coordinate() : glm::vec3( constants::DEFAULT_VEC3 ) {}
 
 		explicit Coordinate( const glm::vec3 position ) : glm::vec3( position ) {}

@@ -9,6 +9,7 @@
 
 #include <cassert>
 #include <limits>
+#include <utility>
 
 namespace fgl::engine
 {
@@ -29,7 +30,7 @@ namespace fgl::engine
 		base_frustum = createFrustum( *this, aspect, fovy, near, far );
 	}
 
-	void Camera::setViewDirection( glm::vec3 position, glm::vec3 direction, glm::vec3 up )
+	void Camera::setViewDirection( glm::vec3 position, const Vector direction, glm::vec3 up )
 	{
 		ZoneScoped;
 		glm::lookAt( position, position + direction, up );
@@ -39,35 +40,126 @@ namespace fgl::engine
 
 	void Camera::setViewTarget( glm::vec3 position, glm::vec3 target, glm::vec3 up )
 	{
-		setViewDirection( position, glm::normalize( target - position ), up );
+		setViewDirection( position, Vector( glm::normalize( target - position ) ), up );
 	}
 
 	enum RotationOrder
 	{
-		XYZ,
 		XZY,
+		XYZ,
 		YXZ,
 		YZX,
+		ZYX,
 		ZXY,
-		ZYX
+		END_OF_ENUM,
+		DEFAULT = XYZ
 	};
 
-	glm::mat4 taitBryanMatrix( const glm::vec3 rotation, const RotationOrder order = XYZ )
+	template < int N >
+	inline std::tuple< float, float > extract( const Vector rotation, const RotationOrder order )
+	{
+		switch ( order )
+		{
+			case XZY:
+				switch ( N )
+				{
+					case 1:
+						return { glm::cos( rotation.x ), glm::sin( rotation.x ) };
+					case 2:
+						return { glm::cos( rotation.z ), glm::sin( rotation.z ) };
+					case 3:
+						return { glm::cos( rotation.y ), glm::sin( rotation.y ) };
+				}
+				break;
+			case XYZ:
+				switch ( N )
+				{
+					case 1:
+						return { glm::cos( rotation.x ), glm::sin( rotation.x ) };
+					case 2:
+						return { glm::cos( rotation.y ), glm::sin( rotation.y ) };
+					case 3:
+						return { glm::cos( rotation.z ), glm::sin( rotation.z ) };
+				}
+				break;
+			case YXZ:
+				switch ( N )
+				{
+					case 1:
+						return { glm::cos( rotation.y ), glm::sin( rotation.y ) };
+					case 2:
+						return { glm::cos( rotation.x ), glm::sin( rotation.x ) };
+					case 3:
+						return { glm::cos( rotation.z ), glm::sin( rotation.z ) };
+				}
+				break;
+			case YZX:
+				switch ( N )
+				{
+					case 1:
+						return { glm::cos( rotation.y ), glm::sin( rotation.y ) };
+					case 2:
+						return { glm::cos( rotation.z ), glm::sin( rotation.z ) };
+					case 3:
+						return { glm::cos( rotation.x ), glm::sin( rotation.x ) };
+				}
+				break;
+			case ZYX:
+				switch ( N )
+				{
+					case 1:
+						return { glm::cos( rotation.z ), glm::sin( rotation.z ) };
+					case 2:
+						return { glm::cos( rotation.y ), glm::sin( rotation.y ) };
+					case 3:
+						return { glm::cos( rotation.x ), glm::sin( rotation.x ) };
+				}
+				break;
+			case ZXY:
+				switch ( N )
+				{
+					case 1:
+						return { glm::cos( rotation.z ), glm::sin( rotation.z ) };
+					case 2:
+						return { glm::cos( rotation.x ), glm::sin( rotation.x ) };
+					case 3:
+						return { glm::cos( rotation.y ), glm::sin( rotation.y ) };
+				}
+				break;
+			case END_OF_ENUM:
+				throw std::runtime_error( "Unimplemented rotation order" );
+		}
+		std::unreachable();
+	}
+
+	glm::mat4 taitBryanMatrix( const Vector rotation, const RotationOrder order = DEFAULT )
 	{
 		glm::mat4 mat { 1.0f };
 
-		const float c1 { glm::cos( rotation.x ) };
-		const float s1 { glm::sin( rotation.x ) };
-
-		const float c2 { glm::cos( rotation.y ) };
-		const float s2 { glm::sin( rotation.y ) };
-
-		const float c3 { glm::cos( rotation.z ) };
-		const float s3 { glm::sin( rotation.z ) };
+		const auto [ c1, s1 ] = extract< 1 >( rotation, order );
+		const auto [ c2, s2 ] = extract< 2 >( rotation, order );
+		const auto [ c3, s3 ] = extract< 3 >( rotation, order );
 
 		switch ( order )
 		{
-			case RotationOrder::XYZ: // Pitch, Yaw, Roll
+			case RotationOrder::XZY:
+				{
+					const glm::vec3 row_0 { ( c2 * c3 ), -( s2 ), ( c2 * s3 ) };
+
+					const glm::vec3 row_1 { ( s1 * s3 ) + ( c1 * c3 * s2 ),
+						                    ( c1 * c2 ),
+						                    ( c1 * s2 * s3 ) - ( c3 * s1 ) };
+
+					const glm::vec3 row_2 { ( c3 * s1 * s2 ) - ( c1 * s3 ),
+						                    ( c2 * s1 ),
+						                    ( c1 * c3 ) + ( s1 * s2 * s3 ) };
+
+					mat[ 0 ] = glm::vec4( row_0, 0.0f );
+					mat[ 1 ] = glm::vec4( row_1, 0.0f );
+					mat[ 2 ] = glm::vec4( row_2, 0.0f );
+					return mat;
+				}
+			case RotationOrder::XYZ:
 				{
 					const glm::vec3 row_0 { ( c2 * c3 ), -( c2 * s3 ), s2 };
 					const glm::vec3 row_1 { ( c1 * s3 ) + ( c3 * s1 * s2 ),
@@ -82,7 +174,33 @@ namespace fgl::engine
 					mat[ 2 ] = glm::vec4( row_2, 0.0f );
 					return mat;
 				}
-			case RotationOrder::ZYX: // Yaw, Roll, Pitch
+			case RotationOrder::YXZ:
+				{
+					const glm::vec3 row_0 { ( c1 * c3 ) + ( s1 * s2 * s3 ), ( c3 * s1 * s2 ) - ( c1 * s3 ), c2 * s1 };
+					const glm::vec3 row_1 { c2 * s3, c2 * c3, -s2 };
+					const glm::vec3 row_2 { ( c1 * s2 * s3 ) - ( c3 * s1 ), ( c1 * c3 * s2 ) + ( s1 * s3 ), c1 * c2 };
+
+					mat[ 0 ] = glm::vec4( row_0, 0.0f );
+					mat[ 1 ] = glm::vec4( row_1, 0.0f );
+					mat[ 2 ] = glm::vec4( row_2, 0.0f );
+					return mat;
+				}
+			case RotationOrder::YZX:
+				{
+					const glm::vec3 row_0 { ( c1 * c2 ),
+						                    ( s1 * s3 ) - ( c1 * c3 * s2 ),
+						                    ( c3 * s1 ) + ( c1 * s2 * s3 ) };
+					const glm::vec3 row_1 { s2, c2 * c3, -( c2 * s3 ) };
+					const glm::vec3 row_2 { -( c2 * s1 ),
+						                    ( c1 * s3 ) + ( c3 * s1 * s2 ),
+						                    ( c1 * c3 ) - ( s1 * s2 * s3 ) };
+
+					mat[ 0 ] = glm::vec4( row_0, 0.0f );
+					mat[ 1 ] = glm::vec4( row_1, 0.0f );
+					mat[ 2 ] = glm::vec4( row_2, 0.0f );
+					return mat;
+				}
+			case RotationOrder::ZYX: // Roll, Pitch, Yaw
 				{
 					const glm::vec3 row_0 { ( c1 * c2 ),
 						                    ( c1 * s2 * s3 ) - ( c3 * s1 ),
@@ -97,11 +215,17 @@ namespace fgl::engine
 					mat[ 2 ] = glm::vec4( row_2, 0.0f );
 					return mat;
 				}
-			case RotationOrder::YXZ: // Roll, Pitch, Yaw
+			case RotationOrder::ZXY: // Roll, Yaw, Pitch
 				{
-					const glm::vec3 row_0 { ( c1 * c3 ) + ( s1 * s2 * s3 ), ( c3 * s1 * s2 ) - ( c1 * s3 ), c2 * s1 };
-					const glm::vec3 row_1 { c2 * s3, c2 * c3, -s2 };
-					const glm::vec3 row_2 { ( c1 * s2 * s3 ) - ( c3 * s1 ), ( c1 * c3 * s2 ) + ( s1 * s3 ), c1 * c2 };
+					const glm::vec3 row_0 { ( c1 * c3 ) - ( s1 * s2 * s3 ),
+						                    -( c2 * s1 ),
+						                    ( c1 * s3 ) + ( c3 * s1 * s2 ) };
+
+					const glm::vec3 row_1 { ( c3 * s1 ) + ( c1 * s2 * s3 ),
+						                    ( c1 * c2 ),
+						                    ( s1 * s3 ) - ( c1 * c3 * s2 ) };
+
+					const glm::vec3 row_2 { -( c2 * s3 ), ( s2 ), ( c2 * c3 ) };
 
 					mat[ 0 ] = glm::vec4( row_0, 0.0f );
 					mat[ 1 ] = glm::vec4( row_1, 0.0f );
@@ -113,15 +237,28 @@ namespace fgl::engine
 		}
 	}
 
-	void Camera::setViewYXZ( glm::vec3 position, glm::vec3 rotation, const ViewMode mode )
+	void Camera::setViewYXZ( glm::vec3 position, const Vector rotation, const ViewMode mode )
 	{
 		ZoneScoped;
+
+		//Flip Z due to the fact we use Z+ outside of this function. It must be Z- inside
+		position.z = -position.z;
 
 		switch ( mode )
 		{
 			case ViewMode::TaitBryan:
 				{
-					const glm::mat4 rotation_matrix { taitBryanMatrix( rotation ) };
+					static auto current_rotation_order { RotationOrder::DEFAULT };
+
+					ImGui::Begin( "CameraRotation" );
+					ImGui::SliderInt(
+						"Rotation Order",
+						reinterpret_cast< int* >( &current_rotation_order ),
+						0,
+						static_cast< int >( RotationOrder::END_OF_ENUM - 1 ) );
+					ImGui::End();
+
+					const glm::mat4 rotation_matrix { taitBryanMatrix( rotation, current_rotation_order ) };
 
 					const glm::vec3 forward { rotation_matrix * glm::vec4( constants::WORLD_FORWARD, 0.0f ) };
 

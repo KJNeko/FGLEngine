@@ -52,13 +52,4 @@ namespace fgl::engine
 		};
 	}
 
-	GameObject GameObject::makePointLight( float intensity, float radius, glm::vec3 color )
-	{
-		GameObject game_obj { createGameObject() };
-		game_obj.color = color;
-		game_obj.transform.scale.x = radius;
-		game_obj.point_light = std::make_unique< PointLightComponent >();
-		game_obj.point_light->light_intensity = intensity;
-		return game_obj;
-	}
 } // namespace fgl::engine
