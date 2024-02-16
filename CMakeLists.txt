@@ -30,6 +30,7 @@ include(dependencies/glfw)
 include(dependencies/glm)
 include(dependencies/tracy)
 include(dependencies/vulkan)
+include(dependencies/catch2)
 
 add_subdirectory(src)
 add_subdirectory(tests)

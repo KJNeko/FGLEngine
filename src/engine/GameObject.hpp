@@ -10,25 +10,14 @@
 #include <unordered_map>
 
 #include "constants.hpp"
+#include "engine/primitives/Matrix.hpp"
+#include "engine/primitives/TransformComponent.hpp"
 #include "engine/primitives/Vector.hpp"
 
 namespace fgl::engine
 {
 
 	class Model;
-
-	//TransformComponent is always in world space
-	struct TransformComponent
-	{
-		WorldCoordinate translation { constants::DEFAULT_VEC3 };
-		glm::vec3 scale { 1.0f, 1.0f, 1.0f };
-		Vector rotation { 0.0f, 0.0f, 0.0f };
-
-		//TODO: Figure this out and replace TransformComponent with a template of CType instead
-		glm::mat4 mat4() const;
-
-		glm::mat3 normalMatrix() const;
-	};
 
 	class GameObject
 	{

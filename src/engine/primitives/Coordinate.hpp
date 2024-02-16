@@ -6,6 +6,8 @@
 
 #include <glm/glm.hpp>
 
+#include <ostream>
+
 #include "engine/constants.hpp"
 
 namespace fgl::engine
@@ -36,11 +38,11 @@ namespace fgl::engine
 
 		Coordinate() : glm::vec3( constants::DEFAULT_VEC3 ) {}
 
-		explicit Coordinate( const glm::vec3 position ) : glm::vec3( position ) {}
+		constexpr explicit Coordinate( const glm::vec3 position ) : glm::vec3( position ) {}
 
-		explicit Coordinate( const float x, const float y, const float z ) : glm::vec3( x, y, z ) {}
+		constexpr explicit Coordinate( const float x, const float y, const float z ) : glm::vec3( x, y, z ) {}
 
-		explicit Coordinate( const float value ) : glm::vec3( value ) {}
+		constexpr explicit Coordinate( const float value ) : glm::vec3( value ) {}
 
 		operator glm::vec4() const { return glm::vec4( x, y, z, 1.0f ); }
 
@@ -69,6 +71,13 @@ namespace fgl::engine
 	using WorldCoordinate = Coordinate< CoordinateSpace::World >;
 
 	static_assert( sizeof( glm::vec3 ) == sizeof( ModelCoordinate ) );
+
+	template < CoordinateSpace CType >
+	inline ::std::ostream& operator<<( ::std::ostream& os, const Coordinate< CType > coord )
+	{
+		os << "(" << coord.x << ", " << coord.y << ", " << coord.z << ")";
+		return os;
+	}
 
 } // namespace fgl::engine
 

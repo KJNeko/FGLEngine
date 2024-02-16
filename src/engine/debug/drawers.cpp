@@ -23,6 +23,7 @@ namespace fgl::engine::debug
 		const ImVec2 window_size { windowSize() };
 
 		world_point.z = -world_point.z;
+		world_point.x = -world_point.x;
 
 		return Coordinate< CoordinateSpace::Screen >( glm::project(
 			static_cast< glm::vec3 >( world_point ),
@@ -101,7 +102,7 @@ namespace fgl::engine::debug
 
 			if ( !inView( screen_point ) ) return;
 
-			drawPoint( point, camera, color );
+			drawPoint( point, camera, "", color );
 
 			const std::string text { "World: (" + std::to_string( point.x ) + ", " + std::to_string( point.y ) + ", "
 				                     + std::to_string( point.z ) + ")" };
@@ -120,7 +121,22 @@ namespace fgl::engine::debug
 			drawBoolAlpha( point, camera, in_view, glm::vec2( 0.0f, 40.0f ) );
 		}
 
-		void drawPoint( const Coordinate< CoordinateSpace::World > point, const Camera& camera, const glm::vec3 color )
+		void drawPointLabel(
+			const Coordinate< CoordinateSpace::World > point, const std::string label, const Camera& camera )
+		{
+			ZoneScoped;
+			const glm::vec3 screen_point { toScreenSpace( point, camera ) };
+
+			if ( !inView( screen_point ) ) return;
+
+			screen::drawText( glm::vec2( screen_point.x, screen_point.y ), label );
+		}
+
+		void drawPoint(
+			const Coordinate< CoordinateSpace::World > point,
+			const Camera& camera,
+			const std::string label,
+			const glm::vec3 color )
 		{
 			ZoneScoped;
 			const auto screen_point { toScreenSpace( point, camera ) };
@@ -128,6 +144,8 @@ namespace fgl::engine::debug
 
 			ImGui::GetForegroundDrawList()
 				->AddCircleFilled( glmToImgui( screen_point ), 5.0f, ImColor( color.x, color.y, color.z ) );
+
+			drawPointLabel( point, label, camera );
 		}
 
 		void drawBoolAlpha(
@@ -146,12 +164,15 @@ namespace fgl::engine::debug
 
 		void drawVector(
 			const Coordinate< CoordinateSpace::World > point,
-			const Vector vector,
+			Vector vector,
 			const Camera& camera,
+			const std::string label,
 			const glm::vec3 color )
 		{
-			drawLine( point, point + vector.norm(), camera, color );
-			drawPoint( point + vector.norm(), camera, color );
+			drawLine( point, point + glm::normalize( vector ), camera, color );
+			drawPoint( point + glm::normalize( vector ), camera, label, color );
+			drawPointLabel( point, label, camera );
+			drawPointText( point + glm::normalize( vector ), camera );
 
 			//Draw ending lines for the vector (two perpendicular lines)
 			const glm::vec3 perpendicular_vector { glm::normalize( glm::cross( vector, glm::vec3( 0.0f, 1.0f, 0.0f ) ) )
@@ -160,26 +181,49 @@ namespace fgl::engine::debug
 				                                    / 4.0f };
 
 			drawLine(
-				point + vector.norm() + perpendicular_vector,
-				point + vector.norm() - perpendicular_vector,
+				point + glm::normalize( vector ) + perpendicular_vector,
+				point + glm::normalize( vector ) - perpendicular_vector,
 				camera,
 				color );
 
 			drawLine(
-				point + vector.norm() + perpendicular_vector2,
-				point + vector.norm() - perpendicular_vector2,
+				point + glm::normalize( vector ) + perpendicular_vector2,
+				point + glm::normalize( vector ) - perpendicular_vector2,
 				camera,
 				color );
 		}
 
-		void drawFrustum( const Frustum< CoordinateSpace::World >& frustum, const Camera& camera )
+		void drawFrustum(
+			const Frustum< CoordinateSpace::World >& frustum, const Camera& camera, const WorldCoordinate point )
 		{
-			drawPlane( frustum.near, camera );
-			drawPlane( frustum.far, camera );
-			drawPlane( frustum.top, camera );
-			drawPlane( frustum.bottom, camera );
-			drawPlane( frustum.right, camera );
-			drawPlane( frustum.left, camera );
+			drawPlane( frustum.near, point, camera, "near" );
+			drawPlane( frustum.far, point, camera, "far" );
+			drawPlane( frustum.top, point, camera, "top" );
+			drawPlane( frustum.bottom, point, camera, "bottom" );
+			drawPlane( frustum.right, point, camera, "right" );
+			drawPlane( frustum.left, point, camera, "left" );
+		}
+
+		void drawFrustum( const Camera& camera )
+		{
+			const Frustum frustum { camera.getFrustumBounds() };
+			drawFrustum( frustum, camera, camera.getFrustumPosition() );
+		}
+
+		void drawPlane(
+			const Plane< CoordinateSpace::World >& plane,
+			const WorldCoordinate point,
+			const Camera& camera,
+			const std::string label,
+			const glm::vec3 color )
+		{
+			ZoneScoped;
+			const auto normal { plane.direction() };
+
+			assert( point != constants::DEFAULT_VEC3 );
+
+			drawLine( point, point + normal, camera, color );
+			drawPoint( point + normal, camera, label, color );
 		}
 
 		void drawCameraInfo( const Camera& camera )
@@ -191,9 +235,7 @@ namespace fgl::engine::debug
 			 */
 
 			{
-				const Frustum frustum { camera.getFrustumBounds() };
-
-				drawFrustum( frustum, camera );
+				drawFrustum( camera );
 			}
 
 			/*
@@ -209,17 +251,6 @@ namespace fgl::engine::debug
 				drawVector( pos, frustum.left.direction(), camera );
 			}
 			*/
-		}
-
-		void drawPlane( const Plane< CoordinateSpace::World >& plane, const Camera& camera, const glm::vec3 color )
-		{
-			assert( plane.direction() != constants::DEFAULT_VEC3 );
-			assert( plane.getPosition() != constants::DEFAULT_VEC3 );
-
-			const auto pos { plane.getPosition() };
-			const auto dir { plane.direction() };
-
-			drawVector( pos, dir, camera, color );
 		}
 
 	} // namespace world

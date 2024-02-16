@@ -4,22 +4,31 @@
 
 #pragma once
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 #include "constants.hpp"
 #include "engine/primitives/Coordinate.hpp"
 #include "engine/primitives/Frustum.hpp"
 #include "engine/primitives/Matrix.hpp"
+#include "engine/primitives/TransformComponent.hpp"
 
 namespace fgl::engine
 {
 	class Camera;
 
 	Frustum< CoordinateSpace::Model >
-		createFrustum( const Camera& camera, const float aspect, const float fovy, const float near, const float far );
+		createFrustum( const float aspect, const float fovy, const float near, const float far );
 
 	class Camera
 	{
+#ifdef EXPOSE_CAMERA_INTERNAL
+
+	  public:
+
+#endif
+
 		Matrix< MatrixType::CameraToScreen > projection_matrix { 1.0f };
 
 		Matrix< MatrixType::WorldToCamera > view_matrix { 1.0f };
@@ -29,12 +38,24 @@ namespace fgl::engine
 		Frustum< CoordinateSpace::Model > base_frustum {};
 		Frustum< CoordinateSpace::World > frustum {};
 
-		friend Frustum< CoordinateSpace::Model > createFrustum(
-			const Camera& camera, const float aspect, const float fovy, const float near, const float far );
-
 		const Matrix< MatrixType::ModelToWorld > frustumTranslationMatrix() const;
 
 	  public:
+
+		inline static TransformComponent frustum_alt_transform { WorldCoordinate( constants::WORLD_CENTER ),
+			                                                     glm::vec3( 1.0f ),
+			                                                     Vector( 0.0f, 0.0f, 0.0f ) };
+
+		inline static bool update_frustums { true };
+		inline static bool update_using_alt { false };
+
+		Camera()
+		{
+			setPerspectiveProjection( 90.0f, 16.0f / 9.0f, constants::NEAR_PLANE, constants::FAR_PLANE );
+			setViewYXZ( constants::CENTER, Vector( 0.0f, 0.0f, 0.0f ) );
+		}
+
+		WorldCoordinate getFrustumPosition() const;
 
 		const Frustum< CoordinateSpace::Model >& getBaseFrustum() const { return base_frustum; }
 
@@ -64,7 +85,7 @@ namespace fgl::engine
 		const Vector getRight() const
 		{
 			return Vector(
-				glm::normalize( glm::vec3( view_matrix[ 0 ][ 0 ], view_matrix[ 1 ][ 0 ], view_matrix[ 2 ][ 0 ] ) ) );
+				glm::normalize( glm::vec3( -view_matrix[ 0 ][ 0 ], view_matrix[ 1 ][ 0 ], view_matrix[ 2 ][ 0 ] ) ) );
 		}
 
 		const Vector getForward() const

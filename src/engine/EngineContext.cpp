@@ -105,7 +105,7 @@ namespace fgl::engine
 
 		//camera.setOrthographicProjection( -aspect, aspect, -1, 1, -1, 1 );
 		const float aspect { m_renderer.getAspectRatio() };
-		camera.setPerspectiveProjection( glm::radians( 90.0f ), aspect, 0.1f, 100.f );
+		camera.setPerspectiveProjection( glm::radians( 90.0f ), aspect, constants::NEAR_PLANE, constants::FAR_PLANE );
 
 		const auto old_aspect_ratio { m_renderer.getAspectRatio() };
 
@@ -142,11 +142,21 @@ namespace fgl::engine
 
 			if ( old_aspect_ratio != m_renderer.getAspectRatio() )
 			{
-				camera.setPerspectiveProjection( glm::radians( 90.0f ), m_renderer.getAspectRatio(), 0.1f, 100.f );
+				camera.setPerspectiveProjection(
+					glm::radians( 90.0f ), m_renderer.getAspectRatio(), constants::NEAR_PLANE, constants::FAR_PLANE );
 			}
 
 			camera_controller.moveInPlaneXZ( m_window.window(), delta_time, viewer );
 			camera.setViewYXZ( viewer.transform.translation, viewer.transform.rotation );
+
+			{
+				constexpr WorldCoordinate center { 0.0f, 0.0f, 0.0f };
+				//debug::world::drawVector( center, camera.getForward(), camera, { 0.0f, 0.0f, 0.0f } );
+
+				{
+					debug::world::drawFrustum( camera );
+				}
+			}
 
 			if ( auto command_buffer = m_renderer.beginFrame(); command_buffer )
 			{
@@ -192,6 +202,20 @@ namespace fgl::engine
 					ImGui::Text( "%.3f ms", 1000.0f / ImGui::GetIO().Framerate );
 					ImGui::Text( "Average rolling frametime: %.3f ms", rolling_ms_average.average() );
 
+					auto inputVec3 = []( const std::string label, glm::vec3& vec )
+					{
+						ImGui::PushID( label.c_str() );
+						ImGui::PushItemWidth( 80 );
+						ImGui::Text( label.c_str() );
+						ImGui::DragFloat( "X", &vec.x, 0.1f );
+						ImGui::SameLine();
+						ImGui::DragFloat( "Y", &vec.y, 0.1f );
+						ImGui::SameLine();
+						ImGui::DragFloat( "Z", &vec.z, 0.1f );
+						ImGui::PopItemWidth();
+						ImGui::PopID();
+					};
+
 					if ( ImGui::CollapsingHeader( "Camera" ) )
 					{
 						ImGui::PushItemWidth( 80 );
@@ -211,6 +235,19 @@ namespace fgl::engine
 						ImGui::SameLine();
 						ImGui::DragFloat( "Rot Z", &viewer.transform.rotation.z, 0.1f, 0.0f, glm::two_pi< float >() );
 						ImGui::PopItemWidth();
+
+						ImGui::Separator();
+						ImGui::Checkbox( "Update Frustum", &camera.update_frustums );
+
+						ImGui::Separator();
+						ImGui::Checkbox( "Use Alt Frustum matrix", &camera.update_using_alt );
+						if ( ImGui::CollapsingHeader( "Frustum matrix", &camera.update_using_alt ) )
+						{
+							ImGui::PushID( "FrustumMatrix" );
+							inputVec3( "Translation", Camera::frustum_alt_transform.translation );
+							inputVec3( "Rotation", Camera::frustum_alt_transform.rotation );
+							ImGui::PopID();
+						}
 					}
 
 					if ( ImGui::CollapsingHeader( "View Frustum" ) )
@@ -228,7 +265,9 @@ namespace fgl::engine
 							ImGui::SameLine( 120.0f );
 							printVec3( plane.direction() );
 							ImGui::SameLine();
-							ImGui::Text( "Distance: %.6f", plane.distance() );
+							ImGui::Text( "Distance: %.3f", plane.distance() );
+							const auto pos { plane.getPosition() };
+							ImGui::Text( "Center: %.2f %2.f %2.f", pos.x, pos.y, pos.z );
 						};
 
 						printPlane( frustum.near, "Near" );

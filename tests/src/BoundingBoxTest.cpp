@@ -6,7 +6,9 @@
 
 using namespace fgl::engine;
 
-int main()
+#include <catch2/catch_all.hpp>
+
+TEST_CASE( "BoundingBox", "[boundingbox]" )
 {
 	{
 		std::vector< Coordinate< CoordinateSpace::Model > > model_points {};
@@ -31,20 +33,20 @@ int main()
 
 		//Check that the points are correct
 		//The middle point should not change
-		assert( combined_box.middle == model_box.middle );
+		REQUIRE( combined_box.middle == model_box.middle );
 		//The scale should be the max of the two boxes
-		assert( combined_box.scale == glm::vec3( 2.0f, 1.0f, 2.0f ) );
+		REQUIRE( combined_box.scale == glm::vec3( 2.0f, 1.0f, 2.0f ) );
 
 		//Check that the points are correct
 
 		const auto out_points { combined_box.points() };
 		const auto box2_points { model_box2.points() };
-		assert( out_points.size() == box2_points.size() );
-		assert( out_points.size() == 8 );
+		REQUIRE( out_points.size() == box2_points.size() );
+		REQUIRE( out_points.size() == 8 );
 
 		for ( std::uint32_t i = 0; i < out_points.size(); ++i )
 		{
-			assert( out_points[ i ] == box2_points[ i ] );
+			REQUIRE( out_points[ i ] == box2_points[ i ] );
 		}
 	}
 
@@ -86,13 +88,11 @@ int main()
 		}
 
 		//Check that the lowest point is the one from the combined box too
-		assert( model_box.bottomLeftBack().x == lowest_point.x );
-		assert( model_box.bottomLeftBack().y == lowest_point.y );
-		assert( model_box.bottomLeftBack().z == lowest_point.z );
-		assert( model_box.topRightForward().x == highest_point.x );
-		assert( model_box.topRightForward().y == highest_point.y );
-		assert( model_box.topRightForward().z == highest_point.z );
+		REQUIRE( model_box.bottomLeftBack().x == lowest_point.x );
+		REQUIRE( model_box.bottomLeftBack().y == lowest_point.y );
+		REQUIRE( model_box.bottomLeftBack().z == lowest_point.z );
+		REQUIRE( model_box.topRightForward().x == highest_point.x );
+		REQUIRE( model_box.topRightForward().y == highest_point.y );
+		REQUIRE( model_box.topRightForward().z == highest_point.z );
 	}
-
-	return EXIT_SUCCESS;
 }

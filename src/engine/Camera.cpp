@@ -4,6 +4,8 @@
 
 #include "Camera.hpp"
 
+#include "GameObject.hpp"
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 
@@ -27,7 +29,7 @@ namespace fgl::engine
 		ZoneScoped;
 		projection_matrix = Matrix< MatrixType::CameraToScreen >( glm::perspectiveLH( fovy, aspect, near, far ) );
 
-		base_frustum = createFrustum( *this, aspect, fovy, near, far );
+		base_frustum = createFrustum( aspect, fovy, near, far );
 	}
 
 	void Camera::setViewDirection( glm::vec3 position, const Vector direction, glm::vec3 up )
@@ -250,14 +252,6 @@ namespace fgl::engine
 				{
 					static auto current_rotation_order { RotationOrder::DEFAULT };
 
-					ImGui::Begin( "CameraRotation" );
-					ImGui::SliderInt(
-						"Rotation Order",
-						reinterpret_cast< int* >( &current_rotation_order ),
-						0,
-						static_cast< int >( RotationOrder::END_OF_ENUM - 1 ) );
-					ImGui::End();
-
 					const glm::mat4 rotation_matrix { taitBryanMatrix( rotation, current_rotation_order ) };
 
 					const glm::vec3 forward { rotation_matrix * glm::vec4( constants::WORLD_FORWARD, 0.0f ) };
@@ -278,34 +272,52 @@ namespace fgl::engine
 				throw std::runtime_error( "Unimplemented view mode" );
 		}
 
-		frustum = frustumTranslationMatrix() * base_frustum;
+		TransformComponent transform { WorldCoordinate( position ), glm::vec3( 1.0f, 1.0f, 1.0f ), rotation };
 
-		return;
+		if ( update_frustums )
+		{
+			if ( update_using_alt ) [[unlikely]]
+			{
+				frustum = frustum_alt_transform.mat() * base_frustum;
+				return;
+			}
+			else
+			{
+				frustum = transform.mat() * base_frustum;
+				return;
+			}
+		}
 	}
 
 	Frustum< CoordinateSpace::Model >
-		createFrustum( const Camera& camera, const float aspect, const float fov_y, const float near, const float far )
+		createFrustum( const float aspect, const float fov_y, const float near, const float far )
 	{
-		Plane< CoordinateSpace::Model > near_plane { camera.getForward(), near };
-		Plane< CoordinateSpace::Model > far_plane { camera.getBackward(), far };
+		const Plane< CoordinateSpace::Model > near_plane { constants::WORLD_FORWARD, near };
+		const Plane< CoordinateSpace::Model > far_plane { constants::WORLD_BACKWARD, -far };
 
-		const float half_width { near * glm::tan( fov_y / 2.0f ) }; // halfHSide
-		const float half_height { half_width / aspect }; //halfVSide
+		const float half_height { far * glm::tan( fov_y / 2.0f ) };
+		const float half_width { half_height * aspect };
 
-		constexpr glm::vec3 ZERO { 0.0f, 0.0f, 0.0f };
+		const ModelCoordinate far_forward { constants::WORLD_FORWARD * far };
+		const ModelCoordinate right_half { constants::WORLD_RIGHT * half_width };
 
-		const auto far_forward { camera.getForward() * far };
+		const Vector right_forward { far_forward + right_half };
+		const Vector left_forward { far_forward - right_half };
 
-		//top_dir is the direction pointing at the highest point on the far plane
-		const auto far_up { camera.getUp() * half_height };
-		const glm::vec3 top_dir { glm::normalize( far_up + far_forward ) };
+		const Plane< CoordinateSpace::Model > right_plane { glm::cross( right_forward, constants::WORLD_DOWN ), 0.0f };
+		const Plane< CoordinateSpace::Model > left_plane { glm::cross( left_forward, constants::WORLD_UP ), 0.0f };
 
-		Plane< CoordinateSpace::Model > top_plane { glm::cross( top_dir, camera.getUp() ), 0.0f };
-		Plane< CoordinateSpace::Model > bottom_plane { glm::cross( top_dir, camera.getDown() ), 0.0f };
+		const ModelCoordinate top_half { constants::WORLD_UP * half_height };
 
-		const glm::vec3 right_dir { glm::normalize( camera.getRight() * half_width + far_forward ) };
-		Plane< CoordinateSpace::Model > right_plane { glm::cross( right_dir, camera.getRight() ), 0.0f };
-		Plane< CoordinateSpace::Model > left_plane { glm::cross( right_dir, camera.getLeft() ), 0.0f };
+		const Vector top_forward { far_forward + top_half };
+		const Vector bottom_forward { far_forward - top_half };
+
+		const Plane< CoordinateSpace::Model > top_plane { glm::cross( top_forward, constants::WORLD_RIGHT ), 0.0f };
+
+		const Plane< CoordinateSpace::Model > bottom_plane { glm::cross( bottom_forward, constants::WORLD_LEFT ),
+			                                                 0.0f };
+
+		std::cout << bottom_plane.direction() << std::endl;
 
 		return { near_plane, far_plane, top_plane, bottom_plane, right_plane, left_plane };
 	}
@@ -314,14 +326,17 @@ namespace fgl::engine
 	{
 		glm::mat4 translation { 1.0f };
 
-		translation[ 3 ] = glm::vec4( getPosition(), 1.0f );
-
-		//Apply rotation
-		translation[ 0 ] = glm::vec4( getRight(), 0.0f );
-		translation[ 1 ] = glm::vec4( getUp(), 0.0f );
-		translation[ 2 ] = glm::vec4( getForward(), 0.0f );
+		translation = glm::translate( glm::mat4( 1.0f ), getPosition() );
 
 		return Matrix< MatrixType::ModelToWorld >( translation );
+	}
+
+	WorldCoordinate Camera::getFrustumPosition() const
+	{
+		if ( update_using_alt ) [[unlikely]]
+			return frustum_alt_transform.translation;
+		else
+			return getPosition();
 	}
 
 } // namespace fgl::engine

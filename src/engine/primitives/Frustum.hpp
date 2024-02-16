@@ -11,6 +11,8 @@
 namespace fgl::engine
 {
 
+	class Camera;
+
 	template < CoordinateSpace CType = CoordinateSpace::World >
 	struct Frustum
 	{
@@ -55,7 +57,7 @@ namespace fgl::engine
 			assert( near_plane.direction() != far_plane.direction() );
 		}
 
-		bool pointInside( const WorldCoordinate& coord ) const
+		bool pointInside( const WorldCoordinate coord ) const
 		{
 			static_assert(
 				CType == CoordinateSpace::World, "pointInside can only be called on World coordinate Frustums" );
@@ -63,7 +65,26 @@ namespace fgl::engine
 			return near.isForward( coord ) && far.isForward( coord ) && top.isForward( coord )
 			    && bottom.isForward( coord ) && right.isForward( coord ) && left.isForward( coord );
 		}
+
+		bool operator==( const Frustum< CType >& other ) const
+		{
+			return near == other.near && far == other.far && top == other.top && bottom == other.bottom
+			    && right == other.right && left == other.left;
+		}
 	};
+
+	template < CoordinateSpace CType >
+	inline std::ostream& operator<<( std::ostream& os, const Frustum< CType >& frustum )
+	{
+		os << "Frustum: " << std::endl;
+		os << "\tNear: " << frustum.near << std::endl;
+		os << "\tFar: " << frustum.far << std::endl;
+		os << "\tTop: " << frustum.top << std::endl;
+		os << "\tBottom: " << frustum.bottom << std::endl;
+		os << "\tRight: " << frustum.right << std::endl;
+		os << "\tLeft: " << frustum.left << std::endl;
+		return os;
+	}
 
 	template < CoordinateSpace CType, MatrixType MType >
 	Frustum< EvolvedType< MType >() > operator*( const Matrix< MType >& matrix, const Frustum< CType >& frustum )

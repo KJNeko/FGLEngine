@@ -5,6 +5,7 @@
 #pragma once
 
 #include "engine/primitives/Coordinate.hpp"
+#include "engine/primitives/Frustum.hpp"
 #include "engine/primitives/Line.hpp"
 #include "engine/primitives/Plane.hpp"
 
@@ -41,6 +42,9 @@ namespace fgl::engine::debug
 			const Camera& camera,
 			const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 
+		void drawPointLabel(
+			const Coordinate< CoordinateSpace::World > point, const std::string label, const Camera& camera );
+
 		void drawLine(
 			const Line< CoordinateSpace::World > line,
 			const Camera& camera,
@@ -59,19 +63,25 @@ namespace fgl::engine::debug
 		void drawPoint(
 			const Coordinate< CoordinateSpace::World > point,
 			const Camera& camera,
+			const std::string label = "",
 			const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 
 		void drawVector(
 			const Coordinate< CoordinateSpace::World > point,
-			const glm::vec3 vector,
+			Vector vector,
 			const Camera& camera,
+			const std::string label = "",
 			const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 
+		void drawFrustum(
+			const Frustum< CoordinateSpace::World >& frustum, const Camera& camera, const WorldCoordinate coordinate );
 		void drawFrustum( const Camera& camera );
 
 		void drawPlane(
 			const Plane< CoordinateSpace::World >& plane,
+			const WorldCoordinate point,
 			const Camera& camera,
+			const std::string label = "",
 			const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 
 	} // namespace world
