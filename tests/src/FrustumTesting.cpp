@@ -167,8 +167,8 @@ TEST_CASE( "Frustum translations", "[frustum][translation]" )
 	REQUIRE( Matrix< MatrixType::ModelToWorld > { 1.0f } * camera.getBaseFrustum() == camera.getFrustumBounds() );
 
 	//Testing rotation of the camera
+	SECTION( "Pitch" )
 	{
-		std::cout << "Testing rotation (Pitch)" << std::endl;
 		Vector rotation { 0.0f, 0.0f, 0.0f };
 		rotation.pitch -= glm::radians( 90.0f );
 
@@ -198,10 +198,10 @@ TEST_CASE( "Frustum translations", "[frustum][translation]" )
 		REQUIRE( rotated_frustum.pointInside( point ) );
 	}
 
+	SECTION( "Yaw" )
 	{
-		std::cout << "Testing rotation (Yaw)" << std::endl;
 		Vector rotation { 0.0f, 0.0f, 0.0f };
-		rotation.yaw -= glm::radians( 90.0f );
+		rotation.yaw += glm::radians( 90.0f );
 
 		camera.setViewYXZ( constants::CENTER, rotation );
 
@@ -230,8 +230,8 @@ TEST_CASE( "Frustum translations", "[frustum][translation]" )
 		REQUIRE_FALSE( rotated_frustum.pointInside( WorldCoordinate( constants::WORLD_LEFT ) ) );
 	}
 
+	SECTION( "Roll" )
 	{
-		std::cout << "Testing rotation (Roll)" << std::endl;
 		Vector rotation { 0.0f, 0.0f, 0.0f };
 		rotation.roll -= glm::radians( 90.0f );
 

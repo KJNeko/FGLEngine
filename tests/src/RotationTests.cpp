@@ -9,6 +9,12 @@
 
 using namespace fgl::engine;
 
+std::ostream& operator<<( std::ostream& os, const glm::vec3 vec )
+{
+	os << "X: " << vec.x << " Y: " << vec.y << " Z: " << vec.z;
+	return os;
+}
+
 TEST_CASE( "Transform rotations", "[transform][rotation]" )
 {
 	TransformComponent component;
@@ -31,6 +37,9 @@ TEST_CASE( "Transform rotations", "[transform][rotation]" )
 
 		//Must be dot here since the precision isn't good enough to be exact.
 		// If the dot product is close to 1, then the vectors are close to being equal
+		CAPTURE( rotated_point.x );
+		CAPTURE( rotated_point.y );
+		CAPTURE( rotated_point.z );
 		REQUIRE( glm::dot( rotated_point, constants::WORLD_UP ) > 0.99f );
 	}
 
@@ -40,6 +49,9 @@ TEST_CASE( "Transform rotations", "[transform][rotation]" )
 
 		const glm::vec3 rotated_point { component.mat4() * glm::vec4( TEST_POINT, 1.0f ) };
 
+		CAPTURE( rotated_point.x );
+		CAPTURE( rotated_point.y );
+		CAPTURE( rotated_point.z );
 		REQUIRE( glm::dot( rotated_point, constants::WORLD_DOWN ) > 0.99f );
 	}
 
@@ -49,6 +61,9 @@ TEST_CASE( "Transform rotations", "[transform][rotation]" )
 
 		const glm::vec3 rotated_point { component.mat4() * glm::vec4( TEST_POINT, 1.0f ) };
 
+		CAPTURE( rotated_point.x );
+		CAPTURE( rotated_point.y );
+		CAPTURE( rotated_point.z );
 		REQUIRE( glm::dot( rotated_point, constants::WORLD_RIGHT ) > 0.99f );
 	}
 
@@ -58,6 +73,9 @@ TEST_CASE( "Transform rotations", "[transform][rotation]" )
 
 		const glm::vec3 rotated_point { component.mat4() * glm::vec4( TEST_POINT, 1.0f ) };
 
+		CAPTURE( rotated_point.x );
+		CAPTURE( rotated_point.y );
+		CAPTURE( rotated_point.z );
 		REQUIRE( glm::dot( rotated_point, constants::WORLD_LEFT ) > 0.99f );
 	}
 
@@ -68,6 +86,9 @@ TEST_CASE( "Transform rotations", "[transform][rotation]" )
 
 		const glm::vec3 rotated_point { component.mat4() * glm::vec4( constants::WORLD_RIGHT, 1.0f ) };
 
+		CAPTURE( rotated_point.x );
+		CAPTURE( rotated_point.y );
+		CAPTURE( rotated_point.z );
 		REQUIRE( glm::dot( rotated_point, constants::WORLD_UP ) > 0.99f );
 	}
 
@@ -77,6 +98,9 @@ TEST_CASE( "Transform rotations", "[transform][rotation]" )
 
 		const glm::vec3 rotated_point { component.mat4() * glm::vec4( constants::WORLD_RIGHT, 1.0f ) };
 
+		CAPTURE( rotated_point.x );
+		CAPTURE( rotated_point.y );
+		CAPTURE( rotated_point.z );
 		REQUIRE( glm::dot( rotated_point, constants::WORLD_DOWN ) > 0.99f );
 	}
 }
