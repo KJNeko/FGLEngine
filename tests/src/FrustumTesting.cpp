@@ -32,7 +32,7 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 	{
 		SECTION( "Backwards" )
 		{
-			camera.setViewYXZ( constants::WORLD_CENTER - constants::WORLD_FORWARD, Vector( 0.0f, 0.0f, 0.0f ) );
+			camera.setViewYXZ( constants::WORLD_CENTER - constants::WORLD_FORWARD, Rotation( 0.0f, 0.0f, 0.0f ) );
 			//Translate backwards by 1 world unit
 			const auto translated_backwards { camera.getFrustumBounds() };
 
@@ -58,7 +58,7 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 
 		SECTION( "Forward" )
 		{
-			camera.setViewYXZ( constants::WORLD_CENTER + constants::WORLD_FORWARD, Vector( 0.0f, 0.0f, 0.0f ) );
+			camera.setViewYXZ( constants::WORLD_CENTER + constants::WORLD_FORWARD, Rotation( 0.0f, 0.0f, 0.0f ) );
 			//Translate forward by 1 world unit
 			const auto translated_forward { camera.getFrustumBounds() };
 
@@ -74,7 +74,7 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 
 		SECTION( "Up" )
 		{
-			camera.setViewYXZ( constants::WORLD_CENTER + constants::WORLD_UP, Vector( 0.0f, 0.0f, 0.0f ) );
+			camera.setViewYXZ( constants::WORLD_CENTER + constants::WORLD_UP, Rotation( 0.0f, 0.0f, 0.0f ) );
 			//Translate up by 1 world unit
 			const auto translated_up { camera.getFrustumBounds() };
 
@@ -170,7 +170,7 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 		//Testing rotation of the camera
 		SECTION( "Pitch" )
 		{
-			Vector rotation { 0.0f, 0.0f, 0.0f };
+			Rotation rotation { 0.0f, 0.0f, 0.0f };
 			rotation.pitch -= glm::radians( 90.0f );
 
 			camera.setViewYXZ( constants::CENTER, rotation );
@@ -201,7 +201,7 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 
 		SECTION( "Yaw" )
 		{
-			Vector rotation { 0.0f, 0.0f, 0.0f };
+			Rotation rotation { 0.0f, 0.0f, 0.0f };
 			rotation.yaw += glm::radians( 90.0f );
 
 			camera.setViewYXZ( constants::CENTER, rotation );
@@ -233,7 +233,7 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 
 		SECTION( "Roll" )
 		{
-			Vector rotation { 0.0f, 0.0f, 0.0f };
+			Rotation rotation { 0.0f, 0.0f, 0.0f };
 			rotation.roll -= glm::radians( 90.0f );
 
 			camera.setViewYXZ( constants::CENTER, rotation );

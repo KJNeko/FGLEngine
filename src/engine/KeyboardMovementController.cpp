@@ -29,10 +29,10 @@ namespace fgl::engine
 	{
 		ImGui::Begin( "CameraMovement" );
 
-		Vector rotate { 0.0f };
+		Rotation rotate { 0.0f };
 
-		if ( glfwGetKey( window, key_mappings.look_right ) == GLFW_PRESS ) rotate.yaw -= 1.f;
-		if ( glfwGetKey( window, key_mappings.look_left ) == GLFW_PRESS ) rotate.yaw += 1.f;
+		if ( glfwGetKey( window, key_mappings.look_right ) == GLFW_PRESS ) rotate.yaw += 1.f;
+		if ( glfwGetKey( window, key_mappings.look_left ) == GLFW_PRESS ) rotate.yaw -= 1.f;
 		if ( glfwGetKey( window, key_mappings.look_up ) == GLFW_PRESS ) rotate.pitch += 1.f;
 		if ( glfwGetKey( window, key_mappings.look_down ) == GLFW_PRESS ) rotate.pitch -= 1.f;
 
@@ -95,8 +95,8 @@ namespace fgl::engine
 		}
 
 		const glm::vec3 forward_dir { target.transform.rotation.forward() };
-		const glm::vec3 right_dir { target.transform.rotation.right() };
 		const glm::vec3 up_dir { constants::WORLD_UP };
+		const glm::vec3 right_dir { target.transform.rotation.right( up_dir ) };
 
 		glm::vec3 move_dir { 0.0f };
 		if ( glfwGetKey( window, key_mappings.move_forward ) == GLFW_PRESS ) move_dir += forward_dir;

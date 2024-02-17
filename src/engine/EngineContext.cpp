@@ -202,7 +202,7 @@ namespace fgl::engine
 					ImGui::Text( "%.3f ms", 1000.0f / ImGui::GetIO().Framerate );
 					ImGui::Text( "Average rolling frametime: %.3f ms", rolling_ms_average.average() );
 
-					auto inputVec3 = []( const std::string label, glm::vec3& vec )
+					auto inputVec3 = []( const std::string label, glm::vec3 vec )
 					{
 						ImGui::PushID( label.c_str() );
 						ImGui::PushItemWidth( 80 );
@@ -215,6 +215,9 @@ namespace fgl::engine
 						ImGui::PopItemWidth();
 						ImGui::PopID();
 					};
+
+					auto inputRVec3 = [ &inputVec3 ]( const std::string label, const Rotation rot )
+					{ inputVec3( label, glm::vec3( rot.x, rot.y, rot.z ) ); };
 
 					if ( ImGui::CollapsingHeader( "Camera" ) )
 					{
@@ -245,7 +248,7 @@ namespace fgl::engine
 						{
 							ImGui::PushID( "FrustumMatrix" );
 							inputVec3( "Translation", Camera::frustum_alt_transform.translation );
-							inputVec3( "Rotation", Camera::frustum_alt_transform.rotation );
+							inputRVec3( "Rotation", Camera::frustum_alt_transform.rotation );
 							ImGui::PopID();
 						}
 					}

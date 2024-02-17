@@ -44,7 +44,7 @@ namespace fgl::engine
 
 		inline static TransformComponent frustum_alt_transform { WorldCoordinate( constants::WORLD_CENTER ),
 			                                                     glm::vec3( 1.0f ),
-			                                                     Vector( 0.0f, 0.0f, 0.0f ) };
+			                                                     { 0.0f, 0.0f, 0.0f } };
 
 		inline static bool update_frustums { true };
 		inline static bool update_using_alt { false };
@@ -52,7 +52,7 @@ namespace fgl::engine
 		Camera()
 		{
 			setPerspectiveProjection( 90.0f, 16.0f / 9.0f, constants::NEAR_PLANE, constants::FAR_PLANE );
-			setViewYXZ( constants::CENTER, Vector( 0.0f, 0.0f, 0.0f ) );
+			setViewYXZ( constants::CENTER, Rotation( 0.0f, 0.0f, 0.0f ) );
 		}
 
 		WorldCoordinate getFrustumPosition() const;
@@ -109,7 +109,7 @@ namespace fgl::engine
 			TaitBryan
 		};
 
-		void setViewYXZ( glm::vec3 pos, const Vector rotation, const ViewMode mode = TaitBryan );
+		void setViewYXZ( glm::vec3 pos, const Rotation rotation, const ViewMode mode = TaitBryan );
 	};
 
 } // namespace fgl::engine

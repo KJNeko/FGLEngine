@@ -49,13 +49,15 @@ namespace fgl::engine
 	glm::vec3 Vector::forward() const
 	{
 		//TODO: Figure out Z shit
-		return { std::sin( yaw ), std::cos( yaw ), 0.0f };
+		return static_cast< glm::vec3 >( *this );
 	}
 
-	glm::vec3 Vector::right() const
+	glm::vec3 Vector::right( const Vector up ) const
 	{
-		const auto forward_dir { forward() };
-		return { -forward_dir.y, forward_dir.x, 0.0f };
+		const Vector forward_dir { forward() };
+		const Vector down { up };
+
+		return glm::cross( down, forward_dir );
 	}
 
 } // namespace fgl::engine

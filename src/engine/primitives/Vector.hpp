@@ -16,13 +16,20 @@ namespace fgl::engine
 	{
 	  public:
 
-		float& roll { y };
-		float& pitch { x };
-		float& yaw { z };
-
 		constexpr explicit Vector( const float value ) : glm::vec3( value ) {}
 
-		constexpr explicit Vector( const glm::vec3 vec ) : glm::vec3( vec ) {}
+		constexpr explicit Vector( const glm::vec3 vec ) : glm::vec3( vec )
+		{
+			assert(
+				( x <= 1.0f || std::numeric_limits< float >::max() )
+				&& "Value too high for Vector. Forgot to normalize?" );
+			assert(
+				( y <= 1.0f || std::numeric_limits< float >::max() )
+				&& "Value too high for Vector. Forgot to normalize?" );
+			assert(
+				( z <= 1.0f || std::numeric_limits< float >::max() )
+				&& "Value too high for Vector. Forgot to normalize?" );
+		}
 
 		constexpr explicit Vector( const float x, const float y, const float z ) : glm::vec3( x, y, z ) {}
 
@@ -30,7 +37,7 @@ namespace fgl::engine
 
 		Vector operator*( const float scalar ) const { return Vector( static_cast< glm::vec3 >( *this ) * scalar ); }
 
-		glm::vec3 right() const;
+		glm::vec3 right( const Vector up = Vector( constants::WORLD_UP ) ) const;
 		glm::vec3 forward() const;
 
 		//Copy

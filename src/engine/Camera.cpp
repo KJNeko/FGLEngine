@@ -58,7 +58,7 @@ namespace fgl::engine
 	};
 
 	template < int N >
-	inline std::tuple< float, float > extract( const Vector rotation, const RotationOrder order )
+	inline std::tuple< float, float > extract( const Rotation rotation, const RotationOrder order )
 	{
 		switch ( order )
 		{
@@ -73,7 +73,7 @@ namespace fgl::engine
 						return { glm::cos( rotation.y ), glm::sin( rotation.y ) };
 				}
 				break;
-			case XYZ:
+			case XYZ: // DEFAULT
 				switch ( N )
 				{
 					case 1:
@@ -81,7 +81,7 @@ namespace fgl::engine
 					case 2:
 						return { glm::cos( rotation.y ), glm::sin( rotation.y ) };
 					case 3:
-						return { glm::cos( rotation.z ), glm::sin( rotation.z ) };
+						return { glm::cos( -rotation.z ), glm::sin( -rotation.z ) };
 				}
 				break;
 			case YXZ:
@@ -134,7 +134,7 @@ namespace fgl::engine
 		std::unreachable();
 	}
 
-	glm::mat4 taitBryanMatrix( const Vector rotation, const RotationOrder order = DEFAULT )
+	glm::mat4 taitBryanMatrix( const Rotation rotation, const RotationOrder order = DEFAULT )
 	{
 		glm::mat4 mat { 1.0f };
 
@@ -239,7 +239,7 @@ namespace fgl::engine
 		}
 	}
 
-	void Camera::setViewYXZ( glm::vec3 position, const Vector rotation, const ViewMode mode )
+	void Camera::setViewYXZ( glm::vec3 position, const Rotation rotation, const ViewMode mode )
 	{
 		ZoneScoped;
 

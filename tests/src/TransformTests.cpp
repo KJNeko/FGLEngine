@@ -15,7 +15,7 @@ TEST_CASE( "Transform", "[transform][rotation][translation]" )
 
 	component.translation = constants::WORLD_CENTER;
 	component.scale = glm::vec3( 1.0f );
-	component.rotation = Vector( 0.0f );
+	component.rotation = Rotation( 0.0f );
 
 	REQUIRE( component.mat4() == glm::mat4( 1.0f ) );
 
