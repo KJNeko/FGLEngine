@@ -150,7 +150,7 @@ TEST_CASE( "Transform", "[transform][rotation][translation]" )
 
 	SECTION( "Mix" )
 	{
-		WHEN( "Translated X+90 and Rotated Y+90" )
+		WHEN( "Translated X+1 and Rotated Y+90" )
 		{
 			component.rotation.yaw = glm::radians( 90.0f );
 			component.translation.right() += 1.0f;
@@ -163,34 +163,17 @@ TEST_CASE( "Transform", "[transform][rotation][translation]" )
 			}
 		}
 
-		SECTION( "Yaw- X+" )
+		SECTION( "Translated X+1 Yaw-90" )
 		{
 			component.rotation.yaw = glm::radians( -90.0f );
 			component.translation.right() += 1.0f;
 
 			const glm::vec3 translated_point { component.mat4() * glm::vec4( TEST_POINT, 1.0f ) };
 
-			CAPTURE( translated_point.x );
-			CAPTURE( translated_point.y );
-			CAPTURE( translated_point.z );
-			REQUIRE( epsilonEqual( translated_point.x, 0.0f ) );
-			REQUIRE( epsilonEqual( translated_point.y, 0.0f ) );
-			REQUIRE( epsilonEqual( translated_point.z, 0.0f ) );
-		}
-
-		SECTION( "Yaw+ Y+" )
-		{
-			component.rotation.yaw = glm::radians( 90.0f );
-			component.translation.forward() += 1.0f;
-
-			const glm::vec3 translated_point { component.mat4() * glm::vec4( TEST_POINT, 1.0f ) };
-
-			CAPTURE( translated_point.x );
-			CAPTURE( translated_point.y );
-			CAPTURE( translated_point.z );
-			REQUIRE( epsilonEqual( translated_point.x, ( constants::WORLD_RIGHT * 1.0f ).x ) );
-			REQUIRE( epsilonEqual( translated_point.y, ( constants::WORLD_FORWARD * 1.0f ).y ) );
-			REQUIRE( epsilonEqual( translated_point.z, std::numeric_limits< float >::epsilon() ) );
+			THEN( "WORLD_FORWARD should be transformed into WORLD_CENTER)" )
+			{
+				REQUIRE( translated_point == constants::WORLD_CENTER );
+			}
 		}
 	}
 }
