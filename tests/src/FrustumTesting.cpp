@@ -53,7 +53,7 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 			REQUIRE( translated_backwards.far.direction() == constants::WORLD_BACKWARD );
 			REQUIRE( translated_backwards.far.distance() == -( constants::FAR_PLANE - 1.0f ) );
 			// The distance for the far plane should be negative. Due to the fact
-			// that it is poining toward the origin, So in order for the center to be positive
+			// that it is pointing toward the origin, So in order for the center to be positive
 			// the distance must also be negative
 		}
 
