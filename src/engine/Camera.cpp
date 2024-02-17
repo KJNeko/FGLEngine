@@ -317,8 +317,6 @@ namespace fgl::engine
 		const Plane< CoordinateSpace::Model > bottom_plane { glm::cross( bottom_forward, constants::WORLD_LEFT ),
 			                                                 0.0f };
 
-		std::cout << bottom_plane.direction() << std::endl;
-
 		return { near_plane, far_plane, top_plane, bottom_plane, right_plane, left_plane };
 	}
 

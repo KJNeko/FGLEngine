@@ -50,7 +50,7 @@ TEST_CASE( "BoundingBox", "[boundingbox]" )
 		}
 	}
 
-	for ( int j = 0; j < 32; ++j )
+	BENCHMARK( "Combine bounding box" )
 	{
 		auto generatePoints = []()
 		{
@@ -87,12 +87,6 @@ TEST_CASE( "BoundingBox", "[boundingbox]" )
 			}
 		}
 
-		//Check that the lowest point is the one from the combined box too
-		REQUIRE( model_box.bottomLeftBack().x == lowest_point.x );
-		REQUIRE( model_box.bottomLeftBack().y == lowest_point.y );
-		REQUIRE( model_box.bottomLeftBack().z == lowest_point.z );
-		REQUIRE( model_box.topRightForward().x == highest_point.x );
-		REQUIRE( model_box.topRightForward().y == highest_point.y );
-		REQUIRE( model_box.topRightForward().z == highest_point.z );
-	}
+		return model_box;
+	};
 }

@@ -238,10 +238,6 @@ namespace fgl::engine
 		const glm::vec3 midpoint { ( top_left_front + bottom_right_back ) / glm::vec3( 2.0f ) };
 		const glm::vec3 scale { bottom_right_back - midpoint };
 
-		std::cout << "Generated bounding box from " << points.size() << " points. Output:\n\tMidpoint:" << midpoint.x
-				  << " " << midpoint.y << " " << midpoint.z << "\n\tScale:" << scale.x << " " << scale.y << " "
-				  << scale.z << std::endl;
-
 		return { Coordinate< CType >( midpoint ), scale };
 	}
 
