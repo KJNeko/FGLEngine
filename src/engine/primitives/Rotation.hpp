@@ -1,0 +1,36 @@
+//
+// Created by kj16609 on 2/17/24.
+//
+
+#pragma once
+
+#include <glm/glm.hpp>
+
+namespace fgl::engine
+{
+	struct Rotation : public glm::vec3
+	{
+		float& pitch { x };
+		float& roll { y };
+		float& yaw { z };
+
+		Rotation();
+
+		Rotation( const float value );
+
+		Rotation( const float pitch_r, const float roll_r, const float yaw_r );
+
+		Rotation& operator=( const Rotation other );
+
+		Rotation& operator+=( const glm::vec3 vec );
+
+		glm::vec3 forward() const;
+
+		glm::vec3 backwards() const;
+
+		glm::vec3 right( const glm::vec3 up ) const;
+
+		glm::vec3 left( const glm::vec3 up ) const;
+	};
+
+} // namespace fgl::engine

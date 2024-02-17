@@ -8,6 +8,8 @@ using namespace fgl::engine;
 
 #include <catch2/catch_all.hpp>
 
+#include "gtest_printers.hpp"
+
 TEST_CASE( "BoundingBox", "[boundingbox]" )
 {
 	SECTION( "Combine test" )

@@ -16,6 +16,8 @@ namespace fgl::engine
 	{
 	  public:
 
+		constexpr Vector() : glm::vec3( constants::DEFAULT_VEC3 ) {}
+
 		constexpr explicit Vector( const float value ) : glm::vec3( value ) {}
 
 		constexpr explicit Vector( const glm::vec3 vec ) : glm::vec3( vec )

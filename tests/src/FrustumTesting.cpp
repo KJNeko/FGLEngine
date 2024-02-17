@@ -30,30 +30,40 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 
 	SECTION( "Translate" )
 	{
-		SECTION( "Backwards" )
+		WHEN( "Translated backwards" )
 		{
 			camera.setViewYXZ( constants::WORLD_CENTER - constants::WORLD_FORWARD, Rotation( 0.0f, 0.0f, 0.0f ) );
 			//Translate backwards by 1 world unit
 			const auto translated_backwards { camera.getFrustumBounds() };
 
 			//Verify that during a translation the direction isn't changed
-			REQUIRE( translated_backwards.near.direction() == base_frustum.near.direction() );
+			THEN( "Direction is the same" )
+			{
+				REQUIRE( translated_backwards.near.direction() == base_frustum.near.direction() );
+			}
 
-			const glm::vec3 target_near { ( constants::WORLD_FORWARD * constants::NEAR_PLANE )
-				                          - constants::WORLD_FORWARD };
-			const glm::vec3 target_far { ( constants::WORLD_FORWARD * constants::FAR_PLANE )
-				                         - constants::WORLD_FORWARD };
+			THEN( "The near plane should be translated backwards" )
+			{
+				const glm::vec3 target_near { ( constants::WORLD_FORWARD * constants::NEAR_PLANE )
+					                          - constants::WORLD_FORWARD };
 
-			REQUIRE( translated_backwards.near.getPosition() == glm::vec3 { target_near } );
-			REQUIRE( translated_backwards.near.direction() == constants::WORLD_FORWARD );
-			REQUIRE( translated_backwards.near.distance() == constants::NEAR_PLANE - 1.0f );
+				REQUIRE( translated_backwards.near.getPosition() == glm::vec3 { target_near } );
+				REQUIRE( translated_backwards.near.direction() == constants::WORLD_FORWARD );
+				REQUIRE( translated_backwards.near.distance() == constants::NEAR_PLANE - 1.0f );
+			}
 
-			REQUIRE( translated_backwards.far.getPosition() == target_far );
-			REQUIRE( translated_backwards.far.direction() == constants::WORLD_BACKWARD );
-			REQUIRE( translated_backwards.far.distance() == -( constants::FAR_PLANE - 1.0f ) );
-			// The distance for the far plane should be negative. Due to the fact
-			// that it is pointing toward the origin, So in order for the center to be positive
-			// the distance must also be negative
+			THEN( "The far plane should be translated backwards" )
+			{
+				const glm::vec3 target_far { ( constants::WORLD_FORWARD * constants::FAR_PLANE )
+					                         - constants::WORLD_FORWARD };
+
+				REQUIRE( translated_backwards.far.getPosition() == target_far );
+				REQUIRE( translated_backwards.far.direction() == constants::WORLD_BACKWARD );
+				REQUIRE( translated_backwards.far.distance() == -( constants::FAR_PLANE - 1.0f ) );
+				// The distance for the far plane should be negative. Due to the fact
+				// that it is pointing toward the origin, So in order for the center to be positive
+				// the distance must also be negative
+			}
 		}
 
 		SECTION( "Forward" )
