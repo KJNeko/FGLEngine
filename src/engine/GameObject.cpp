@@ -8,13 +8,17 @@ namespace fgl::engine
 {
 	glm::mat4 TransformComponent::mat4() const
 	{
-		const float c3 { glm::cos( -rotation.z ) };
-		const float s3 { glm::sin( -rotation.z ) };
-		const float c2 { glm::cos( rotation.x ) };
-		const float s2 { glm::sin( rotation.x ) };
-		const float c1 { glm::cos( -rotation.y ) };
-		const float s1 { glm::sin( -rotation.y ) };
+		const float c3 { glm::cos( -rotation.yaw ) }; // yaw
+		const float s3 { glm::sin( -rotation.yaw ) }; // yaw
 
+		const float c2 { glm::cos( rotation.pitch ) }; // pitch
+		const float s2 { glm::sin( rotation.pitch ) }; // pitch
+
+		const float c1 { glm::cos( rotation.roll ) }; // roll
+		const float s1 { glm::sin( rotation.roll ) }; // roll
+
+		//TODO: This uses the Tait-Bryan angles stuff, It should use the respective function.
+		// Or maybe something else can be done here
 		return glm::mat4 {
 			{ scale.x * ( c1 * c3 + s1 * s2 * s3 ), scale.x * ( c2 * s3 ), scale.x * ( c1 * s2 * s3 - c3 * s1 ), 0.0f },
 			{ scale.y * ( c3 * s1 * s2 - c1 * s3 ), scale.y * ( c2 * c3 ), scale.y * ( c1 * c3 * s2 + s1 * s3 ), 0.0f },

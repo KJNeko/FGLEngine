@@ -25,9 +25,9 @@ TEST_CASE( "Transform rotations", "[transform][rotation]" )
 
 	REQUIRE( component.mat4() == glm::mat4( 1.0f ) );
 
-	//This should pitch any point by 90 degrees (Roughly equal to WORLD_UP)
 	constexpr auto TEST_POINT { constants::WORLD_FORWARD };
 
+	// Tests behaviour that a point from WORLD_FORWARD should end up WORLD_UP when pitched 90 degrees
 	SECTION( "Pitch+ (UP)" )
 	{
 		//Rotate by pitch
@@ -43,6 +43,7 @@ TEST_CASE( "Transform rotations", "[transform][rotation]" )
 		REQUIRE( glm::dot( rotated_point, constants::WORLD_UP ) > 0.99f );
 	}
 
+	// Tests behaviour that a point from WORLD_FORWARD should end up WORLD_DOWN when pitched -90 degrees
 	SECTION( "Pitch- (DOWN)" )
 	{
 		component.rotation.pitch = -glm::radians( 90.0f );
@@ -55,6 +56,7 @@ TEST_CASE( "Transform rotations", "[transform][rotation]" )
 		REQUIRE( glm::dot( rotated_point, constants::WORLD_DOWN ) > 0.99f );
 	}
 
+	// Tests behaviour that a point from WORLD_FORWARD should end up WORLD_RIGHT when yawed 90 degrees
 	SECTION( "Yaw+ (RIGHT)" )
 	{
 		component.rotation.yaw = glm::radians( 90.0f );
@@ -67,6 +69,7 @@ TEST_CASE( "Transform rotations", "[transform][rotation]" )
 		REQUIRE( glm::dot( rotated_point, constants::WORLD_RIGHT ) > 0.99f );
 	}
 
+	// Tests behaviour that a point from WORLD_FORWARD should end up WORLD_LEFT when yawed -90 degrees
 	SECTION( "Yaw- (LEFT)" )
 	{
 		component.rotation.yaw = -glm::radians( 90.0f );
@@ -79,8 +82,9 @@ TEST_CASE( "Transform rotations", "[transform][rotation]" )
 		REQUIRE( glm::dot( rotated_point, constants::WORLD_LEFT ) > 0.99f );
 	}
 
-	//Roll must be tested some other way. The testing point should be to the right, And instead should become WORLD_UP or WORLD_DOWN (WORLD_UP for -roll, WORLD_DOWN for +roll)
-	SECTION( "Roll+ (FORWARD)" )
+	//Tests behaviour that a point from WORLD_RIGHT should end up WORLD_DOWN when rolled 90 degrees
+	//This behaviour assumes that WORLD_RIGHT is 90 deg YAW+ from WORLD_FORWARD
+	SECTION( "Roll+ (ROLL RIGHT)" )
 	{
 		component.rotation.roll = glm::radians( 90.0f );
 
@@ -89,10 +93,11 @@ TEST_CASE( "Transform rotations", "[transform][rotation]" )
 		CAPTURE( rotated_point.x );
 		CAPTURE( rotated_point.y );
 		CAPTURE( rotated_point.z );
-		REQUIRE( glm::dot( rotated_point, constants::WORLD_UP ) > 0.99f );
+		REQUIRE( glm::dot( rotated_point, constants::WORLD_DOWN ) > 0.99f );
 	}
 
-	SECTION( "Roll- (BACKWARD)" )
+	//Tests behaviour that a point from WORLD_RIGHT should end up WORLD_UP when rolled -90 degrees
+	SECTION( "Roll- (ROLL LEFT)" )
 	{
 		component.rotation.roll = -glm::radians( 90.0f );
 
@@ -101,6 +106,6 @@ TEST_CASE( "Transform rotations", "[transform][rotation]" )
 		CAPTURE( rotated_point.x );
 		CAPTURE( rotated_point.y );
 		CAPTURE( rotated_point.z );
-		REQUIRE( glm::dot( rotated_point, constants::WORLD_DOWN ) > 0.99f );
+		REQUIRE( glm::dot( rotated_point, constants::WORLD_UP ) > 0.99f );
 	}
 }
