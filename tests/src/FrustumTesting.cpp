@@ -30,12 +30,11 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 
 	SECTION( "Translate" )
 	{
-		glm::mat4 mat { 1.0f };
 		SECTION( "Backwards" )
 		{
+			camera.setViewYXZ( constants::WORLD_CENTER - constants::WORLD_FORWARD, Vector( 0.0f, 0.0f, 0.0f ) );
 			//Translate backwards by 1 world unit
-			mat = glm::translate( mat, glm::vec3( constants::WORLD_BACKWARD ) );
-			const auto translated_backwards { Matrix< MatrixType::ModelToWorld >( mat ) * base_frustum };
+			const auto translated_backwards { camera.getFrustumBounds() };
 
 			//Verify that during a translation the direction isn't changed
 			REQUIRE( translated_backwards.near.direction() == base_frustum.near.direction() );
@@ -59,9 +58,9 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 
 		SECTION( "Forward" )
 		{
+			camera.setViewYXZ( constants::WORLD_CENTER + constants::WORLD_FORWARD, Vector( 0.0f, 0.0f, 0.0f ) );
 			//Translate forward by 1 world unit
-			mat = glm::translate( glm::mat4( 1.0f ), glm::vec3( constants::WORLD_FORWARD ) );
-			const auto translated_forward { Matrix< MatrixType::ModelToWorld >( mat ) * base_frustum };
+			const auto translated_forward { camera.getFrustumBounds() };
 
 			//Verify that during a translation the direction isn't changed
 			REQUIRE( translated_forward.near.direction() == base_frustum.near.direction() );
@@ -75,19 +74,18 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 
 		SECTION( "Up" )
 		{
-			mat = glm::rotate( glm::mat4( 1.0f ), -glm::radians( 90.0f ), constants::WORLD_UP );
+			camera.setViewYXZ( constants::WORLD_CENTER + constants::WORLD_UP, Vector( 0.0f, 0.0f, 0.0f ) );
+			//Translate up by 1 world unit
+			const auto translated_up { camera.getFrustumBounds() };
 
-			const auto rotated_right { Matrix< MatrixType::ModelToWorld >( mat ) * base_frustum };
+			//Verify that during a translation the direction isn't changed
+			REQUIRE( translated_up.near.direction() == base_frustum.near.direction() );
 
-			REQUIRE( rotated_right.near.direction().x == constants::WORLD_RIGHT.x );
-			REQUIRE( rotated_right.near.direction().y < 0.000001f ); // Precision issues. However it's VERY close to 0
+			REQUIRE( translated_up.near.direction() == constants::WORLD_FORWARD );
+			REQUIRE( translated_up.near.distance() == constants::NEAR_PLANE );
 
-			REQUIRE( rotated_right.near.distance() == constants::NEAR_PLANE );
-
-			REQUIRE( rotated_right.far.direction().x == constants::WORLD_LEFT.x );
-			REQUIRE( rotated_right.far.direction().y < 0.000001f ); // Precision issues. However it's VERY close to 0
-
-			REQUIRE( rotated_right.far.distance() == -constants::FAR_PLANE );
+			REQUIRE( translated_up.far.direction() == constants::WORLD_BACKWARD );
+			REQUIRE( translated_up.far.distance() == -constants::FAR_PLANE );
 		}
 	}
 
@@ -166,9 +164,6 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 
 		REQUIRE( frustum.top.distanceFrom( point ) > frustum.bottom.distanceFrom( point ) );
 	}
-
-	//Camera should be non-rotated at 0,0,0 so it should be identical
-	REQUIRE( Matrix< MatrixType::ModelToWorld > { 1.0f } * camera.getBaseFrustum() == camera.getFrustumBounds() );
 
 	SECTION( "Rotations" )
 	{
