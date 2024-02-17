@@ -10,6 +10,7 @@ using namespace fgl::engine;
 
 TEST_CASE( "BoundingBox", "[boundingbox]" )
 {
+	SECTION( "Combine test" )
 	{
 		std::vector< Coordinate< CoordinateSpace::Model > > model_points {};
 
@@ -50,6 +51,7 @@ TEST_CASE( "BoundingBox", "[boundingbox]" )
 		}
 	}
 
+#ifdef FGL_ENABLE_BENCHMARKS
 	BENCHMARK( "Combine bounding box" )
 	{
 		auto generatePoints = []()
@@ -89,4 +91,5 @@ TEST_CASE( "BoundingBox", "[boundingbox]" )
 
 		return model_box;
 	};
+#endif
 }

@@ -125,10 +125,6 @@ namespace fgl::engine
 		const auto yp { xp_yp_zp.y };
 		const auto zp { xp_yp_zp.z };
 
-		assert( xp > xn );
-		assert( yp > yn );
-		assert( zp > zn );
-
 		//Top
 		const glm::vec3 xn_yp_zp { xn, yp, zp }; // (- + +)
 		const glm::vec3 xn_yp_zn { xn, yp, zn }; // (- + -)

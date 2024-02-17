@@ -40,9 +40,16 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 			//Verify that during a translation the direction isn't changed
 			REQUIRE( translated_backwards.near.direction() == base_frustum.near.direction() );
 
+			const glm::vec3 target_near { ( constants::WORLD_FORWARD * constants::NEAR_PLANE )
+				                          - constants::WORLD_FORWARD };
+			const glm::vec3 target_far { ( constants::WORLD_FORWARD * constants::FAR_PLANE )
+				                         - constants::WORLD_FORWARD };
+
+			REQUIRE( translated_backwards.near.getPosition() == glm::vec3 { target_near } );
 			REQUIRE( translated_backwards.near.direction() == constants::WORLD_FORWARD );
 			REQUIRE( translated_backwards.near.distance() == constants::NEAR_PLANE - 1.0f );
 
+			REQUIRE( translated_backwards.far.getPosition() == target_far );
 			REQUIRE( translated_backwards.far.direction() == constants::WORLD_BACKWARD );
 			REQUIRE( translated_backwards.far.distance() == -( constants::FAR_PLANE - 1.0f ) );
 			// The distance for the far plane should be negative. Due to the fact

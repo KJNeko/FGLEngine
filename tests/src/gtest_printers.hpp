@@ -4,19 +4,17 @@
 
 #pragma once
 
-namespace glm
-{
-	inline void PrintTo( const glm::vec3& vec, ::std::ostream* os )
-	{
-		*os << "(" << vec.x << "," << vec.y << "," << vec.z << ")";
-	}
+#include <catch2/catch_tostring.hpp>
 
-} // namespace glm
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
 
-namespace fgl::engine
+namespace Catch
 {
-	inline void PrintTo( const Vector& vec, ::std::ostream* os )
+	template <>
+	struct StringMaker< const glm::vec3 >
 	{
-		glm::PrintTo( static_cast< glm::vec3 >( vec ), os );
-	}
-} // namespace fgl::engine
+		static std::string convert( glm::vec3 const & val ) { return glm::to_string( val ); }
+	};
+
+} // namespace Catch

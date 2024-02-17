@@ -9,12 +9,6 @@
 
 using namespace fgl::engine;
 
-std::ostream& operator<<( std::ostream& os, const glm::vec3 vec )
-{
-	os << "X: " << vec.x << " Y: " << vec.y << " Z: " << vec.z;
-	return os;
-}
-
 TEST_CASE( "Transform", "[transform][rotation][translation]" )
 {
 	TransformComponent component;

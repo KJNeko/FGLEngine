@@ -22,9 +22,6 @@ namespace fgl::engine::debug
 		ZoneScoped;
 		const ImVec2 window_size { windowSize() };
 
-		world_point.z = -world_point.z;
-		world_point.x = -world_point.x;
-
 		return Coordinate< CoordinateSpace::Screen >( glm::project(
 			static_cast< glm::vec3 >( world_point ),
 			glm::mat4( 1.0f ),
