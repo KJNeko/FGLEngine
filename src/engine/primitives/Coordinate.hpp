@@ -30,11 +30,11 @@ namespace fgl::engine
 
 	  public:
 
-		float& up() { return y; }
+		float& up() { return z; }
 
 		float& right() { return x; }
 
-		float& forward() { return z; }
+		float& forward() { return y; }
 
 		Coordinate() : glm::vec3( constants::DEFAULT_VEC3 ) {}
 

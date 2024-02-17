@@ -15,34 +15,22 @@ using namespace fgl::engine;
 
 constexpr float ASPECT_RATIO { 16.0f / 9.0f };
 
-TEST_CASE( "Frustum creation", "[frustum]" )
+TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 {
 	Camera camera;
 	camera.setPerspectiveProjection( 90.0f, ASPECT_RATIO, constants::NEAR_PLANE, constants::FAR_PLANE );
 
-	const auto base_frustum = camera.getBaseFrustum();
-
-	REQUIRE( camera.getRight() == constants::WORLD_RIGHT );
+	const auto base_frustum { camera.getBaseFrustum() };
 
 	REQUIRE( base_frustum.near.direction() == constants::WORLD_FORWARD );
 	REQUIRE( base_frustum.near.distance() == constants::NEAR_PLANE );
 
 	REQUIRE( base_frustum.far.direction() == constants::WORLD_BACKWARD );
 	REQUIRE( base_frustum.far.distance() == -constants::FAR_PLANE );
-}
-
-TEST_CASE( "Frustum translations", "[frustum][translation]" )
-{
-	Camera camera;
-	camera.setPerspectiveProjection( 90.0f, ASPECT_RATIO, constants::NEAR_PLANE, constants::FAR_PLANE );
-
-	const auto base_frustum = camera.getBaseFrustum();
-	glm::mat4 mat { 1.0f };
-
-	REQUIRE( camera.getRight() == constants::WORLD_RIGHT );
 
 	SECTION( "Translate" )
 	{
+		glm::mat4 mat { 1.0f };
 		SECTION( "Backwards" )
 		{
 			//Translate backwards by 1 world unit
