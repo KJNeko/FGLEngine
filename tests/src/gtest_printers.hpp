@@ -30,6 +30,7 @@ namespace Catch
 
 } // namespace Catch
 
+#ifndef NDEBUG
 namespace glm
 {
 	inline bool operator==( const glm::vec3& lhs, const glm::vec3& rhs )
@@ -38,3 +39,6 @@ namespace glm
 	}
 
 } // namespace glm
+#else
+#warning "Debug mode not enabled. Tests will pass when checking for floating point equality."
+#endif

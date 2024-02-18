@@ -66,6 +66,23 @@ TEST_CASE( "Camera", "[camera]" )
 
 	SECTION( "Camera projection test - Perspective" )
 	{
+		WHEN( "Camera is rotated" )
+		{
+			float x_gen { GENERATE( 0.0f, 90.0f, 180.0f, 270.0f ) };
+			float y_gen { GENERATE( 0.0f, 90.0f, 180.0f, 270.0f ) };
+			float z_gen { GENERATE( 0.0f, 90.0f, 180.0f, 270.0f ) };
+
+			const Rotation rotation { x_gen, y_gen, z_gen };
+
+			camera.setViewYXZ( constants::WORLD_RIGHT, rotation );
+
+			THEN( "Camera translation should not change" )
+			{
+				const Coordinate< CoordinateSpace::World > position { camera.getPosition() };
+				REQUIRE( position == constants::WORLD_RIGHT );
+			}
+		}
+
 		WHEN( "Camera is translated right by WORLD_RIGHT" )
 		{
 			camera.setViewYXZ( constants::WORLD_CENTER + constants::WORLD_RIGHT, Rotation( 0.0f ) );

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <glm/gtc/epsilon.hpp>
 
 #include <ostream>
 
@@ -65,6 +66,18 @@ namespace fgl::engine
 			glm::vec3::operator=( other );
 			return *this;
 		}
+
+#ifndef NDEBUG
+		bool operator==( const Coordinate& other ) const { return *this == static_cast< glm::vec3 >( other ); }
+
+		bool operator==( const glm::vec3 other ) const
+		{
+			const auto diff { glm::abs( static_cast< glm::vec3 >( *this ) - other ) };
+			return glm::all( glm::lessThanEqual( diff, glm::vec3( constants::EPSILON ) ) );
+			//These should have the same behaviour. I'm kind of confused why they don't?
+			//return glm::all( glm::epsilonEqual( static_cast< glm::vec3 >( *this ), other, constants::EPSILON ) );
+		}
+#endif
 	};
 
 	using ModelCoordinate = Coordinate< CoordinateSpace::Model >;
