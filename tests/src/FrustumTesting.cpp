@@ -66,30 +66,48 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 			}
 		}
 
-		SECTION( "Forward" )
+		WHEN( "Translated Forward" )
 		{
 			camera.setViewYXZ( constants::WORLD_CENTER + constants::WORLD_FORWARD, Rotation( 0.0f, 0.0f, 0.0f ) );
 			//Translate forward by 1 world unit
 			const auto translated_forward { camera.getFrustumBounds() };
 
-			//Verify that during a translation the direction isn't changed
-			REQUIRE( translated_forward.near.direction() == base_frustum.near.direction() );
+			THEN( "Direction is the same" )
+			{
+				//Verify that during a translation the direction isn't changed
+				REQUIRE( translated_forward.near.direction() == base_frustum.near.direction() );
+			}
 
-			REQUIRE( translated_forward.near.direction() == constants::WORLD_FORWARD );
-			REQUIRE( translated_forward.near.distance() == constants::NEAR_PLANE + 1.0f );
+			THEN( "The near plane should be translated backwards" )
+			{
+				REQUIRE( translated_forward.near.direction() == constants::WORLD_FORWARD );
+				REQUIRE( translated_forward.near.distance() == constants::NEAR_PLANE + 1.0f );
+				REQUIRE(
+					translated_forward.near.getPosition()
+					== ( constants::WORLD_FORWARD * ( constants::NEAR_PLANE + 1.0f ) ) );
+			}
 
-			REQUIRE( translated_forward.far.direction() == constants::WORLD_BACKWARD );
-			REQUIRE( translated_forward.far.distance() == -( constants::FAR_PLANE + 1.0f ) );
+			THEN( "The far plane should be translated backwards" )
+			{
+				REQUIRE( translated_forward.far.direction() == constants::WORLD_BACKWARD );
+				REQUIRE( translated_forward.far.distance() == -( constants::FAR_PLANE + 1.0f ) );
+				REQUIRE(
+					translated_forward.far.getPosition()
+					== ( constants::WORLD_FORWARD * ( constants::FAR_PLANE + 1.0f ) ) );
+			}
 		}
 
-		SECTION( "Up" )
+		WHEN( "Translated Up" )
 		{
 			camera.setViewYXZ( constants::WORLD_CENTER + constants::WORLD_UP, Rotation( 0.0f, 0.0f, 0.0f ) );
 			//Translate up by 1 world unit
 			const auto translated_up { camera.getFrustumBounds() };
 
-			//Verify that during a translation the direction isn't changed
-			REQUIRE( translated_up.near.direction() == base_frustum.near.direction() );
+			THEN( "Direction is the same" )
+			{
+				//Verify that during a translation the direction isn't changed
+				REQUIRE( translated_up.near.direction() == base_frustum.near.direction() );
+			}
 
 			REQUIRE( translated_up.near.direction() == constants::WORLD_FORWARD );
 			REQUIRE( translated_up.near.distance() == constants::NEAR_PLANE );

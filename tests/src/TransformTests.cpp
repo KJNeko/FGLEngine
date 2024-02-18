@@ -9,11 +9,6 @@
 
 using namespace fgl::engine;
 
-bool epsilonEqual( const float a, const float b )
-{
-	return std::abs( a - b ) <= std::numeric_limits< float >::epsilon();
-}
-
 TEST_CASE( "Transform", "[transform][rotation][translation]" )
 {
 	TransformComponent component;

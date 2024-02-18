@@ -244,7 +244,8 @@ namespace fgl::engine
 		ZoneScoped;
 
 		//Flip Z due to the fact we use Z+ outside of this function. It must be Z- inside
-		position.z = -position.z;
+		//position.z = -position.z;
+		// Maybe unneeded?
 
 		switch ( mode )
 		{

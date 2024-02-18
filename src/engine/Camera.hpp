@@ -79,13 +79,13 @@ namespace fgl::engine
 		const Vector getUp() const
 		{
 			return Vector(
-				glm::normalize( glm::vec3( view_matrix[ 0 ][ 1 ], view_matrix[ 1 ][ 1 ], view_matrix[ 2 ][ 1 ] ) ) );
+				glm::normalize( -glm::vec3( view_matrix[ 0 ][ 1 ], view_matrix[ 1 ][ 1 ], view_matrix[ 2 ][ 1 ] ) ) );
 		}
 
 		const Vector getRight() const
 		{
 			return Vector(
-				glm::normalize( glm::vec3( -view_matrix[ 0 ][ 0 ], view_matrix[ 1 ][ 0 ], view_matrix[ 2 ][ 0 ] ) ) );
+				glm::normalize( glm::vec3( view_matrix[ 0 ][ 0 ], view_matrix[ 1 ][ 0 ], view_matrix[ 2 ][ 0 ] ) ) );
 		}
 
 		const Vector getForward() const
