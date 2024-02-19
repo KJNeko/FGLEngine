@@ -32,6 +32,8 @@ TEST_CASE( "Camera", "[camera]" )
 	{
 		camera.setView( constants::WORLD_CENTER, Rotation( 0.0f ) );
 
+		CAPTURE( camera.view_matrix );
+
 		THEN( "Camera up is WORLD_UP" )
 		{
 			const auto camera_up { camera.getUp() };
@@ -124,6 +126,48 @@ TEST_CASE( "Camera", "[camera]" )
 			}
 		}
 
+		WHEN( "Camera is translated left by WORLD_LEFT" )
+		{
+			camera.setView( constants::WORLD_CENTER + constants::WORLD_LEFT, Rotation( 0.0f ) );
+
+			THEN( "camera.getPosition() should be WORLD_UP" )
+			{
+				REQUIRE( camera.getPosition() == constants::WORLD_LEFT );
+			}
+
+			THEN( "A point at the origin should be translated to the right" )
+			{
+				const auto matrix { camera.getProjectionViewMatrix() };
+				const glm::vec3 point { matrix * glm::vec4( constants::WORLD_CENTER, 1.0f ) };
+
+				CAPTURE( point );
+
+				REQUIRE( point.x > 0.0f );
+				REQUIRE( point.y == 0.0f );
+			}
+		}
+
+		WHEN( "Camera is translated down by WORLD_DOWN " )
+		{
+			camera.setView( constants::WORLD_CENTER + constants::WORLD_DOWN, Rotation( 0.0f ) );
+
+			THEN( "camera.getPosition() should be WORLD_DOWN" )
+			{
+				REQUIRE( camera.getPosition() == constants::WORLD_DOWN );
+			}
+
+			THEN( "A point at the origin must be translated up" )
+			{
+				const auto matrix { camera.getProjectionViewMatrix() };
+				const glm::vec3 point { matrix * glm::vec4( constants::WORLD_CENTER, 1.0f ) };
+
+				CAPTURE( point );
+
+				REQUIRE( point.x == 0.0f );
+				REQUIRE( point.y > 0.0f );
+			}
+		}
+
 		WHEN( "Camera is translated up by WORLD_UP" )
 		{
 			camera.setView( constants::WORLD_CENTER + constants::WORLD_UP, Rotation( 0.0f ) );
@@ -161,8 +205,11 @@ TEST_CASE( "Camera", "[camera]" )
 				const auto matrix { camera.getProjectionViewMatrix() };
 				const auto point { matrix * glm::vec4( constants::WORLD_CENTER, 1.0f ) };
 
+				CAPTURE( point );
+
 				REQUIRE( point.x <= 0.0f );
 				REQUIRE( point.y <= 0.0f );
+				REQUIRE( point.z < 0.0f );
 			}
 		}
 	}

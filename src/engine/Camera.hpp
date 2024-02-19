@@ -83,9 +83,9 @@ namespace fgl::engine
 			return WorldCoordinate( glm::inverse( view_matrix )[ 3 ] );
 		}
 
-		const Vector getUp() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 1 ] ) ) ); }
+		const Vector getUp() const { return -getDown(); }
 
-		const Vector getRight() const { return -Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 0 ] ) ) ); }
+		const Vector getRight() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 0 ] ) ) ); }
 
 		const Vector getForward() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 2 ] ) ) ); }
 
@@ -93,7 +93,7 @@ namespace fgl::engine
 
 		const Vector getBackward() const { return -getForward(); }
 
-		const Vector getDown() const { return -getUp(); }
+		const Vector getDown() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 1 ] ) ) ); }
 
 		void setViewDirection( glm::vec3 pos, const Vector direction, glm::vec3 up = constants::WORLD_UP );
 		void setViewTarget( glm::vec3 pos, glm::vec3 target, glm::vec3 up = constants::WORLD_UP );

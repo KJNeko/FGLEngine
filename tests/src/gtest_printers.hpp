@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+#include "engine/primitives/Matrix.hpp"
 #include "engine/primitives/Rotation.hpp"
 #include "engine/primitives/Vector.hpp"
 
@@ -45,6 +46,15 @@ namespace Catch
 		{
 			return "\n\t" + glm::to_string( mat[ 0 ] ) + "\n\t" + glm::to_string( mat[ 1 ] ) + "\n\t"
 			     + glm::to_string( mat[ 2 ] ) + "\n\t" + glm::to_string( mat[ 3 ] );
+		}
+	};
+
+	template < fgl::engine::MatrixType MType >
+	struct StringMaker< fgl::engine::Matrix< MType > >
+	{
+		static std::string convert( const fgl::engine::Matrix< MType >& mat )
+		{
+			return StringMaker< glm::mat4 >::convert( static_cast< glm::mat4 >( mat ) );
 		}
 	};
 

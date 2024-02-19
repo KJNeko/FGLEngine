@@ -64,7 +64,8 @@ namespace fgl::engine
 
 					const glm::vec3 camera_up { rotation_matrix * glm::vec4( constants::WORLD_UP, 0.0f ) };
 
-					view_matrix = Matrix< MatrixType::WorldToCamera >( glm::lookAtLH( pos, pos + forward, camera_up ) );
+					view_matrix =
+						Matrix< MatrixType::WorldToCamera >( glm::lookAtLH( pos, pos + forward, -camera_up ) );
 					inverse_view_matrix = glm::inverse( view_matrix );
 
 					break;
