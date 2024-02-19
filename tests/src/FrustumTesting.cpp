@@ -32,7 +32,7 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 	{
 		WHEN( "Translated backwards" )
 		{
-			camera.setViewYXZ( constants::WORLD_CENTER - constants::WORLD_FORWARD, Rotation( 0.0f, 0.0f, 0.0f ) );
+			camera.setView( constants::WORLD_CENTER - constants::WORLD_FORWARD, Rotation( 0.0f, 0.0f, 0.0f ) );
 			//Translate backwards by 1 world unit
 			const auto translated_backwards { camera.getFrustumBounds() };
 
@@ -68,7 +68,7 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 
 		WHEN( "Translated Forward" )
 		{
-			camera.setViewYXZ( constants::WORLD_CENTER + constants::WORLD_FORWARD, Rotation( 0.0f, 0.0f, 0.0f ) );
+			camera.setView( constants::WORLD_CENTER + constants::WORLD_FORWARD, Rotation( 0.0f, 0.0f, 0.0f ) );
 			//Translate forward by 1 world unit
 			const auto translated_forward { camera.getFrustumBounds() };
 
@@ -99,7 +99,7 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 
 		WHEN( "Translated Up" )
 		{
-			camera.setViewYXZ( constants::WORLD_CENTER + constants::WORLD_UP, Rotation( 0.0f, 0.0f, 0.0f ) );
+			camera.setView( constants::WORLD_CENTER + constants::WORLD_UP, Rotation( 0.0f, 0.0f, 0.0f ) );
 			//Translate up by 1 world unit
 			const auto translated_up { camera.getFrustumBounds() };
 
@@ -199,9 +199,9 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 		SECTION( "Pitch" )
 		{
 			Rotation rotation { 0.0f, 0.0f, 0.0f };
-			rotation.pitch -= glm::radians( 90.0f );
+			rotation.pitch() -= glm::radians( 90.0f );
 
-			camera.setViewYXZ( constants::CENTER, rotation );
+			camera.setView( constants::CENTER, rotation );
 
 			const auto rotated_frustum = camera.getFrustumBounds();
 
@@ -211,9 +211,8 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 			//NEAR should be looking down or approaching
 			//FAR should be looking up or away
 
-			//TODO: Rewrite these equals to allow for some mild precission errors
-			//REQUIRE( rotated_frustum.near.direction(), constants::WORLD_DOWN );
-			//REQUIRE( rotated_frustum.far.direction(), constants::WORLD_UP );
+			REQUIRE( rotated_frustum.near.direction() == constants::WORLD_DOWN );
+			REQUIRE( rotated_frustum.far.direction() == constants::WORLD_UP );
 
 			REQUIRE( rotated_frustum.near.distanceFrom( point ) > 0.0f );
 			REQUIRE( rotated_frustum.far.distanceFrom( point ) > 0.0f );
@@ -230,9 +229,9 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 		SECTION( "Yaw" )
 		{
 			Rotation rotation { 0.0f, 0.0f, 0.0f };
-			rotation.yaw += glm::radians( 90.0f );
+			rotation.yaw() += glm::radians( 90.0f );
 
-			camera.setViewYXZ( constants::CENTER, rotation );
+			camera.setView( constants::CENTER, rotation );
 
 			const auto rotated_frustum = camera.getFrustumBounds();
 
@@ -262,9 +261,9 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 		SECTION( "Roll" )
 		{
 			Rotation rotation { 0.0f, 0.0f, 0.0f };
-			rotation.roll -= glm::radians( 90.0f );
+			rotation.roll() -= glm::radians( 90.0f );
 
-			camera.setViewYXZ( constants::CENTER, rotation );
+			camera.setView( constants::CENTER, rotation );
 
 			const auto rotated_frustum = camera.getFrustumBounds();
 

@@ -32,7 +32,7 @@ namespace fgl::engine
 	glm::vec3 Rotation::forward() const
 	{
 		//TODO: Figure out how to do this with Z axis bullshit
-		return glm::vec3 { glm::sin( yaw ), glm::cos( yaw ), 0.0f };
+		return glm::vec3 { glm::sin( yaw() ), glm::cos( yaw() ), 0.0f };
 	}
 
 	glm::vec3 Rotation::backwards() const

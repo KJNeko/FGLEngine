@@ -4,6 +4,8 @@
 
 #include <catch2/catch_all.hpp>
 
+#include <iostream>
+
 #define EXPOSE_CAMERA_INTERNAL
 #include "engine/Camera.hpp"
 #include "gtest_printers.hpp"
@@ -26,41 +28,48 @@ TEST_CASE( "Camera", "[camera]" )
 
 	camera.setPerspectiveProjection( 90.0f, 1.0f, constants::NEAR_PLANE, constants::FAR_PLANE );
 
-	SECTION( "Default orientation" )
+	WHEN( "Camera is it's default orientation" )
 	{
-		const auto camera_up { camera.getUp() };
-		REQUIRE( camera_up == constants::WORLD_UP );
+		camera.setView( constants::WORLD_CENTER, Rotation( 0.0f ) );
 
-		const auto camera_forward { camera.getForward() };
-		REQUIRE( camera_forward == constants::WORLD_FORWARD );
+		THEN( "Camera up is WORLD_UP" )
+		{
+			const auto camera_up { camera.getUp() };
+			REQUIRE( camera_up == constants::WORLD_UP );
+		}
 
-		const auto camera_right { camera.getRight() };
-		REQUIRE( camera_right == constants::WORLD_RIGHT );
+		THEN( "Camera right is WORLD_RIGHT" )
+		{
+			const auto camera_right { camera.getRight() };
+			REQUIRE( camera_right == constants::WORLD_RIGHT );
+		}
+
+		THEN( "Camera forward is WORLD_FORWARD" )
+		{
+			const auto camera_forward { camera.getForward() };
+			REQUIRE( camera_forward == constants::WORLD_FORWARD );
+		}
 	}
 
 	SECTION( "Rotations" )
 	{
 		Rotation rotation_vec { 0.0f };
-		SECTION( "Yaw+ (Right)" )
+		WHEN( "Camera is rotated +90 Yaw" )
 		{
-			rotation_vec.yaw = glm::radians( 90.0f );
-			camera.setViewYXZ( constants::WORLD_CENTER, rotation_vec );
+			rotation_vec.yaw() = glm::radians( 90.0f );
+			camera.setView( constants::WORLD_CENTER, rotation_vec );
 			const auto camera_forward { camera.getForward() };
 
-			REQUIRE( camera_forward.x == constants::WORLD_LEFT.x );
-			REQUIRE( camera_forward.y <= std::numeric_limits< float >::epsilon() );
-			REQUIRE( camera_forward.z <= std::numeric_limits< float >::epsilon() );
+			REQUIRE( camera_forward == constants::WORLD_RIGHT );
 		}
 
-		SECTION( "Yaw- (Left)" )
+		WHEN( "Camera is rotated -90 Yaw" )
 		{
-			rotation_vec.yaw = glm::radians( -90.0f );
-			camera.setViewYXZ( constants::WORLD_CENTER, rotation_vec );
+			rotation_vec.yaw() = glm::radians( -90.0f );
+			camera.setView( constants::WORLD_CENTER, rotation_vec );
 			const auto camera_forward { camera.getForward() };
 
-			REQUIRE( camera_forward.x == constants::WORLD_RIGHT.x );
-			REQUIRE( camera_forward.y <= std::numeric_limits< float >::epsilon() );
-			REQUIRE( camera_forward.z <= std::numeric_limits< float >::epsilon() );
+			REQUIRE( camera_forward == constants::WORLD_LEFT );
 		}
 	}
 
@@ -74,7 +83,7 @@ TEST_CASE( "Camera", "[camera]" )
 
 			const Rotation rotation { x_gen, y_gen, z_gen };
 
-			camera.setViewYXZ( constants::WORLD_RIGHT, rotation );
+			camera.setView( constants::WORLD_RIGHT, rotation );
 
 			THEN( "Camera translation should not change" )
 			{
@@ -85,7 +94,7 @@ TEST_CASE( "Camera", "[camera]" )
 
 		WHEN( "Camera is translated right by WORLD_RIGHT" )
 		{
-			camera.setViewYXZ( constants::WORLD_CENTER + constants::WORLD_RIGHT, Rotation( 0.0f ) );
+			camera.setView( constants::WORLD_CENTER + constants::WORLD_RIGHT, Rotation( 0.0f ) );
 
 			THEN( "camera.getPosition() should be WORLD_RIGHT" )
 			{
@@ -95,17 +104,29 @@ TEST_CASE( "Camera", "[camera]" )
 
 			THEN( "A point at the origin should be translated to the left" )
 			{
-				const auto matrix { camera.getProjectionViewMatrix() };
-				const auto point { matrix * glm::vec4( constants::WORLD_CENTER, 1.0f ) };
+				const glm::mat4 combined_matrix { camera.getProjectionViewMatrix() };
 
-				REQUIRE( point.x < 0.0f );
-				REQUIRE( point.y == 0.0f );
+				const glm::vec3 point { constants::WORLD_CENTER };
+
+				const glm::vec3 translated_point { combined_matrix * glm::vec4( point, 1.0f ) };
+
+				const auto projection_matrix { static_cast< glm::mat4 >( camera.getProjectionMatrix() ) };
+				const auto view_matrix { static_cast< glm::mat4 >( camera.getViewMatrix() ) };
+
+				CAPTURE( point );
+				CAPTURE( projection_matrix );
+				CAPTURE( view_matrix );
+				CAPTURE( combined_matrix );
+				CAPTURE( translated_point );
+
+				REQUIRE( translated_point.x < 0.0f );
+				REQUIRE( translated_point.y == 0.0f );
 			}
 		}
 
 		WHEN( "Camera is translated up by WORLD_UP" )
 		{
-			camera.setViewYXZ( constants::WORLD_CENTER + constants::WORLD_UP, Rotation( 0.0f ) );
+			camera.setView( constants::WORLD_CENTER + constants::WORLD_UP, Rotation( 0.0f ) );
 
 			THEN( "camera.getPosition() should be WORLD_UP" )
 			{
@@ -116,7 +137,9 @@ TEST_CASE( "Camera", "[camera]" )
 			THEN( "A point at the origin should be translated down" )
 			{
 				const auto matrix { camera.getProjectionViewMatrix() };
-				const auto point { matrix * glm::vec4( constants::WORLD_CENTER, 1.0f ) };
+				const glm::vec3 point { matrix * glm::vec4( constants::WORLD_CENTER, 1.0f ) };
+
+				CAPTURE( point );
 
 				REQUIRE( point.x == 0.0f );
 				REQUIRE( point.y < 0.0f );
@@ -125,7 +148,7 @@ TEST_CASE( "Camera", "[camera]" )
 
 		WHEN( "Camera is translated forward by WORLD_FORWARD" )
 		{
-			camera.setViewYXZ( constants::WORLD_CENTER + constants::WORLD_FORWARD, Rotation( 0.0f ) );
+			camera.setView( constants::WORLD_CENTER + constants::WORLD_FORWARD, Rotation( 0.0f ) );
 
 			THEN( "camera.getPosition() should be WORLD_FORWARD" )
 			{

@@ -32,6 +32,7 @@ namespace fgl::engine
 		Matrix< MatrixType::CameraToScreen > projection_matrix { 1.0f };
 
 		Matrix< MatrixType::WorldToCamera > view_matrix { 1.0f };
+		glm::mat4 inverse_view_matrix { 1.0f };
 
 		//! Frustum of the camera in model space relative to the camera
 		//! @note Must be transformed by the inverse view matrix to get the frustum in world space
@@ -52,7 +53,7 @@ namespace fgl::engine
 		Camera()
 		{
 			setPerspectiveProjection( 90.0f, 16.0f / 9.0f, constants::NEAR_PLANE, constants::FAR_PLANE );
-			setViewYXZ( constants::CENTER, Rotation( 0.0f, 0.0f, 0.0f ) );
+			setView( constants::CENTER, Rotation( 0.0f, 0.0f, 0.0f ) );
 		}
 
 		WorldCoordinate getFrustumPosition() const;
@@ -71,6 +72,8 @@ namespace fgl::engine
 			return projection_matrix * view_matrix;
 		}
 
+		const glm::mat4 getInverseViewMatrix() const { return glm::inverse( view_matrix ); }
+
 		void setOrthographicProjection( float left, float right, float top, float bottom, float near, float far );
 		void setPerspectiveProjection( float fovy, float aspect, float near, float far );
 
@@ -80,23 +83,11 @@ namespace fgl::engine
 			return WorldCoordinate( glm::inverse( view_matrix )[ 3 ] );
 		}
 
-		const Vector getUp() const
-		{
-			return Vector(
-				glm::normalize( glm::vec3( view_matrix[ 0 ][ 1 ], view_matrix[ 1 ][ 1 ], view_matrix[ 2 ][ 1 ] ) ) );
-		}
+		const Vector getUp() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 1 ] ) ) ); }
 
-		const Vector getRight() const
-		{
-			return Vector(
-				glm::normalize( -glm::vec3( view_matrix[ 0 ][ 0 ], view_matrix[ 1 ][ 0 ], view_matrix[ 2 ][ 0 ] ) ) );
-		}
+		const Vector getRight() const { return -Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 0 ] ) ) ); }
 
-		const Vector getForward() const
-		{
-			return Vector(
-				glm::normalize( glm::vec3( view_matrix[ 0 ][ 2 ], view_matrix[ 1 ][ 2 ], view_matrix[ 2 ][ 2 ] ) ) );
-		}
+		const Vector getForward() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 2 ] ) ) ); }
 
 		const Vector getLeft() const { return -getRight(); }
 
@@ -113,7 +104,7 @@ namespace fgl::engine
 			TaitBryan
 		};
 
-		void setViewYXZ( glm::vec3 pos, const Rotation rotation, const ViewMode mode = TaitBryan );
+		void setView( glm::vec3 pos, const Rotation rotation, const ViewMode mode = TaitBryan );
 	};
 
 } // namespace fgl::engine

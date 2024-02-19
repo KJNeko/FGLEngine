@@ -10,9 +10,17 @@ namespace fgl::engine
 {
 	struct Rotation : public glm::vec3
 	{
-		float& pitch { x };
-		float& roll { y };
-		float& yaw { z };
+		float& pitch() { return x; }
+
+		float pitch() const { return x; }
+
+		float& roll() { return y; }
+
+		float roll() const { return z; }
+
+		float& yaw() { return z; }
+
+		float yaw() const { return z; }
 
 		Rotation();
 

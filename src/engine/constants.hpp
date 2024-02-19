@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 
 namespace fgl::engine::constants
@@ -32,5 +33,9 @@ namespace fgl::engine::constants
 	constexpr glm::vec3 CENTER { 0.0f, 0.0f, 0.0f };
 
 	constexpr auto EPSILON { std::numeric_limits< float >::epsilon() * 2 };
+
+	constexpr auto FRUSTUM_ORIGIN { constants::WORLD_CENTER };
+
+	constexpr glm::mat4 MAT4_IDENTITY { 1.0f };
 
 } // namespace fgl::engine::constants

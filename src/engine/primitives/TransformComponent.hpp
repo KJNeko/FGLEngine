@@ -23,8 +23,6 @@ namespace fgl::engine
 		glm::mat4 mat4() const;
 
 		inline Matrix< MatrixType::ModelToWorld > mat() const { return Matrix< MatrixType::ModelToWorld >( mat4() ); }
-
-		glm::mat3 normalMatrix() const;
 	};
 
 } // namespace fgl::engine

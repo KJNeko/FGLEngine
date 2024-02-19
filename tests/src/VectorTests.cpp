@@ -10,19 +10,6 @@
 
 using namespace fgl::engine;
 
-namespace Catch
-{
-	template <>
-	struct StringMaker< Rotation >
-	{
-		static std::string convert( const Rotation& value )
-		{
-			return StringMaker< glm::vec3 >::convert( static_cast< glm::vec3 >( value ) );
-		}
-	};
-
-} // namespace Catch
-
 TEST_CASE( "Vector", "[vector][transforms]" )
 {
 	WHEN( "Vector is default constructed" )
@@ -48,7 +35,7 @@ TEST_CASE( "Vector", "[vector][transforms]" )
 
 		//Rotate by 90 degrees on yaw
 		TransformComponent transform;
-		transform.rotation.yaw += glm::radians( 90.0f );
+		transform.rotation.yaw() += glm::radians( 90.0f );
 
 		const Vector value { transform.mat() * rotation_vec };
 
@@ -64,7 +51,7 @@ TEST_CASE( "Vector", "[vector][transforms]" )
 
 		//Rotate by 90 degrees on yaw
 		TransformComponent transform;
-		transform.rotation.yaw += glm::radians( -90.0f );
+		transform.rotation.yaw() += glm::radians( -90.0f );
 
 		const Vector value { transform.mat() * rotation_vec };
 
@@ -82,15 +69,15 @@ TEST_CASE( "Rotation", "[vector][transforms]" )
 		Rotation rot {};
 		THEN( "Yaw should be 0.0f" )
 		{
-			REQUIRE( rot.yaw == 0.0f );
+			REQUIRE( rot.yaw() == 0.0f );
 		}
 		THEN( "Pitch should be 0.0f" )
 		{
-			REQUIRE( rot.pitch == 0.0f );
+			REQUIRE( rot.pitch() == 0.0f );
 		}
 		THEN( "Roll should be 0.0f" )
 		{
-			REQUIRE( rot.roll == 0.0f );
+			REQUIRE( rot.roll() == 0.0f );
 		}
 
 		THEN( "Forward should be WORLD_FORWARD" )

@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+#include "engine/primitives/Rotation.hpp"
 #include "engine/primitives/Vector.hpp"
 
 namespace Catch
@@ -25,6 +26,25 @@ namespace Catch
 		static std::string convert( const fgl::engine::Vector& vec )
 		{
 			return StringMaker< glm::vec3 >::convert( static_cast< glm::vec3 >( vec ) );
+		}
+	};
+
+	template <>
+	struct StringMaker< fgl::engine::Rotation >
+	{
+		static std::string convert( const fgl::engine::Rotation& rot )
+		{
+			return StringMaker< glm::vec3 >::convert( static_cast< glm::vec3 >( rot ) );
+		}
+	};
+
+	template <>
+	struct StringMaker< glm::mat4 >
+	{
+		static std::string convert( const glm::mat4& mat )
+		{
+			return "\n\t" + glm::to_string( mat[ 0 ] ) + "\n\t" + glm::to_string( mat[ 1 ] ) + "\n\t"
+			     + glm::to_string( mat[ 2 ] ) + "\n\t" + glm::to_string( mat[ 3 ] );
 		}
 	};
 

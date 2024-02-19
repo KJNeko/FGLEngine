@@ -147,7 +147,7 @@ namespace fgl::engine
 			}
 
 			camera_controller.moveInPlaneXZ( m_window.window(), delta_time, viewer );
-			camera.setViewYXZ( viewer.transform.translation, viewer.transform.rotation );
+			camera.setView( viewer.transform.translation, viewer.transform.rotation );
 
 			{
 				constexpr WorldCoordinate center { 0.0f, 0.0f, 0.0f };

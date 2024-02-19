@@ -31,10 +31,10 @@ namespace fgl::engine
 
 		Rotation rotate { 0.0f };
 
-		if ( glfwGetKey( window, key_mappings.look_right ) == GLFW_PRESS ) rotate.yaw += 1.f;
-		if ( glfwGetKey( window, key_mappings.look_left ) == GLFW_PRESS ) rotate.yaw -= 1.f;
-		if ( glfwGetKey( window, key_mappings.look_up ) == GLFW_PRESS ) rotate.pitch += 1.f;
-		if ( glfwGetKey( window, key_mappings.look_down ) == GLFW_PRESS ) rotate.pitch -= 1.f;
+		if ( glfwGetKey( window, key_mappings.look_right ) == GLFW_PRESS ) rotate.yaw() += 1.f;
+		if ( glfwGetKey( window, key_mappings.look_left ) == GLFW_PRESS ) rotate.yaw() -= 1.f;
+		if ( glfwGetKey( window, key_mappings.look_up ) == GLFW_PRESS ) rotate.pitch() += 1.f;
+		if ( glfwGetKey( window, key_mappings.look_down ) == GLFW_PRESS ) rotate.pitch() -= 1.f;
 
 		static bool cursor_enabled { true };
 		static bool cursor_restored { false };
@@ -77,9 +77,9 @@ namespace fgl::engine
 			const auto xpos { pos.x };
 			const auto ypos { pos.y };
 
-			target.transform.rotation.yaw +=
+			target.transform.rotation.yaw() +=
 				static_cast< float >( ( xpos * 0.006 ) * static_cast< double >( look_speed ) );
-			target.transform.rotation.pitch -=
+			target.transform.rotation.pitch() -=
 				static_cast< float >( ( ypos * 0.006 ) * static_cast< double >( look_speed ) );
 
 			setCursorPos( window, { 0, 0 } );
@@ -90,8 +90,8 @@ namespace fgl::engine
 			     > std::numeric_limits< float >::epsilon() )
 				target.transform.rotation += look_speed * dt * glm::normalize( rotate );
 
-			target.transform.rotation.pitch = glm::clamp( target.transform.rotation.pitch, -1.5f, 1.5f );
-			target.transform.rotation.yaw = glm::mod( target.transform.rotation.yaw, glm::two_pi< float >() );
+			target.transform.rotation.pitch() = glm::clamp( target.transform.rotation.pitch(), -1.5f, 1.5f );
+			target.transform.rotation.yaw() = glm::mod( target.transform.rotation.yaw(), glm::two_pi< float >() );
 		}
 
 		const glm::vec3 forward_dir { target.transform.rotation.forward() };
