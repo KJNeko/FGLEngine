@@ -202,7 +202,7 @@ namespace fgl::engine
 					//Fix position to be -Z UP
 					//verts[ i ].m_position = position_data[ i ];
 					verts[ i ].m_position =
-						glm::vec3( position_data[ i ].x, position_data[ i ].y, -position_data[ i ].z );
+						glm::vec3( position_data[ i ].x, -position_data[ i ].y, position_data[ i ].z );
 					verts[ i ].m_normal = normals[ i ];
 					verts[ i ].m_uv = texcoords[ i ];
 				}
