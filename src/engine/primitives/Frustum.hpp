@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Coordinate.hpp"
+#include "Line.hpp"
 #include "Matrix.hpp"
 #include "Plane.hpp"
 
@@ -57,14 +58,18 @@ namespace fgl::engine
 			assert( near_plane.direction() != far_plane.direction() );
 		}
 
+		//! Tests if a point is inside of the frustum
 		bool pointInside( const WorldCoordinate coord ) const
 		{
 			static_assert(
 				CType == CoordinateSpace::World, "pointInside can only be called on World coordinate Frustums" );
 
-			return near.isForward( coord ) && far.isForward( coord ) && top.isForward( coord )
-			    && bottom.isForward( coord ) && right.isForward( coord ) && left.isForward( coord );
+			return far.isForward( coord ) && near.isForward( coord ) && bottom.isForward( coord )
+			    && top.isForward( coord ) && right.isForward( coord ) && left.isForward( coord );
 		}
+
+		//! Tests that a line intersects the frustum
+		bool lineIntersects( const Line< CoordinateSpace::World > line ) const;
 
 		bool operator==( const Frustum< CType >& other ) const
 		{

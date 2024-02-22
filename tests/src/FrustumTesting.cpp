@@ -120,77 +120,123 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 	const Frustum< fgl::engine::CoordinateSpace::World > frustum { Matrix< MatrixType::ModelToWorld > { 1.0f }
 		                                                           * camera.getBaseFrustum() };
 
-	SECTION( "Far up test" )
+	WHEN( "A point is above the frustum" )
 	{
-		//A point extremely far up should be in front of the bottom plane but behind the top plane
 		const WorldCoordinate far_up { constants::WORLD_UP * 1000.0f };
 
-		REQUIRE( frustum.top.distanceFrom( far_up ) < -500.0f );
-		REQUIRE( frustum.bottom.distanceFrom( far_up ) > 500.0f );
+		THEN( "The point should be outside the frustum" )
+		{
+			REQUIRE_FALSE( frustum.pointInside( far_up ) );
+		}
 
-		REQUIRE_FALSE( frustum.pointInside( far_up ) );
+		THEN( "The point should be infront of the bottom plane" )
+		{
+			REQUIRE( frustum.bottom.distanceFrom( far_up ) > 500.0f );
+		}
+
+		THEN( "The point should be behind the top plane" )
+		{
+			REQUIRE( frustum.top.distanceFrom( far_up ) < -500.0f );
+		}
 	}
 
-	SECTION( "Far down test" )
+	WHEN( "A point is below the frustum" )
 	{
-		//A point extremely far below should be in front of the top plane but behind the bottom plane
 		const WorldCoordinate far_down { constants::WORLD_DOWN * 1000.0f };
 
-		REQUIRE( frustum.top.distanceFrom( far_down ) > 500.0f );
-		REQUIRE( frustum.bottom.distanceFrom( far_down ) < -500.0f );
+		THEN( "The point should be outside the frustum" )
+		{
+			REQUIRE_FALSE( frustum.pointInside( far_down ) );
+		}
 
-		REQUIRE_FALSE( frustum.pointInside( far_down ) );
+		THEN( "The point should be infront of the top plane" )
+		{
+			REQUIRE( frustum.top.distanceFrom( far_down ) > 500.0f );
+		}
+
+		THEN( "The point should be behind the bottom plane" )
+		{
+			REQUIRE( frustum.bottom.distanceFrom( far_down ) < -500.0f );
+		}
 	}
 
 	//The point FORWARD should be in the frustum
-	SECTION( "Forward point test" )
+	WHEN( "A point infront of the frustum" )
 	{
-		const WorldCoordinate point { constants::WORLD_FORWARD * 2.0f };
+		GIVEN( "A distance of 2 units" )
+		{
+			const WorldCoordinate point { constants::WORLD_FORWARD * 2.0f };
 
-		REQUIRE( frustum.near.distanceFrom( point ) > 0.0f );
-		REQUIRE( frustum.far.distanceFrom( point ) > 0.0f );
+			THEN( "The point should be inside the frustum" )
+			{
+				REQUIRE( frustum.pointInside( point ) );
+			}
+		}
 
-		REQUIRE( frustum.top.distanceFrom( point ) > 0.0f );
-		REQUIRE( frustum.bottom.distanceFrom( point ) > 0.0f );
+		GIVEN( "A distance of 500 units" )
+		{
+			const WorldCoordinate point { constants::WORLD_FORWARD * 500.0f };
 
-		REQUIRE( frustum.right.distanceFrom( point ) > 0.0f );
-		REQUIRE( frustum.left.distanceFrom( point ) > 0.0f );
+			THEN( "The point should be behind the far plane" )
+			{
+				CAPTURE( frustum.far.distanceFrom( point ) );
+				REQUIRE( frustum.far.distanceFrom( point ) < 0.0f );
+				REQUIRE_FALSE( frustum.far.isForward( point ) );
+			}
 
-		REQUIRE( frustum.pointInside( point ) );
+			THEN( "The point should be outside the frustum" )
+			{
+				REQUIRE_FALSE( frustum.pointInside( point ) );
+			}
+		}
 	}
 
 	//A point FORWARD and 0.2 units to the left should be farther from the right plane
+	GIVEN( "A point FORWARD and 0.2 units to the left" )
 	{
 		const WorldCoordinate point { ( constants::WORLD_FORWARD * 2.0f ) + constants::WORLD_LEFT * 0.2f };
 
-		REQUIRE( frustum.near.distanceFrom( point ) > 0.0f );
-		REQUIRE( frustum.far.distanceFrom( point ) > 0.0f );
+		THEN( "The point should be farther from the right plane" )
+		{
+			REQUIRE( frustum.right.distanceFrom( point ) > frustum.left.distanceFrom( point ) );
+		}
 
-		REQUIRE( frustum.top.distanceFrom( point ) > 0.0f );
-		REQUIRE( frustum.bottom.distanceFrom( point ) > 0.0f );
-
-		REQUIRE( frustum.right.distanceFrom( point ) > 0.0f );
-		REQUIRE( frustum.left.distanceFrom( point ) > 0.0f );
-
-		// right_dist > left_dist
-		REQUIRE( frustum.right.distanceFrom( point ) > frustum.left.distanceFrom( point ) );
-
-		REQUIRE( frustum.pointInside( point ) );
+		THEN( "The point should be in the frustum" )
+		{
+			REQUIRE( frustum.pointInside( point ) );
+		}
 	}
 
 	//A point FORWARD and 0.2 units to the right should be farther from the left plane
+	GIVEN( "A point FORWARD and 0.2 units to the right" )
 	{
 		const WorldCoordinate point { ( constants::WORLD_FORWARD * 2.0f ) + constants::WORLD_RIGHT * 0.2f };
 
-		// left_dist > right_dist
-		REQUIRE( frustum.left.distanceFrom( point ) > frustum.right.distanceFrom( point ) );
+		THEN( "The point should be farther from the left plane" )
+		{
+			REQUIRE( frustum.left.distanceFrom( point ) > frustum.right.distanceFrom( point ) );
+		}
+
+		THEN( "The point should be in the frustum" )
+		{
+			REQUIRE( frustum.pointInside( point ) );
+		}
 	}
 
 	//A point FORWARD and down 0.2 units should be closer to the bottom plane
+	GIVEN( "A point FORWARD and down 0.2 units" )
 	{
-		const WorldCoordinate point { ( constants::WORLD_FORWARD * 2.0f ) + ( constants::WORLD_DOWN * 0.02f ) };
+		const WorldCoordinate point { ( constants::WORLD_FORWARD * 2.0f ) + ( constants::WORLD_DOWN * 0.2f ) };
 
-		REQUIRE( frustum.top.distanceFrom( point ) > frustum.bottom.distanceFrom( point ) );
+		THEN( "The point should be closer to the bottom plane" )
+		{
+			REQUIRE( frustum.bottom.distanceFrom( point ) < frustum.top.distanceFrom( point ) );
+		}
+
+		THEN( "The point should be in the frustum" )
+		{
+			REQUIRE( frustum.pointInside( point ) );
+		}
 	}
 
 	SECTION( "Rotations" )
