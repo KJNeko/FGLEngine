@@ -64,6 +64,11 @@ namespace fgl::engine
 			static_assert(
 				CType == CoordinateSpace::World, "pointInside can only be called on World coordinate Frustums" );
 
+			//TODO: This is a biased approach.
+			// Approaches for non-biased:
+			// We can either make this non-biased by using a projection from distance shot down the FORWARD vector
+			// Or we can use SIMD to check all the planes at once.
+
 			return far.isForward( coord ) && near.isForward( coord ) && bottom.isForward( coord )
 			    && top.isForward( coord ) && right.isForward( coord ) && left.isForward( coord );
 		}
