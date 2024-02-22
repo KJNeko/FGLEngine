@@ -69,6 +69,7 @@ namespace fgl::engine
 
 		const Matrix< MatrixType::WorldToScreen > getProjectionViewMatrix() const
 		{
+			assert( projection_matrix != constants::MAT4_IDENTITY );
 			return projection_matrix * view_matrix;
 		}
 

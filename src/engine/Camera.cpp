@@ -20,7 +20,8 @@ namespace fgl::engine
 	void Camera::setOrthographicProjection( float left, float right, float top, float bottom, float near, float far )
 	{
 		ZoneScoped;
-		projection_matrix = Matrix< MatrixType::CameraToScreen >( glm::orthoLH( left, right, bottom, top, near, far ) );
+		projection_matrix =
+			Matrix< MatrixType::CameraToScreen >( glm::orthoLH_ZO( left, right, bottom, top, near, far ) );
 
 		//TODO: Figure out frustum culling for orthographic projection. (If we even wanna use it)
 	}
@@ -28,7 +29,7 @@ namespace fgl::engine
 	void Camera::setPerspectiveProjection( float fovy, float aspect, float near, float far )
 	{
 		ZoneScoped;
-		projection_matrix = Matrix< MatrixType::CameraToScreen >( glm::perspectiveLH( fovy, aspect, near, far ) );
+		projection_matrix = Matrix< MatrixType::CameraToScreen >( glm::perspectiveLH_ZO( fovy, aspect, near, far ) );
 
 		base_frustum = createFrustum( aspect, fovy, near, far );
 	}
@@ -71,6 +72,7 @@ namespace fgl::engine
 					break;
 				}
 			case ViewMode::Euler:
+				[[fallthrough]];
 				{
 					//TODO: Implement
 					//view_matrix = glm::lookAtLH(position, position + );

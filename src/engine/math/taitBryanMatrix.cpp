@@ -37,7 +37,7 @@ namespace fgl::engine
 					case 2:
 						return { glm::cos( rotation.y ), glm::sin( rotation.y ) };
 					case 3:
-						return { glm::cos( -rotation.z ), glm::sin( -rotation.z ) };
+						return { glm::cos( rotation.z ), glm::sin( rotation.z ) };
 				}
 				break;
 			case YXZ:
@@ -94,9 +94,12 @@ namespace fgl::engine
 	{
 		glm::mat4 mat { 1.0f };
 
-		const auto [ c1, s1 ] = extract< 1 >( rotation, order );
-		const auto [ c2, s2 ] = extract< 2 >( rotation, order );
-		const auto [ c3, s3 ] = extract< 3 >( rotation, order );
+		Rotation fixed_rotation { rotation };
+		fixed_rotation.x = -fixed_rotation.x;
+
+		const auto [ c1, s1 ] = extract< 1 >( fixed_rotation, order );
+		const auto [ c2, s2 ] = extract< 2 >( fixed_rotation, order );
+		const auto [ c3, s3 ] = extract< 3 >( fixed_rotation, order );
 
 		switch ( order )
 		{

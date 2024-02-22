@@ -19,7 +19,7 @@ namespace fgl::engine
 		ZYX,
 		ZXY,
 		END_OF_ENUM,
-		DEFAULT = ZXY
+		DEFAULT = XZY
 	};
 
 	glm::mat4 taitBryanMatrix( const Rotation rotation, const RotationOrder order = DEFAULT );

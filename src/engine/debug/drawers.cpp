@@ -22,11 +22,13 @@ namespace fgl::engine::debug
 		ZoneScoped;
 		const ImVec2 window_size { windowSize() };
 
-		return Coordinate< CoordinateSpace::Screen >( glm::projectZO(
+		const Coordinate< CoordinateSpace::Screen > screen_point { glm::projectZO(
 			static_cast< glm::vec3 >( world_point ),
 			glm::mat4( 1.0f ),
 			camera.getProjectionViewMatrix(),
-			glm::vec4( 0.0f, 0.0f, window_size.x, window_size.y ) ) );
+			glm::vec4( 0.0f, 0.0f, window_size.x, window_size.y ) ) };
+
+		return screen_point;
 	}
 
 	ImVec2 glmToImgui( const glm::vec2 vec )

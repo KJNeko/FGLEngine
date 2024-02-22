@@ -140,6 +140,7 @@ TEST_CASE( "Camera", "[camera]" )
 				const auto matrix { camera.getProjectionViewMatrix() };
 				const glm::vec3 point { matrix * glm::vec4( constants::WORLD_CENTER, 1.0f ) };
 
+				CAPTURE( matrix );
 				CAPTURE( point );
 
 				REQUIRE( point.x > 0.0f );
@@ -147,69 +148,151 @@ TEST_CASE( "Camera", "[camera]" )
 			}
 		}
 
-		WHEN( "Camera is translated down by WORLD_DOWN " )
-		{
-			camera.setView( constants::WORLD_CENTER + constants::WORLD_DOWN, Rotation( 0.0f ) );
+		constexpr int window_width { 1920 };
+		constexpr int window_height { 1080 };
 
-			THEN( "camera.getPosition() should be WORLD_DOWN" )
+		GIVEN( "A window height of 1920x1080" )
+		{
+			WHEN( "Camera is translated down by WORLD_DOWN " )
 			{
-				REQUIRE( camera.getPosition() == constants::WORLD_DOWN );
+				camera.setView(
+					constants::WORLD_CENTER + constants::WORLD_DOWN + constants::WORLD_BACKWARD, Rotation( 0.0f ) );
+
+				THEN( "camera.getPosition() should be WORLD_DOWN" )
+				{
+					REQUIRE( camera.getPosition() == constants::WORLD_DOWN + constants::WORLD_BACKWARD );
+				}
+
+				const auto view_matrix { camera.getViewMatrix() };
+				const auto projection_matrix { camera.getProjectionMatrix() };
+				const auto matrix { camera.getProjectionViewMatrix() };
+
+				CAPTURE( view_matrix );
+				CAPTURE( projection_matrix );
+				CAPTURE( matrix );
+
+				const glm::vec3 point { glm::projectZO(
+					constants::WORLD_CENTER,
+					glm::mat4( 1.0f ),
+					matrix,
+					glm::vec4( 0.0f, 0.0f, window_width, window_height ) ) };
+
+				THEN( "A point should be above the half way point of the screen" )
+				{
+					CAPTURE( point );
+					//Because vulkan starts at the top left, the y axis is inverted [0, 1] where 0 is the top. 1 is the bottom.
+					// This means that a point 'below' the half way mark on the screen will actually be more positive.
+					REQUIRE( point.y < window_height / 2.0f );
+				}
+
+				THEN( "A point should be in the view of the screen" )
+				{
+					REQUIRE( point.x >= 0.0f );
+					REQUIRE( point.x <= window_width );
+					REQUIRE( point.y >= 0.0f );
+					REQUIRE( point.y <= window_height );
+				}
+
+				THEN( "A point should be infront of the camera" )
+				{
+					REQUIRE( point.z >= 0.0f );
+					AND_THEN( "The point should not be in front of the camera" )
+					{
+						REQUIRE( point.z <= 1.0f );
+					}
+				}
 			}
 
-			THEN( "A point at the origin must be translated up" )
+			WHEN( "Camera is translated up by WORLD_UP" )
 			{
+				camera.setView(
+					constants::WORLD_CENTER + constants::WORLD_UP + constants::WORLD_BACKWARD, Rotation( 0.0f ) );
+
+				THEN( "camera.getPosition() should be WORLD_UP" )
+				{
+					const auto position { camera.getPosition() };
+					REQUIRE( position == constants::WORLD_UP + constants::WORLD_BACKWARD );
+				}
+
+				const auto view_matrix { camera.getViewMatrix() };
+				const auto projection_matrix { camera.getProjectionMatrix() };
 				const auto matrix { camera.getProjectionViewMatrix() };
-				const glm::vec3 point { matrix * glm::vec4( constants::WORLD_CENTER, 1.0f ) };
+
+				CAPTURE( view_matrix );
+				CAPTURE( projection_matrix );
+				CAPTURE( matrix );
+
+				const glm::vec3 point { glm::projectZO(
+					constants::WORLD_CENTER,
+					glm::mat4( 1.0f ),
+					matrix,
+					glm::vec4( 0.0f, 0.0f, window_width, window_height ) ) };
 
 				CAPTURE( point );
 
-				REQUIRE( point.x == 0.0f );
-				REQUIRE( point.y > 0.0f );
-			}
-		}
+				THEN( "A point should be below the half way point of the screen" )
+				{
+					//Because vulkan starts at the top left, the y axis is inverted [0, 1] where 0 is the top. 1 is the bottom.
+					// This means that a point 'below' the half way mark on the screen will actually be more positive.
+					REQUIRE( point.y > ( window_height / 2 ) );
+				}
 
-		WHEN( "Camera is translated up by WORLD_UP" )
-		{
-			camera.setView( constants::WORLD_CENTER + constants::WORLD_UP, Rotation( 0.0f ) );
+				THEN( "A point should be in the view of the screen" )
+				{
+					REQUIRE( point.x >= 0.0f );
+					REQUIRE( point.x <= window_width );
+					REQUIRE( point.y >= 0.0f );
+					REQUIRE( point.y <= window_height );
+				}
 
-			THEN( "camera.getPosition() should be WORLD_UP" )
-			{
-				const auto position { camera.getPosition() };
-				REQUIRE( position == constants::WORLD_UP );
-			}
-
-			THEN( "A point at the origin should be translated down" )
-			{
-				const auto matrix { camera.getProjectionViewMatrix() };
-				const glm::vec3 point { matrix * glm::vec4( constants::WORLD_CENTER, 1.0f ) };
-
-				CAPTURE( point );
-
-				REQUIRE( point.x == 0.0f );
-				REQUIRE( point.y < 0.0f );
-			}
-		}
-
-		WHEN( "Camera is translated forward by WORLD_FORWARD" )
-		{
-			camera.setView( constants::WORLD_CENTER + constants::WORLD_FORWARD, Rotation( 0.0f ) );
-
-			THEN( "camera.getPosition() should be WORLD_FORWARD" )
-			{
-				const auto position { camera.getPosition() };
-				REQUIRE( position == constants::WORLD_FORWARD );
+				THEN( "A point should be in front of the camera" )
+				{
+					REQUIRE( point.z > 0.0f );
+					AND_THEN( "The point should not be behind the camera" )
+					{
+						REQUIRE( point.z < 1.0f );
+					}
+				}
 			}
 
-			THEN( "A point at the origin should be translated back" )
+			WHEN( "Camera is translated forward by WORLD_FORWARD" )
 			{
-				const auto matrix { camera.getProjectionViewMatrix() };
-				const auto point { matrix * glm::vec4( constants::WORLD_CENTER, 1.0f ) };
+				camera.setView( constants::WORLD_CENTER + constants::WORLD_FORWARD, Rotation( 0.0f ) );
 
-				CAPTURE( point );
+				THEN( "camera.getPosition() should be WORLD_FORWARD" )
+				{
+					const auto position { camera.getPosition() };
+					REQUIRE( position == constants::WORLD_FORWARD );
+				}
 
-				REQUIRE( point.x <= 0.0f );
-				REQUIRE( point.y <= 0.0f );
-				REQUIRE( point.z < 0.0f );
+				AND_WHEN( "A point is processed through the matrix" )
+				{
+					const auto matrix { camera.getProjectionViewMatrix() };
+					const glm::vec3 point { glm::projectZO(
+						constants::WORLD_CENTER,
+						glm::mat4( 1.0f ),
+						matrix,
+						glm::vec4( 0.0f, 0.0f, window_width, window_height ) ) };
+
+					THEN( "A point at the origin should be translated back" )
+					{
+						CAPTURE( point );
+
+						THEN( "Point should be in the view of the screen" )
+						{
+							REQUIRE( point.x >= 0.0f );
+							REQUIRE( point.x <= window_width );
+							REQUIRE( point.y >= 0.0f );
+							REQUIRE( point.y <= window_height );
+						}
+
+						THEN( "Point should be behind the camera" )
+						{
+							//Comparing to 1 since the point should be behind the camera (0 to 1 is 'forward' to Z plane. Anything Above 1 is behind)
+							REQUIRE( point.z > 1.0f );
+						}
+					}
+				}
 			}
 		}
 	}
