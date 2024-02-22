@@ -94,8 +94,10 @@ namespace fgl::engine
 	{
 		glm::mat4 mat { 1.0f };
 
+		//TODO: Debug with Entry, There has got to be a better fix then this.
 		Rotation fixed_rotation { rotation };
-		fixed_rotation.x = -fixed_rotation.x;
+		fixed_rotation.pitch() = -fixed_rotation.pitch();
+		fixed_rotation.roll() = -fixed_rotation.roll();
 
 		const auto [ c1, s1 ] = extract< 1 >( fixed_rotation, order );
 		const auto [ c2, s2 ] = extract< 2 >( fixed_rotation, order );
