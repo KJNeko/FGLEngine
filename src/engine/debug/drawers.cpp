@@ -10,7 +10,7 @@
 #include "engine/primitives/Vector.hpp"
 #include "tracy_colors.hpp"
 
-#ifndef NDEBUG
+#if ENABLE_IMGUI_DRAWERS
 
 namespace fgl::engine::debug
 {

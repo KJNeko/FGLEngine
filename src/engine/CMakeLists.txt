@@ -26,10 +26,12 @@ target_include_directories(FGLEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
 set_target_properties(FGLEngine PROPERTIES COMPILE_FLAGS ${FGL_FLAGS})
 
 string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_UPPER_BUILD_TYPE)
-if (CMAKE_UPPER_BUILD_TYPE STREQUAL "DEBUG")
+if (CMAKE_UPPER_BUILD_TYPE STREQUAL "DEBUG" OR CMAKE_UPPER_BUILD_TYPE STREQUAL "RELWITHDEBINFO")
 	target_compile_definitions(FGLEngine PRIVATE ENABLE_IMGUI=1)
+	target_compile_definitions(FGLEngine PRIVATE ENABLE_IMGUI_DRAWERS=1)
 else ()
 	target_compile_definitions(FGLEngine PRIVATE ENABLE_IMGUI=0)
+	target_compile_definitions(FGLEngine PRIVATE ENABLE_IMGUI_DRAWERS=0)
 endif ()
 
 #GLM settings

@@ -173,7 +173,7 @@ namespace fgl::engine
 				cmd.firstInstance = model_matrices.size();
 				auto matricies { std::move( itter.second ) };
 
-				std::sort( matricies.begin(), matricies.end(), sortFunc );
+				//std::sort( matricies.begin(), matricies.end(), sortFunc );
 
 				draw_commands.emplace_back( cmd );
 				model_matrices.insert( model_matrices.end(), matricies.begin(), matricies.end() );

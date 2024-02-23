@@ -26,7 +26,11 @@ namespace fgl::engine
 
 } // namespace fgl::engine
 
-#ifndef NDEBUG
+#ifndef ENABLE_IMGUI_DRAWERS
+#define ENABLE_IMGUI_DRAWERS 0
+#endif
+
+#if ENABLE_IMGUI_DRAWERS
 namespace fgl::engine::debug
 {
 
