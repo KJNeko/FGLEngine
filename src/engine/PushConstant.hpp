@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <vulkan/vulkan.hpp>
+
 namespace fgl::engine
 {
 

@@ -95,13 +95,7 @@ namespace fgl::engine
 				TracyVkZone( info.tracy_ctx, command_buffer, "Render game object" );
 				if ( obj.model == nullptr ) continue;
 
-				const BoundingBox model_bounding_box {
-					obj.model->getBoundingBox( Matrix< MatrixType::ModelToWorld >( obj.transform.mat4() ) )
-				};
-
-				if ( !model_bounding_box.isInFrustum( info.camera_frustum ) ) continue;
-
-				debug::world::drawBoundingBox( model_bounding_box, info.camera );
+				if ( !obj.is_visible ) continue;
 
 				for ( const auto& primitive : obj.model->m_primitives )
 				{
@@ -155,25 +149,12 @@ namespace fgl::engine
 
 			const auto camera_pos { info.camera.getPosition() };
 
-			auto sortFunc = [ camera_pos ]( const ModelMatrixInfo first, const ModelMatrixInfo second ) -> bool
-			{
-				const glm::vec3 first_pos { first.model_matrix[ 3 ] };
-				const float first_distance { glm::distance( first_pos, camera_pos ) };
-
-				const glm::vec3 second_pos { second.model_matrix[ 3 ] };
-				const float second_distance { glm::distance( second_pos, camera_pos ) };
-
-				return first_distance < second_distance;
-			};
-
 			TracyCZoneN( filter_zone_TRACY, "Reorganize draw commands", true );
 			for ( auto& itter : draw_pairs )
 			{
 				auto cmd { itter.first };
 				cmd.firstInstance = model_matrices.size();
 				auto matricies { std::move( itter.second ) };
-
-				//std::sort( matricies.begin(), matricies.end(), sortFunc );
 
 				draw_commands.emplace_back( cmd );
 				model_matrices.insert( model_matrices.end(), matricies.begin(), matricies.end() );

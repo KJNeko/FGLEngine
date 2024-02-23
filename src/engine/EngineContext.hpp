@@ -13,6 +13,7 @@
 #include "Window.hpp"
 #include "engine/descriptors/DescriptorPool.hpp"
 #include "engine/model/Model.hpp"
+#include "engine/systems/CullingSystem.hpp"
 #include "engine/systems/EntityRendererSystem.hpp"
 
 namespace fgl::engine
@@ -28,6 +29,7 @@ namespace fgl::engine
 
 		GameObject::Map game_objects {};
 
+		CullingSystem m_culling_system {};
 		EntityRendererSystem m_entity_renderer { Device::getInstance(), m_renderer.getSwapChainRenderPass() };
 
 		void loadGameObjects();

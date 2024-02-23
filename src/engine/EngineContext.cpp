@@ -402,6 +402,7 @@ namespace fgl::engine
 
 				m_renderer.beginSwapchainRendererPass( command_buffer );
 
+				m_culling_system.pass( frame_info );
 				m_entity_renderer.pass( frame_info );
 
 #if ENABLE_IMGUI

@@ -26,9 +26,15 @@ namespace fgl::engine
 		using ID = unsigned int;
 		using Map = std::unordered_map< ID, GameObject >;
 
+		//Hot
 		ID m_id;
 		bool is_world { false };
+		bool is_visible { true };
 
+		//Dummy data to figure out what is above the cache limit
+		bool hot_limter { false };
+
+		//Cold
 		std::shared_ptr< Model > model {};
 		glm::vec3 color {};
 		TransformComponent transform {};
@@ -53,5 +59,7 @@ namespace fgl::engine
 
 		ID getId() const { return m_id; }
 	};
+
+	static_assert( offsetof( GameObject, hot_limter ) < 64, "Hot limit reached" );
 
 } // namespace fgl::engine
