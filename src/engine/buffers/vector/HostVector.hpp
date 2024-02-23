@@ -32,12 +32,14 @@ namespace fgl::engine
 
 		HostVector( Buffer& buffer, const std::uint32_t count = 1 ) : BufferVector( buffer, count, sizeof( T ) )
 		{
+			ZoneScoped;
 			assert( count != 0 && "BufferSuballocationVector::BufferSuballocationVector() called with count == 0" );
 		}
 
 		HostVector( Buffer& buffer, const std::vector< T >& vec ) :
 		  HostVector( buffer, static_cast< std::uint32_t >( vec.size() ) )
 		{
+			ZoneScoped;
 			if ( this->m_stride == sizeof( T ) )
 			{
 				std::memcpy( this->ptr(), vec.data(), this->count() * sizeof( T ) );
@@ -52,6 +54,7 @@ namespace fgl::engine
 
 		void flushRange( const std::uint32_t start_idx, const std::uint32_t end_idx )
 		{
+			ZoneScoped;
 			assert(
 				start_idx < this->m_count && "BufferSuballocationVector::flushRange start_idx index out of bounds" );
 			assert( end_idx <= this->m_count && "BufferSuballocationVector::flushRange end_idx index out of bounds" );

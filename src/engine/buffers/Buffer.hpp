@@ -155,6 +155,8 @@ namespace fgl::engine
 			suballocate( vk::DeviceSize memory_size, std::uint32_t allignment = 1 );
 
 		void free( BufferSuballocationHandle& info );
+
+		void mergeFreeBlocks();
 	};
 
 	void initGlobalStagingBuffer( std::uint64_t size );
