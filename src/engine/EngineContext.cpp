@@ -149,15 +149,6 @@ namespace fgl::engine
 			camera_controller.moveInPlaneXZ( m_window.window(), delta_time, viewer );
 			camera.setView( viewer.transform.translation, viewer.transform.rotation );
 
-			{
-				constexpr WorldCoordinate center { 0.0f, 0.0f, 0.0f };
-				//debug::world::drawVector( center, camera.getForward(), camera, { 0.0f, 0.0f, 0.0f } );
-
-				{
-					debug::world::drawFrustum( camera );
-				}
-			}
-
 			if ( auto command_buffer = m_renderer.beginFrame(); command_buffer )
 			{
 				ZoneScopedN( "Render" );
@@ -400,9 +391,16 @@ namespace fgl::engine
 				}
 #endif
 
+				m_culling_system.startPass( frame_info );
+
+#if TRACY_ENABLE
+				TracyVkCollect( frame_info.tracy_ctx, command_buffer );
+#endif
+
+				m_culling_system.wait();
+
 				m_renderer.beginSwapchainRendererPass( command_buffer );
 
-				m_culling_system.pass( frame_info );
 				m_entity_renderer.pass( frame_info );
 
 #if ENABLE_IMGUI
@@ -424,13 +422,7 @@ namespace fgl::engine
 
 				m_renderer.endSwapchainRendererPass( command_buffer );
 
-#if TRACY_ENABLE
-				TracyVkCollect( frame_info.tracy_ctx, command_buffer );
-#endif
-
 				m_renderer.endFrame();
-
-				std::this_thread::sleep_until( new_time + std::chrono::milliseconds( 16 ) );
 
 				FrameMark;
 			}
@@ -471,6 +463,8 @@ namespace fgl::engine
 			m_entity_renderer.getVertexBuffer(),
 			m_entity_renderer.getIndexBuffer() ) };
 
+		model->syncBuffers( command_buffer );
+
 		for ( int x = 0; x < 32; ++x )
 		{
 			for ( int y = 0; y < 32; ++y )
@@ -480,8 +474,6 @@ namespace fgl::engine
 				sponza.transform.translation = { 0.0f + ( y * 30 ), 0.0f + ( x * 20 ), 0.0f };
 				sponza.transform.scale = { 0.007f, 0.007f, 0.007f };
 				sponza.transform.rotation = { 0.0f, 0.0f, 0.0f };
-
-				sponza.model->syncBuffers( command_buffer );
 
 				game_objects.emplace( sponza.getId(), std::move( sponza ) );
 			}

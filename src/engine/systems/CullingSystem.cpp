@@ -4,6 +4,8 @@
 
 #include "CullingSystem.hpp"
 
+#include <tracy/TracyC.h>
+
 #include "engine/debug/drawers.hpp"
 #include "engine/model/BoundingBox.hpp"
 #include "engine/model/Model.hpp"
@@ -13,7 +15,7 @@ namespace fgl::engine
 
 	void CullingSystem::pass( FrameInfo& info )
 	{
-		ZoneScoped;
+		ZoneScopedN( "Culling pass" );
 
 		const auto frustum { info.camera_frustum };
 
@@ -37,6 +39,28 @@ namespace fgl::engine
 				}
 			}
 		}
+	}
+
+	void CullingSystem::runner()
+	{
+		TracyCSetThreadName( "Culling thread" );
+		while ( !m_stop_token.stop_requested() )
+		{
+			m_start_sem.acquire();
+			pass( *m_info.value() );
+			m_end_sem.release();
+		}
+	}
+
+	void CullingSystem::startPass( FrameInfo& info )
+	{
+		m_info = &info;
+		m_start_sem.release();
+	}
+
+	void CullingSystem::wait()
+	{
+		m_end_sem.acquire();
 	}
 
 } // namespace fgl::engine

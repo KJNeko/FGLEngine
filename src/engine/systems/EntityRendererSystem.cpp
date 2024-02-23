@@ -77,7 +77,7 @@ namespace fgl::engine
 
 	void EntityRendererSystem::pass( FrameInfo& info )
 	{
-		ZoneScoped;
+		ZoneScopedN( "Entity pass" );
 		auto& command_buffer { info.command_buffer };
 		{
 			TracyVkZone( info.tracy_ctx, command_buffer, "Render game objects" );
