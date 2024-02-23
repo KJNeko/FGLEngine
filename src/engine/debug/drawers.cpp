@@ -225,33 +225,6 @@ namespace fgl::engine::debug
 			drawPoint( point + normal, camera, label, color );
 		}
 
-		void drawCameraInfo( const Camera& camera )
-		{
-			/*
-			drawVector( { 0.0f, 0.0f, 0.0f }, camera.getUp(), camera, glm::vec3( 0.0f, 1.0f, 0.0f ) );
-			drawVector( { 0.0f, 0.0f, 0.0f }, camera.getRight(), camera, glm::vec3( 1.0f, 0.0f, 0.0f ) );
-			drawVector( { 0.0f, 0.0f, 0.0f }, camera.getForward(), camera, glm::vec3( 0.0f, 0.0f, 1.0f ) );
-			 */
-
-			{
-				drawFrustum( camera );
-			}
-
-			/*
-			{
-				const Frustum frustum { camera.getFrustumBounds() };
-				const auto pos { frustum.near.getPosition() };
-
-				drawVector( pos, frustum.far.direction(), camera );
-				drawVector( pos, frustum.near.direction(), camera );
-				drawVector( pos, frustum.top.direction(), camera );
-				drawVector( pos, frustum.bottom.direction(), camera );
-				drawVector( pos, frustum.right.direction(), camera );
-				drawVector( pos, frustum.left.direction(), camera );
-			}
-			*/
-		}
-
 	} // namespace world
 
 	namespace screen

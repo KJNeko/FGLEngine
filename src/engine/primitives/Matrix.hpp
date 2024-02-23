@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "Coordinate.hpp"
-
 namespace fgl::engine
 {
 	enum class MatrixType
@@ -35,39 +33,5 @@ namespace fgl::engine
 		return Matrix< MatrixType::WorldToScreen >( static_cast< glm::mat4 >( lhs ) * static_cast< glm::mat4 >( rhs ) );
 	}
 
-	template < MatrixType MType >
-	consteval CoordinateSpace EvolvedType();
-
-	template <>
-	consteval CoordinateSpace EvolvedType< MatrixType::ModelToWorld >()
-	{
-		return CoordinateSpace::World;
-	}
-
-	template <>
-	consteval CoordinateSpace EvolvedType< MatrixType::WorldToCamera >()
-	{
-		return CoordinateSpace::Camera;
-	}
-
-	template <>
-	consteval CoordinateSpace EvolvedType< MatrixType::CameraToScreen >()
-	{
-		return CoordinateSpace::Screen;
-	}
-
-	template <>
-	consteval CoordinateSpace EvolvedType< MatrixType::WorldToScreen >()
-	{
-		return CoordinateSpace::Screen;
-	}
-
-	//Operators
-	template < MatrixType MType >
-	inline Coordinate< EvolvedType< MType >() >
-		operator*( const Matrix< MType > matrix, const Coordinate< EvolvedType< MType >() >& coordinate )
-	{
-		return Coordinate< EvolvedType< MType >() >( matrix * glm::vec4( coordinate, 1.0f ) );
-	}
 
 }; // namespace fgl::engine

@@ -81,21 +81,23 @@ namespace fgl::engine
 				throw std::runtime_error( "Unimplemented view mode" );
 		}
 
-		TransformComponent transform { WorldCoordinate( pos ), glm::vec3( 1.0f, 1.0f, 1.0f ), rotation };
+		current_rotation = rotation;
 
-		if ( update_frustums )
+		updateFrustum();
+	}
+
+	void Camera::updateFrustum()
+	{
+		ZoneScoped;
+		if ( update_frustums ) [[likely]]
 		{
-			if ( update_using_alt ) [[unlikely]]
-			{
-				frustum = frustum_alt_transform.mat() * base_frustum;
-				return;
-			}
-			else
-			{
-				frustum = transform.mat() * base_frustum;
-				return;
-			}
+			last_frustum_pos = getPosition();
+
+			frustum = frustumTranslationMatrix() * base_frustum;
+			return;
 		}
+		else
+			return;
 	}
 
 	Frustum< CoordinateSpace::Model >
@@ -131,15 +133,26 @@ namespace fgl::engine
 
 	const Matrix< MatrixType::ModelToWorld > Camera::frustumTranslationMatrix() const
 	{
-		return Matrix< MatrixType::ModelToWorld >( getInverseViewMatrix() );
+		if ( update_using_alt )
+			return frustum_alt_transform.mat();
+		else [[likely]]
+		{
+			TransformComponent comp;
+			comp.translation = getPosition();
+			comp.rotation = current_rotation;
+
+			return comp.mat();
+		}
 	}
 
 	WorldCoordinate Camera::getFrustumPosition() const
 	{
 		if ( update_using_alt ) [[unlikely]]
 			return frustum_alt_transform.translation;
-		else
+		else if ( update_frustums ) [[likely]]
 			return getPosition();
+		else
+			return last_frustum_pos;
 	}
 
 } // namespace fgl::engine

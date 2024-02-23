@@ -46,13 +46,6 @@ namespace fgl::engine
 		  right( right_plane ),
 		  left( left_plane )
 		{
-			assert( near.valid() );
-			assert( far.valid() );
-			assert( top.valid() );
-			assert( bottom.valid() );
-			assert( right.valid() );
-			assert( left.valid() );
-
 			assert( right_plane.direction() != left_plane.direction() );
 			assert( top_plane.direction() != bottom_plane.direction() );
 			assert( near_plane.direction() != far_plane.direction() );

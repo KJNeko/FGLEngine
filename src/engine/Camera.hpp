@@ -38,10 +38,17 @@ namespace fgl::engine
 		//! @note Must be transformed by the inverse view matrix to get the frustum in world space
 		Frustum< CoordinateSpace::Model > base_frustum {};
 		Frustum< CoordinateSpace::World > frustum {};
+		WorldCoordinate last_frustum_pos { constants::WORLD_CENTER };
+
+		Rotation current_rotation { 0.0f };
 
 		const Matrix< MatrixType::ModelToWorld > frustumTranslationMatrix() const;
 
+		void updateFrustum();
+
 	  public:
+
+		inline Rotation getRotation() const { return current_rotation; }
 
 		inline static TransformComponent frustum_alt_transform { WorldCoordinate( constants::WORLD_CENTER ),
 			                                                     glm::vec3( 1.0f ),
@@ -81,7 +88,7 @@ namespace fgl::engine
 		const Coordinate< CoordinateSpace::World > getPosition() const
 		{
 			//Should maybe store the inverse view matrix
-			return WorldCoordinate( glm::inverse( view_matrix )[ 3 ] );
+			return WorldCoordinate( inverse_view_matrix[ 3 ] );
 		}
 
 		const Vector getUp() const { return -getDown(); }

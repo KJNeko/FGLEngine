@@ -24,11 +24,9 @@ namespace fgl::engine
 	class OriginDistancePlane
 	{
 		float m_distance { constants::DEFAULT_FLOAT };
-		Vector m_direction { constants::DEFAULT_VEC3 };
+		Vector m_direction { constants::WORLD_FORWARD };
 
 	  public:
-
-		bool valid() const { return m_distance != constants::DEFAULT_FLOAT && m_direction != constants::DEFAULT_VEC3; }
 
 		OriginDistancePlane( const glm::vec3 vector, const float distance ) :
 		  m_distance( distance ),
@@ -43,11 +41,7 @@ namespace fgl::engine
 		OriginDistancePlane() = default;
 
 		//! Returns the closest point on the plane to the 0,0,0 origin
-		Coordinate< CType > getPosition() const
-		{
-			assert( valid() );
-			return Coordinate< CType >( 0.0f ) + ( m_direction * m_distance );
-		}
+		Coordinate< CType > getPosition() const { return Coordinate< CType >( 0.0f ) + ( m_direction * m_distance ); }
 
 		//! Returns the distance from a point to the plane. Negative if behind, positive if in front
 		double distanceFrom( const WorldCoordinate coord ) const;
@@ -57,17 +51,9 @@ namespace fgl::engine
 		bool isBehind( const WorldCoordinate coord ) const { return !isForward( coord ); }
 
 		//! Returns a normalized Vector
-		Vector direction() const
-		{
-			assert( m_direction != constants::DEFAULT_VEC3 );
-			return m_direction;
-		}
+		Vector direction() const { return m_direction; }
 
-		float distance() const
-		{
-			assert( m_distance != constants::DEFAULT_FLOAT );
-			return m_distance;
-		}
+		float distance() const { return m_distance; }
 
 		bool operator==( const OriginDistancePlane& other ) const
 		{
@@ -92,20 +78,9 @@ namespace fgl::engine
 	OriginDistancePlane< EvolvedType< MType >() >
 		operator*( const Matrix< MType >& matrix, const OriginDistancePlane< CType >& plane )
 	{
-		assert( plane.valid() );
-		constexpr auto NewCT { EvolvedType< MType >() };
-		constexpr auto OldCT { CType };
-
-		const Vector old_direction { plane.direction() };
-		const Vector new_direction { glm::normalize( matrix * old_direction ) };
-
-		const Coordinate< OldCT > old_center { plane.getPosition() };
-
-		//Translate old_center using matrix
-		const Coordinate< NewCT > new_center { matrix * old_center };
-
-		//Project new_center onto inverse of new_direction
-		const auto new_distance { static_cast< float >( glm::dot( new_direction, new_center ) ) };
+		const Vector new_direction { glm::normalize( matrix * plane.direction() ) };
+		const glm::vec3 new_center { matrix * plane.getPosition() };
+		const float new_distance { glm::dot( new_center, static_cast< glm::vec3 >( new_direction ) ) };
 
 		return { new_direction, new_distance };
 	}

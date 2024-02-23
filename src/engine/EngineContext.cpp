@@ -202,7 +202,7 @@ namespace fgl::engine
 					ImGui::Text( "%.3f ms", 1000.0f / ImGui::GetIO().Framerate );
 					ImGui::Text( "Average rolling frametime: %.3f ms", rolling_ms_average.average() );
 
-					auto inputVec3 = []( const std::string label, glm::vec3 vec )
+					auto inputVec3 = []( const std::string label, glm::vec3& vec )
 					{
 						ImGui::PushID( label.c_str() );
 						ImGui::PushItemWidth( 80 );
@@ -216,8 +216,12 @@ namespace fgl::engine
 						ImGui::PopID();
 					};
 
-					auto inputRVec3 = [ &inputVec3 ]( const std::string label, const Rotation rot )
-					{ inputVec3( label, glm::vec3( rot.x, rot.y, rot.z ) ); };
+					auto inputRVec3 = [ &inputVec3 ]( const std::string label, Rotation& rot )
+					{
+						ImGui::PushID( label.c_str() );
+						inputVec3( label, rot );
+						ImGui::PopID();
+					};
 
 					if ( ImGui::CollapsingHeader( "Camera" ) )
 					{
@@ -270,7 +274,7 @@ namespace fgl::engine
 							ImGui::SameLine();
 							ImGui::Text( "Distance: %.3f", plane.distance() );
 							const auto pos { plane.getPosition() };
-							ImGui::Text( "Center: %.2f %2.f %2.f", pos.x, pos.y, pos.z );
+							ImGui::Text( "Center: %.2f %.2f %.2f", pos.x, pos.y, pos.z );
 						};
 
 						printPlane( frustum.near, "Near" );

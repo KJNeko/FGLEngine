@@ -19,7 +19,7 @@ namespace fgl::engine
 
 	Rotation& Rotation::operator=( const Rotation other )
 	{
-		static_cast< glm::vec3 >( *this ) = static_cast< glm::vec3 >( other );
+		glm::vec3::operator=( other );
 		return *this;
 	}
 

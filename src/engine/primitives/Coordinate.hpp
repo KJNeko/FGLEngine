@@ -9,18 +9,13 @@
 
 #include <ostream>
 
+#include "CoordinateSpace.hpp"
+#include "Matrix.hpp"
+#include "MatrixEvolvedTypes.hpp"
 #include "engine/constants.hpp"
 
 namespace fgl::engine
 {
-
-	enum class CoordinateSpace
-	{
-		Model,
-		World,
-		Camera,
-		Screen
-	};
 
 	class Vector;
 
@@ -65,6 +60,13 @@ namespace fgl::engine
 		{
 			glm::vec3::operator=( other );
 			return *this;
+		}
+
+		template < MatrixType MType >
+		Coordinate< EvolvedType< MType >() > operator*( const Matrix< MType >& mat )
+		{
+			return Coordinate<
+				EvolvedType< MType >() >( mat * static_cast< glm::vec4 >( static_cast< glm::vec3 >( *this ), 1.0f ) );
 		}
 
 #ifndef NDEBUG

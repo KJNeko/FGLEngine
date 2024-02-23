@@ -13,7 +13,131 @@
 
 using namespace fgl::engine;
 
-constexpr float ASPECT_RATIO { 16.0f / 9.0f };
+TEST_CASE( "Planes", "[frustum][rotation][translation]" )
+{
+	WHEN( "Given a default constructed Plane" )
+	{
+		Plane< CoordinateSpace::World > plane {};
+
+		THEN( "Distance should be DEFAULT_FLOAT" )
+		{
+			REQUIRE( plane.distance() == constants::DEFAULT_FLOAT );
+		}
+
+		THEN( "Direction should be WORLD_FORWARD" )
+		{
+			REQUIRE( plane.direction() == constants::WORLD_FORWARD );
+		}
+
+		THEN( "Position should be Y+ infinity" )
+		{
+			REQUIRE( plane.getPosition() == constants::DEFAULT_VEC3 * constants::WORLD_FORWARD );
+		}
+	}
+
+	GIVEN( "A Plane pointing at WORLD_FORWARD with a distance of 0.5" )
+	{
+		const Plane< CoordinateSpace::Model > plane { constants::WORLD_FORWARD, 0.5f };
+
+		TransformComponent component { WorldCoordinate( constants::WORLD_CENTER ),
+			                           glm::vec3( 1.0f ),
+			                           { 0.0f, 0.0f, 0.0f } };
+
+		WHEN( "Translated forward 1U" )
+		{
+			component.translation += constants::WORLD_FORWARD;
+			const auto translated_plane { component.mat() * plane };
+
+			THEN( "The distance should be 0.5 + 1" )
+			{
+				REQUIRE( translated_plane.distance() == 0.5f + 1.0f );
+			}
+
+			THEN( "The direction should be WORLD_BACKWARD" )
+			{
+				REQUIRE( translated_plane.direction() == constants::WORLD_FORWARD );
+			}
+
+			THEN( "The position should be 0.5U behind the origin" )
+			{
+				REQUIRE( translated_plane.getPosition() == constants::WORLD_FORWARD * 1.5f );
+			}
+		}
+
+		WHEN( "Translated backwards 1U" )
+		{
+			component.translation -= constants::WORLD_FORWARD;
+			const auto translated_plane { component.mat() * plane };
+
+			THEN( "The distance should be 0.5 - 1" )
+			{
+				REQUIRE( translated_plane.distance() == 0.5f - 1.0f );
+			}
+
+			THEN( "The direction should be WORLD_BACKWARD" )
+			{
+				REQUIRE( translated_plane.direction() == constants::WORLD_FORWARD );
+			}
+
+			THEN( "The position should be 0.5U behind the origin" )
+			{
+				REQUIRE( translated_plane.getPosition() == constants::WORLD_FORWARD * -0.5f );
+			}
+		}
+
+		WHEN( "Rotated +90 Yaw" )
+		{
+			component.translation = constants::WORLD_CENTER;
+			component.rotation.yaw() += glm::radians( 90.0f );
+
+			THEN( "Distance should not change" )
+			{
+				REQUIRE( ( component.mat() * plane ).distance() == plane.distance() );
+			}
+
+			THEN( "Direction should be WORLD_RIGHT" )
+			{
+				REQUIRE( ( component.mat() * plane ).direction() == constants::WORLD_RIGHT );
+			}
+		}
+
+		WHEN( "Rotated +90 Yaw and translated 1U Right" )
+		{
+			component.translation += constants::WORLD_RIGHT;
+			component.rotation.yaw() += glm::radians( 90.0f );
+
+			const auto matrix { component.mat() };
+
+			const auto translated_plane { matrix * plane };
+
+			THEN( "new_direction should be WORLD_RIGHT" )
+			{
+				REQUIRE( matrix * plane.direction() == constants::WORLD_RIGHT );
+			}
+
+			REQUIRE( static_cast< glm::vec3 >( matrix * plane.getPosition() ) == constants::WORLD_RIGHT * 1.5f );
+
+			THEN( "The distance should be 0.5 + 1" )
+			{
+				REQUIRE( translated_plane.distance() == 0.5f + 1.0f );
+			}
+
+			THEN( "The direction should be WORLD_RIGHT" )
+			{
+				REQUIRE( translated_plane.direction() == constants::WORLD_RIGHT );
+			}
+
+			THEN( "The position should be 0.5U behind the origin" )
+			{
+				REQUIRE( translated_plane.getPosition() == constants::WORLD_RIGHT * 1.5f );
+			}
+		}
+	}
+}
+
+constexpr int height { 1080 };
+constexpr int width { 1920 };
+constexpr float ASPECT_RATIO { static_cast< float >( width ) / static_cast< float >( height ) };
 
 TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 {
@@ -22,99 +146,116 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 
 	const auto base_frustum { camera.getBaseFrustum() };
 
-	REQUIRE( base_frustum.near.direction() == constants::WORLD_FORWARD );
-	REQUIRE( base_frustum.near.distance() == constants::NEAR_PLANE );
-
-	REQUIRE( base_frustum.far.direction() == constants::WORLD_BACKWARD );
-	REQUIRE( base_frustum.far.distance() == -constants::FAR_PLANE );
-
-	SECTION( "Translate" )
+	GIVEN( "A default camera with a 90 deg fov and a 1920/1080 aspect ratio." )
 	{
-		WHEN( "Translated backwards" )
+		const auto frustum { camera.getFrustumBounds() };
+		THEN( "The near plane should be facing WORLD_FORWARD" )
 		{
-			camera.setView( constants::WORLD_CENTER - constants::WORLD_FORWARD, Rotation( 0.0f, 0.0f, 0.0f ) );
-			//Translate backwards by 1 world unit
-			const auto translated_backwards { camera.getFrustumBounds() };
+			REQUIRE( frustum.near.direction() == constants::WORLD_FORWARD );
+			REQUIRE( frustum.near.distance() == constants::NEAR_PLANE );
+		}
 
+		THEN( "The far plane should be facing WORLD_BACKWARD" )
+		{
+			REQUIRE( frustum.far.direction() == constants::WORLD_BACKWARD );
+			REQUIRE( frustum.far.distance() == -constants::FAR_PLANE );
+		}
+	}
+
+	WHEN( "Camera is translated backwards" )
+	{
+		camera.setView( constants::WORLD_BACKWARD, Rotation( 0.0f, 0.0f, 0.0f ) );
+		//Translate backwards by 1 world unit
+		const auto translated_backwards { camera.getFrustumBounds() };
+
+		//Verify that during a translation the direction isn't changed
+		THEN( "Direction is the same" )
+		{
+			REQUIRE( translated_backwards.near.direction() == base_frustum.near.direction() );
+		}
+
+		const auto matrix { camera.frustumTranslationMatrix() };
+		const auto plane { camera.getBaseFrustum().near };
+
+		const Vector new_direction { glm::normalize( matrix * plane.direction() ) };
+		const glm::vec3 new_center { matrix * plane.getPosition() };
+		const float new_distance { glm::dot( new_center, static_cast< glm::vec3 >( new_direction ) ) };
+
+		CAPTURE( plane.direction() );
+		CAPTURE( new_direction );
+		CAPTURE( plane.getPosition() );
+		CAPTURE( new_center );
+		CAPTURE( new_distance );
+
+		REQUIRE( new_distance != constants::NEAR_PLANE );
+
+		THEN( "The near plane distance should be 1U less" )
+		{
+			REQUIRE( translated_backwards.near.distance() == constants::NEAR_PLANE - 1.0f );
+		}
+
+		THEN( "The far plane should be translated backwards" )
+		{
+			const glm::vec3 target_far { ( constants::WORLD_FORWARD * constants::FAR_PLANE )
+				                         - constants::WORLD_FORWARD };
+
+			REQUIRE( translated_backwards.far.getPosition() == target_far );
+			REQUIRE( translated_backwards.far.direction() == constants::WORLD_BACKWARD );
+			REQUIRE( translated_backwards.far.distance() == -( constants::FAR_PLANE - 1.0f ) );
+			// The distance for the far plane should be negative. Due to the fact
+			// that it is pointing toward the origin, So in order for the center to be positive
+			// the distance must also be negative
+		}
+	}
+
+	WHEN( "Translated Forward" )
+	{
+		camera.setView( constants::WORLD_CENTER + constants::WORLD_FORWARD, Rotation( 0.0f, 0.0f, 0.0f ) );
+		//Translate forward by 1 world unit
+		const auto translated_forward { camera.getFrustumBounds() };
+
+		THEN( "Direction is the same" )
+		{
 			//Verify that during a translation the direction isn't changed
-			THEN( "Direction is the same" )
-			{
-				REQUIRE( translated_backwards.near.direction() == base_frustum.near.direction() );
-			}
-
-			THEN( "The near plane should be translated backwards" )
-			{
-				const glm::vec3 target_near { ( constants::WORLD_FORWARD * constants::NEAR_PLANE )
-					                          - constants::WORLD_FORWARD };
-
-				REQUIRE( translated_backwards.near.getPosition() == glm::vec3 { target_near } );
-				REQUIRE( translated_backwards.near.direction() == constants::WORLD_FORWARD );
-				REQUIRE( translated_backwards.near.distance() == constants::NEAR_PLANE - 1.0f );
-			}
-
-			THEN( "The far plane should be translated backwards" )
-			{
-				const glm::vec3 target_far { ( constants::WORLD_FORWARD * constants::FAR_PLANE )
-					                         - constants::WORLD_FORWARD };
-
-				REQUIRE( translated_backwards.far.getPosition() == target_far );
-				REQUIRE( translated_backwards.far.direction() == constants::WORLD_BACKWARD );
-				REQUIRE( translated_backwards.far.distance() == -( constants::FAR_PLANE - 1.0f ) );
-				// The distance for the far plane should be negative. Due to the fact
-				// that it is pointing toward the origin, So in order for the center to be positive
-				// the distance must also be negative
-			}
+			REQUIRE( translated_forward.near.direction() == base_frustum.near.direction() );
 		}
 
-		WHEN( "Translated Forward" )
+		THEN( "The near plane should be translated backwards" )
 		{
-			camera.setView( constants::WORLD_CENTER + constants::WORLD_FORWARD, Rotation( 0.0f, 0.0f, 0.0f ) );
-			//Translate forward by 1 world unit
-			const auto translated_forward { camera.getFrustumBounds() };
-
-			THEN( "Direction is the same" )
-			{
-				//Verify that during a translation the direction isn't changed
-				REQUIRE( translated_forward.near.direction() == base_frustum.near.direction() );
-			}
-
-			THEN( "The near plane should be translated backwards" )
-			{
-				REQUIRE( translated_forward.near.direction() == constants::WORLD_FORWARD );
-				REQUIRE( translated_forward.near.distance() == constants::NEAR_PLANE + 1.0f );
-				REQUIRE(
-					translated_forward.near.getPosition()
-					== ( constants::WORLD_FORWARD * ( constants::NEAR_PLANE + 1.0f ) ) );
-			}
-
-			THEN( "The far plane should be translated backwards" )
-			{
-				REQUIRE( translated_forward.far.direction() == constants::WORLD_BACKWARD );
-				REQUIRE( translated_forward.far.distance() == -( constants::FAR_PLANE + 1.0f ) );
-				REQUIRE(
-					translated_forward.far.getPosition()
-					== ( constants::WORLD_FORWARD * ( constants::FAR_PLANE + 1.0f ) ) );
-			}
+			REQUIRE( translated_forward.near.direction() == constants::WORLD_FORWARD );
+			REQUIRE( translated_forward.near.distance() == constants::NEAR_PLANE + 1.0f );
+			REQUIRE(
+				translated_forward.near.getPosition()
+				== ( constants::WORLD_FORWARD * ( constants::NEAR_PLANE + 1.0f ) ) );
 		}
 
-		WHEN( "Translated Up" )
+		THEN( "The far plane should be translated backwards" )
 		{
-			camera.setView( constants::WORLD_CENTER + constants::WORLD_UP, Rotation( 0.0f, 0.0f, 0.0f ) );
-			//Translate up by 1 world unit
-			const auto translated_up { camera.getFrustumBounds() };
-
-			THEN( "Direction is the same" )
-			{
-				//Verify that during a translation the direction isn't changed
-				REQUIRE( translated_up.near.direction() == base_frustum.near.direction() );
-			}
-
-			REQUIRE( translated_up.near.direction() == constants::WORLD_FORWARD );
-			REQUIRE( translated_up.near.distance() == constants::NEAR_PLANE );
-
-			REQUIRE( translated_up.far.direction() == constants::WORLD_BACKWARD );
-			REQUIRE( translated_up.far.distance() == -constants::FAR_PLANE );
+			REQUIRE( translated_forward.far.direction() == constants::WORLD_BACKWARD );
+			REQUIRE( translated_forward.far.distance() == -( constants::FAR_PLANE + 1.0f ) );
+			REQUIRE(
+				translated_forward.far.getPosition()
+				== ( constants::WORLD_FORWARD * ( constants::FAR_PLANE + 1.0f ) ) );
 		}
+	}
+
+	WHEN( "Translated Up" )
+	{
+		camera.setView( constants::WORLD_CENTER + constants::WORLD_UP, Rotation( 0.0f, 0.0f, 0.0f ) );
+		//Translate up by 1 world unit
+		const auto translated_up { camera.getFrustumBounds() };
+
+		THEN( "Direction is the same" )
+		{
+			//Verify that during a translation the direction isn't changed
+			REQUIRE( translated_up.near.direction() == base_frustum.near.direction() );
+		}
+
+		REQUIRE( translated_up.near.direction() == constants::WORLD_FORWARD );
+		REQUIRE( translated_up.near.distance() == constants::NEAR_PLANE );
+
+		REQUIRE( translated_up.far.direction() == constants::WORLD_BACKWARD );
+		REQUIRE( translated_up.far.distance() == -constants::FAR_PLANE );
 	}
 
 	const Frustum< fgl::engine::CoordinateSpace::World > frustum { Matrix< MatrixType::ModelToWorld > { 1.0f }
