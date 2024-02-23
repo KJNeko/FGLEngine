@@ -19,7 +19,6 @@ namespace fgl::engine
 
 	void Camera::setOrthographicProjection( float left, float right, float top, float bottom, float near, float far )
 	{
-		ZoneScoped;
 		projection_matrix =
 			Matrix< MatrixType::CameraToScreen >( glm::orthoLH_ZO( left, right, bottom, top, near, far ) );
 
@@ -36,7 +35,6 @@ namespace fgl::engine
 
 	void Camera::setViewDirection( glm::vec3 position, const Vector direction, glm::vec3 up )
 	{
-		ZoneScoped;
 		glm::lookAt( position, position + direction, up );
 		//frustum = view_matrix * base_frustum;
 		return;
@@ -49,8 +47,6 @@ namespace fgl::engine
 
 	void Camera::setView( glm::vec3 pos, const Rotation rotation, const ViewMode mode )
 	{
-		ZoneScoped;
-
 		//Flip Z due to the fact we use Z+ outside of this function. It must be Z- inside
 		//position.z = -position.z;
 		// Maybe unneeded?
@@ -88,7 +84,6 @@ namespace fgl::engine
 
 	void Camera::updateFrustum()
 	{
-		ZoneScoped;
 		if ( update_frustums ) [[likely]]
 		{
 			last_frustum_pos = getPosition();

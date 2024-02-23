@@ -22,7 +22,6 @@ namespace fgl::engine::debug
 	Coordinate< CoordinateSpace::Screen >
 		toScreenSpace( Coordinate< CoordinateSpace::World > world_point, const Camera& camera )
 	{
-		ZoneScopedC( TRACY_DRAWER_FUNC_COLOR );
 		const ImVec2 window_size { windowSize() };
 
 		const Coordinate< CoordinateSpace::Screen > screen_point { glm::projectZO(
@@ -73,9 +72,8 @@ namespace fgl::engine::debug
 			}
 		}
 
-		void drawLine( const Line< CoordinateSpace::World > line, const Camera& camera, const glm::vec3 color )
+		inline void drawLine( const Line< CoordinateSpace::World > line, const Camera& camera, const glm::vec3 color )
 		{
-			ZoneScopedC( TRACY_DRAWER_FUNC_COLOR );
 			const Coordinate< CoordinateSpace::Screen > start_screen { toScreenSpace( line.start, camera ) };
 			const Coordinate< CoordinateSpace::Screen > end_screen { toScreenSpace( line.end, camera ) };
 
@@ -93,14 +91,12 @@ namespace fgl::engine::debug
 			const Camera& camera,
 			const glm::vec3 color )
 		{
-			ZoneScopedC( TRACY_DRAWER_FUNC_COLOR );
 			drawLine( { start, end }, camera, color );
 		}
 
 		void drawPointText(
 			const Coordinate< CoordinateSpace::World > point, const Camera& camera, const glm::vec3 color )
 		{
-			ZoneScopedC( TRACY_DRAWER_FUNC_COLOR );
 			const glm::vec3 screen_point { toScreenSpace( point, camera ) };
 
 			if ( !inView( screen_point ) ) return;
@@ -127,7 +123,6 @@ namespace fgl::engine::debug
 		void drawPointLabel(
 			const Coordinate< CoordinateSpace::World > point, const std::string label, const Camera& camera )
 		{
-			ZoneScopedC( TRACY_DRAWER_FUNC_COLOR );
 			const glm::vec3 screen_point { toScreenSpace( point, camera ) };
 
 			if ( !inView( screen_point ) ) return;
@@ -141,7 +136,6 @@ namespace fgl::engine::debug
 			const std::string label,
 			const glm::vec3 color )
 		{
-			ZoneScopedC( TRACY_DRAWER_FUNC_COLOR );
 			const auto screen_point { toScreenSpace( point, camera ) };
 			if ( !inView( screen_point ) ) return;
 
@@ -157,7 +151,6 @@ namespace fgl::engine::debug
 			const bool value,
 			const glm::vec2 offset )
 		{
-			ZoneScopedC( TRACY_DRAWER_FUNC_COLOR );
 			const auto screen_point { toScreenSpace( point, camera ) };
 
 			const auto color { value ? glm::vec3( 0.0f, 1.0f, 0.0f ) : glm::vec3( 1.0f, 0.0f, 0.0f ) };
@@ -172,7 +165,6 @@ namespace fgl::engine::debug
 			const std::string label,
 			const glm::vec3 color )
 		{
-			ZoneScopedC( TRACY_DRAWER_FUNC_COLOR );
 			drawLine( point, point + glm::normalize( vector ), camera, color );
 			drawPoint( point + glm::normalize( vector ), camera, label, color );
 			drawPointLabel( point, label, camera );
@@ -200,7 +192,6 @@ namespace fgl::engine::debug
 		void drawFrustum(
 			const Frustum< CoordinateSpace::World >& frustum, const Camera& camera, const WorldCoordinate point )
 		{
-			ZoneScopedC( TRACY_DRAWER_FUNC_COLOR );
 			drawPlane( frustum.near, point, camera, "near" );
 			drawPlane( frustum.far, point, camera, "far" );
 			drawPlane( frustum.top, point, camera, "top" );
@@ -211,7 +202,6 @@ namespace fgl::engine::debug
 
 		void drawFrustum( const Camera& camera )
 		{
-			ZoneScopedC( TRACY_DRAWER_FUNC_COLOR );
 			const Frustum frustum { camera.getFrustumBounds() };
 			drawFrustum( frustum, camera, camera.getFrustumPosition() );
 		}
@@ -223,7 +213,6 @@ namespace fgl::engine::debug
 			const std::string label,
 			const glm::vec3 color )
 		{
-			ZoneScopedC( TRACY_DRAWER_FUNC_COLOR );
 			const auto normal { plane.direction() };
 
 			assert( point != constants::DEFAULT_VEC3 );
@@ -239,7 +228,6 @@ namespace fgl::engine::debug
 		void
 			drawText( const glm::vec2 position, const std::string& text, const glm::vec3 color, const glm::vec2 offset )
 		{
-			ZoneScopedC( TRACY_DRAWER_FUNC_COLOR );
 			ImGui::GetForegroundDrawList()
 				->AddText( glmToImgui( position + offset ), ImColor( color.x, color.y, color.z ), text.c_str() );
 		}
@@ -247,7 +235,6 @@ namespace fgl::engine::debug
 		void drawBoolAlpha(
 			const glm::vec2 screen_point, const Camera& camera, const bool value, const glm::vec2 offset )
 		{
-			ZoneScopedC( TRACY_DRAWER_FUNC_COLOR );
 			const auto color { value ? glm::vec3( 0.0f, 1.0f, 0.0f ) : glm::vec3( 1.0f, 0.0f, 0.0f ) };
 			drawText( glm::vec2( screen_point.x, screen_point.y + offset.y ), value ? "true" : "false", color );
 		}

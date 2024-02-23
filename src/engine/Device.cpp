@@ -82,7 +82,6 @@ namespace fgl::engine
 	// class member functions
 	Device::Device( Window& window ) : m_window { window }
 	{
-		ZoneScoped;
 		createInstance();
 		setupDebugMessenger();
 		createSurface();
@@ -98,7 +97,6 @@ namespace fgl::engine
 
 	Device::~Device()
 	{
-		ZoneScoped;
 		vkDestroyCommandPool( device_, m_commandPool, nullptr );
 		vkDestroyDevice( device_, nullptr );
 
@@ -113,7 +111,6 @@ namespace fgl::engine
 
 	void Device::createInstance()
 	{
-		ZoneScoped;
 		if ( enableValidationLayers && !checkValidationLayerSupport() )
 		{
 			throw std::runtime_error( "validation layers requested, but not available!" );
@@ -156,7 +153,6 @@ namespace fgl::engine
 
 	void Device::pickPhysicalDevice()
 	{
-		ZoneScoped;
 		std::vector< vk::PhysicalDevice > devices { m_instance.enumeratePhysicalDevices() };
 
 		bool found { false };
@@ -181,7 +177,6 @@ namespace fgl::engine
 
 	void Device::createLogicalDevice()
 	{
-		ZoneScoped;
 		const QueueFamilyIndices indices { findQueueFamilies( m_physical_device ) };
 
 		std::vector< vk::DeviceQueueCreateInfo > queueCreateInfos;
@@ -257,7 +252,6 @@ namespace fgl::engine
 
 	void Device::createCommandPool()
 	{
-		ZoneScoped;
 		QueueFamilyIndices queueFamilyIndices = findPhysicalQueueFamilies();
 
 		vk::CommandPoolCreateInfo poolInfo = {};
@@ -277,7 +271,6 @@ namespace fgl::engine
 
 	bool Device::isDeviceSuitable( vk::PhysicalDevice device )
 	{
-		ZoneScoped;
 		const QueueFamilyIndices indices { findQueueFamilies( device ) };
 
 		const bool extensionsSupported { checkDeviceExtensionSupport( device ) };
@@ -304,7 +297,6 @@ namespace fgl::engine
 
 	void Device::populateDebugMessengerCreateInfo( vk::DebugUtilsMessengerCreateInfoEXT& createInfo )
 	{
-		ZoneScoped;
 		createInfo.messageSeverity =
 			vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
 		createInfo.messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral
@@ -316,7 +308,6 @@ namespace fgl::engine
 
 	void Device::setupDebugMessenger()
 	{
-		ZoneScoped;
 		if ( !enableValidationLayers ) return;
 
 		pfnVkCreateDebugUtilsMessengerEXT = reinterpret_cast<
@@ -349,7 +340,6 @@ namespace fgl::engine
 
 	bool Device::checkValidationLayerSupport()
 	{
-		ZoneScoped;
 		std::vector< vk::LayerProperties > availableLayers { vk::enumerateInstanceLayerProperties() };
 
 		for ( const char* layerName : validationLayers )
@@ -376,7 +366,6 @@ namespace fgl::engine
 
 	std::vector< const char* > Device::getRequiredExtensions()
 	{
-		ZoneScoped;
 		uint32_t glfwExtensionCount = 0;
 		const char** glfwExtensions;
 		glfwExtensions = glfwGetRequiredInstanceExtensions( &glfwExtensionCount );
@@ -393,7 +382,6 @@ namespace fgl::engine
 
 	void Device::hasGflwRequiredInstanceExtensions()
 	{
-		ZoneScoped;
 		std::vector< vk::ExtensionProperties > extensions { vk::enumerateInstanceExtensionProperties() };
 
 		std::cout << "available extensions:" << std::endl;
@@ -420,7 +408,6 @@ namespace fgl::engine
 
 	bool Device::checkDeviceExtensionSupport( vk::PhysicalDevice device )
 	{
-		ZoneScoped;
 		const std::vector< vk::ExtensionProperties > availableExtensions {
 			device.enumerateDeviceExtensionProperties()
 		};
@@ -446,7 +433,6 @@ namespace fgl::engine
 
 	QueueFamilyIndices Device::findQueueFamilies( vk::PhysicalDevice device )
 	{
-		ZoneScoped;
 		QueueFamilyIndices indices {};
 
 		std::vector< vk::QueueFamilyProperties > queueFamilies { device.getQueueFamilyProperties() };
@@ -479,7 +465,6 @@ namespace fgl::engine
 
 	SwapChainSupportDetails Device::querySwapChainSupport( vk::PhysicalDevice device )
 	{
-		ZoneScoped;
 		SwapChainSupportDetails details;
 
 		if ( device.getSurfaceCapabilitiesKHR( surface_, &details.capabilities ) != vk::Result::eSuccess )
@@ -513,7 +498,6 @@ namespace fgl::engine
 	vk::Format Device::findSupportedFormat(
 		const std::vector< vk::Format >& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features )
 	{
-		ZoneScoped;
 		for ( vk::Format format : candidates )
 		{
 			vk::FormatProperties props;
@@ -533,7 +517,6 @@ namespace fgl::engine
 
 	uint32_t Device::findMemoryType( uint32_t typeFilter, vk::MemoryPropertyFlags properties )
 	{
-		ZoneScoped;
 		vk::PhysicalDeviceMemoryProperties memProperties;
 		m_physical_device.getMemoryProperties( &memProperties );
 		for ( uint32_t i = 0; i < memProperties.memoryTypeCount; i++ )
@@ -550,7 +533,6 @@ namespace fgl::engine
 
 	vk::CommandBuffer Device::beginSingleTimeCommands()
 	{
-		ZoneScoped;
 		vk::CommandBufferAllocateInfo allocInfo {};
 		allocInfo.level = vk::CommandBufferLevel::ePrimary;
 		allocInfo.commandPool = m_commandPool;
@@ -570,7 +552,6 @@ namespace fgl::engine
 
 	void Device::endSingleTimeCommands( vk::CommandBuffer commandBuffer )
 	{
-		ZoneScoped;
 		vkEndCommandBuffer( commandBuffer );
 
 		vk::SubmitInfo submitInfo {};
@@ -588,7 +569,6 @@ namespace fgl::engine
 	void Device::
 		copyBufferToImage( vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height, uint32_t layerCount )
 	{
-		ZoneScoped;
 		vk::CommandBuffer commandBuffer { beginSingleTimeCommands() };
 
 		vk::BufferImageCopy region {};
@@ -610,7 +590,6 @@ namespace fgl::engine
 
 	void Device::createVMAAllocator()
 	{
-		ZoneScoped;
 		VmaVulkanFunctions vk_func {};
 		vk_func.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
 		vk_func.vkGetDeviceProcAddr = vkGetDeviceProcAddr;
@@ -629,7 +608,6 @@ namespace fgl::engine
 	void Device::copyBuffer(
 		vk::Buffer dst, vk::Buffer src, vk::DeviceSize dst_offset, vk::DeviceSize src_offset, vk::DeviceSize size )
 	{
-		ZoneScoped;
 		vk::CommandBuffer commandBuffer { beginSingleTimeCommands() };
 
 		vk::BufferCopy copyRegion {};

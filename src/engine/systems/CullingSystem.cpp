@@ -30,7 +30,8 @@ namespace fgl::engine
 					obj.model->getBoundingBox( Matrix< MatrixType::ModelToWorld >( obj.transform.mat4() ) )
 				};
 
-				obj.is_visible = model_bounding_box.isInFrustum( frustum );
+				obj.is_visible = frustum.intersects( model_bounding_box );
+				//obj.is_visible = model_bounding_box.isInFrustum( frustum );
 
 				if ( obj.is_visible )
 				{

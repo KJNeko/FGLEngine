@@ -92,14 +92,12 @@ namespace fgl::engine
 
 			for ( auto& [ key, obj ] : info.game_objects )
 			{
-				TracyVkZone( info.tracy_ctx, command_buffer, "Render game object" );
 				if ( obj.model == nullptr ) continue;
 
 				if ( !obj.is_visible ) continue;
 
 				for ( const auto& primitive : obj.model->m_primitives )
 				{
-					ZoneScopedN( "Queue Primitive" );
 					const ModelMatrixInfo matrix_info { .model_matrix = obj.transform.mat4(),
 						                                .texture_idx = primitive.m_texture->getID() };
 					//.normal_matrix = obj.transform.normalMatrix() };
@@ -113,14 +111,11 @@ namespace fgl::engine
 
 					cmd.instanceCount = 1;
 
-					TracyCZoneN( search_zone_TRACY, "Draw pair deduplicate search", true );
 					auto itter = std::find(
 						draw_pairs.begin(), draw_pairs.end(), std::make_pair( cmd, std::vector< ModelMatrixInfo >() ) );
-					TracyCZoneEnd( search_zone_TRACY );
 
 					if ( itter != draw_pairs.end() )
 					{
-						ZoneScopedN( "Increment existing render call" );
 						//Draw command for this mesh already exists. Simply add a count to it
 						auto [ existing_cmd, model_matrix ] = *itter;
 
@@ -131,7 +126,6 @@ namespace fgl::engine
 					}
 					else
 					{
-						ZoneScopedN( "Create new render call" );
 						draw_pairs.emplace( cmd, std::vector< ModelMatrixInfo > { matrix_info } );
 					}
 				}

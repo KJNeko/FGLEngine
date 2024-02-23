@@ -51,7 +51,6 @@ namespace fgl::engine
 	BoundingBox< EvolvedType< MType >() >
 		operator*( const Matrix< MType > matrix, const BoundingBox< CType > bounding_box )
 	{
-		ZoneScoped;
 		const Coordinate< EvolvedType< MType >() > new_middle { matrix * bounding_box.middle };
 		const glm::vec3 new_scale { matrix * glm::vec4( bounding_box.scale, 0.0f ) };
 		return BoundingBox< EvolvedType< MType >() >( new_middle, new_scale );

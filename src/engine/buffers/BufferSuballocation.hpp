@@ -74,8 +74,6 @@ namespace fgl::engine
 
 		HostSingleT& operator=( T& t )
 		{
-			ZoneScoped;
-
 			*static_cast< T* >( this->ptr() ) = t;
 
 			flush();
