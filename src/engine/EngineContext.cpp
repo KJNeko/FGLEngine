@@ -470,9 +470,9 @@ namespace fgl::engine
 			m_entity_renderer.getVertexBuffer(),
 			m_entity_renderer.getIndexBuffer() ) };
 
-		for ( int x = 0; x < 1; ++x )
+		for ( int x = 0; x < 32; ++x )
 		{
-			for ( int y = 0; y < 1; ++y )
+			for ( int y = 0; y < 32; ++y )
 			{
 				auto sponza = GameObject::createGameObject();
 				sponza.model = model;

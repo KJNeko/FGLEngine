@@ -101,7 +101,7 @@ namespace fgl::engine
 
 				debug::world::drawBoundingBox( model_bounding_box, info.camera );
 
-				//if ( !model_bounding_box.isInFrustum( info.camera_frustum ) ) continue;
+				if ( !model_bounding_box.isInFrustum( info.camera_frustum ) ) continue;
 
 				for ( const auto& primitive : obj.model->m_primitives )
 				{
