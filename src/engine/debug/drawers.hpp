@@ -26,6 +26,7 @@ namespace fgl::engine
 
 } // namespace fgl::engine
 
+#ifndef NDEBUG
 namespace fgl::engine::debug
 {
 
@@ -101,3 +102,63 @@ namespace fgl::engine::debug
 	} // namespace screen
 
 } // namespace fgl::engine::debug
+#else
+
+namespace fgl::engine::debug
+{
+	namespace world
+	{
+		//Dummy functions
+		inline void drawBoundingBox( const BoundingBox< CoordinateSpace::World >&, Camera&, const glm::vec3 )
+		{}
+
+		inline void drawBoundingBox( const BoundingBox< CoordinateSpace::World >&, Camera& )
+		{}
+
+		inline void drawLine(
+			const Coordinate< CoordinateSpace::World >,
+			const Coordinate< CoordinateSpace::World >,
+			const Camera&,
+			const glm::vec3 )
+		{}
+
+		inline void drawPointLabel( const Coordinate< CoordinateSpace::World >, const std::string, const Camera& )
+		{}
+
+		inline void drawLine( const Line< CoordinateSpace::World >, const Camera&, const glm::vec3 )
+		{}
+
+		inline void drawPointText( const Coordinate< CoordinateSpace::World >, const Camera&, const glm::vec3 )
+		{}
+
+		inline void
+			drawBoolAlpha( const Coordinate< CoordinateSpace::World >, const Camera&, const bool, const glm::vec2 )
+		{}
+
+		inline void
+			drawPoint( const Coordinate< CoordinateSpace::World >, const Camera&, const std::string, const glm::vec3 )
+		{}
+
+		inline void drawVector(
+			const Coordinate< CoordinateSpace::World >, Vector, const Camera&, const std::string, const glm::vec3 )
+		{}
+
+		inline void drawFrustum( const Frustum< CoordinateSpace::World >&, const Camera&, const WorldCoordinate )
+		{}
+
+		inline void drawFrustum( const Camera& )
+		{}
+
+		inline void drawPlane(
+			const Plane< CoordinateSpace::World >&,
+			const WorldCoordinate,
+			const Camera&,
+			const std::string,
+			const glm::vec3 )
+		{}
+
+	} // namespace world
+
+} // namespace fgl::engine::debug
+
+#endif

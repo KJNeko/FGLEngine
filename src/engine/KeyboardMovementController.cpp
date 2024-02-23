@@ -27,8 +27,6 @@ namespace fgl::engine
 
 	void KeyboardMovementController::moveInPlaneXZ( GLFWwindow* window, float dt, fgl::engine::GameObject& target )
 	{
-		ImGui::Begin( "CameraMovement" );
-
 		Rotation rotate { 0.0f };
 
 		if ( glfwGetKey( window, key_mappings.look_right ) == GLFW_PRESS ) rotate.yaw() += 1.f;
@@ -108,13 +106,6 @@ namespace fgl::engine
 
 		if ( glm::dot( move_dir, move_dir ) > std::numeric_limits< float >::epsilon() )
 			target.transform.translation += ( move_speed * dt ) * glm::normalize( move_dir );
-
-		ImGui::Text( "Transform" );
-		ImGui::InputFloat( "X", &target.transform.translation.x, -10.0, 10.0 );
-		ImGui::InputFloat( "Y", &target.transform.translation.y, -10.0, 10.0 );
-		ImGui::InputFloat( "Z", &target.transform.translation.z, -10.0, 10.0 );
-
-		ImGui::End();
 	}
 
 } // namespace fgl::engine

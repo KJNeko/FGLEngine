@@ -476,7 +476,7 @@ namespace fgl::engine
 			{
 				auto sponza = GameObject::createGameObject();
 				sponza.model = model;
-				sponza.transform.translation = { 0.0f + ( y * 30 ), 1.0f, 0.0f + ( x * 20 ) };
+				sponza.transform.translation = { 0.0f + ( y * 30 ), 0.0f + ( x * 20 ), 0.0f };
 				sponza.transform.scale = { 0.007f, 0.007f, 0.007f };
 				sponza.transform.rotation = { 0.0f, 0.0f, 0.0f };
 

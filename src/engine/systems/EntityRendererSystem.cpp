@@ -99,9 +99,9 @@ namespace fgl::engine
 					obj.model->getBoundingBox( Matrix< MatrixType::ModelToWorld >( obj.transform.mat4() ) )
 				};
 
-				debug::world::drawBoundingBox( model_bounding_box, info.camera );
-
 				if ( !model_bounding_box.isInFrustum( info.camera_frustum ) ) continue;
+
+				debug::world::drawBoundingBox( model_bounding_box, info.camera );
 
 				for ( const auto& primitive : obj.model->m_primitives )
 				{
@@ -130,29 +130,6 @@ namespace fgl::engine
 						//Draw command for this mesh already exists. Simply add a count to it
 						auto [ existing_cmd, model_matrix ] = *itter;
 
-						//Sort each model matrix by distance from camera. Render closest first
-						const auto camera_pos { info.camera.getPosition() };
-
-						{
-							ZoneScopedN( "Sort model matricies by distance" );
-							std::sort(
-								model_matrix.begin(),
-								model_matrix.end(),
-								[ camera_pos ]( const ModelMatrixInfo& first, const ModelMatrixInfo& second ) -> bool
-								{
-									const auto& first_pos_v4 { first.model_matrix[ 3 ] };
-									const auto& second_pos_v4 { second.model_matrix[ 3 ] };
-
-									const glm::vec3 first_pos { first_pos_v4.x, first_pos_v4.y, first_pos_v4.z };
-									const glm::vec3 second_pos { second_pos_v4.x, second_pos_v4.y, second_pos_v4.z };
-
-									const auto first_distance { glm::distance( first_pos, camera_pos ) };
-									const auto second_distance { glm::distance( second_pos, camera_pos ) };
-
-									return first_distance < second_distance;
-								} );
-						}
-
 						draw_pairs.erase( itter );
 						existing_cmd.instanceCount++;
 						model_matrix.emplace_back( matrix_info );
@@ -176,12 +153,27 @@ namespace fgl::engine
 			std::vector< vk::DrawIndexedIndirectCommand > draw_commands;
 			std::vector< ModelMatrixInfo > model_matrices;
 
+			const auto camera_pos { info.camera.getPosition() };
+
+			auto sortFunc = [ camera_pos ]( const ModelMatrixInfo first, const ModelMatrixInfo second ) -> bool
+			{
+				const glm::vec3 first_pos { first.model_matrix[ 3 ] };
+				const float first_distance { glm::distance( first_pos, camera_pos ) };
+
+				const glm::vec3 second_pos { second.model_matrix[ 3 ] };
+				const float second_distance { glm::distance( second_pos, camera_pos ) };
+
+				return first_distance < second_distance;
+			};
+
 			TracyCZoneN( filter_zone_TRACY, "Reorganize draw commands", true );
 			for ( auto& itter : draw_pairs )
 			{
 				auto cmd { itter.first };
 				cmd.firstInstance = model_matrices.size();
-				auto& matricies { itter.second };
+				auto matricies { std::move( itter.second ) };
+
+				std::sort( matricies.begin(), matricies.end(), sortFunc );
 
 				draw_commands.emplace_back( cmd );
 				model_matrices.insert( model_matrices.end(), matricies.begin(), matricies.end() );

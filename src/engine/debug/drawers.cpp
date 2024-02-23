@@ -10,6 +10,8 @@
 #include "engine/primitives/Vector.hpp"
 #include "tracy_colors.hpp"
 
+#ifndef NDEBUG
+
 namespace fgl::engine::debug
 {
 	const ImVec2 windowSize()
@@ -253,3 +255,5 @@ namespace fgl::engine::debug
 	} // namespace screen
 
 } // namespace fgl::engine::debug
+
+#endif
