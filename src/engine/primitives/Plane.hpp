@@ -16,10 +16,10 @@
 #include "Matrix.hpp"
 #include "Vector.hpp"
 #include "engine/constants.hpp"
+#include "engine/primitives/Line.hpp"
 
 namespace fgl::engine
 {
-
 	template < CoordinateSpace CType = CoordinateSpace::World >
 	class OriginDistancePlane
 	{
@@ -48,6 +48,11 @@ namespace fgl::engine
 
 		bool isForward( const WorldCoordinate coord ) const { return distanceFrom( coord ) > 0.0; }
 
+		bool isForward( const Line< CoordinateSpace::World > line ) const
+		{
+			return isForward( line.start ) && isForward( line.end );
+		}
+
 		bool isBehind( const WorldCoordinate coord ) const { return !isForward( coord ); }
 
 		//! Returns a normalized Vector
@@ -59,6 +64,8 @@ namespace fgl::engine
 		{
 			return m_distance == other.m_distance && m_direction == other.m_direction;
 		}
+
+		bool intersects( const Line< CType > line ) const;
 	};
 
 	template < CoordinateSpace CType >

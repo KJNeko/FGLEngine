@@ -62,12 +62,12 @@ namespace fgl::engine
 			// We can either make this non-biased by using a projection from distance shot down the FORWARD vector
 			// Or we can use SIMD to check all the planes at once.
 
-			return far.isForward( coord ) && near.isForward( coord ) && bottom.isForward( coord )
+			return near.isForward( coord ) && far.isForward( coord ) && bottom.isForward( coord )
 			    && top.isForward( coord ) && right.isForward( coord ) && left.isForward( coord );
 		}
 
-		//! Tests that a line intersects the frustum
-		bool lineIntersects( const Line< CoordinateSpace::World > line ) const;
+		template < typename T >
+		bool intersects( const T t ) const;
 
 		bool operator==( const Frustum< CType >& other ) const
 		{
