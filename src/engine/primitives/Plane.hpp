@@ -48,11 +48,6 @@ namespace fgl::engine
 
 		bool isForward( const WorldCoordinate coord ) const { return distanceFrom( coord ) > 0.0; }
 
-		bool isForward( const Line< CoordinateSpace::World > line ) const
-		{
-			return isForward( line.start ) && isForward( line.end );
-		}
-
 		bool isBehind( const WorldCoordinate coord ) const { return !isForward( coord ); }
 
 		//! Returns a normalized Vector

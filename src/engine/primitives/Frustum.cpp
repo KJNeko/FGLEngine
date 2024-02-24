@@ -13,17 +13,27 @@ namespace fgl::engine
 	template <>
 	bool Frustum< CoordinateSpace::World >::intersects( const Line< CoordinateSpace::World > line ) const
 	{
+		const bool top_intersects { top.intersects( line ) };
+		const bool bottom_intersects { bottom.intersects( line ) };
+
+		const bool left_intersects { left.intersects( line ) };
+		const bool right_intersects { right.intersects( line ) };
+
+		const bool near_intersects { near.intersects( line ) };
+		const bool far_intersects { far.intersects( line ) };
+
 		//Check if the line passes through the frustum
-		const bool intersects_forward_back { near.intersects( line ) && far.intersects( line ) };
-		const bool intersects_left_right { left.intersects( line ) && right.intersects( line ) };
-		const bool intersects_top_bottom { top.intersects( line ) && bottom.intersects( line ) };
+		const bool intersects_left_right { left_intersects && right_intersects };
+		const bool intersects_top_bottom { top_intersects && bottom_intersects };
 
-		//const bool line_within_top_bottom { top.isForward( line ) && bottom.isForward( line ) };
-		//const bool line_within_left_right { left.isForward( line ) && right.isForward( line ) };
-		//At least one point of the line is within the near and far planes
-		const bool line_within_near_far { near.isForward( line ) || far.isForward( line ) };
+		const bool line_within_near_far { !near_intersects && !far_intersects };
 
-		return line_within_near_far && ( intersects_forward_back || intersects_top_bottom || intersects_left_right );
+		const bool line_outside_top_bottom { !top_intersects && !bottom_intersects };
+		const bool line_outside_left_right { !left_intersects && !right_intersects };
+
+		const bool line_outside_range { line_outside_top_bottom && line_outside_left_right };
+
+		return line_within_near_far && !( line_outside_range ) && ( intersects_top_bottom || intersects_left_right );
 	}
 
 	template <>

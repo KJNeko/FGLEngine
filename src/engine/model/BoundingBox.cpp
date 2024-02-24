@@ -199,11 +199,26 @@ namespace fgl::engine
 	std::vector< Line< CType > > BoundingBox< CType >::lines() const
 	{
 		const auto points { this->points() };
+
 		std::vector< Line< CType > > lines;
-		for ( std::uint32_t i = 0; i < points.size() - 1; ++i )
-		{
-			lines.emplace_back( points[ i ], points[ i + 1 ] );
-		}
+
+		//Top
+		lines.emplace_back( points[ 0 ], points[ 1 ] );
+		lines.emplace_back( points[ 1 ], points[ 2 ] );
+		lines.emplace_back( points[ 2 ], points[ 3 ] );
+		lines.emplace_back( points[ 3 ], points[ 0 ] );
+
+		//Bottom
+		lines.emplace_back( points[ 4 ], points[ 5 ] );
+		lines.emplace_back( points[ 5 ], points[ 6 ] );
+		lines.emplace_back( points[ 6 ], points[ 7 ] );
+		lines.emplace_back( points[ 7 ], points[ 4 ] );
+
+		//Sides
+		lines.emplace_back( points[ 0 ], points[ 4 ] );
+		lines.emplace_back( points[ 1 ], points[ 5 ] );
+		lines.emplace_back( points[ 2 ], points[ 6 ] );
+		lines.emplace_back( points[ 3 ], points[ 7 ] );
 
 		return lines;
 	}
