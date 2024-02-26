@@ -76,6 +76,21 @@ namespace fgl::engine
 		}
 	};
 
+#ifdef EXPOSE_FRUSTUM_INTERNALS
+	float signedDistance( const Vector direction, const WorldCoordinate& point, const WorldCoordinate& origin );
+	void processPlane(
+		const Plane< CoordinateSpace::World > plane,
+		const Line< CoordinateSpace::World > line,
+		std::vector< WorldCoordinate >& out_enter_intersections,
+		std::vector< WorldCoordinate >& out_exit_intersections );
+
+	WorldCoordinate getFirstExit(
+		const std::vector< WorldCoordinate >& enter_intersections, const Line< CoordinateSpace::World > line );
+	WorldCoordinate getLastEnter(
+		const std::vector< WorldCoordinate >& exit_intersections, const Line< CoordinateSpace::World > line );
+
+#endif
+
 	void imGuiFrustumSettings();
 
 	template < CoordinateSpace CType >
