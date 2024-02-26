@@ -48,8 +48,14 @@ namespace fgl::engine::debug
 
 		void drawPointLabel( const Coordinate< CoordinateSpace::World > point, const std::string label );
 
-		void drawLineI( const Line< CoordinateSpace::World > line, const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
-		void drawLine( const Line< CoordinateSpace::World > line, const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
+		void drawLineI(
+			const Line< CoordinateSpace::World > line,
+			const glm::vec3 color = { 1.0f, 1.0f, 1.0f },
+			const float thickness = 1.0f );
+		void drawLine(
+			const Line< CoordinateSpace::World > line,
+			const glm::vec3 color = { 1.0f, 1.0f, 1.0f },
+			const float thickness = 1.0f );
 
 		void drawPointText(
 			const Coordinate< CoordinateSpace::World > point, const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );

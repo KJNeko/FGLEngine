@@ -42,17 +42,11 @@ namespace fgl::engine
 		const bool is_line_entering { dot > 0.0f };
 
 		if ( is_line_entering )
-		{
-			//			debug::world::drawVector( intersection, line.direction() );
-			//			debug::world::drawVector( intersection, plane.direction(), "", glm::vec3( 0.0f, 1.0f, 0.0f ) );
 			out_enter_intersections.emplace_back( intersection );
-		}
 		else
-		{
-			//			debug::world::drawVector( intersection, line.direction() );
-			//			debug::world::drawVector( intersection, plane.direction(), "", glm::vec3( 1.0f, 0.0f, 0.0f ) );
 			out_exit_intersections.emplace_back( intersection );
-		}
+
+		return;
 	}
 
 	WorldCoordinate getFirstExit(
@@ -132,8 +126,10 @@ namespace fgl::engine
 
 		if ( show_intersect ) [[unlikely]]
 		{
-			debug::world::drawVector( last_enter, line.direction(), "", glm::vec3( 0.f, 1.f, 0.0f ) );
-			debug::world::drawVector( first_exit, line.direction(), "", glm::vec3( 1.f, 0.f, 0.0f ) );
+			debug::world::drawVector(
+				last_enter, line.direction(), std::to_string( distance_to_enter ), glm::vec3( 0.f, 1.f, 0.0f ) );
+			debug::world::drawVector(
+				first_exit, line.direction(), std::to_string( distance_to_exit ), glm::vec3( 1.f, 0.f, 0.0f ) );
 		}
 
 		return distance_to_exit >= distance_to_enter;
@@ -148,6 +144,8 @@ namespace fgl::engine
 
 	inline static bool check_points { true };
 	inline static bool check_lines { true };
+	inline static bool check_single_line { false };
+	inline static int line_id { 0 };
 
 	void imGuiFrustumSettings()
 	{
@@ -157,6 +155,12 @@ namespace fgl::engine
 			ImGui::Checkbox( "Check points", &check_points );
 			ImGui::Checkbox( "Check lines", &check_lines );
 			ImGui::Checkbox( "Show first & last intersections", &show_intersect );
+
+			ImGui::Checkbox( "Check single line", &check_single_line );
+			if ( check_single_line )
+			{
+				ImGui::SliderInt( "Line ID:", &line_id, 0, 11 );
+			}
 		}
 	}
 
@@ -178,11 +182,20 @@ namespace fgl::engine
 		{
 			assert( box.lines().size() == 12 );
 
-			//Slow check for checking lines
-			for ( const auto line : box.lines() )
+			if ( check_single_line ) [[unlikely]]
 			{
-				//intersects( line );
+				const auto line { box.lines()[ line_id ] };
+				debug::world::drawLine( line, glm::vec3( 0.0f, 0.0f, 1.0f ), 5.0f );
 				if ( intersects( line ) ) return true;
+			}
+			else
+			{
+				//Slow check for checking lines
+				for ( const auto line : box.lines() )
+				{
+					//intersects( line );
+					if ( intersects( line ) ) return true;
+				}
 			}
 		}
 

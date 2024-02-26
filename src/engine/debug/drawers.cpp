@@ -69,13 +69,13 @@ namespace fgl::engine::debug
 	namespace world
 	{
 
-		inline void drawLineI( const Line< CoordinateSpace::World > line, const glm::vec3 color )
+		inline void drawLineI( const Line< CoordinateSpace::World > line, const glm::vec3 color, const float thickness )
 		{
 			//Check if the line in intersecting the frustum
 			if ( getDebugDrawingCamera().getFrustumBounds().intersects( line ) )
-				drawLine( line, glm::vec3( 0.0f, 1.0f, 0.0f ) );
+				drawLine( line, glm::vec3( 0.0f, 1.0f, 0.0f ), thickness );
 			else
-				drawLine( line, color );
+				drawLine( line, color, thickness );
 		}
 
 		void drawBoundingBox( const BoundingBox< CoordinateSpace::World >& box, const glm::vec3 color )
@@ -92,7 +92,7 @@ namespace fgl::engine::debug
 			}
 		}
 
-		inline void drawLine( const Line< CoordinateSpace::World > line, const glm::vec3 color )
+		inline void drawLine( const Line< CoordinateSpace::World > line, const glm::vec3 color, const float thickness )
 		{
 			const Coordinate< CoordinateSpace::Screen > start_screen { toScreenSpace( line.start ) };
 			const Coordinate< CoordinateSpace::Screen > end_screen { toScreenSpace( line.end ) };
@@ -100,8 +100,8 @@ namespace fgl::engine::debug
 			if ( !inView( start_screen ) && !inView( end_screen ) ) return;
 			if ( isBehind( start_screen ) || isBehind( end_screen ) ) return;
 
-			ImGui::GetForegroundDrawList()
-				->AddLine( glmToImgui( start_screen ), glmToImgui( end_screen ), ImColor( color.x, color.y, color.z ) );
+			ImGui::GetForegroundDrawList()->AddLine(
+				glmToImgui( start_screen ), glmToImgui( end_screen ), ImColor( color.x, color.y, color.z ), thickness );
 		}
 
 		void drawLine(
@@ -152,8 +152,10 @@ namespace fgl::engine::debug
 			const auto screen_point { toScreenSpace( point ) };
 			if ( !inView( screen_point ) ) return;
 
+			const float div { screen_point.z };
+
 			ImGui::GetForegroundDrawList()
-				->AddCircleFilled( glmToImgui( screen_point ), 5.0f, ImColor( color.x, color.y, color.z ) );
+				->AddCircleFilled( glmToImgui( screen_point ), div * 5.0f, ImColor( color.x, color.y, color.z ) );
 
 			drawPointLabel( point, label );
 		}
