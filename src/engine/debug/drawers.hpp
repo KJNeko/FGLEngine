@@ -33,59 +33,46 @@ namespace fgl::engine
 #if ENABLE_IMGUI_DRAWERS
 namespace fgl::engine::debug
 {
+	Camera& getDebugDrawingCamera();
+	void setDebugDrawingCamera( Camera& );
 
 	namespace world
 	{
 		void drawBoundingBox(
-			const BoundingBox< CoordinateSpace::World >& box,
-			Camera& camera,
-			const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
+			const BoundingBox< CoordinateSpace::World >& box, const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 
 		void drawLine(
 			const Coordinate< CoordinateSpace::World > start,
 			const Coordinate< CoordinateSpace::World > end,
-			const Camera& camera,
 			const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 
-		void drawPointLabel(
-			const Coordinate< CoordinateSpace::World > point, const std::string label, const Camera& camera );
+		void drawPointLabel( const Coordinate< CoordinateSpace::World > point, const std::string label );
 
-		void drawLine(
-			const Line< CoordinateSpace::World > line,
-			const Camera& camera,
-			const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
+		void drawLineI( const Line< CoordinateSpace::World > line, const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
+		void drawLine( const Line< CoordinateSpace::World > line, const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 
 		void drawPointText(
-			const Coordinate< CoordinateSpace::World > point,
-			const Camera& camera,
-			const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
+			const Coordinate< CoordinateSpace::World > point, const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 
 		void drawBoolAlpha(
-			const Coordinate< CoordinateSpace::World > point,
-			const Camera& camera,
-			const bool value,
-			const glm::vec2 offset = {} );
+			const Coordinate< CoordinateSpace::World > point, const bool value, const glm::vec2 offset = {} );
 		void drawPoint(
 			const Coordinate< CoordinateSpace::World > point,
-			const Camera& camera,
 			const std::string label = "",
 			const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 
 		void drawVector(
 			const Coordinate< CoordinateSpace::World > point,
 			Vector vector,
-			const Camera& camera,
 			const std::string label = "",
 			const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 
-		void drawFrustum(
-			const Frustum< CoordinateSpace::World >& frustum, const Camera& camera, const WorldCoordinate coordinate );
-		void drawFrustum( const Camera& camera );
+		void drawFrustum( const Frustum< CoordinateSpace::World >& frustum, const WorldCoordinate coordinate );
+		void drawFrustum();
 
 		void drawPlane(
 			const Plane< CoordinateSpace::World >& plane,
 			const WorldCoordinate point,
-			const Camera& camera,
 			const std::string label = "",
 			const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 

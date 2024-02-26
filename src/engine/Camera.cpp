@@ -9,6 +9,7 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
+#include <tracy/Tracy.hpp>
 
 #include <cassert>
 #include <limits>
@@ -27,7 +28,6 @@ namespace fgl::engine
 
 	void Camera::setPerspectiveProjection( float fovy, float aspect, float near, float far )
 	{
-		ZoneScoped;
 		projection_matrix = Matrix< MatrixType::CameraToScreen >( glm::perspectiveLH_ZO( fovy, aspect, near, far ) );
 
 		base_frustum = createFrustum( aspect, fovy, near, far );

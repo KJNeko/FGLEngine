@@ -44,7 +44,7 @@ namespace fgl::engine
 		Coordinate< CType > getPosition() const { return Coordinate< CType >( 0.0f ) + ( m_direction * m_distance ); }
 
 		//! Returns the distance from a point to the plane. Negative if behind, positive if in front
-		double distanceFrom( const WorldCoordinate coord ) const;
+		float distanceFrom( const WorldCoordinate coord ) const;
 
 		bool isForward( const WorldCoordinate coord ) const { return distanceFrom( coord ) > 0.0; }
 
@@ -61,7 +61,19 @@ namespace fgl::engine
 		}
 
 		bool intersects( const Line< CType > line ) const;
+
+		Coordinate< CType > intersection( const Line< CType > line ) const;
+
+		Coordinate< CType > mapToPlane( const Coordinate< CType > point ) const;
 	};
+
+	template < CoordinateSpace CType >
+	Coordinate< CType > OriginDistancePlane< CType >::mapToPlane( const Coordinate< CType > point ) const
+	{
+		const float distance { distanceFrom( point ) };
+
+		return point - ( this->m_direction * distance );
+	}
 
 	template < CoordinateSpace CType >
 	inline std::ostream& operator<<( std::ostream& os, const OriginDistancePlane< CType > plane )

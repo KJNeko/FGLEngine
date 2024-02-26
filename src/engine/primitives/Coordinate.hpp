@@ -124,4 +124,10 @@ namespace glm
 		return Coordinate< CType >( static_cast< glm::vec3 >( lhs ) - static_cast< glm::vec3 >( rhs ) );
 	}
 
+	inline float
+		distance( const Coordinate< CoordinateSpace::World > coord, const Coordinate< CoordinateSpace::World > other )
+	{
+		return glm::distance( static_cast< glm::vec3 >( coord ), static_cast< glm::vec3 >( other ) );
+	}
+
 } // namespace glm

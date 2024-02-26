@@ -61,8 +61,8 @@ namespace fgl::engine
 		PerFrameSuballocation< HostSingleT< PointLight > > point_lights { global_ubo_buffer,
 			                                                              SwapChain::MAX_FRAMES_IN_FLIGHT };
 
-		constexpr std::uint32_t matrix_default_size { 16_MiB };
-		constexpr std::uint32_t draw_parameter_default_size { 16_MiB };
+		constexpr std::uint32_t matrix_default_size { 64_MiB };
+		constexpr std::uint32_t draw_parameter_default_size { 64_MiB };
 
 		std::vector< Buffer > matrix_info_buffers {};
 
@@ -94,6 +94,7 @@ namespace fgl::engine
 		}
 
 		Camera camera {};
+		debug::setDebugDrawingCamera( camera );
 
 		auto viewer { GameObject::createGameObject() };
 		viewer.transform.translation = constants::WORLD_CENTER + glm::vec3( 0.0f, 0.0f, -2.5f );
@@ -245,6 +246,11 @@ namespace fgl::engine
 							inputVec3( "Translation", Camera::frustum_alt_transform.translation );
 							inputRVec3( "Rotation", Camera::frustum_alt_transform.rotation );
 							ImGui::PopID();
+						}
+
+						if ( camera.update_using_alt || !camera.update_frustums )
+						{
+							debug::world::drawFrustum();
 						}
 					}
 
@@ -409,8 +415,8 @@ namespace fgl::engine
 					TracyVkZone( tracy_ctx, command_buffer, "ImGui Rendering" );
 #endif
 
-					debug::world::drawPointText(
-						Coordinate< CoordinateSpace::World >( 0.0f, 0.0f, 0.0f ), camera, { 1.0f, 0.0f, 0.0f } );
+					debug::world::
+						drawPointText( Coordinate< CoordinateSpace::World >( 0.0f, 0.0f, 0.0f ), { 1.0f, 0.0f, 0.0f } );
 
 					ImGui::End();
 					ImGui::Render();
@@ -465,9 +471,11 @@ namespace fgl::engine
 
 		model->syncBuffers( command_buffer );
 
-		for ( int x = 0; x < 32; ++x )
+		int val { 2 };
+
+		for ( int x = 0; x < val; ++x )
 		{
-			for ( int y = 0; y < 32; ++y )
+			for ( int y = 0; y < val; ++y )
 			{
 				auto sponza = GameObject::createGameObject();
 				sponza.model = model;

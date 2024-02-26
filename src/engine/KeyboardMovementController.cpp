@@ -4,7 +4,9 @@
 
 #include "KeyboardMovementController.hpp"
 
+#include <chrono>
 #include <functional>
+#include <iostream>
 
 #include "engine/primitives/Vector.hpp"
 

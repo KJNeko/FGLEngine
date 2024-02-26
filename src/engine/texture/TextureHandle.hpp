@@ -6,6 +6,9 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include <cstdint>
+#include <memory>
+
 namespace fgl::engine
 {
 	class ImageView;

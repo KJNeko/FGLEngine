@@ -6,6 +6,7 @@
 
 #include <glm/mat4x4.hpp>
 
+#include <stdexcept>
 #include <tuple>
 #include <utility>
 

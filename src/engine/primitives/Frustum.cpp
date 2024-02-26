@@ -4,36 +4,104 @@
 
 #include "Frustum.hpp"
 
+#include "engine/debug/drawers.hpp"
 #include "engine/model/BoundingBox.hpp"
 
 namespace fgl::engine
 {
 
+	float signedDistance( const Vector direction, const WorldCoordinate& point, const WorldCoordinate& origin )
+	{
+		const glm::vec3 vector_between { point - origin };
+
+		float dot { glm::dot( vector_between, static_cast< glm::vec3 >( glm::normalize( direction ) ) ) };
+
+		return dot;
+	}
+
+	void processPlane(
+		const Plane< CoordinateSpace::World > plane,
+		const Line< CoordinateSpace::World > line,
+		std::vector< WorldCoordinate >& out_enter_intersections,
+		std::vector< WorldCoordinate >& out_exit_intersections )
+	{
+		const WorldCoordinate intersection { plane.intersection( line ) };
+
+		if ( std::isnan( intersection.x ) || std::isnan( intersection.y ) || std::isnan( intersection.z ) ) return;
+
+		//! The line is entering if the line vector is pointing the same direction as the plane's vector
+		const bool is_line_entering {
+			glm::dot( glm::normalize( line.direction() ), glm::normalize( plane.direction() ) ) > 0.0f
+		};
+
+		if ( is_line_entering )
+		{
+			//			debug::world::drawVector( intersection, line.direction() );
+			//			debug::world::drawVector( intersection, plane.direction(), "", glm::vec3( 0.0f, 1.0f, 0.0f ) );
+			out_enter_intersections.emplace_back( intersection );
+		}
+		else
+		{
+			//			debug::world::drawVector( intersection, line.direction() );
+			//			debug::world::drawVector( intersection, plane.direction(), "", glm::vec3( 1.0f, 0.0f, 0.0f ) );
+			out_exit_intersections.emplace_back( intersection );
+		}
+	}
+
 	template <>
 	template <>
 	bool Frustum< CoordinateSpace::World >::intersects( const Line< CoordinateSpace::World > line ) const
 	{
-		const bool top_intersects { top.intersects( line ) };
-		const bool bottom_intersects { bottom.intersects( line ) };
+		std::vector< WorldCoordinate > enter_intersections { line.start };
+		std::vector< WorldCoordinate > exit_intersections { line.end };
 
-		const bool left_intersects { left.intersects( line ) };
-		const bool right_intersects { right.intersects( line ) };
+		processPlane( near, line, enter_intersections, exit_intersections );
+		processPlane( far, line, enter_intersections, exit_intersections );
+		processPlane( left, line, enter_intersections, exit_intersections );
+		processPlane( right, line, enter_intersections, exit_intersections );
+		processPlane( top, line, enter_intersections, exit_intersections );
+		processPlane( bottom, line, enter_intersections, exit_intersections );
 
-		const bool near_intersects { near.intersects( line ) };
-		const bool far_intersects { far.intersects( line ) };
+		if ( enter_intersections.size() == 0 ) return false;
+		if ( exit_intersections.size() == 0 ) return false;
 
-		//Check if the line passes through the frustum
-		const bool intersects_left_right { left_intersects && right_intersects };
-		const bool intersects_top_bottom { top_intersects && bottom_intersects };
+		WorldCoordinate last_enter { enter_intersections.at( 0 ) };
+		float last_enter_distance { 0.0f };
 
-		const bool line_within_near_far { !near_intersects && !far_intersects };
+		WorldCoordinate first_exit { exit_intersections.at( 0 ) };
+		float first_exit_distance { signedDistance( line.direction(), line.end, line.start ) };
+		assert( first_exit_distance > 0.0f );
 
-		const bool line_outside_top_bottom { !top_intersects && !bottom_intersects };
-		const bool line_outside_left_right { !left_intersects && !right_intersects };
+		//Determine the first exit
+		for ( const auto exit_point : exit_intersections )
+		{
+			const float exit_distance { signedDistance( line.direction(), exit_point, line.start ) };
 
-		const bool line_outside_range { line_outside_top_bottom && line_outside_left_right };
+			if ( first_exit_distance > exit_distance )
+			{
+				//The point happens before the previous exit point
+				first_exit_distance = exit_distance;
+				first_exit = exit_point;
+			}
+		}
 
-		return line_within_near_far && !( line_outside_range ) && ( intersects_top_bottom || intersects_left_right );
+		for ( const auto enter_point : enter_intersections )
+		{
+			const float enter_distance { signedDistance( line.direction(), enter_point, line.start ) };
+
+			if ( last_enter_distance < enter_distance )
+			{
+				last_enter_distance = enter_distance;
+				last_enter = enter_point;
+			}
+		}
+
+		const float distance_to_exit { signedDistance( line.direction(), first_exit, line.start ) };
+		const float distance_to_enter { signedDistance( line.direction(), last_enter, line.start ) };
+		debug::world::drawVector( last_enter, line.direction(), "", glm::vec3( 0.f, 1.f, 0.0f ) );
+		debug::world::drawVector( first_exit, line.direction(), "", glm::vec3( 1.f, 0.f, 0.0f ) );
+
+		return distance_to_exit >= distance_to_enter;
 	}
 
 	template <>
@@ -49,6 +117,7 @@ namespace fgl::engine
 		//Slow check for checking lines
 		for ( const auto line : box.lines() )
 		{
+			//intersects( line );
 			if ( intersects( line ) ) return true;
 		}
 

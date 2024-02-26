@@ -3,20 +3,6 @@
 file(GLOB_RECURSE CPP_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/**.cpp")
 
 add_library(FGLEngine STATIC ${CPP_SOURCES})
-target_precompile_headers(FGLEngine PRIVATE
-		<vector>
-		<iostream>
-		<vulkan/vulkan.h>
-		<tracy/Tracy.hpp>
-		<vma/vma_impl.hpp>
-		<glm/glm.hpp>
-		<glm/gtc/matrix_transform.hpp>
-		<glm/gtc/constants.hpp>
-		<array>
-		<chrono>
-		<optional>
-		<imgui/imgui.h>
-)
 
 
 target_compile_definitions(FGLEngine PUBLIC VULKAN_HPP_FLAGS_MASK_TYPE_AS_PUBLIC)

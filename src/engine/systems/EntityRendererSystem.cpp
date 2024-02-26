@@ -90,6 +90,8 @@ namespace fgl::engine
 
 			std::set< DrawPair > draw_pairs;
 
+			std::uint64_t tri_counter { 0 };
+
 			for ( auto& [ key, obj ] : info.game_objects )
 			{
 				if ( obj.model == nullptr ) continue;
@@ -98,6 +100,8 @@ namespace fgl::engine
 
 				for ( const auto& primitive : obj.model->m_primitives )
 				{
+					tri_counter += ( primitive.m_index_buffer.count() / 3 );
+
 					const ModelMatrixInfo matrix_info { .model_matrix = obj.transform.mat4(),
 						                                .texture_idx = primitive.m_texture->getID() };
 					//.normal_matrix = obj.transform.normalMatrix() };
@@ -130,6 +134,8 @@ namespace fgl::engine
 					}
 				}
 			}
+
+			ImGui::Text( "Tris: %lu", tri_counter );
 
 			if ( draw_pairs.empty() )
 			{

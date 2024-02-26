@@ -36,7 +36,7 @@ namespace fgl::engine
 				if ( obj.is_visible )
 				{
 					//Draw the bounding box for debug
-					debug::world::drawBoundingBox( model_bounding_box, info.camera );
+					debug::world::drawBoundingBox( model_bounding_box );
 				}
 			}
 		}

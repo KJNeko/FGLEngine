@@ -6,6 +6,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include <memory>
+
 namespace fgl::engine
 {
 

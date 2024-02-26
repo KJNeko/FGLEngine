@@ -75,13 +75,18 @@ namespace glm
 
 	inline glm::vec3 cross( const fgl::engine::Vector vec, const glm::vec3 other )
 	{
-		return glm::cross( static_cast< glm::vec3 >( vec ), other );
+		return ::glm::cross( static_cast< glm::vec3 >( vec ), other );
 	}
 
 	template < CoordinateSpace CType >
 	inline Coordinate< CType > operator+( const Coordinate< CType > lhs, const Vector rhs )
 	{
 		return Coordinate< CType >( static_cast< glm::vec3 >( lhs ) + static_cast< glm::vec3 >( rhs ) );
+	}
+
+	inline float dot( const fgl::engine::Vector a, const fgl::engine::Vector b )
+	{
+		return ::glm::dot( static_cast< glm::vec3 >( a ), static_cast< glm::vec3 >( b ) );
 	}
 
 } // namespace glm
