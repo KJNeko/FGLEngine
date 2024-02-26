@@ -160,6 +160,7 @@ namespace fgl::engine
 			if ( check_single_line )
 			{
 				ImGui::SliderInt( "Line ID:", &line_id, 0, 11 );
+				check_points = false;
 			}
 		}
 	}
