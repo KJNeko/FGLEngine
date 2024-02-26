@@ -472,7 +472,7 @@ namespace fgl::engine
 
 		model->syncBuffers( command_buffer );
 
-		int val { 2 };
+		int val { 32 };
 
 		for ( int x = 0; x < val; ++x )
 		{

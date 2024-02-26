@@ -97,53 +97,55 @@ namespace fgl::engine::debug
 
 namespace fgl::engine::debug
 {
+	inline void setDebugDrawingCamera( Camera& cam )
+	{}
+
 	namespace world
 	{
+
 		//Dummy functions
-		inline void drawBoundingBox( const BoundingBox< CoordinateSpace::World >&, Camera&, const glm::vec3 )
+		inline void drawBoundingBox( const BoundingBox< CoordinateSpace::World >&, const glm::vec3 )
 		{}
 
-		inline void drawBoundingBox( const BoundingBox< CoordinateSpace::World >&, Camera& )
+		inline void drawBoundingBox( const BoundingBox< CoordinateSpace::World >& )
 		{}
 
 		inline void drawLine(
 			const Coordinate< CoordinateSpace::World >,
 			const Coordinate< CoordinateSpace::World >,
-			const Camera&,
+
 			const glm::vec3 )
 		{}
 
-		inline void drawPointLabel( const Coordinate< CoordinateSpace::World >, const std::string, const Camera& )
+		inline void drawPointLabel( const Coordinate< CoordinateSpace::World >, const std::string )
 		{}
 
-		inline void drawLine( const Line< CoordinateSpace::World >, const Camera&, const glm::vec3 )
+		inline void drawLine( const Line< CoordinateSpace::World >, const glm::vec3 )
 		{}
 
-		inline void drawPointText( const Coordinate< CoordinateSpace::World >, const Camera&, const glm::vec3 )
+		inline void drawPointText( const Coordinate< CoordinateSpace::World >, const glm::vec3 )
 		{}
 
 		inline void
 			drawBoolAlpha( const Coordinate< CoordinateSpace::World >, const Camera&, const bool, const glm::vec2 )
 		{}
 
-		inline void
-			drawPoint( const Coordinate< CoordinateSpace::World >, const Camera&, const std::string, const glm::vec3 )
+		inline void drawPoint( const Coordinate< CoordinateSpace::World >, const std::string, const glm::vec3 )
 		{}
 
-		inline void drawVector(
-			const Coordinate< CoordinateSpace::World >, Vector, const Camera&, const std::string, const glm::vec3 )
+		inline void drawVector( const Coordinate< CoordinateSpace::World >, Vector, const std::string, const glm::vec3 )
 		{}
 
-		inline void drawFrustum( const Frustum< CoordinateSpace::World >&, const Camera&, const WorldCoordinate )
+		inline void drawFrustum( const Frustum< CoordinateSpace::World >&, const WorldCoordinate )
 		{}
 
-		inline void drawFrustum( const Camera& )
+		inline void drawFrustum()
 		{}
 
 		inline void drawPlane(
 			const Plane< CoordinateSpace::World >&,
 			const WorldCoordinate,
-			const Camera&,
+
 			const std::string,
 			const glm::vec3 )
 		{}

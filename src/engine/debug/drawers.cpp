@@ -6,8 +6,6 @@
 
 #include "engine/Camera.hpp"
 #include "engine/model/BoundingBox.hpp"
-#include "engine/primitives/Line.hpp"
-#include "engine/primitives/Vector.hpp"
 #include "imgui/imgui.h"
 #include "tracy_colors.hpp"
 
