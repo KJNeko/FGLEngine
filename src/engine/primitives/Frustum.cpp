@@ -139,6 +139,13 @@ namespace fgl::engine
 		return distance_to_exit >= distance_to_enter;
 	}
 
+	template <>
+	template <>
+	bool Frustum< CoordinateSpace::World >::intersects( const WorldCoordinate t ) const
+	{
+		return pointInside( t );
+	}
+
 	inline static bool check_points { true };
 	inline static bool check_lines { true };
 
@@ -157,9 +164,6 @@ namespace fgl::engine
 	template <>
 	bool Frustum< CoordinateSpace::World >::intersects( const BoundingBox< CoordinateSpace::World > box ) const
 	{
-		//Check distance
-		if ( glm::distance( box.middle, this->near.getPosition() ) > 150.0f ) return false;
-
 		if ( check_points ) [[likely]]
 		{
 			assert( box.points().size() == 8 );

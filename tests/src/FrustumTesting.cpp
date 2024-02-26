@@ -167,4 +167,21 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 			}
 		}
 	}
+
+	GIVEN( "A camera translated to (WORLD_LEFT,0,0) * 250.0f" )
+	{
+		camera.setView( constants::WORLD_LEFT * 250.0f, constants::DEFAULT_ROTATION );
+
+		AND_GIVEN( "A point directly infront of the camera" )
+		{
+			WorldCoordinate point { constants::WORLD_LEFT * 250.0f + constants::WORLD_FORWARD };
+
+			THEN( "The point should be in the frustum" )
+			{
+				const auto frustum { camera.getFrustumBounds() };
+
+				REQUIRE( frustum.intersects( point ) );
+			}
+		}
+	}
 }

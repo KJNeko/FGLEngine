@@ -31,17 +31,14 @@ namespace fgl::engine
 				};
 
 				obj.is_visible = frustum.intersects( model_bounding_box );
-				//obj.is_visible = model_bounding_box.isInFrustum( frustum );
 
-				// TODO: Drawing this fucking bounding box takes so much of the culling time. Literaly making it slower the more objects are in view.
+				//TODO: Drawing this fucking bounding box takes so much of the culling time. Literaly making it slower the more objects are in view.
 				// I need to make this either to be async or to get fucked.
-				/*
 				if ( obj.is_visible )
 				{
 					//Draw the bounding box for debug
 					debug::world::drawBoundingBox( model_bounding_box );
 				}
-				 */
 			}
 		}
 	}

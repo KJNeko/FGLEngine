@@ -41,4 +41,9 @@ namespace fgl::engine
 		glm::vec3 left( const glm::vec3 up ) const;
 	};
 
+	namespace constants
+	{
+		const Rotation DEFAULT_ROTATION { 0.0f, 0.0f, 0.0f };
+	}
+
 } // namespace fgl::engine
