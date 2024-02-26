@@ -76,6 +76,8 @@ namespace fgl::engine
 		}
 	};
 
+	void imGuiFrustumSettings();
+
 	template < CoordinateSpace CType >
 	inline std::ostream& operator<<( std::ostream& os, const Frustum< CType >& frustum )
 	{

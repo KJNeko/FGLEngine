@@ -147,8 +147,6 @@ namespace fgl::engine
 			std::vector< vk::DrawIndexedIndirectCommand > draw_commands;
 			std::vector< ModelMatrixInfo > model_matrices;
 
-			const auto camera_pos { info.camera.getPosition() };
-
 			TracyCZoneN( filter_zone_TRACY, "Reorganize draw commands", true );
 			for ( auto& itter : draw_pairs )
 			{

@@ -282,6 +282,8 @@ namespace fgl::engine
 						printPlane( frustum.left, "Left" );
 					}
 
+					imGuiFrustumSettings();
+
 					if ( ImGui::CollapsingHeader( "Models" ) )
 					{
 						for ( auto& [ id, game_object ] : game_objects )
@@ -385,7 +387,6 @@ namespace fgl::engine
 					}
 
 					//TODO: Add in a collapsable header to view all buffers, And their suballocations
-					/*
 					if ( ImGui::CollapsingHeader( "Buffer allocations" ) )
 					{
 						for ( const auto& buffer : Buffer::getActiveBufferHandles() )
@@ -393,7 +394,7 @@ namespace fgl::engine
 							ImGui::Text( "Address: %p", buffer.lock()->address() );
 							ImGui::Text( "Size: %zu", buffer.lock()->size() );
 						}
-					}*/
+					}
 				}
 #endif
 

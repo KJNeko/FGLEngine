@@ -6,6 +6,7 @@
 
 #include "engine/debug/drawers.hpp"
 #include "engine/model/BoundingBox.hpp"
+#include "imgui/imgui.h"
 
 namespace fgl::engine
 {
@@ -47,6 +48,8 @@ namespace fgl::engine
 			out_exit_intersections.emplace_back( intersection );
 		}
 	}
+
+	inline static bool show_intersect { false };
 
 	template <>
 	template <>
@@ -98,27 +101,50 @@ namespace fgl::engine
 
 		const float distance_to_exit { signedDistance( line.direction(), first_exit, line.start ) };
 		const float distance_to_enter { signedDistance( line.direction(), last_enter, line.start ) };
-		debug::world::drawVector( last_enter, line.direction(), "", glm::vec3( 0.f, 1.f, 0.0f ) );
-		debug::world::drawVector( first_exit, line.direction(), "", glm::vec3( 1.f, 0.f, 0.0f ) );
+
+		if ( show_intersect ) [[unlikely]]
+		{
+			debug::world::drawVector( last_enter, line.direction(), "", glm::vec3( 0.f, 1.f, 0.0f ) );
+			debug::world::drawVector( first_exit, line.direction(), "", glm::vec3( 1.f, 0.f, 0.0f ) );
+		}
 
 		return distance_to_exit >= distance_to_enter;
+	}
+
+	inline static bool check_points { true };
+	inline static bool check_lines { true };
+
+	void imGuiFrustumSettings()
+	{
+		//Check if any of the box's points are inside the frustum
+		if ( ImGui::CollapsingHeader( "Frustum intersection settings" ) )
+		{
+			ImGui::Checkbox( "Check points", &check_points );
+			ImGui::Checkbox( "Check lines", &check_lines );
+			ImGui::Checkbox( "Show first & last intersections", &show_intersect );
+		}
 	}
 
 	template <>
 	template <>
 	bool Frustum< CoordinateSpace::World >::intersects( const BoundingBox< CoordinateSpace::World > box ) const
 	{
-		//Check if any of the box's points are inside the frustum
-		for ( const auto point : box.points() )
+		if ( check_points )
 		{
-			if ( pointInside( point ) ) return true;
+			for ( const auto point : box.points() )
+			{
+				if ( pointInside( point ) ) return true;
+			}
 		}
 
-		//Slow check for checking lines
-		for ( const auto line : box.lines() )
+		if ( check_lines )
 		{
-			//intersects( line );
-			if ( intersects( line ) ) return true;
+			//Slow check for checking lines
+			for ( const auto line : box.lines() )
+			{
+				//intersects( line );
+				if ( intersects( line ) ) return true;
+			}
 		}
 
 		return false;
