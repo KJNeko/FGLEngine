@@ -56,46 +56,46 @@ namespace fgl::engine
 	}
 
 	WorldCoordinate getFirstExit(
-		const std::vector< WorldCoordinate >& enter_intersections, const Line< CoordinateSpace::World > line )
-	{
-		assert( enter_intersections.size() > 0 );
-
-		WorldCoordinate last_enter { enter_intersections.at( 0 ) };
-		float last_enter_distance { 0.0f };
-
-		for ( const auto enter_point : enter_intersections )
-		{
-			const float enter_distance { signedDistance( line.direction(), enter_point, line.start ) };
-
-			if ( last_enter_distance > enter_distance )
-			{
-				last_enter_distance = enter_distance;
-				last_enter = enter_point;
-			}
-		}
-
-		return last_enter;
-	}
-
-	WorldCoordinate getLastEnter(
 		const std::vector< WorldCoordinate >& exit_intersections, const Line< CoordinateSpace::World > line )
 	{
 		assert( exit_intersections.size() > 0 );
 
-		WorldCoordinate first_exit { exit_intersections.at( 0 ) };
-		float first_exit_distance { signedDistance( line.direction(), line.end, line.start ) };
-		assert( first_exit_distance > 0.0f );
+		WorldCoordinate exit_point { exit_intersections.at( 0 ) };
+		float distance { 0.0f };
 
-		//Determine the first exit
-		for ( const auto exit_point : exit_intersections )
+		for ( const auto intersection_point : exit_intersections )
 		{
-			const float exit_distance { signedDistance( line.direction(), exit_point, line.start ) };
+			const float exit_distance { signedDistance( line.direction(), intersection_point, line.start ) };
 
-			if ( first_exit_distance < exit_distance )
+			//if the distance is lower then it's before the previous
+			if ( exit_distance < distance )
 			{
-				//The point happens before the previous exit point
-				first_exit_distance = exit_distance;
-				first_exit = exit_point;
+				distance = exit_distance;
+				exit_point = intersection_point;
+			}
+		}
+
+		return exit_point;
+	}
+
+	WorldCoordinate getLastEnter(
+		const std::vector< WorldCoordinate >& enter_intersections, const Line< CoordinateSpace::World > line )
+	{
+		assert( enter_intersections.size() > 0 );
+
+		WorldCoordinate first_exit { enter_intersections.at( 0 ) };
+		float distance { signedDistance( line.direction(), line.end, line.start ) };
+		assert( distance > 0.0f );
+
+		for ( const auto intersection_point : enter_intersections )
+		{
+			const float enter_distance { signedDistance( line.direction(), intersection_point, line.start ) };
+
+			//If the distance is higher then set it.
+			if ( enter_distance > distance )
+			{
+				distance = enter_distance;
+				first_exit = intersection_point;
 			}
 		}
 
