@@ -194,7 +194,7 @@ namespace fgl::engine
 
 	void Texture::createImGuiSet()
 	{
-#ifdef IMGUI_ENABLE
+#if ENABLE_IMGUI
 		if ( m_handle->m_imgui_set != VK_NULL_HANDLE ) return;
 
 		auto& view { m_handle->m_image_view };
@@ -208,11 +208,14 @@ namespace fgl::engine
 
 	vk::DescriptorSet& Texture::getImGuiDescriptorSet()
 	{
+		assert( m_handle );
+		assert( m_handle->m_imgui_set != VK_NULL_HANDLE );
 		return m_handle->m_imgui_set;
 	}
 
 	TextureID Texture::getID() const
 	{
+		assert( m_handle );
 		return m_handle->m_texture_id;
 	}
 
