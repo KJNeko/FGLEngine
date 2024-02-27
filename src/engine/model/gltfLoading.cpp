@@ -28,10 +28,11 @@ namespace fgl::engine
 		}
 		else
 		{
-			auto& buffer_view { model.bufferViews.at( accessor.bufferView ) };
-			auto& buffer { model.buffers.at( buffer_view.buffer ) };
+			const auto& buffer_view { model.bufferViews.at( accessor.bufferView ) };
+			const auto& buffer { model.buffers.at( buffer_view.buffer ) };
 
-			std::vector< T > data;
+			std::vector< T > data {};
+			data.reserve( accessor.count );
 
 			std::uint16_t copy_size { 0 };
 			switch ( accessor.componentType )
@@ -39,16 +40,16 @@ namespace fgl::engine
 				default:
 					throw std::runtime_error( "Unhandled access size" );
 				case TINYGLTF_COMPONENT_TYPE_FLOAT:
-					copy_size = sizeof( float );
+					copy_size = 32 / 8;
 					break;
 				case TINYGLTF_COMPONENT_TYPE_BYTE:
-					copy_size = sizeof( std::byte );
+					copy_size = 8 / 8;
 					break;
 				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
-					copy_size = sizeof( unsigned int );
+					copy_size = 32 / 8;
 					break;
 				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
-					copy_size = sizeof( unsigned short );
+					copy_size = 16 / 8;
 					break;
 			}
 
@@ -63,17 +64,21 @@ namespace fgl::engine
 					copy_size *= 2;
 					break;
 				case TINYGLTF_TYPE_SCALAR:
-					//noop
+					copy_size *= 1;
 					break;
 			}
 
 			constexpr auto T_SIZE { sizeof( T ) };
 
-			assert( T_SIZE == copy_size && "Accessor copy values not greater than or matching sizeof(T)" );
+			if ( T_SIZE != copy_size )
+				throw std::runtime_error(
+					std::string( "Accessor copy values not matching sizeof(T): sizeof(" )
+					+ std::string( typeid( T ).name() ) + ") == " + std::to_string( T_SIZE )
+					+ " vs copy_size = " + std::to_string( copy_size ) );
 
 			const auto real_size { copy_size * accessor.count };
 
-			data.resize( real_size );
+			data.resize( accessor.count );
 
 			std::memcpy( data.data(), buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset, real_size );
 
@@ -189,7 +194,7 @@ namespace fgl::engine
 
 						if ( idx != 0 ) throw std::runtime_error( "Multiple tex coordinates not supported" );
 
-						auto& texcoord_accessor { model.accessors.at( attr_idx ) };
+						const auto& texcoord_accessor { model.accessors.at( attr_idx ) };
 
 						texcoords = extractData< glm::vec2 >( model, texcoord_accessor );
 					}
@@ -207,6 +212,12 @@ namespace fgl::engine
 					verts[ i ].m_position =
 						glm::vec3( position_data[ i ].x, -position_data[ i ].y, position_data[ i ].z );
 					verts[ i ].m_normal = normals[ i ];
+				}
+
+				if ( texcoords.size() > 0 && texcoords.size() != verts.size() )
+				{
+					throw std::runtime_error(
+						"wtf? " + std::to_string( texcoords.size() ) + " < " + std::to_string( verts.size() ) );
 				}
 
 				if ( texcoords.size() == verts.size() )
