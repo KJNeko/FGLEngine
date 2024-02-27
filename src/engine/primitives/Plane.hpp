@@ -67,13 +67,7 @@ namespace fgl::engine
 		Coordinate< CType > mapToPlane( const Coordinate< CType > point ) const;
 	};
 
-	template < CoordinateSpace CType >
-	Coordinate< CType > OriginDistancePlane< CType >::mapToPlane( const Coordinate< CType > point ) const
-	{
-		const float distance { distanceFrom( point ) };
 
-		return point - ( this->m_direction * distance );
-	}
 
 	template < CoordinateSpace CType >
 	inline std::ostream& operator<<( std::ostream& os, const OriginDistancePlane< CType > plane )

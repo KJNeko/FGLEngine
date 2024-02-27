@@ -47,4 +47,12 @@ namespace fgl::engine
 		return intersection_point;
 	}
 
+	template < CoordinateSpace CType >
+	Coordinate< CType > OriginDistancePlane< CType >::mapToPlane( const Coordinate< CType > point ) const
+	{
+		const float distance { distanceFrom( point ) };
+
+		return point - ( this->m_direction * distance );
+	}
+
 } // namespace fgl::engine
