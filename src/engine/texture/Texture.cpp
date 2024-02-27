@@ -12,8 +12,14 @@
 #include "engine/descriptors/DescriptorPool.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/image/ImageView.hpp"
-#include "imgui/imgui_impl_vulkan.h"
 #include "objectloaders/stb_image.h"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wconversion"
+#include "imgui/imgui_impl_vulkan.h"
+#pragma GCC diagnostic pop
 
 namespace fgl::engine
 {

@@ -151,7 +151,7 @@ namespace fgl::engine
 			for ( auto& itter : draw_pairs )
 			{
 				auto cmd { itter.first };
-				cmd.firstInstance = model_matrices.size();
+				cmd.firstInstance = static_cast< std::uint32_t >( model_matrices.size() );
 				auto matricies { std::move( itter.second ) };
 
 				draw_commands.emplace_back( cmd );

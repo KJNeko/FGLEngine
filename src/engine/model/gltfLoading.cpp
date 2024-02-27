@@ -210,9 +210,9 @@ namespace fgl::engine
 				VertexBufferSuballocation vertex_buffer { m_vertex_buffer, verts };
 				IndexBufferSuballocation index_buffer { m_index_buffer, indicies_data };
 
-				if ( primitive.material >= 0 && primitive.material < model.materials.size() )
+				if ( primitive.material >= 0 && primitive.material < static_cast< int >( model.materials.size() ) )
 				{
-					const auto& material { model.materials.at( primitive.material ) };
+					const auto& material { model.materials.at( static_cast< unsigned long >( primitive.material ) ) };
 
 					//TODO: Implement material normals
 
@@ -222,10 +222,10 @@ namespace fgl::engine
 						const auto& color_texture { material.values.at( "baseColorTexture" ) };
 						const auto color_index { color_texture.TextureIndex() };
 
-						const auto& texture { model.textures.at( color_index ) };
+						const auto& texture { model.textures.at( static_cast< unsigned long >( color_index ) ) };
 
-						const auto& source { model.images.at( texture.source ) };
-						const auto& sampler { model.samplers.at( texture.sampler ) };
+						const auto& source { model.images.at( static_cast< unsigned long >( texture.source ) ) };
+						const auto& sampler { model.samplers.at( static_cast< unsigned long >( texture.sampler ) ) };
 
 						auto translateFilterToVK = []( const int val ) -> vk::Filter
 						{

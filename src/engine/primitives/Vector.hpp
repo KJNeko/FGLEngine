@@ -20,7 +20,7 @@ namespace fgl::engine
 
 		constexpr explicit Vector( const float value ) : glm::vec3( value ) {}
 
-		constexpr explicit Vector( const glm::vec3 vec ) : glm::vec3( vec )
+		constexpr explicit Vector( const glm::vec3 i_vec ) : glm::vec3( i_vec )
 		{
 			assert(
 				( x <= 1.0f || std::numeric_limits< float >::max() )
@@ -33,7 +33,7 @@ namespace fgl::engine
 				&& "Value too high for Vector. Forgot to normalize?" );
 		}
 
-		constexpr explicit Vector( const float x, const float y, const float z ) : glm::vec3( x, y, z ) {}
+		constexpr explicit Vector( const float i_x, const float i_y, const float i_z ) : glm::vec3( i_x, i_y, i_z ) {}
 
 		operator glm::vec4() const { return glm::vec4( static_cast< glm::vec3 >( *this ), 0.0f ); }
 

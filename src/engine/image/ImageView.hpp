@@ -21,7 +21,7 @@ namespace fgl::engine
 	{
 		std::shared_ptr< ImageHandle > m_resource;
 
-		std::optional< Sampler > m_sampler;
+		std::optional< Sampler > m_sampler { std::nullopt };
 
 		vk::DescriptorImageInfo m_descriptor_info {};
 

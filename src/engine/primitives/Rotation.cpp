@@ -23,9 +23,9 @@ namespace fgl::engine
 		return *this;
 	}
 
-	Rotation& Rotation::operator+=( const glm::vec3 vec )
+	Rotation& Rotation::operator+=( const glm::vec3 i_vec )
 	{
-		static_cast< glm::vec3& >( *this ) += vec;
+		static_cast< glm::vec3& >( *this ) += i_vec;
 		return *this;
 	}
 

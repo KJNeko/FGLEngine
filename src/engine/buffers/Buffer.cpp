@@ -180,7 +180,7 @@ namespace fgl::engine
 					  << "Attempted to allocate block of size: "
 					  << fgl::literals::size_literals::to_string( memory_size ) << std::endl;
 
-			int allocated_memory_counter { 0 };
+			std::uint64_t allocated_memory_counter { 0 };
 			//Sum up all memory to check for leaks
 			for ( auto [ offset, size ] : m_suballocations )
 			{
@@ -190,7 +190,7 @@ namespace fgl::engine
 			std::cout << "Total memory allocated: "
 					  << fgl::literals::size_literals::to_string( allocated_memory_counter ) << std::endl;
 
-			int free_memory_counter { 0 };
+			std::uint64_t free_memory_counter { 0 };
 			for ( auto [ offset, size ] : m_free_blocks )
 			{
 				free_memory_counter += size;

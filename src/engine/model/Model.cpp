@@ -50,7 +50,7 @@ namespace fgl::engine
 
 		BoundingBox< CoordinateSpace::Model > box { primitives.at( 0 ).m_bounding_box };
 
-		for ( int i = 1; i < primitives.size(); i++ ) box = box.combine( primitives[ i ].m_bounding_box );
+		for ( std::uint64_t i = 1; i < primitives.size(); i++ ) box = box.combine( primitives[ i ].m_bounding_box );
 
 		return box;
 	}

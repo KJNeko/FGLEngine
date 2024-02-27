@@ -8,7 +8,7 @@
 
 namespace fgl::engine
 {
-	class Rotation;
+	struct Rotation;
 
 	enum RotationOrder
 	{

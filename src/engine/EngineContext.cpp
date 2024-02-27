@@ -187,12 +187,13 @@ namespace fgl::engine
 
 					ImGui::Text( "Framerate" );
 					ImGui::SameLine();
-					ImGui::Text( "%.1f FPS", ImGui::GetIO().Framerate );
+					ImGui::Text( "%.1f FPS", static_cast< double >( ImGui::GetIO().Framerate ) );
 
 					ImGui::Text( "Frame Time" );
 					ImGui::SameLine();
-					ImGui::Text( "%.3f ms", 1000.0f / ImGui::GetIO().Framerate );
-					ImGui::Text( "Average rolling frametime: %.3f ms", rolling_ms_average.average() );
+					ImGui::Text( "%.3f ms", static_cast< double >( 1000.0f / ImGui::GetIO().Framerate ) );
+					ImGui::Text(
+						"Average rolling frametime: %.3f ms", static_cast< double >( rolling_ms_average.average() ) );
 
 					auto inputVec3 = []( const std::string label, glm::vec3& vec )
 					{
@@ -259,7 +260,13 @@ namespace fgl::engine
 						const auto& frustum { camera.getFrustumBounds() };
 
 						auto printVec3 = []( const glm::vec3& vec )
-						{ ImGui::Text( "(%.2f, %.2f, %.2f)", vec.x, vec.y, vec.z ); };
+						{
+							ImGui::Text(
+								"(%.2f, %.2f, %.2f)",
+								static_cast< double >( vec.x ),
+								static_cast< double >( vec.y ),
+								static_cast< double >( vec.z ) );
+						};
 
 						auto printPlane = [ printVec3 ]( const auto& plane, const std::string name )
 						{
@@ -269,9 +276,13 @@ namespace fgl::engine
 							ImGui::SameLine( 120.0f );
 							printVec3( plane.direction() );
 							ImGui::SameLine();
-							ImGui::Text( "Distance: %.3f", plane.distance() );
+							ImGui::Text( "Distance: %.3f", static_cast< double >( plane.distance() ) );
 							const auto pos { plane.getPosition() };
-							ImGui::Text( "Center: %.2f %.2f %.2f", pos.x, pos.y, pos.z );
+							ImGui::Text(
+								"Center: %.2f %.2f %.2f",
+								static_cast< double >( pos.x ),
+								static_cast< double >( pos.y ),
+								static_cast< double >( pos.z ) );
 						};
 
 						printPlane( frustum.near, "Near" );
@@ -362,8 +373,8 @@ namespace fgl::engine
 										if ( !sampler.has_value() ) continue;
 
 										ImVec2 size;
-										size.x = extent.width;
-										size.y = extent.height;
+										size.x = static_cast< float >( extent.width );
+										size.y = static_cast< float >( extent.height );
 
 										if ( std::find( textures.begin(), textures.end(), texture.getID() )
 										     == textures.end() )
@@ -391,7 +402,7 @@ namespace fgl::engine
 					{
 						for ( const auto& buffer : Buffer::getActiveBufferHandles() )
 						{
-							ImGui::Text( "Address: %p", buffer.lock()->address() );
+							ImGui::Text( "Address: %p", static_cast< void* >( buffer.lock()->address() ) );
 							ImGui::Text( "Size: %zu", buffer.lock()->size() );
 						}
 					}
@@ -480,7 +491,9 @@ namespace fgl::engine
 			{
 				auto sponza = GameObject::createGameObject();
 				sponza.model = model;
-				sponza.transform.translation = { 0.0f + ( y * 30 ), 0.0f + ( x * 20 ), 0.0f };
+				sponza.transform.translation = { 0.0f + ( static_cast< float >( y ) * 30.0f ),
+					                             0.0f + ( static_cast< float >( x ) * 20.0f ),
+					                             0.0f };
 				sponza.transform.scale = { 0.007f, 0.007f, 0.007f };
 				sponza.transform.rotation = { 0.0f, 0.0f, 0.0f };
 
@@ -550,7 +563,7 @@ namespace fgl::engine
 	{
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-		ImGuiIO& io { ImGui::GetIO() };
+		[[maybe_unused]] ImGuiIO& io { ImGui::GetIO() };
 		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
 		ImGui::StyleColorsDark();

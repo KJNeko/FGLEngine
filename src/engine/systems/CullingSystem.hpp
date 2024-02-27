@@ -15,8 +15,8 @@ namespace fgl::engine
 	{
 		std::thread m_thread;
 
-		std::optional< FrameInfo* > m_info;
-		std::stop_token m_stop_token;
+		std::optional< FrameInfo* > m_info { std::nullopt };
+		std::stop_token m_stop_token {};
 
 		void runner();
 

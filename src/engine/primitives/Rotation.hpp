@@ -28,6 +28,8 @@ namespace fgl::engine
 
 		Rotation( const float pitch_r, const float roll_r, const float yaw_r );
 
+		Rotation( const Rotation& other ) = default;
+
 		Rotation& operator=( const Rotation other );
 
 		Rotation& operator+=( const glm::vec3 vec );

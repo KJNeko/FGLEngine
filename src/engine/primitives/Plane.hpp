@@ -46,7 +46,7 @@ namespace fgl::engine
 		//! Returns the distance from a point to the plane. Negative if behind, positive if in front
 		float distanceFrom( const WorldCoordinate coord ) const;
 
-		bool isForward( const WorldCoordinate coord ) const { return distanceFrom( coord ) > 0.0; }
+		bool isForward( const WorldCoordinate coord ) const { return distanceFrom( coord ) > 0.0f; }
 
 		bool isBehind( const WorldCoordinate coord ) const { return !isForward( coord ); }
 

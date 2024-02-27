@@ -19,13 +19,13 @@ namespace fgl::engine
 	class TextureHandle
 	{
 		//TODO: Implement reusing texture ids
-		TextureID m_texture_id;
+		TextureID m_texture_id { std::numeric_limits< TextureID >::infinity() };
 
-		std::shared_ptr< ImageView > m_image_view;
+		std::shared_ptr< ImageView > m_image_view {};
 
-		std::unique_ptr< BufferSuballocation > m_staging;
+		std::unique_ptr< BufferSuballocation > m_staging { nullptr };
 
-		vk::Extent2D m_extent;
+		vk::Extent2D m_extent { 0, 0 };
 
 		vk::DescriptorSet m_imgui_set { VK_NULL_HANDLE };
 

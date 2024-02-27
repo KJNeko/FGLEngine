@@ -240,7 +240,10 @@ namespace fgl::engine::debug
 		}
 
 		void drawBoolAlpha(
-			const glm::vec2 screen_point, const Camera& camera, const bool value, const glm::vec2 offset )
+			const glm::vec2 screen_point,
+			[[maybe_unused]] const Camera& camera,
+			const bool value,
+			const glm::vec2 offset )
 		{
 			const auto color { value ? glm::vec3( 0.0f, 1.0f, 0.0f ) : glm::vec3( 1.0f, 0.0f, 0.0f ) };
 			drawText( glm::vec2( screen_point.x, screen_point.y + offset.y ), value ? "true" : "false", color );

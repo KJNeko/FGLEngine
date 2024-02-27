@@ -12,13 +12,13 @@
 namespace fgl::engine
 {
 	template < CoordinateSpace type >
-	class BoundingBox;
+	struct BoundingBox;
 
 	template < CoordinateSpace type >
 	class Coordinate;
 
 	template < CoordinateSpace type >
-	class Line;
+	struct Line;
 
 	class Camera;
 

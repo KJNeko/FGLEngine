@@ -150,7 +150,7 @@ namespace fgl::engine
 			throw std::runtime_error( "Failed to submit commmand buffer" );
 
 		is_frame_started = false;
-		current_frame_idx = ( current_frame_idx + 1 ) % SwapChain::MAX_FRAMES_IN_FLIGHT;
+		current_frame_idx = static_cast< std::uint16_t >( ( current_frame_idx + 1 ) % SwapChain::MAX_FRAMES_IN_FLIGHT );
 	}
 
 	void Renderer::beginSwapchainRendererPass( vk::CommandBuffer buffer )

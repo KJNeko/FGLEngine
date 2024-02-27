@@ -118,6 +118,9 @@ namespace fgl::engine
 		         Device::getInstance().graphicsQueue().submit( 1, &submitInfo, inFlightFences[ currentFrame ] );
 		     result != vk::Result::eSuccess )
 		{
+#pragma GCC diagnostic push
+			//Can't possibly handle all of these. It will add like....100 lines of just empty cases
+#pragma GCC diagnostic ignored "-Wswitch-enum"
 			switch ( result )
 			{
 				case vk::Result::eErrorOutOfDateKHR:
@@ -130,6 +133,7 @@ namespace fgl::engine
 					throw std::runtime_error(
 						"failed to submit draw command buffer!: ID" + std::to_string( static_cast< int >( result ) ) );
 			}
+#pragma GCC diagnostic pop
 		}
 
 		vk::PresentInfoKHR presentInfo = {};
@@ -141,7 +145,7 @@ namespace fgl::engine
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = swapChains;
 
-		std::array< std::uint32_t, 1 > indicies { imageIndex };
+		std::array< std::uint32_t, 1 > indicies { { imageIndex } };
 		presentInfo.setImageIndices( indicies );
 
 		if ( auto present_result = Device::getInstance().presentQueue().presentKHR( &presentInfo );
@@ -249,9 +253,9 @@ namespace fgl::engine
 		g_buffer_normal.createResourceSpread( imageCount(), getSwapChainExtent() );
 		g_buffer_albedo.createResourceSpread( imageCount(), getSwapChainExtent() );
 
-		g_buffer_position.setClear( vk::ClearColorValue( std::array< float, 4 > { 0.0f, 0.0f, 0.0f, 0.0f } ) );
-		g_buffer_normal.setClear( vk::ClearColorValue( std::array< float, 4 > { 0.0f, 0.0f, 0.0f, 0.0f } ) );
-		g_buffer_albedo.setClear( vk::ClearColorValue( std::array< float, 4 > { 0.0f, 0.0f, 0.0f, 0.0f } ) );
+		g_buffer_position.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
+		g_buffer_normal.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
+		g_buffer_albedo.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
 
 		g_buffer_position.m_attachment_resources.m_images[ 0 ]->setName( "GBufferPosition" );
 		g_buffer_normal.m_attachment_resources.m_images[ 0 ]->setName( "GBufferNormal" );

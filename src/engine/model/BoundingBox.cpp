@@ -80,6 +80,7 @@ namespace fgl::engine
 
 		// clang-format off
 		std::array< std::uint32_t, indicies_count > data {
+			{
 			//Top tris
 			0, 1, 2,
 			1, 2, 3,
@@ -97,7 +98,7 @@ namespace fgl::engine
 			0, 7, 4,
 			//Side 4
 			2, 1, 6,
-			1, 6, 5
+			1, 6, 5 }
 		};
 		// clang-format on
 

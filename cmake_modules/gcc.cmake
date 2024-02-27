@@ -110,7 +110,7 @@
 
 				set(FGL_CONFIG "-std=c++23 -fmax-errors=1 -fconcepts-diagnostics-depth=8 -Werror")
 
-				set(FGL_SHARED_OPTIMIZATION_FLAGS "-mavx -mavx2")
+				set(FGL_SHARED_OPTIMIZATION_FLAGS "-march=native")
 
 				# Optimization flags
 				set(FGL_OPTIMIZATION_FLAGS_RELEASE "-O2 -s -fdevirtualize-at-ltrans -fdevirtualize-speculatively -funroll-loops") # System agonistc flags
@@ -119,7 +119,7 @@
 				set(FGL_OPTIMIZATION_FLAGS_RELWITHDEBINFO "-O2 -s -fdevirtualize-at-ltrans -fdevirtualize-speculatively -fdeclone-ctor-dtor -funroll-loops ${FGL_SHARED_OPTIMIZATION_FLAGS}")
 
 				# Final sets
-				set(FGL_FLAGS "${FGL_CONFIG} ${FGL_OPTIMIZATION_FLAGS_${UPPER_BUILD_TYPE}} ${FLG_WARNINGS}" PARENT_SCOPE) # Flags for our shit
+				set(FGL_FLAGS "${FGL_CONFIG} ${FGL_OPTIMIZATION_FLAGS_${UPPER_BUILD_TYPE}} ${FGL_WARNINGS}" PARENT_SCOPE) # Flags for our shit
 				#set(FGL_FLAGS "${FGL_OPTIMIZATION_FLAGS_${UPPER_BUILD_TYPE}}" PARENT_SCOPE)
 				set(FGL_CHILD_FLAGS "${FGL_OPTIMIZATION_FLAGS_${UPPER_BUILD_TYPE}}" PARENT_SCOPE) # Child flags for adding optmization to anything we build ourselves but doesn't follow our standard
 				#set(CMAKE_CXX_FLAGS "${FGL_CHILD_FLAGS}")

@@ -17,8 +17,8 @@ namespace fgl::engine
 
 	class Image
 	{
-		std::shared_ptr< ImageHandle > m_handle;
-		std::weak_ptr< ImageView > view;
+		std::shared_ptr< ImageHandle > m_handle {};
+		std::weak_ptr< ImageView > view {};
 
 	  public:
 

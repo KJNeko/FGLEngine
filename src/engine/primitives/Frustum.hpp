@@ -17,14 +17,14 @@ namespace fgl::engine
 	template < CoordinateSpace CType = CoordinateSpace::World >
 	struct Frustum
 	{
-		Plane< CType > near;
-		Plane< CType > far;
+		Plane< CType > near { constants::WORLD_FORWARD, constants::DEFAULT_FLOAT };
+		Plane< CType > far { constants::WORLD_FORWARD, constants::DEFAULT_FLOAT };
 
-		Plane< CType > top;
-		Plane< CType > bottom;
+		Plane< CType > top { constants::WORLD_FORWARD, constants::DEFAULT_FLOAT };
+		Plane< CType > bottom { constants::WORLD_FORWARD, constants::DEFAULT_FLOAT };
 
-		Plane< CType > right;
-		Plane< CType > left;
+		Plane< CType > right { constants::WORLD_FORWARD, constants::DEFAULT_FLOAT };
+		Plane< CType > left { constants::WORLD_FORWARD, constants::DEFAULT_FLOAT };
 
 		friend class Camera;
 

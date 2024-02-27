@@ -12,7 +12,7 @@ namespace fgl::engine
 	class Sampler
 	{
 		bool valid { false };
-		vk::Sampler m_sampler;
+		vk::Sampler m_sampler { VK_NULL_HANDLE };
 
 	  public:
 

@@ -23,7 +23,8 @@ namespace fgl::engine
 		std::vector< std::variant< std::monostate, vk::DescriptorImageInfo, vk::DescriptorBufferInfo > > m_infos {};
 		std::vector< vk::WriteDescriptorSet > descriptor_writes {};
 
-		std::vector< std::variant< std::shared_ptr< ImageView >, std::shared_ptr< BufferSuballocation > > > m_resources;
+		std::vector< std::variant< std::shared_ptr< ImageView >, std::shared_ptr< BufferSuballocation > > >
+			m_resources {};
 
 		vk::DescriptorSetLayout m_layout;
 		vk::DescriptorSet m_set;

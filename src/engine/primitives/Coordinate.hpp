@@ -32,11 +32,13 @@ namespace fgl::engine
 
 		float& forward() { return y; }
 
-		Coordinate() : glm::vec3( constants::DEFAULT_VEC3 ) {}
+		Coordinate() noexcept : glm::vec3( constants::DEFAULT_VEC3 ) {}
 
-		constexpr explicit Coordinate( const glm::vec3 position ) : glm::vec3( position ) {}
+		constexpr explicit Coordinate( const glm::vec3 position ) noexcept : glm::vec3( position ) {}
 
-		constexpr explicit Coordinate( const float x, const float y, const float z ) : glm::vec3( x, y, z ) {}
+		constexpr explicit Coordinate( const float i_x, const float i_y, const float i_z ) noexcept :
+		  glm::vec3( i_x, i_y, i_z )
+		{}
 
 		constexpr explicit Coordinate( const float value ) : glm::vec3( value ) {}
 

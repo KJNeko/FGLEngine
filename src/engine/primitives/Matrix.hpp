@@ -22,7 +22,7 @@ namespace fgl::engine
 	{
 	  public:
 
-		explicit Matrix( const float value = 1.0f ) : glm::mat4( value ) {}
+		explicit Matrix( const float i_value = 1.0f ) : glm::mat4( i_value ) {}
 
 		explicit Matrix( const glm::mat4& matrix ) : glm::mat4( matrix ) {}
 	};
@@ -32,6 +32,5 @@ namespace fgl::engine
 	{
 		return Matrix< MatrixType::WorldToScreen >( static_cast< glm::mat4 >( lhs ) * static_cast< glm::mat4 >( rhs ) );
 	}
-
 
 }; // namespace fgl::engine

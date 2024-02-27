@@ -197,6 +197,8 @@ namespace fgl::engine
 					mat[ 2 ] = glm::vec4( row_2, 0.0f );
 					return mat;
 				}
+			case RotationOrder::END_OF_ENUM:
+				[[fallthrough]];
 			default:
 				throw std::runtime_error( "Unimplemented rotation order" );
 		}

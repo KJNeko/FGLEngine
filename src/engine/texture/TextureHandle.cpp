@@ -7,13 +7,19 @@
 #include "engine/buffers/BufferSuballocation.hpp"
 #include "engine/image/Image.hpp"
 #include "engine/image/ImageView.hpp"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wconversion"
 #include "imgui/imgui_impl_vulkan.h"
+#pragma GCC diagnostic pop
 
 namespace fgl::engine
 {
 
-	TextureHandle::
-		TextureHandle( const std::vector< unsigned char >& data, const vk::Extent2D extent, const int channels ) :
+	TextureHandle::TextureHandle(
+		const std::vector< unsigned char >& data, const vk::Extent2D extent, [[maybe_unused]] const int channels ) :
 	  m_extent( extent )
 	{
 		ZoneScoped;
@@ -24,7 +30,7 @@ namespace fgl::engine
 		auto image = std::make_shared< Image >(
 			extent,
 			format,
-			vk::ImageUsageFlags( vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled ),
+			vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
 			vk::ImageLayout::eUndefined,
 			vk::ImageLayout::eShaderReadOnlyOptimal );
 

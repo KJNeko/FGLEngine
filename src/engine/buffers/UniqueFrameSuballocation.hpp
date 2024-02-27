@@ -19,7 +19,7 @@ namespace fgl::engine
 		PerFrameSuballocation( Buffer& buffer, const std::uint32_t frames_in_flight ) : m_buffer( buffer )
 		{
 			m_suballocations.reserve( frames_in_flight );
-			for ( std::uint8_t i = 0; i < frames_in_flight; ++i )
+			for ( std::uint16_t i = 0; i < frames_in_flight; ++i )
 			{
 				static_assert(
 					std::is_default_constructible_v< typename Suballocation::value_type >,
@@ -28,11 +28,11 @@ namespace fgl::engine
 			}
 		}
 
-		void setMaxFramesInFlight( std::uint8_t max ) { m_suballocations.resize( max ); }
+		void setMaxFramesInFlight( std::uint16_t max ) { m_suballocations.resize( max ); }
 
-		Suballocation& operator[]( std::uint8_t index ) { return *m_suballocations[ index ]; }
+		Suballocation& operator[]( std::uint16_t index ) { return *m_suballocations[ index ]; }
 
-		void bindForFrame( vk::CommandBuffer& cmd_buffer, std::uint8_t frame_idx )
+		void bindForFrame( vk::CommandBuffer& cmd_buffer, std::uint16_t frame_idx )
 		{
 			m_suballocations[ frame_idx ].bind( cmd_buffer );
 		}

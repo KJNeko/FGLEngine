@@ -9,8 +9,8 @@
 namespace fgl::engine
 {
 	BufferSuballocationHandle::
-		BufferSuballocationHandle( Buffer& buffer, vk::DeviceSize offset, vk::DeviceSize memory_size ) :
-	  buffer( buffer ),
+		BufferSuballocationHandle( Buffer& p_buffer, vk::DeviceSize offset, vk::DeviceSize memory_size ) :
+	  buffer( p_buffer ),
 	  m_size( memory_size ),
 	  m_offset( offset ),
 	  mapped( buffer.map( *this ) )

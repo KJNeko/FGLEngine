@@ -18,9 +18,9 @@
 namespace fgl::engine
 {
 	template < CoordinateSpace type >
-	class Frustum;
+	struct Frustum;
 
-	class Vertex;
+	struct Vertex;
 
 	template < CoordinateSpace CType >
 	struct BoundingBox

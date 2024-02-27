@@ -104,7 +104,7 @@ namespace fgl::engine
 		info.color_blend_attachment.emplace_back( state );
 
 		info.color_blend_info.pAttachments = info.color_blend_attachment.data();
-		info.color_blend_info.attachmentCount = info.color_blend_attachment.size();
+		info.color_blend_info.attachmentCount = static_cast< std::uint32_t >( info.color_blend_attachment.size() );
 	}
 
 	PipelineConfigInfo::PipelineConfigInfo( vk::RenderPass pass )

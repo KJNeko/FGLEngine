@@ -17,9 +17,12 @@ namespace fgl::engine
 
 		Vector direction() const { return Vector( static_cast< glm::vec3 >( end - start ) ); }
 
-		Line( const Coordinate< CType > start, const Coordinate< CType > end ) : start( start ), end( end ) {}
+		Line( const Coordinate< CType > i_start, const Coordinate< CType > i_end ) noexcept :
+		  start( i_start ),
+		  end( i_end )
+		{}
 
-		Line( const glm::vec3 start, glm::vec3 end ) : start( start ), end( end ) {}
+		Line( const glm::vec3 i_start, glm::vec3 i_end ) : start( i_start ), end( i_end ) {}
 
 		inline Line< CType > flip() const { return { end, start }; }
 	};

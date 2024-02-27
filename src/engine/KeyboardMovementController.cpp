@@ -74,13 +74,11 @@ namespace fgl::engine
 		if ( !cursor_enabled )
 		{
 			const auto pos { getCursorPos( window ) };
-			const auto xpos { pos.x };
-			const auto ypos { pos.y };
+			const float xpos { pos.x };
+			const float ypos { pos.y };
 
-			target.transform.rotation.yaw() +=
-				static_cast< float >( ( xpos * 0.006 ) * static_cast< double >( look_speed ) );
-			target.transform.rotation.pitch() -=
-				static_cast< float >( ( ypos * 0.006 ) * static_cast< double >( look_speed ) );
+			target.transform.rotation.yaw() += ( xpos * 0.006f ) * look_speed;
+			target.transform.rotation.pitch() -= ( ypos * 0.006f ) * look_speed;
 
 			setCursorPos( window, { 0, 0 } );
 		}
