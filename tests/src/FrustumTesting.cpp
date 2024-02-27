@@ -168,6 +168,29 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 		}
 	}
 
+	GIVEN( "A frustum from a 90deg fov camera" )
+	{
+		const auto frustum { camera.getFrustumBounds() };
+
+		const auto points { frustum.points() };
+
+		THEN( "The first 4 points should be beyond 25.0f in the Y axis" )
+		{
+			REQUIRE( points[ 0 ].y > 25.0f );
+			REQUIRE( points[ 1 ].y > 25.0f );
+			REQUIRE( points[ 2 ].y > 25.0f );
+			REQUIRE( points[ 3 ].y > 25.0f );
+		}
+
+		THEN( "The last 4 points should be before the 25.0f mark" )
+		{
+			REQUIRE( points[ 4 ].y < 25.0f );
+			REQUIRE( points[ 5 ].y < 25.0f );
+			REQUIRE( points[ 6 ].y < 25.0f );
+			REQUIRE( points[ 7 ].y < 25.0f );
+		}
+	}
+
 	GIVEN( "A camera translated to (WORLD_LEFT,0,0) * 250.0f" )
 	{
 		camera.setView( constants::WORLD_LEFT * 250.0f, constants::DEFAULT_ROTATION );

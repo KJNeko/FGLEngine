@@ -98,8 +98,8 @@ namespace fgl::engine
 	Frustum< CoordinateSpace::Model >
 		createFrustum( const float aspect, const float fov_y, const float near, const float far )
 	{
-		const Plane< CoordinateSpace::Model > near_plane { constants::WORLD_FORWARD, near };
-		const Plane< CoordinateSpace::Model > far_plane { constants::WORLD_BACKWARD, -far };
+		const Plane< CoordinateSpace::Model > near_plane { constants::WORLD_FORWARD * near, constants::WORLD_FORWARD };
+		const Plane< CoordinateSpace::Model > far_plane { constants::WORLD_FORWARD * far, constants::WORLD_BACKWARD };
 
 		const float half_height { far * glm::tan( fov_y / 2.0f ) };
 		const float half_width { half_height * aspect };
@@ -110,20 +110,29 @@ namespace fgl::engine
 		const Vector right_forward { far_forward + right_half };
 		const Vector left_forward { far_forward - right_half };
 
-		const Plane< CoordinateSpace::Model > right_plane { glm::cross( right_forward, constants::WORLD_DOWN ), 0.0f };
-		const Plane< CoordinateSpace::Model > left_plane { glm::cross( left_forward, constants::WORLD_UP ), 0.0f };
+		const Plane< CoordinateSpace::Model > right_plane { constants::WORLD_CENTER,
+			                                                glm::cross( right_forward, constants::WORLD_DOWN ) };
+		const Plane< CoordinateSpace::Model > left_plane { constants::WORLD_CENTER,
+			                                               glm::cross( left_forward, constants::WORLD_UP ) };
 
 		const ModelCoordinate top_half { constants::WORLD_UP * half_height };
 
 		const Vector top_forward { far_forward + top_half };
 		const Vector bottom_forward { far_forward - top_half };
 
-		const Plane< CoordinateSpace::Model > top_plane { glm::cross( top_forward, constants::WORLD_RIGHT ), 0.0f };
+		const Plane< CoordinateSpace::Model > top_plane { constants::WORLD_CENTER,
+			                                              glm::cross( top_forward, constants::WORLD_RIGHT ) };
 
-		const Plane< CoordinateSpace::Model > bottom_plane { glm::cross( bottom_forward, constants::WORLD_LEFT ),
-			                                                 0.0f };
+		const Plane< CoordinateSpace::Model > bottom_plane { constants::WORLD_CENTER,
+			                                                 glm::cross( bottom_forward, constants::WORLD_LEFT ) };
 
-		return { near_plane, far_plane, top_plane, bottom_plane, right_plane, left_plane };
+		return { near_plane,
+			     far_plane,
+			     top_plane,
+			     bottom_plane,
+			     right_plane,
+			     left_plane,
+			     Coordinate< CoordinateSpace::Model >( constants::WORLD_CENTER ) };
 	}
 
 	const Matrix< MatrixType::ModelToWorld > Camera::frustumTranslationMatrix() const

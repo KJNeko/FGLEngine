@@ -2,7 +2,7 @@
 // Created by kj16609 on 2/16/24.
 //
 
-#include "Plane.hpp"
+#include "OriginDistancePlane.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/intersect.hpp>
@@ -14,7 +14,7 @@ namespace fgl::engine
 {
 
 	template <>
-	float Plane< CoordinateSpace::World >::distanceFrom( const WorldCoordinate coord ) const
+	float OriginDistancePlane< CoordinateSpace::World >::distanceFrom( const WorldCoordinate coord ) const
 	{
 		return glm::dot( m_direction, coord ) - m_distance;
 	}
@@ -32,7 +32,14 @@ namespace fgl::engine
 		const WorldCoordinate line_start { line.start };
 		const Vector direction { line.direction() };
 
-		const float line_dot { glm::dot( this->direction(), line_start ) };
+		return intersection( line.start, line.direction() );
+	}
+
+	template < CoordinateSpace CType >
+	Coordinate< CType > OriginDistancePlane<
+		CType >::intersection( const Coordinate< CType > point, const Vector direction ) const
+	{
+		const float line_dot { glm::dot( this->direction(), point ) };
 		const float direction_dot { glm::dot( this->direction(), direction ) };
 
 		// if the dot product of the direction of the plane and the direction of the line is zero, Then there will never be an intersection
@@ -42,7 +49,7 @@ namespace fgl::engine
 
 		const float t { -( line_dot - this->distance() ) / direction_dot };
 
-		const WorldCoordinate intersection_point { line.start + ( t * direction ) };
+		const WorldCoordinate intersection_point { point + ( t * direction ) };
 
 		return intersection_point;
 	}

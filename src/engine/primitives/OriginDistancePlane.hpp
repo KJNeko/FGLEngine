@@ -28,6 +28,8 @@ namespace fgl::engine
 
 	  public:
 
+		OriginDistancePlane() = default;
+
 		OriginDistancePlane( const glm::vec3 vector, const float distance ) :
 		  m_distance( distance ),
 		  m_direction( glm::normalize( vector ) )
@@ -37,8 +39,6 @@ namespace fgl::engine
 		  m_distance( distance ),
 		  m_direction( glm::normalize( vector ) )
 		{}
-
-		OriginDistancePlane() = default;
 
 		//! Returns the closest point on the plane to the 0,0,0 origin
 		Coordinate< CType > getPosition() const { return Coordinate< CType >( 0.0f ) + ( m_direction * m_distance ); }
@@ -63,24 +63,10 @@ namespace fgl::engine
 		bool intersects( const Line< CType > line ) const;
 
 		Coordinate< CType > intersection( const Line< CType > line ) const;
+		Coordinate< CType > intersection( const Coordinate< CType > point, const Vector direction ) const;
 
 		Coordinate< CType > mapToPlane( const Coordinate< CType > point ) const;
 	};
-
-
-
-	template < CoordinateSpace CType >
-	inline std::ostream& operator<<( std::ostream& os, const OriginDistancePlane< CType > plane )
-	{
-		os << "Plane: " << plane.direction() << " " << plane.distance();
-		return os;
-	}
-
-	inline std::ostream& operator<<( std::ostream& os, const Vector vector )
-	{
-		os << "(" << vector.x << ", " << vector.y << ", " << vector.z << ")";
-		return os;
-	}
 
 	template < CoordinateSpace CType, MatrixType MType >
 	OriginDistancePlane< EvolvedType< MType >() >
@@ -93,7 +79,7 @@ namespace fgl::engine
 		return { new_direction, new_distance };
 	}
 
-	template < CoordinateSpace CType >
-	using Plane = OriginDistancePlane< CType >;
+	//	template < CoordinateSpace CType >
+	//	using Plane = OriginDistancePlane< CType >;
 
 } // namespace fgl::engine

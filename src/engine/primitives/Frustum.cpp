@@ -169,36 +169,14 @@ namespace fgl::engine
 	template <>
 	bool Frustum< CoordinateSpace::World >::intersects( const BoundingBox< CoordinateSpace::World > box ) const
 	{
-		if ( check_points ) [[likely]]
-		{
-			assert( box.points().size() == 8 );
+		const auto box_points { box.points() };
 
-			for ( const auto point : box.points() )
-			{
-				if ( pointInside( point ) ) return true;
-			}
+		for ( const auto point : box_points )
+		{
+			if ( pointInside( point ) ) return true;
 		}
 
-		if ( check_lines ) [[likely]]
-		{
-			assert( box.lines().size() == 12 );
-
-			if ( check_single_line ) [[unlikely]]
-			{
-				const auto line { box.lines()[ line_id ] };
-				debug::world::drawLine( line, glm::vec3( 0.0f, 0.0f, 1.0f ), 5.0f );
-				if ( intersects( line ) ) return true;
-			}
-			else
-			{
-				//Slow check for checking lines
-				for ( const auto line : box.lines() )
-				{
-					//intersects( line );
-					if ( intersects( line ) ) return true;
-				}
-			}
-		}
+		//TODO: Do weird line intersection shit
 
 		return false;
 	}

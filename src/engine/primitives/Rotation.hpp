@@ -41,6 +41,8 @@ namespace fgl::engine
 		glm::vec3 right( const glm::vec3 up ) const;
 
 		glm::vec3 left( const glm::vec3 up ) const;
+
+		glm::mat4 mat4() const;
 	};
 
 	namespace constants

@@ -7,7 +7,7 @@
 #include "engine/primitives/Coordinate.hpp"
 #include "engine/primitives/Frustum.hpp"
 #include "engine/primitives/Line.hpp"
-#include "engine/primitives/Plane.hpp"
+#include "engine/primitives/PointPlane.hpp"
 
 namespace fgl::engine
 {

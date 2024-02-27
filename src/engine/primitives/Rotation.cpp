@@ -4,6 +4,8 @@
 
 #include "Rotation.hpp"
 
+#include "engine/math/taitBryanMatrix.hpp"
+
 namespace fgl::engine
 {
 
@@ -48,6 +50,11 @@ namespace fgl::engine
 	glm::vec3 Rotation::left( const glm::vec3 up ) const
 	{
 		return -right( up );
+	}
+
+	glm::mat4 Rotation::mat4() const
+	{
+		return taitBryanMatrix( *this );
 	}
 
 } // namespace fgl::engine

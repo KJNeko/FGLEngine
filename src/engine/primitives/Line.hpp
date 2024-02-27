@@ -27,4 +27,10 @@ namespace fgl::engine
 		inline Line< CType > flip() const { return { end, start }; }
 	};
 
+	template < CoordinateSpace CType, MatrixType MType >
+	Line< EvolvedType< CType >() > operator*( const Matrix< MType > mat, const Line< CType > line )
+	{
+		return { mat * line.start, mat * line.end };
+	}
+
 } // namespace fgl::engine
