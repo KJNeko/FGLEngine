@@ -171,6 +171,8 @@ namespace fgl::engine
 	{
 		const auto box_points { box.points() };
 
+		debug::world::drawBoundingBox( box );
+
 		for ( const auto point : box_points )
 		{
 			if ( pointInside( point ) ) return true;
@@ -178,7 +180,7 @@ namespace fgl::engine
 
 		//TODO: Do weird line intersection shit
 
-		return false;
+		return true;
 	}
 
 } // namespace fgl::engine

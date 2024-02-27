@@ -20,11 +20,17 @@ namespace fgl::engine
 
 	  public:
 
-		PointPlane() = default;
+		explicit PointPlane() = default;
 
-		PointPlane( const Coordinate< CType > pos, const Vector vec ) : coordinate( pos ), vector( vec ) {}
+		explicit PointPlane( const Coordinate< CType > pos, const Vector vec ) :
+		  coordinate( pos ),
+		  vector( glm::normalize( vec ) )
+		{}
 
-		explicit PointPlane( const glm::vec3 pos, const glm::vec3 vec ) : coordinate( pos ), vector( vec ) {}
+		explicit PointPlane( const glm::vec3 pos, const glm::vec3 vec ) :
+		  coordinate( pos ),
+		  vector( glm::normalize( vec ) )
+		{}
 
 		Vector direction() const { return vector; }
 
@@ -45,8 +51,7 @@ namespace fgl::engine
 	template < CoordinateSpace CType, MatrixType MType >
 	PointPlane< EvolvedType< MType >() > operator*( const Matrix< MType >& mat, const PointPlane< CType >& plane )
 	{
-		PointPlane< EvolvedType< MType >() > new_plane { plane.getPosition() * mat, plane.direction() * mat };
-		return new_plane;
+		return PointPlane< EvolvedType< MType >() >( mat * plane.getPosition(), mat * plane.direction() );
 	}
 
 	template < CoordinateSpace CType >

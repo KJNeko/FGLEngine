@@ -84,7 +84,7 @@ namespace fgl::engine::debug
 			ZoneScopedC( TRACY_DRAWER_FUNC_COLOR );
 			for ( const auto [ p1, p2 ] : box.lines() )
 			{
-				drawLineI( { p1, p2 }, color );
+				drawLine( { p1, p2 }, color );
 			}
 
 			for ( const auto point : box.points() )
@@ -201,12 +201,12 @@ namespace fgl::engine::debug
 
 		void drawFrustum( const Frustum< CoordinateSpace::World >& frustum, const WorldCoordinate point )
 		{
-			drawPlane( frustum.near, point, "near" );
-			drawPlane( frustum.far, point, "far" );
-			drawPlane( frustum.top, point, "top" );
-			drawPlane( frustum.bottom, point, "bottom" );
-			drawPlane( frustum.right, point, "right" );
-			drawPlane( frustum.left, point, "left" );
+			drawPlane( frustum.near, frustum.near.getPosition(), "near" );
+			drawPlane( frustum.far, frustum.far.getPosition(), "far" );
+			drawPlane( frustum.top, frustum.top.getPosition(), "top" );
+			drawPlane( frustum.bottom, frustum.bottom.getPosition(), "bottom" );
+			drawPlane( frustum.right, frustum.right.getPosition(), "right" );
+			drawPlane( frustum.left, frustum.left.getPosition(), "left" );
 		}
 
 		void drawFrustum()

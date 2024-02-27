@@ -42,8 +42,6 @@ namespace fgl::engine
 
 		constexpr explicit Coordinate( const float value ) : glm::vec3( value ) {}
 
-		operator glm::vec4() const { return glm::vec4( x, y, z, 1.0f ); }
-
 		Coordinate operator+( const glm::vec3 other )
 		{
 			assert( static_cast< glm::vec3 >( *this ) != constants::DEFAULT_VEC3 );
@@ -67,8 +65,7 @@ namespace fgl::engine
 		template < MatrixType MType >
 		Coordinate< EvolvedType< MType >() > operator*( const Matrix< MType >& mat )
 		{
-			return Coordinate<
-				EvolvedType< MType >() >( mat * static_cast< glm::vec4 >( static_cast< glm::vec3 >( *this ), 1.0f ) );
+			return Coordinate< EvolvedType< MType >() >( mat * glm::vec4( static_cast< glm::vec3 >( *this ), 1.0f ) );
 		}
 
 #ifndef NDEBUG
@@ -83,6 +80,13 @@ namespace fgl::engine
 		}
 #endif
 	};
+
+	template < CoordinateSpace CType, MatrixType MType >
+	Coordinate< EvolvedType< MType >() > operator*( const Matrix< MType > mat, const Coordinate< CType > coord )
+	{
+		return Coordinate< EvolvedType<
+			MType >() >( static_cast< glm::mat4 >( mat ) * glm::vec4( static_cast< glm::vec3 >( coord ), 1.0f ) );
+	}
 
 	using ModelCoordinate = Coordinate< CoordinateSpace::Model >;
 	using WorldCoordinate = Coordinate< CoordinateSpace::World >;
