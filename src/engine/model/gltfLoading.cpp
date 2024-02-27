@@ -197,6 +197,9 @@ namespace fgl::engine
 
 				std::vector< Vertex > verts {};
 				verts.resize( position_data.size() );
+
+				assert( verts.size() == normals.size() );
+
 				for ( std::size_t i = 0; i < position_data.size(); i++ )
 				{
 					//Fix position to be -Z UP
@@ -204,7 +207,11 @@ namespace fgl::engine
 					verts[ i ].m_position =
 						glm::vec3( position_data[ i ].x, -position_data[ i ].y, position_data[ i ].z );
 					verts[ i ].m_normal = normals[ i ];
-					verts[ i ].m_uv = texcoords[ i ];
+				}
+
+				if ( texcoords.size() == verts.size() )
+				{
+					for ( std::size_t i = 0; i < texcoords.size(); ++i ) verts[ i ].m_uv = texcoords[ i ];
 				}
 
 				VertexBufferSuballocation vertex_buffer { m_vertex_buffer, verts };
