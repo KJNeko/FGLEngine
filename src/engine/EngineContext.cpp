@@ -409,13 +409,13 @@ namespace fgl::engine
 				}
 #endif
 
-				m_culling_system.startPass( frame_info );
-
 #if TRACY_ENABLE
+				m_culling_system.startPass( frame_info );
 				TracyVkCollect( frame_info.tracy_ctx, command_buffer );
-#endif
-
 				m_culling_system.wait();
+#else
+				m_culling_system.pass( frame_info );
+#endif
 
 				m_renderer.beginSwapchainRendererPass( command_buffer );
 

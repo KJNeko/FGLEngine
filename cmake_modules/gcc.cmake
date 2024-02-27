@@ -110,7 +110,7 @@
 
 				set(FGL_CONFIG "-std=c++23 -fmax-errors=1 -fconcepts-diagnostics-depth=8 -Werror")
 
-				set(FGL_SHARED_OPTIMIZATION_FLAGS "-march=native")
+				set(FGL_SHARED_OPTIMIZATION_FLAGS "-march=bdver2")
 
 				# Optimization flags
 				set(FGL_OPTIMIZATION_FLAGS_RELEASE "-O2 -s -fdevirtualize-at-ltrans -fdevirtualize-speculatively -funroll-loops") # System agonistc flags
