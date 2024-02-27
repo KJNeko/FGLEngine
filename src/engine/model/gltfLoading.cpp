@@ -87,7 +87,7 @@ namespace fgl::engine
 	{
 		const std::vector< glm::vec3 > data { extractData< glm::vec3 >( model, accessor ) };
 
-		std::vector< ModelCoordinate > ret;
+		std::vector< ModelCoordinate > ret {};
 		ret.reserve( data.size() );
 
 		for ( const auto& val : data )
@@ -108,8 +108,8 @@ namespace fgl::engine
 
 		tinygltf::Model model {};
 		tinygltf::TinyGLTF loader {};
-		std::string err;
-		std::string warn;
+		std::string err {};
+		std::string warn {};
 
 		loader.RemoveImageLoader();
 
@@ -165,7 +165,7 @@ namespace fgl::engine
 
 				ModelBoundingBox bounding_box { generateBoundingFromPoints( position_data ) };
 
-				std::vector< glm::vec3 > normals;
+				std::vector< glm::vec3 > normals {};
 
 				if ( primitive.attributes.find( "NORMAL" ) != primitive.attributes.end() )
 				{
@@ -176,9 +176,9 @@ namespace fgl::engine
 					normals.resize( position_data.size() );
 
 				//TODO: Implement TANGENT reading
-				std::vector< glm::vec3 > tangents;
+				std::vector< glm::vec3 > tangents {};
 
-				std::vector< glm::vec2 > texcoords;
+				std::vector< glm::vec2 > texcoords {};
 
 				for ( const auto& [ attr_name, attr_idx ] : primitive.attributes )
 				{
@@ -195,7 +195,7 @@ namespace fgl::engine
 					}
 				}
 
-				std::vector< Vertex > verts;
+				std::vector< Vertex > verts {};
 				verts.resize( position_data.size() );
 				for ( std::size_t i = 0; i < position_data.size(); i++ )
 				{
