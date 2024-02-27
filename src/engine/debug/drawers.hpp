@@ -119,14 +119,14 @@ namespace fgl::engine::debug
 		inline void drawLine(
 			const Coordinate< CoordinateSpace::World >,
 			const Coordinate< CoordinateSpace::World >,
-
-			const glm::vec3 )
+			const glm::vec3,
+			const float )
 		{}
 
 		inline void drawPointLabel( const Coordinate< CoordinateSpace::World >, const std::string )
 		{}
 
-		inline void drawLine( const Line< CoordinateSpace::World >, const glm::vec3 )
+		inline void drawLine( const Line< CoordinateSpace::World >, const glm::vec3, const float )
 		{}
 
 		inline void drawPointText( const Coordinate< CoordinateSpace::World >, const glm::vec3 )
