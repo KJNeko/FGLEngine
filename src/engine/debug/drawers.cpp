@@ -17,6 +17,7 @@ namespace fgl::engine::debug
 
 	Camera& getDebugDrawingCamera()
 	{
+		assert( debug_camera.has_value() && "Debug camera not set" );
 		return *debug_camera.value();
 	}
 
