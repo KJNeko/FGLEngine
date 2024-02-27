@@ -9,6 +9,7 @@
 
 #include <array>
 
+#include "engine/model/Vertex.hpp"
 #include "engine/primitives/Coordinate.hpp"
 #include "engine/primitives/Frustum.hpp"
 #include "engine/primitives/Matrix.hpp"
@@ -251,6 +252,32 @@ namespace fgl::engine
 		const glm::vec3 scale { bottom_right_back - midpoint };
 
 		return { Coordinate< CType >( midpoint ), scale };
+	}
+
+	BoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< Vertex >& verts )
+	{
+		// neg (min)
+		glm::vec3 top_left_front { verts[ 0 ].m_position };
+		// pos (max)
+		glm::vec3 bottom_right_back { verts[ 0 ].m_position };
+
+		for ( const auto& vert : verts )
+		{
+			const auto& pos { vert.m_position };
+			top_left_front.x = std::min( static_cast< glm::vec3 >( pos ).x, top_left_front.x );
+			top_left_front.y = std::min( static_cast< glm::vec3 >( pos ).y, top_left_front.y );
+			top_left_front.z = std::min( static_cast< glm::vec3 >( pos ).z, top_left_front.z );
+
+			bottom_right_back.x = std::max( static_cast< glm::vec3 >( pos ).x, bottom_right_back.x );
+			bottom_right_back.y = std::max( static_cast< glm::vec3 >( pos ).y, bottom_right_back.y );
+			bottom_right_back.z = std::max( static_cast< glm::vec3 >( pos ).z, bottom_right_back.z );
+		}
+
+		//Calculate midpoint
+		const glm::vec3 midpoint { ( top_left_front + bottom_right_back ) / glm::vec3( 2.0f ) };
+		const glm::vec3 scale { bottom_right_back - midpoint };
+
+		return { Coordinate< CoordinateSpace::Model >( midpoint ), scale };
 	}
 
 	//Synthesize the template

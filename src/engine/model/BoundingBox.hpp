@@ -59,6 +59,8 @@ namespace fgl::engine
 	template < CoordinateSpace CType >
 	BoundingBox< CType > generateBoundingFromPoints( const std::vector< Coordinate< CType > >& points );
 
+	BoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< Vertex >& points );
+
 	using ModelBoundingBox = BoundingBox< CoordinateSpace::Model >;
 
 } // namespace fgl::engine

@@ -151,8 +151,6 @@ namespace fgl::engine
 				};
 				model_positions.insert( model_positions.end(), position_data.begin(), position_data.end() );
 
-				ModelBoundingBox bounding_box { generateBoundingFromPoints( position_data ) };
-
 				std::vector< glm::vec3 > normals {};
 
 				if ( primitive.attributes.find( "NORMAL" ) != primitive.attributes.end() )
@@ -196,6 +194,8 @@ namespace fgl::engine
 						glm::vec3( position_data[ i ].x, position_data[ i ].z, position_data[ i ].y );
 					verts[ i ].m_normal = normals[ i ];
 				}
+
+				ModelBoundingBox bounding_box { generateBoundingFromVerts( verts ) };
 
 				if ( texcoords.size() > 0 && texcoords.size() != verts.size() )
 				{
