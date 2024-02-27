@@ -86,24 +86,6 @@ namespace fgl::engine
 		}
 	}
 
-	/*
-	template <>
-	std::vector< ModelCoordinate > extractData<
-		ModelCoordinate >( const tinygltf::Model& model, const tinygltf::Accessor& accessor )
-	{
-		const std::vector< glm::vec3 > data { extractData< glm::vec3 >( model, accessor ) };
-
-		std::vector< ModelCoordinate > ret {};
-		ret.reserve( data.size() );
-
-		for ( const auto& val : data )
-		{
-			ret.emplace_back( glm::vec3( val.x, -val.z, val.y ) );
-		}
-
-		return ret;
-	}*/
-
 	void ModelBuilder::loadGltf( const std::filesystem::path& filepath )
 	{
 		std::cout << "Loading gltf model " << filepath << std::endl;
