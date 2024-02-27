@@ -55,7 +55,7 @@ namespace fgl::engine
 			switch ( accessor.type )
 			{
 				default:
-					throw std::runtime_error( "UNhandled access type" );
+					throw std::runtime_error( "Unhandled access type" );
 				case TINYGLTF_TYPE_VEC3:
 					copy_size *= 3;
 					break;
