@@ -86,6 +86,7 @@ namespace fgl::engine
 		}
 	}
 
+	/*
 	template <>
 	std::vector< ModelCoordinate > extractData<
 		ModelCoordinate >( const tinygltf::Model& model, const tinygltf::Accessor& accessor )
@@ -101,7 +102,7 @@ namespace fgl::engine
 		}
 
 		return ret;
-	}
+	}*/
 
 	void ModelBuilder::loadGltf( const std::filesystem::path& filepath )
 	{
@@ -210,7 +211,7 @@ namespace fgl::engine
 					//Fix position to be -Z UP
 					//verts[ i ].m_position = position_data[ i ];
 					verts[ i ].m_position =
-						glm::vec3( position_data[ i ].x, -position_data[ i ].y, position_data[ i ].z );
+						glm::vec3( position_data[ i ].x, position_data[ i ].z, position_data[ i ].y );
 					verts[ i ].m_normal = normals[ i ];
 				}
 
