@@ -1,8 +1,9 @@
 
 
 file(GLOB_RECURSE CPP_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/**.cpp")
+file(GLOB_RECURSE HPP_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/**.hpp")
 
-add_library(FGLEngine STATIC ${CPP_SOURCES})
+add_library(FGLEngine STATIC ${CPP_SOURCES} ${HPP_SOURCES})
 
 target_precompile_headers(FGLEngine PRIVATE
 		<vector>

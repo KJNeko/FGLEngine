@@ -9,10 +9,10 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include "constants.hpp"
-#include "engine/primitives/Coordinate.hpp"
 #include "engine/primitives/Frustum.hpp"
 #include "engine/primitives/TransformComponent.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
+#include "engine/primitives/point/Coordinate.hpp"
 
 namespace fgl::engine
 {

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Coordinate.hpp"
+#include "engine/primitives/point/Coordinate.hpp"
 
 namespace fgl::engine
 {

@@ -10,9 +10,9 @@
 #include <vector>
 
 #include "engine/constants.hpp"
-#include "engine/primitives/Coordinate.hpp"
 #include "engine/primitives/Rotation.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
+#include "engine/primitives/point/Coordinate.hpp"
 
 namespace fgl::engine
 {

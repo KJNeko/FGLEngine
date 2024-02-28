@@ -9,8 +9,8 @@
 
 #include <ostream>
 
-#include "CoordinateSpace.hpp"
 #include "engine/constants.hpp"
+#include "engine/primitives/CoordinateSpace.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
 #include "engine/primitives/matricies/MatrixEvolvedTypes.hpp"
 

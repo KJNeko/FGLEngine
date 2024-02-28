@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "engine/primitives/Coordinate.hpp"
 #include "engine/primitives/Frustum.hpp"
 #include "engine/primitives/PointPlane.hpp"
 #include "engine/primitives/lines/LineSegment.hpp"
+#include "engine/primitives/point/Coordinate.hpp"
 
 namespace fgl::engine
 {

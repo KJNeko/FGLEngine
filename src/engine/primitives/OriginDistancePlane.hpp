@@ -12,11 +12,11 @@
 #include <stdexcept>
 #include <utility>
 
-#include "Coordinate.hpp"
 #include "Vector.hpp"
 #include "engine/constants.hpp"
 #include "engine/primitives/lines/LineSegment.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
+#include "engine/primitives/point/Coordinate.hpp"
 
 namespace fgl::engine
 {

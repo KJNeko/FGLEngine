@@ -10,9 +10,9 @@
 #include <array>
 
 #include "engine/model/Vertex.hpp"
-#include "engine/primitives/Coordinate.hpp"
 #include "engine/primitives/Frustum.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
+#include "engine/primitives/point/Coordinate.hpp"
 
 namespace fgl::engine
 {
