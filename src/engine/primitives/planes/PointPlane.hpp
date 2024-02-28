@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "CoordinateSpace.hpp"
-#include "Vector.hpp"
+#include "engine/primitives/CoordinateSpace.hpp"
+#include "engine/primitives/Vector.hpp"
 #include "engine/primitives/lines/LineSegment.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 

@@ -5,8 +5,8 @@
 #pragma once
 
 #include "engine/primitives/Frustum.hpp"
-#include "engine/primitives/PointPlane.hpp"
 #include "engine/primitives/lines/LineSegment.hpp"
+#include "engine/primitives/planes/PointPlane.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 
 namespace fgl::engine

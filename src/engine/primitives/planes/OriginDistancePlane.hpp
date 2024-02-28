@@ -12,8 +12,8 @@
 #include <stdexcept>
 #include <utility>
 
-#include "Vector.hpp"
 #include "engine/constants.hpp"
+#include "engine/primitives/Vector.hpp"
 #include "engine/primitives/lines/LineSegment.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
 #include "engine/primitives/points/Coordinate.hpp"

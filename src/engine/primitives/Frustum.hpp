@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "OriginDistancePlane.hpp"
-#include "PointPlane.hpp"
 #include "engine/primitives/lines/LineSegment.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
+#include "engine/primitives/planes/OriginDistancePlane.hpp"
+#include "engine/primitives/planes/PointPlane.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 
 namespace fgl::engine
