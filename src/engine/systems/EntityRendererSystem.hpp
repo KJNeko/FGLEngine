@@ -31,6 +31,10 @@ namespace fgl::engine
 		std::unique_ptr< Buffer > m_vertex_buffer { nullptr };
 		std::unique_ptr< Buffer > m_index_buffer { nullptr };
 
+		using DrawParameterBufferSuballocation = HostVector< vk::DrawIndexedIndirectCommand >;
+
+		using ModelMatrixInfoBufferSuballocation = HostVector< ModelMatrixInfo >;
+
 		std::array< std::unique_ptr< DrawParameterBufferSuballocation >, SwapChain::MAX_FRAMES_IN_FLIGHT >
 			m_draw_parameter_buffers {};
 

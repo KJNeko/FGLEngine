@@ -5,28 +5,40 @@
 #pragma once
 
 #include <glm/vec3.hpp>
-#include <tracy/Tracy.hpp>
 
 #include <array>
 #include <vector>
 
 #include "engine/constants.hpp"
 #include "engine/primitives/Coordinate.hpp"
-#include "engine/primitives/Line.hpp"
 #include "engine/primitives/Matrix.hpp"
+#include "engine/primitives/Rotation.hpp"
 
 namespace fgl::engine
 {
-	template < CoordinateSpace type >
+	template < CoordinateSpace CType >
 	struct Frustum;
+
+	template < CoordinateSpace CType >
+	struct Line;
 
 	struct Vertex;
 
 	template < CoordinateSpace CType >
 	struct OrientedBoundingBox
 	{
-		Coordinate< CType > middle { constants::DEFAULT_VEC3 };
-		glm::vec3 scale { 0.0f };
+		Coordinate< CType > middle;
+		glm::vec3 scale;
+		Rotation rotation;
+
+		OrientedBoundingBox() : middle( constants::DEFAULT_VEC3 ), scale( 0.0f ), rotation( 0.0f, 0.0f, 0.0f ) {}
+
+		OrientedBoundingBox(
+			const Coordinate< CType > pos, glm::vec3 inital_scale, const Rotation inital_rotation = {} ) :
+		  middle( pos ),
+		  scale( inital_scale ),
+		  rotation( inital_rotation )
+		{}
 
 		//! Returns the top left (-x, -y, -z) coordinate
 		inline glm::vec3 bottomLeftBack() const { return middle - scale; }
@@ -60,9 +72,6 @@ namespace fgl::engine
 	OrientedBoundingBox< CType > generateBoundingFromPoints( const std::vector< Coordinate< CType > >& points );
 
 	OrientedBoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< Vertex >& points );
-
-	template < CoordinateSpace CType >
-	using OBoundingBox = OrientedBoundingBox< CType >;
 
 	using ModelBoundingBox = OrientedBoundingBox< CoordinateSpace::Model >;
 

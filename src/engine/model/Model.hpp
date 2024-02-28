@@ -13,13 +13,13 @@
 #include <vector>
 
 #include "OrientedBoundingBox.hpp"
+#include "Primitive.hpp"
 #include "Vertex.hpp"
 #include "engine/Device.hpp"
 #include "engine/buffers/Buffer.hpp"
 #include "engine/buffers/BufferSuballocation.hpp"
 #include "engine/buffers/vector/DeviceVector.hpp"
 #include "engine/buffers/vector/HostVector.hpp"
-#include "engine/texture/Texture.hpp"
 #include "engine/utils.hpp"
 
 namespace fgl::engine
@@ -31,53 +31,12 @@ namespace fgl::engine
 		std::uint32_t texture_idx;
 	};
 
-	using VertexBufferSuballocation = DeviceVector< Vertex >;
-
-	using IndexBufferSuballocation = DeviceVector< std::uint32_t >;
-
-	using DrawParameterBufferSuballocation = HostVector< vk::DrawIndexedIndirectCommand >;
-
-	using ModelMatrixInfoBufferSuballocation = HostVector< ModelMatrixInfo >;
-
-	struct Primitive
-	{
-		VertexBufferSuballocation m_vertex_buffer;
-		IndexBufferSuballocation m_index_buffer;
-		OrientedBoundingBox< CoordinateSpace::Model > m_bounding_box;
-
-		std::optional< Texture > m_texture { std::nullopt };
-
-		Primitive(
-			VertexBufferSuballocation&& vertex_buffer,
-			IndexBufferSuballocation&& index_buffer,
-			OrientedBoundingBox< CoordinateSpace::Model >& bounding_box ) :
-		  m_vertex_buffer( std::move( vertex_buffer ) ),
-		  m_index_buffer( std::move( index_buffer ) ),
-		  m_bounding_box( bounding_box )
-		{}
-
-		Primitive(
-			VertexBufferSuballocation&& vertex_buffer,
-			IndexBufferSuballocation&& index_buffer,
-			OrientedBoundingBox< CoordinateSpace::Model >& bounding_box,
-			Texture&& texture ) :
-		  m_vertex_buffer( std::move( vertex_buffer ) ),
-		  m_index_buffer( std::move( index_buffer ) ),
-		  m_bounding_box( bounding_box ),
-		  m_texture( std::move( texture ) )
-		{}
-
-		Primitive() = delete;
-		Primitive( const Primitive& other ) = delete;
-		Primitive( Primitive&& other ) = default;
-	};
-
 	struct ModelBuilder
 	{
 		Buffer& m_vertex_buffer;
 		Buffer& m_index_buffer;
 
-		std::vector< ::fgl::engine::Primitive > m_primitives {};
+		std::vector< Primitive > m_primitives {};
 
 		ModelBuilder() = delete;
 
