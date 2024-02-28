@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "Coordinate.hpp"
-#include "Vector.hpp"
+#include "engine/primitives/Coordinate.hpp"
+#include "engine/primitives/Vector.hpp"
 
 namespace fgl::engine
 {

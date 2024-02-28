@@ -8,7 +8,7 @@
 #include <glm/gtx/intersect.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
-#include "LineSegment.hpp"
+#include "engine/primitives/lines/LineSegment.hpp"
 
 namespace fgl::engine
 {

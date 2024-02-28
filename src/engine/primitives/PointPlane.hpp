@@ -6,8 +6,8 @@
 
 #include "Coordinate.hpp"
 #include "CoordinateSpace.hpp"
-#include "LineSegment.hpp"
 #include "Vector.hpp"
+#include "engine/primitives/lines/LineSegment.hpp"
 
 namespace fgl::engine
 {

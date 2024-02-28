@@ -6,8 +6,8 @@
 
 #include "engine/primitives/Coordinate.hpp"
 #include "engine/primitives/Frustum.hpp"
-#include "engine/primitives/LineSegment.hpp"
 #include "engine/primitives/PointPlane.hpp"
+#include "engine/primitives/lines/LineSegment.hpp"
 
 namespace fgl::engine
 {

@@ -5,9 +5,9 @@
 #pragma once
 
 #include "Coordinate.hpp"
-#include "LineSegment.hpp"
 #include "OriginDistancePlane.hpp"
 #include "PointPlane.hpp"
+#include "engine/primitives/lines/LineSegment.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
 
 namespace fgl::engine

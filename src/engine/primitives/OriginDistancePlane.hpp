@@ -15,7 +15,7 @@
 #include "Coordinate.hpp"
 #include "Vector.hpp"
 #include "engine/constants.hpp"
-#include "engine/primitives/LineSegment.hpp"
+#include "engine/primitives/lines/LineSegment.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
 
 namespace fgl::engine
