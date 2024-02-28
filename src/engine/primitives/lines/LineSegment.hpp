@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "engine/primitives/Coordinate.hpp"
 #include "engine/primitives/Vector.hpp"
+#include "engine/primitives/points/Coordinate.hpp"
 
 namespace fgl::engine
 {
