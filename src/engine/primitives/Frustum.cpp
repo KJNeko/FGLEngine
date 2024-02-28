@@ -5,7 +5,7 @@
 #include "Frustum.hpp"
 
 #include "engine/debug/drawers.hpp"
-#include "engine/model/BoundingBox.hpp"
+#include "engine/model/OrientedBoundingBox.hpp"
 #include "imgui/imgui.h"
 
 namespace fgl::engine
@@ -167,7 +167,7 @@ namespace fgl::engine
 
 	template <>
 	template <>
-	bool Frustum< CoordinateSpace::World >::intersects( const BoundingBox< CoordinateSpace::World > box ) const
+	bool Frustum< CoordinateSpace::World >::intersects( const OrientedBoundingBox< CoordinateSpace::World > box ) const
 	{
 		const auto box_points { box.points() };
 

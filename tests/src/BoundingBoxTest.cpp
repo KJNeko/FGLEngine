@@ -2,7 +2,7 @@
 // Created by kj16609 on 2/14/24.
 //
 
-#include "engine/model/BoundingBox.hpp"
+#include "engine/model/OrientedBoundingBox.hpp"
 
 using namespace fgl::engine;
 
@@ -21,7 +21,7 @@ TEST_CASE( "BoundingBox", "[boundingbox]" )
 		// Bottom right
 		model_points.push_back( Coordinate< CoordinateSpace::Model >( 1.0f, -1.0f, -1.0f ) );
 
-		BoundingBox< CoordinateSpace::Model > model_box( generateBoundingFromPoints( model_points ) );
+		OrientedBoundingBox< CoordinateSpace::Model > model_box( generateBoundingFromPoints( model_points ) );
 
 		model_points.clear();
 
@@ -30,7 +30,7 @@ TEST_CASE( "BoundingBox", "[boundingbox]" )
 		// Bottom right
 		model_points.push_back( Coordinate< CoordinateSpace::Model >( 2.0f, -1.0f, -2.0f ) );
 
-		BoundingBox< CoordinateSpace::Model > model_box2( generateBoundingFromPoints( model_points ) );
+		OrientedBoundingBox< CoordinateSpace::Model > model_box2( generateBoundingFromPoints( model_points ) );
 
 		auto combined_box = model_box.combine( model_box2 );
 

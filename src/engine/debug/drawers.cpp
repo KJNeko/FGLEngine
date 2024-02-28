@@ -5,7 +5,7 @@
 #include "drawers.hpp"
 
 #include "engine/Camera.hpp"
-#include "engine/model/BoundingBox.hpp"
+#include "engine/model/OrientedBoundingBox.hpp"
 #include "imgui/imgui.h"
 #include "tracy_colors.hpp"
 
@@ -79,7 +79,7 @@ namespace fgl::engine::debug
 				drawLine( line, color, thickness );
 		}
 
-		void drawBoundingBox( const BoundingBox< CoordinateSpace::World >& box, const glm::vec3 color )
+		void drawBoundingBox( const OrientedBoundingBox< CoordinateSpace::World >& box, const glm::vec3 color )
 		{
 			ZoneScopedC( TRACY_DRAWER_FUNC_COLOR );
 			for ( const auto [ p1, p2 ] : box.lines() )

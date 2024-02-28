@@ -23,7 +23,7 @@ namespace fgl::engine
 	struct Vertex;
 
 	template < CoordinateSpace CType >
-	struct BoundingBox
+	struct OrientedBoundingBox
 	{
 		Coordinate< CType > middle { constants::DEFAULT_VEC3 };
 		glm::vec3 scale { 0.0f };
@@ -44,23 +44,26 @@ namespace fgl::engine
 
 		bool isInFrustum( const Frustum< CType >& frustum ) const;
 
-		BoundingBox combine( const BoundingBox& other ) const;
+		OrientedBoundingBox combine( const OrientedBoundingBox& other ) const;
 	};
 
 	template < CoordinateSpace CType, MatrixType MType >
-	BoundingBox< EvolvedType< MType >() >
-		operator*( const Matrix< MType > matrix, const BoundingBox< CType > bounding_box )
+	OrientedBoundingBox< EvolvedType< MType >() >
+		operator*( const Matrix< MType > matrix, const OrientedBoundingBox< CType > bounding_box )
 	{
 		const Coordinate< EvolvedType< MType >() > new_middle { matrix * bounding_box.middle };
 		const glm::vec3 new_scale { matrix * glm::vec4( bounding_box.scale, 0.0f ) };
-		return BoundingBox< EvolvedType< MType >() >( new_middle, new_scale );
+		return OrientedBoundingBox< EvolvedType< MType >() >( new_middle, new_scale );
 	}
 
 	template < CoordinateSpace CType >
-	BoundingBox< CType > generateBoundingFromPoints( const std::vector< Coordinate< CType > >& points );
+	OrientedBoundingBox< CType > generateBoundingFromPoints( const std::vector< Coordinate< CType > >& points );
 
-	BoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< Vertex >& points );
+	OrientedBoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< Vertex >& points );
 
-	using ModelBoundingBox = BoundingBox< CoordinateSpace::Model >;
+	template < CoordinateSpace CType >
+	using OBoundingBox = OrientedBoundingBox< CType >;
+
+	using ModelBoundingBox = OrientedBoundingBox< CoordinateSpace::Model >;
 
 } // namespace fgl::engine

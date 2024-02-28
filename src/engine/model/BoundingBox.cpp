@@ -2,7 +2,7 @@
 // Created by kj16609 on 1/27/24.
 //
 
-#include "BoundingBox.hpp"
+#include "OrientedBoundingBox.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
@@ -18,7 +18,7 @@ namespace fgl::engine
 {
 
 	template < CoordinateSpace CType >
-	bool BoundingBox< CType >::isInFrustum( const Frustum< CType >& frustum ) const
+	bool OrientedBoundingBox< CType >::isInFrustum( const Frustum< CType >& frustum ) const
 	{
 		if constexpr ( CType != CoordinateSpace::World )
 		{
@@ -39,7 +39,8 @@ namespace fgl::engine
 	}
 
 	template < CoordinateSpace CType >
-	consteval std::array< std::uint32_t, BoundingBox< CType >::indicies_count > BoundingBox< CType >::triangleIndicies()
+	consteval std::array< std::uint32_t, OrientedBoundingBox< CType >::indicies_count > OrientedBoundingBox<
+		CType >::triangleIndicies()
 	{
 		/**
 		 * Order (Top)
@@ -107,7 +108,7 @@ namespace fgl::engine
 	}
 
 	template < CoordinateSpace CType >
-	std::vector< Coordinate< CType > > BoundingBox< CType >::points() const
+	std::vector< Coordinate< CType > > OrientedBoundingBox< CType >::points() const
 	{
 		assert( middle != constants::DEFAULT_VEC3 );
 		assert( scale != glm::vec3( 0.0f ) );
@@ -180,7 +181,8 @@ namespace fgl::engine
 	}
 
 	template < CoordinateSpace CType >
-	BoundingBox< CType > BoundingBox< CType >::combine( const BoundingBox< CType >& other ) const
+	OrientedBoundingBox< CType > OrientedBoundingBox< CType >::combine( const OrientedBoundingBox< CType >& other )
+		const
 	{
 		assert( middle != constants::DEFAULT_VEC3 );
 		assert( scale != glm::vec3( 0.0f ) );
@@ -198,7 +200,7 @@ namespace fgl::engine
 	}
 
 	template < CoordinateSpace CType >
-	std::vector< Line< CType > > BoundingBox< CType >::lines() const
+	std::vector< Line< CType > > OrientedBoundingBox< CType >::lines() const
 	{
 		const auto points { this->points() };
 
@@ -226,7 +228,7 @@ namespace fgl::engine
 	}
 
 	template < CoordinateSpace CType >
-	BoundingBox< CType > generateBoundingFromPoints( const std::vector< Coordinate< CType > >& points )
+	OrientedBoundingBox< CType > generateBoundingFromPoints( const std::vector< Coordinate< CType > >& points )
 	{
 		ZoneScoped;
 		assert( points.size() > 0 );
@@ -254,7 +256,7 @@ namespace fgl::engine
 		return { Coordinate< CType >( midpoint ), scale };
 	}
 
-	BoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< Vertex >& verts )
+	OrientedBoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< Vertex >& verts )
 	{
 		// neg (min)
 		glm::vec3 top_left_front { verts[ 0 ].m_position };
@@ -281,7 +283,7 @@ namespace fgl::engine
 	}
 
 	//Synthesize the template
-	template struct BoundingBox< CoordinateSpace::Model >;
-	template struct BoundingBox< CoordinateSpace::World >;
+	template struct OrientedBoundingBox< CoordinateSpace::Model >;
+	template struct OrientedBoundingBox< CoordinateSpace::World >;
 
 } // namespace fgl::engine

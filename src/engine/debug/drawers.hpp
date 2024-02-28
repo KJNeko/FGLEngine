@@ -12,7 +12,7 @@
 namespace fgl::engine
 {
 	template < CoordinateSpace type >
-	struct BoundingBox;
+	struct OrientedBoundingBox;
 
 	template < CoordinateSpace type >
 	class Coordinate;
@@ -39,7 +39,7 @@ namespace fgl::engine::debug
 	namespace world
 	{
 		void drawBoundingBox(
-			const BoundingBox< CoordinateSpace::World >& box, const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
+			const OrientedBoundingBox< CoordinateSpace::World >& box, const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 
 		void drawLine(
 			const Coordinate< CoordinateSpace::World > start,

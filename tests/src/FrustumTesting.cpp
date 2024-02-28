@@ -9,7 +9,7 @@
 #define EXPOSE_FRUSTUM_INTERNALS
 #define EXPOSE_CAMERA_INTERNAL
 #include "engine/Camera.hpp"
-#include "engine/model/BoundingBox.hpp"
+#include "engine/model/OrientedBoundingBox.hpp"
 #include "engine/primitives/Frustum.hpp"
 #include "gtest_printers.hpp"
 

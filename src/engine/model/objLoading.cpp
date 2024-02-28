@@ -95,7 +95,7 @@ namespace fgl::engine
 			vert_pos.emplace_back( vert.m_position );
 		}
 
-		BoundingBox bounding_box { generateBoundingFromPoints( vert_pos ) };
+		OrientedBoundingBox bounding_box { generateBoundingFromPoints( vert_pos ) };
 
 		m_primitives.emplace_back(
 			VertexBufferSuballocation( m_vertex_buffer, std::move( verts ) ),

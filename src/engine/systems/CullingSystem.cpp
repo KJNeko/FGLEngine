@@ -7,8 +7,8 @@
 #include <tracy/TracyC.h>
 
 #include "engine/debug/drawers.hpp"
-#include "engine/model/BoundingBox.hpp"
 #include "engine/model/Model.hpp"
+#include "engine/model/OrientedBoundingBox.hpp"
 
 namespace fgl::engine
 {
@@ -26,7 +26,7 @@ namespace fgl::engine
 			{
 				//Test if the object is in the frustum
 
-				const BoundingBox model_bounding_box {
+				const OrientedBoundingBox model_bounding_box {
 					obj.model->getBoundingBox( Matrix< MatrixType::ModelToWorld >( obj.transform.mat4() ) )
 				};
 

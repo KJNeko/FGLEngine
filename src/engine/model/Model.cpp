@@ -43,12 +43,12 @@ namespace fgl::engine
 		return draw_parameters;
 	}
 
-	BoundingBox< CoordinateSpace::Model > Model::buildBoundingBox( const std::vector< Primitive >& primitives )
+	OrientedBoundingBox< CoordinateSpace::Model > Model::buildBoundingBox( const std::vector< Primitive >& primitives )
 	{
 		assert( primitives.size() > 0 );
 		if ( primitives.size() <= 0 ) return {};
 
-		BoundingBox< CoordinateSpace::Model > box { primitives.at( 0 ).m_bounding_box };
+		OrientedBoundingBox< CoordinateSpace::Model > box { primitives.at( 0 ).m_bounding_box };
 
 		for ( std::uint64_t i = 1; i < primitives.size(); i++ ) box = box.combine( primitives[ i ].m_bounding_box );
 
@@ -70,7 +70,8 @@ namespace fgl::engine
 		return draw_commands;
 	}
 
-	Model::Model( Device& device, ModelBuilder& builder, const BoundingBox< CoordinateSpace::Model > bounding_box ) :
+	Model::Model(
+		Device& device, ModelBuilder& builder, const OrientedBoundingBox< CoordinateSpace::Model > bounding_box ) :
 	  m_device( device ),
 	  m_draw_parameters( buildParameters( builder.m_primitives ) ),
 	  m_bounding_box( bounding_box )
@@ -86,7 +87,7 @@ namespace fgl::engine
 		builder.loadModel( path );
 
 		//Calculate bounding box
-		BoundingBox bounding_box { buildBoundingBox( builder.m_primitives ) };
+		OrientedBoundingBox bounding_box { buildBoundingBox( builder.m_primitives ) };
 
 		return std::make_unique< Model >( device, builder, bounding_box );
 	}
