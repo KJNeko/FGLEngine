@@ -15,7 +15,7 @@
 #include "Coordinate.hpp"
 #include "Vector.hpp"
 #include "engine/constants.hpp"
-#include "engine/primitives/Line.hpp"
+#include "engine/primitives/LineSegment.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
 
 namespace fgl::engine
@@ -60,9 +60,9 @@ namespace fgl::engine
 			return m_distance == other.m_distance && m_direction == other.m_direction;
 		}
 
-		bool intersects( const Line< CType > line ) const;
+		bool intersects( const LineSegment< CType > line ) const;
 
-		Coordinate< CType > intersection( const Line< CType > line ) const;
+		Coordinate< CType > intersection( const LineSegment< CType > line ) const;
 		Coordinate< CType > intersection( const Coordinate< CType > point, const Vector direction ) const;
 
 		Coordinate< CType > mapToPlane( const Coordinate< CType > point ) const;

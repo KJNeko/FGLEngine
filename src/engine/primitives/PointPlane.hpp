@@ -6,7 +6,7 @@
 
 #include "Coordinate.hpp"
 #include "CoordinateSpace.hpp"
-#include "Line.hpp"
+#include "LineSegment.hpp"
 #include "Vector.hpp"
 
 namespace fgl::engine
@@ -46,9 +46,9 @@ namespace fgl::engine
 		bool isForward( const Coordinate< CType > coord ) const { return distanceFrom( coord ) > 0.0f; }
 
 		//TODO: Add
-		bool intersects( const Line< CType > line ) { return isForward( line.start ) != isForward( line.end ); }
+		bool intersects( const LineSegment< CType > line ) { return isForward( line.start ) != isForward( line.end ); }
 
-		Coordinate< CType > intersection( const Line< CType > line ) const;
+		Coordinate< CType > intersection( const LineSegment< CType > line ) const;
 		Coordinate< CType > intersection( const Coordinate< CType > point, const Vector direction ) const;
 
 		Coordinate< CType > mapToPlane( const Coordinate< CType > point ) const;

@@ -70,7 +70,8 @@ namespace fgl::engine::debug
 	namespace world
 	{
 
-		inline void drawLineI( const Line< CoordinateSpace::World > line, const glm::vec3 color, const float thickness )
+		inline void
+			drawLineI( const LineSegment< CoordinateSpace::World > line, const glm::vec3 color, const float thickness )
 		{
 			//Check if the line in intersecting the frustum
 			if ( getDebugDrawingCamera().getFrustumBounds().intersects( line ) )
@@ -93,7 +94,8 @@ namespace fgl::engine::debug
 			}
 		}
 
-		inline void drawLine( const Line< CoordinateSpace::World > line, const glm::vec3 color, const float thickness )
+		inline void
+			drawLine( const LineSegment< CoordinateSpace::World > line, const glm::vec3 color, const float thickness )
 		{
 			const Coordinate< CoordinateSpace::Screen > start_screen { toScreenSpace( line.start ) };
 			const Coordinate< CoordinateSpace::Screen > end_screen { toScreenSpace( line.end ) };

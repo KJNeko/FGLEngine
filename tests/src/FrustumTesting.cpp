@@ -40,8 +40,9 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 
 		GIVEN( "A line going from UP BACK to DOWN BACK" )
 		{
-			const Line< CoordinateSpace::World > line { constants::WORLD_BACKWARD + ( constants::WORLD_UP * 1.0f ),
-				                                        constants::WORLD_BACKWARD + ( constants::WORLD_DOWN * 1.0f ) };
+			const LineSegment< CoordinateSpace::World > line {
+				constants::WORLD_BACKWARD + ( constants::WORLD_UP * 1.0f ),
+				constants::WORLD_BACKWARD + ( constants::WORLD_DOWN * 1.0f ) };
 
 			THEN( "The signed distance of the end to the start should be positive" )
 			{
@@ -158,8 +159,9 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 
 		GIVEN( "A line going from UP FORWARD to DOWN FORWARD" )
 		{
-			const Line< CoordinateSpace::World > line { constants::WORLD_FORWARD + ( constants::WORLD_UP * 2.0f ),
-				                                        constants::WORLD_FORWARD + ( constants::WORLD_DOWN * 2.0f ) };
+			const LineSegment< CoordinateSpace::World > line {
+				constants::WORLD_FORWARD + ( constants::WORLD_UP * 2.0f ),
+				constants::WORLD_FORWARD + ( constants::WORLD_DOWN * 2.0f ) };
 
 			THEN( "The line should intersect the frustum" )
 			{

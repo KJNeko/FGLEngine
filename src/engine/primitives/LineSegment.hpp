@@ -10,27 +10,30 @@
 namespace fgl::engine
 {
 	template < CoordinateSpace CType >
-	struct Line
+	struct LineSegment
 	{
 		Coordinate< CType > start;
 		Coordinate< CType > end;
 
 		Vector direction() const { return Vector( static_cast< glm::vec3 >( end - start ) ); }
 
-		Line( const Coordinate< CType > i_start, const Coordinate< CType > i_end ) noexcept :
+		LineSegment( const Coordinate< CType > i_start, const Coordinate< CType > i_end ) noexcept :
 		  start( i_start ),
 		  end( i_end )
 		{}
 
-		Line( const glm::vec3 i_start, glm::vec3 i_end ) : start( i_start ), end( i_end ) {}
+		LineSegment( const glm::vec3 i_start, glm::vec3 i_end ) : start( i_start ), end( i_end ) {}
 
-		inline Line< CType > flip() const { return { end, start }; }
+		inline LineSegment< CType > flip() const { return { end, start }; }
 	};
 
 	template < CoordinateSpace CType, MatrixType MType >
-	Line< EvolvedType< CType >() > operator*( const Matrix< MType > mat, const Line< CType > line )
+	LineSegment< EvolvedType< CType >() > operator*( const Matrix< MType > mat, const LineSegment< CType > line )
 	{
 		return { mat * line.start, mat * line.end };
 	}
+
+	template < CoordinateSpace CType >
+	using Line = LineSegment< CType >;
 
 } // namespace fgl::engine

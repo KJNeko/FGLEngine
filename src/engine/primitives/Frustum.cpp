@@ -25,7 +25,7 @@ namespace fgl::engine
 
 	void processPlane(
 		const Plane< CoordinateSpace::World > plane,
-		const Line< CoordinateSpace::World > line,
+		const LineSegment< CoordinateSpace::World > line,
 		std::vector< WorldCoordinate >& out_enter_intersections,
 		std::vector< WorldCoordinate >& out_exit_intersections )
 	{
@@ -50,7 +50,7 @@ namespace fgl::engine
 	}
 
 	WorldCoordinate getFirstExit(
-		const std::vector< WorldCoordinate >& exit_intersections, const Line< CoordinateSpace::World > line )
+		const std::vector< WorldCoordinate >& exit_intersections, const LineSegment< CoordinateSpace::World > line )
 	{
 		assert( exit_intersections.size() > 0 );
 
@@ -73,7 +73,7 @@ namespace fgl::engine
 	}
 
 	WorldCoordinate getLastEnter(
-		const std::vector< WorldCoordinate >& enter_intersections, const Line< CoordinateSpace::World > line )
+		const std::vector< WorldCoordinate >& enter_intersections, const LineSegment< CoordinateSpace::World > line )
 	{
 		assert( enter_intersections.size() > 0 );
 
@@ -100,7 +100,7 @@ namespace fgl::engine
 
 	template <>
 	template <>
-	bool Frustum< CoordinateSpace::World >::intersects( const Line< CoordinateSpace::World > line ) const
+	bool Frustum< CoordinateSpace::World >::intersects( const LineSegment< CoordinateSpace::World > line ) const
 	{
 		std::vector< WorldCoordinate > enter_intersections { line.start };
 		std::vector< WorldCoordinate > exit_intersections { line.end };

@@ -8,7 +8,7 @@
 #include <glm/gtx/intersect.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
-#include "Line.hpp"
+#include "LineSegment.hpp"
 
 namespace fgl::engine
 {
@@ -20,14 +20,15 @@ namespace fgl::engine
 	}
 
 	template <>
-	bool OriginDistancePlane< CoordinateSpace::World >::intersects( const Line< CoordinateSpace::World > line ) const
+	bool OriginDistancePlane< CoordinateSpace::World >::intersects( const LineSegment< CoordinateSpace::World > line )
+		const
 	{
 		return isForward( line.start ) != isForward( line.end );
 	}
 
 	template <>
 	Coordinate< CoordinateSpace::World > OriginDistancePlane<
-		CoordinateSpace::World >::intersection( const Line< CoordinateSpace::World > line ) const
+		CoordinateSpace::World >::intersection( const LineSegment< CoordinateSpace::World > line ) const
 	{
 		return intersection( line.start, line.direction() );
 	}

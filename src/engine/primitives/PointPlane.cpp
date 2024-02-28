@@ -8,7 +8,7 @@ namespace fgl::engine
 {
 
 	template < CoordinateSpace CType >
-	Coordinate< CType > PointPlane< CType >::intersection( const Line< CType > line ) const
+	Coordinate< CType > PointPlane< CType >::intersection( const LineSegment< CType > line ) const
 	{
 		return intersection( line.start, line.direction() );
 	}

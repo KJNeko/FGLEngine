@@ -5,7 +5,7 @@
 #pragma once
 
 #include "Coordinate.hpp"
-#include "Line.hpp"
+#include "LineSegment.hpp"
 #include "OriginDistancePlane.hpp"
 #include "PointPlane.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"

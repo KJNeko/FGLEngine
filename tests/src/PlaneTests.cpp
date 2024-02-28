@@ -139,7 +139,7 @@ TEST_CASE( "Plane intersections", "[frustum][intersection]" )
 {
 	GIVEN( "A line going from -1 to 1 (X,Y and Z)" )
 	{
-		const Line< CoordinateSpace::World > line { glm::vec3( -1 ), glm::vec3( 1 ) };
+		const LineSegment< CoordinateSpace::World > line { glm::vec3( -1 ), glm::vec3( 1 ) };
 
 		AND_GIVEN( "A plane facing toward line.start" )
 		{
@@ -169,8 +169,8 @@ TEST_CASE( "Plane intersections", "[frustum][intersection]" )
 
 	GIVEN( "A line going from WORLD_LEFT - WORLD_FRONT * 20.0 to WORLD_LEFT + WORLD_FRONT * 20.0f" )
 	{
-		const Line< CoordinateSpace::World > line { constants::WORLD_LEFT - ( constants::WORLD_FORWARD * 20.0f ),
-			                                        constants::WORLD_LEFT + ( constants::WORLD_FORWARD * 20.0f ) };
+		const LineSegment< CoordinateSpace::World > line { constants::WORLD_LEFT - ( constants::WORLD_FORWARD * 20.0f ),
+			                                               constants::WORLD_LEFT + ( constants::WORLD_FORWARD * 20.0f ) };
 
 		AND_GIVEN( "A plane facing toward WORLD_FORWARD at distance -2.0f" )
 		{
@@ -190,8 +190,9 @@ TEST_CASE( "Plane intersections", "[frustum][intersection]" )
 
 	GIVEN( "A line going from WORLD_UP to WORLD_DOWN" )
 	{
-		const Line< fgl::engine::CoordinateSpace::World > line { constants::WORLD_UP * 5.0f - constants::WORLD_BACKWARD,
-			                                                     constants::WORLD_DOWN * 5.0f
+		const LineSegment< fgl::engine::CoordinateSpace::World > line {
+			constants::WORLD_UP * 5.0f - constants::WORLD_BACKWARD,
+			constants::WORLD_DOWN * 5.0f
 			                                                         - constants::WORLD_BACKWARD };
 
 		AND_GIVEN( "A plane facing UP + FORWARD" )

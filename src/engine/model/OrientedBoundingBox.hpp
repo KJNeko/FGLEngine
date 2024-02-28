@@ -20,7 +20,7 @@ namespace fgl::engine
 	struct Frustum;
 
 	template < CoordinateSpace CType >
-	struct Line;
+	struct LineSegment;
 
 	struct Vertex;
 
@@ -52,7 +52,7 @@ namespace fgl::engine
 		consteval static std::array< std::uint32_t, indicies_count > triangleIndicies();
 
 		std::vector< Coordinate< CType > > points() const;
-		std::vector< Line< CType > > lines() const;
+		std::vector< LineSegment< CType > > lines() const;
 
 		bool isInFrustum( const Frustum< CType >& frustum ) const;
 

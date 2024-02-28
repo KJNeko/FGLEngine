@@ -200,11 +200,11 @@ namespace fgl::engine
 	}
 
 	template < CoordinateSpace CType >
-	std::vector< Line< CType > > OrientedBoundingBox< CType >::lines() const
+	std::vector< LineSegment< CType > > OrientedBoundingBox< CType >::lines() const
 	{
 		const auto points { this->points() };
 
-		std::vector< Line< CType > > lines;
+		std::vector< LineSegment< CType > > lines;
 
 		//Top
 		lines.emplace_back( points[ 0 ], points[ 1 ] );

@@ -6,7 +6,7 @@
 
 #include "engine/primitives/Coordinate.hpp"
 #include "engine/primitives/Frustum.hpp"
-#include "engine/primitives/Line.hpp"
+#include "engine/primitives/LineSegment.hpp"
 #include "engine/primitives/PointPlane.hpp"
 
 namespace fgl::engine
@@ -18,7 +18,7 @@ namespace fgl::engine
 	class Coordinate;
 
 	template < CoordinateSpace type >
-	struct Line;
+	struct LineSegment;
 
 	class Camera;
 
@@ -49,11 +49,11 @@ namespace fgl::engine::debug
 		void drawPointLabel( const Coordinate< CoordinateSpace::World > point, const std::string label );
 
 		void drawLineI(
-			const Line< CoordinateSpace::World > line,
+			const LineSegment< CoordinateSpace::World > line,
 			const glm::vec3 color = { 1.0f, 1.0f, 1.0f },
 			const float thickness = 1.0f );
 		void drawLine(
-			const Line< CoordinateSpace::World > line,
+			const LineSegment< CoordinateSpace::World > line,
 			const glm::vec3 color = { 1.0f, 1.0f, 1.0f },
 			const float thickness = 1.0f );
 
