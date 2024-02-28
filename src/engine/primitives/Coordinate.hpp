@@ -28,58 +28,60 @@ namespace fgl::engine
 
 		float& up() { return z; }
 
+		float up() const { return z; }
+
 		float& right() { return x; }
+
+		float right() const { return x; }
 
 		float& forward() { return y; }
 
+		float forward() const { return y; }
+
 		Coordinate() noexcept : glm::vec3( constants::DEFAULT_VEC3 ) {}
 
-		constexpr explicit Coordinate( const glm::vec3 position ) noexcept : glm::vec3( position ) {}
+		explicit Coordinate( const glm::vec3 position ) noexcept : glm::vec3( position ) {}
 
-		constexpr explicit Coordinate( const float i_x, const float i_y, const float i_z ) noexcept :
-		  glm::vec3( i_x, i_y, i_z )
+		explicit Coordinate( const float i_x, const float i_y, const float i_z ) noexcept : glm::vec3( i_x, i_y, i_z )
 		{}
 
-		constexpr explicit Coordinate( const float value ) : glm::vec3( value ) {}
-
-		Coordinate operator+( const glm::vec3 other )
-		{
-			assert( static_cast< glm::vec3 >( *this ) != constants::DEFAULT_VEC3 );
-			assert( other != constants::DEFAULT_VEC3 );
-			return Coordinate( static_cast< glm::vec3 >( *this ) + static_cast< glm::vec3 >( other ) );
-		}
-
-		Coordinate operator-( const glm::vec3 other )
-		{
-			assert( static_cast< glm::vec3 >( *this ) != constants::DEFAULT_VEC3 );
-			assert( other != constants::DEFAULT_VEC3 );
-			return Coordinate( static_cast< glm::vec3 >( *this ) - static_cast< glm::vec3 >( other ) );
-		}
+		explicit Coordinate( const float value ) : glm::vec3( value ) {}
 
 		Coordinate& operator=( const glm::vec3 other )
 		{
 			glm::vec3::operator=( other );
 			return *this;
 		}
-
-		template < MatrixType MType >
-		Coordinate< EvolvedType< MType >() > operator*( const Matrix< MType >& mat )
-		{
-			return Coordinate< EvolvedType< MType >() >( mat * glm::vec4( static_cast< glm::vec3 >( *this ), 1.0f ) );
-		}
+	};
 
 #ifndef NDEBUG
-		bool operator==( const Coordinate& other ) const { return *this == static_cast< glm::vec3 >( other ); }
+	template < CoordinateSpace CType >
+	bool operator==( const Coordinate< CType > lhs, const Coordinate< CType >& rhs )
+	{
+		return static_cast< glm::vec3 >( lhs ) == static_cast< glm::vec3 >( rhs );
+	}
 
-		bool operator==( const glm::vec3 other ) const
-		{
-			const auto diff { glm::abs( static_cast< glm::vec3 >( *this ) - other ) };
-			return glm::all( glm::lessThanEqual( diff, glm::vec3( constants::EPSILON ) ) );
-			//These should have the same behaviour. I'm kind of confused why they don't?
-			//return glm::all( glm::epsilonEqual( static_cast< glm::vec3 >( *this ), other, constants::EPSILON ) );
-		}
+	template < CoordinateSpace CType >
+	bool operator==( const Coordinate< CType > lhs, const glm::vec3 rhs )
+	{
+		const auto diff { glm::abs( static_cast< glm::vec3 >( lhs ) - rhs ) };
+		return glm::all( glm::lessThanEqual( diff, glm::vec3( constants::EPSILON ) ) );
+		//These should have the same behaviour. I'm kind of confused why they don't?
+		//return glm::all( glm::epsilonEqual( static_cast< glm::vec3 >( *this ), other, constants::EPSILON ) );
+	}
 #endif
-	};
+
+	template < CoordinateSpace type >
+	Coordinate< type > operator-( const Coordinate< type >& lhs, const Coordinate< type >& rhs )
+	{
+		return Coordinate< type >( static_cast< glm::vec3 >( lhs ) - static_cast< glm::vec3 >( rhs ) );
+	}
+
+	template < CoordinateSpace type >
+	Coordinate< type > operator+( const Coordinate< type >& lhs, const Coordinate< type >& rhs )
+	{
+		return Coordinate< type >( static_cast< glm::vec3 >( lhs ) + static_cast< glm::vec3 >( rhs ) );
+	}
 
 	template < CoordinateSpace CType, MatrixType MType >
 	Coordinate< EvolvedType< MType >() > operator*( const Matrix< MType > mat, const Coordinate< CType > coord )
@@ -94,7 +96,7 @@ namespace fgl::engine
 	static_assert( sizeof( glm::vec3 ) == sizeof( ModelCoordinate ) );
 
 	template < CoordinateSpace CType >
-	inline ::std::ostream& operator<<( ::std::ostream& os, const Coordinate< CType > coord )
+	::std::ostream& operator<<( ::std::ostream& os, const Coordinate< CType > coord )
 	{
 		os << "(" << coord.x << ", " << coord.y << ", " << coord.z << ")";
 		return os;
@@ -108,32 +110,19 @@ namespace glm
 	template < fgl::engine::CoordinateSpace CType >
 	inline double dot( const fgl::engine::Coordinate< CType > coord, const fgl::engine::Coordinate< CType > other )
 	{
-		return glm::dot( static_cast< glm::vec3 >( coord ), static_cast< glm::vec3 >( other ) );
+		return dot( static_cast< vec3 >( coord ), static_cast< vec3 >( other ) );
 	}
 
-	inline double dot( const fgl::engine::WorldCoordinate coord, const glm::vec3 other )
+	inline double dot( const fgl::engine::WorldCoordinate coord, const vec3 other )
 	{
-		return glm::dot( static_cast< glm::vec3 >( coord ), other );
+		return dot( static_cast< vec3 >( coord ), other );
 	}
 
-	using namespace fgl::engine;
-
-	template < CoordinateSpace CType >
-	inline Coordinate< CType > operator+( const Coordinate< CType >& lhs, const Coordinate< CType >& rhs )
+	inline float distance(
+		const fgl::engine::Coordinate< fgl::engine::CoordinateSpace::World > coord,
+		const fgl::engine::Coordinate< fgl::engine::CoordinateSpace::World > other )
 	{
-		return Coordinate< CType >( static_cast< glm::vec3 >( lhs ) + static_cast< glm::vec3 >( rhs ) );
-	}
-
-	template < CoordinateSpace CType >
-	inline Coordinate< CType > operator-( const Coordinate< CType >& lhs, const Coordinate< CType >& rhs )
-	{
-		return Coordinate< CType >( static_cast< glm::vec3 >( lhs ) - static_cast< glm::vec3 >( rhs ) );
-	}
-
-	inline float
-		distance( const Coordinate< CoordinateSpace::World > coord, const Coordinate< CoordinateSpace::World > other )
-	{
-		return glm::distance( static_cast< glm::vec3 >( coord ), static_cast< glm::vec3 >( other ) );
+		return distance( static_cast< vec3 >( coord ), static_cast< vec3 >( other ) );
 	}
 
 } // namespace glm

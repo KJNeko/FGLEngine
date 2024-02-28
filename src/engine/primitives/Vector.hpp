@@ -12,6 +12,7 @@ namespace fgl::engine
 	template < CoordinateSpace type >
 	class Coordinate;
 
+	//TODO: Make normalized form of Vector
 	class Vector : public glm::vec3
 	{
 	  public:
@@ -34,8 +35,6 @@ namespace fgl::engine
 		}
 
 		constexpr explicit Vector( const float i_x, const float i_y, const float i_z ) : glm::vec3( i_x, i_y, i_z ) {}
-
-		operator glm::vec4() const { return glm::vec4( static_cast< glm::vec3 >( *this ), 0.0f ); }
 
 		Vector operator*( const float scalar ) const { return Vector( static_cast< glm::vec3 >( *this ) * scalar ); }
 
@@ -68,25 +67,26 @@ namespace fgl::engine
 namespace glm
 {
 
-	inline Vector normalize( fgl::engine::Vector vector )
+	inline fgl::engine::Vector normalize( fgl::engine::Vector vector )
 	{
-		return Vector( glm::normalize( static_cast< glm::vec3 >( vector ) ) );
+		return fgl::engine::Vector( glm::normalize( static_cast< glm::vec3 >( vector ) ) );
 	}
 
-	inline glm::vec3 cross( const fgl::engine::Vector vec, const glm::vec3 other )
+	inline vec3 cross( const fgl::engine::Vector vec, const glm::vec3 other )
 	{
-		return ::glm::cross( static_cast< glm::vec3 >( vec ), other );
+		return cross( static_cast< vec3 >( vec ), other );
 	}
 
-	template < CoordinateSpace CType >
-	inline Coordinate< CType > operator+( const Coordinate< CType > lhs, const Vector rhs )
+	template < fgl::engine::CoordinateSpace CType >
+	inline fgl::engine::Coordinate< CType >
+		operator+( const fgl::engine::Coordinate< CType > lhs, const fgl::engine::Vector rhs )
 	{
-		return Coordinate< CType >( static_cast< glm::vec3 >( lhs ) + static_cast< glm::vec3 >( rhs ) );
+		return fgl::engine::Coordinate< CType >( static_cast< vec3 >( lhs ) + static_cast< vec3 >( rhs ) );
 	}
 
 	inline float dot( const fgl::engine::Vector a, const fgl::engine::Vector b )
 	{
-		return ::glm::dot( static_cast< glm::vec3 >( a ), static_cast< glm::vec3 >( b ) );
+		return dot( static_cast< vec3 >( a ), static_cast< vec3 >( b ) );
 	}
 
 } // namespace glm

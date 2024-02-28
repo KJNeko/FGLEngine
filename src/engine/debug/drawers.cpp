@@ -183,10 +183,11 @@ namespace fgl::engine::debug
 			//drawPointText( point + glm::normalize( vector ) );
 
 			//Draw ending lines for the vector (two perpendicular lines)
-			const glm::vec3 perpendicular_vector { glm::normalize( glm::cross( vector, glm::vec3( 0.0f, 1.0f, 0.0f ) ) )
-				                                   / 4.0f };
-			const glm::vec3 perpendicular_vector2 { glm::normalize( glm::cross( vector, perpendicular_vector ) )
-				                                    / 4.0f };
+			const WorldCoordinate perpendicular_vector {
+				glm::normalize( glm::cross( vector, glm::vec3( 0.0f, 1.0f, 0.0f ) ) ) / 4.0f
+			};
+			const WorldCoordinate perpendicular_vector2 { glm::normalize( glm::cross( vector, perpendicular_vector ) )
+				                                          / 4.0f };
 
 			drawLine(
 				point + glm::normalize( vector ) + perpendicular_vector,
@@ -199,7 +200,8 @@ namespace fgl::engine::debug
 				color );
 		}
 
-		void drawFrustum( const Frustum< CoordinateSpace::World >& frustum, const WorldCoordinate point )
+		void drawFrustum(
+			const Frustum< CoordinateSpace::World >& frustum, [[maybe_unused]] const WorldCoordinate point )
 		{
 			drawPlane( frustum.near, frustum.near.getPosition(), "near" );
 			drawPlane( frustum.far, frustum.far.getPosition(), "far" );

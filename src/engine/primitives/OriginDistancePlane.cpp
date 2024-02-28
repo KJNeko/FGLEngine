@@ -29,9 +29,6 @@ namespace fgl::engine
 	Coordinate< CoordinateSpace::World > OriginDistancePlane<
 		CoordinateSpace::World >::intersection( const Line< CoordinateSpace::World > line ) const
 	{
-		const WorldCoordinate line_start { line.start };
-		const Vector direction { line.direction() };
-
 		return intersection( line.start, line.direction() );
 	}
 

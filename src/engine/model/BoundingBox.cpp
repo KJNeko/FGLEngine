@@ -281,7 +281,7 @@ namespace fgl::engine
 	}
 
 	//Synthesize the template
-	template class BoundingBox< CoordinateSpace::Model >;
-	template class BoundingBox< CoordinateSpace::World >;
+	template struct BoundingBox< CoordinateSpace::Model >;
+	template struct BoundingBox< CoordinateSpace::World >;
 
 } // namespace fgl::engine

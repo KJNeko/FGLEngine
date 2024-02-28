@@ -36,7 +36,9 @@ namespace fgl::engine
 	Coordinate< CType > PointPlane< CType >::mapToPlane( const Coordinate< CType > point ) const
 	{
 		const float distance { distanceFrom( point ) };
-		return point - Coordinate< CType >( this->direction() * distance );
+		const Coordinate< CType > point2 { this->direction() * distance };
+
+		return point - point2;
 	}
 
 	template class PointPlane< CoordinateSpace::World >;

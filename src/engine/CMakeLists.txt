@@ -12,6 +12,8 @@ target_precompile_headers(FGLEngine PRIVATE
 		<glm/glm.hpp>
 		<glm/gtc/matrix_transform.hpp>
 		<glm/gtc/constants.hpp>
+		<glm/vec3.hpp>
+		<glm/mat4x4.hpp>
 		<array>
 		<chrono>
 		<optional>

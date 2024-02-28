@@ -38,9 +38,15 @@ namespace fgl::engine
 
 		Coordinate< CType > getPosition() const { return coordinate; }
 
-		float distanceFrom( const Coordinate< CType > coord ) const { return glm::dot( coord - coordinate, vector ); }
+		float distanceFrom( const Coordinate< CType > coord ) const
+		{
+			return static_cast< float >( glm::dot( coord - coordinate, vector ) );
+		}
 
 		bool isForward( const Coordinate< CType > coord ) const { return distanceFrom( coord ) > 0.0f; }
+
+		//TODO: Add
+		bool intersects( const Line< CType > line ) { return isForward( line.start ) != isForward( line.end ); }
 
 		Coordinate< CType > intersection( const Line< CType > line ) const;
 		Coordinate< CType > intersection( const Coordinate< CType > point, const Vector direction ) const;
