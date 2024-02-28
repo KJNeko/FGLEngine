@@ -10,15 +10,15 @@ namespace fgl::engine
 	template < CoordinateSpace CType >
 	Coordinate< CType > PointPlane< CType >::intersection( const LineSegment< CType > line ) const
 	{
-		return intersection( line.start, line.direction() );
+		return intersection( line.start, line.getDirection() );
 	}
 
 	template < CoordinateSpace CType >
-	Coordinate< CType > PointPlane< CType >::intersection( const Coordinate< CType > point, const Vector direction )
-		const
+	Coordinate< CType > PointPlane<
+		CType >::intersection( const Coordinate< CType > point, const NormalVector direction ) const
 	{
-		const float line_dot { glm::dot( this->direction(), point ) };
-		const float direction_dot { glm::dot( this->direction(), direction ) };
+		const float line_dot { glm::dot( this->getDirection(), point ) };
+		const float direction_dot { glm::dot( this->getDirection(), direction ) };
 
 		// if the dot product of the direction of the plane and the direction of the line is zero, Then there will never be an intersection
 		if ( direction_dot <= std::numeric_limits< float >::epsilon()
@@ -36,7 +36,7 @@ namespace fgl::engine
 	Coordinate< CType > PointPlane< CType >::mapToPlane( const Coordinate< CType > point ) const
 	{
 		const float distance { distanceFrom( point ) };
-		const Coordinate< CType > point2 { this->direction() * distance };
+		const Coordinate< CType > point2 { this->getDirection() * distance };
 
 		return point - point2;
 	}

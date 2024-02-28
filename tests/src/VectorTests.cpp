@@ -5,7 +5,7 @@
 #include <glm/gtc/epsilon.hpp>
 
 #include "engine/primitives/TransformComponent.hpp"
-#include "engine/primitives/Vector.hpp"
+#include "engine/primitives/vectors/Vector.hpp"
 #include "gtest_printers.hpp"
 
 using namespace fgl::engine;

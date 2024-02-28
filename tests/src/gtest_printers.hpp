@@ -10,8 +10,8 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include "engine/primitives/Rotation.hpp"
-#include "engine/primitives/Vector.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
+#include "engine/primitives/vectors/Vector.hpp"
 
 namespace Catch
 {

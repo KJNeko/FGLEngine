@@ -8,6 +8,7 @@
 #include <glm/gtx/intersect.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
+#include "engine/primitives/lines/InfiniteLine.hpp"
 #include "engine/primitives/lines/LineSegment.hpp"
 
 namespace fgl::engine
@@ -30,12 +31,12 @@ namespace fgl::engine
 	Coordinate< CoordinateSpace::World > OriginDistancePlane<
 		CoordinateSpace::World >::intersection( const LineSegment< CoordinateSpace::World > line ) const
 	{
-		return intersection( line.start, line.direction() );
+		return intersection( line.start, line.getDirection() );
 	}
 
 	template < CoordinateSpace CType >
 	Coordinate< CType > OriginDistancePlane<
-		CType >::intersection( const Coordinate< CType > point, const Vector direction ) const
+		CType >::intersection( const Coordinate< CType > point, const NormalVector direction ) const
 	{
 		const float line_dot { glm::dot( this->direction(), point ) };
 		const float direction_dot { glm::dot( this->direction(), direction ) };

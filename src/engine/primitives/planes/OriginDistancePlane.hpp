@@ -13,10 +13,10 @@
 #include <utility>
 
 #include "engine/constants.hpp"
-#include "engine/primitives/Vector.hpp"
 #include "engine/primitives/lines/LineSegment.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
+#include "engine/primitives/vectors/Vector.hpp"
 
 namespace fgl::engine
 {
@@ -63,7 +63,7 @@ namespace fgl::engine
 		bool intersects( const LineSegment< CType > line ) const;
 
 		Coordinate< CType > intersection( const LineSegment< CType > line ) const;
-		Coordinate< CType > intersection( const Coordinate< CType > point, const Vector direction ) const;
+		Coordinate< CType > intersection( const Coordinate< CType > point, const NormalVector direction ) const;
 
 		Coordinate< CType > mapToPlane( const Coordinate< CType > point ) const;
 	};

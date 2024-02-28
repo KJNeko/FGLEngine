@@ -18,12 +18,12 @@ namespace fgl::engine
 	template < CoordinateSpace CType = CoordinateSpace::World >
 	struct Frustum
 	{
-		Plane< CType > near {};
-		Plane< CType > far {};
-		Plane< CType > top {};
-		Plane< CType > bottom {};
-		Plane< CType > right {};
-		Plane< CType > left {};
+		Plane< CType > near { constants::WORLD_CENTER, constants::WORLD_FORWARD };
+		Plane< CType > far { constants::WORLD_CENTER, constants::WORLD_FORWARD };
+		Plane< CType > top { constants::WORLD_CENTER, constants::WORLD_FORWARD };
+		Plane< CType > bottom { constants::WORLD_CENTER, constants::WORLD_FORWARD };
+		Plane< CType > right { constants::WORLD_CENTER, constants::WORLD_FORWARD };
+		Plane< CType > left { constants::WORLD_CENTER, constants::WORLD_FORWARD };
 
 		Coordinate< CType > m_position {};
 
@@ -49,9 +49,9 @@ namespace fgl::engine
 		  left( left_plane ),
 		  m_position( position )
 		{
-			assert( right_plane.direction() != left_plane.direction() );
-			assert( top_plane.direction() != bottom_plane.direction() );
-			assert( near_plane.direction() != far_plane.direction() );
+			assert( right_plane.getDirection() != left_plane.getDirection() );
+			assert( top_plane.getDirection() != bottom_plane.getDirection() );
+			assert( near_plane.getDirection() != far_plane.getDirection() );
 		}
 
 		Vector forwardVec() const { return near.direction(); }

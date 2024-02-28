@@ -5,8 +5,8 @@
 #pragma once
 
 #include "engine/primitives/CoordinateSpace.hpp"
-#include "engine/primitives/Vector.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
+#include "engine/primitives/vectors/Vector.hpp"
 
 namespace fgl::engine
 {
@@ -15,7 +15,7 @@ namespace fgl::engine
 	class InfiniteLine
 	{
 		Coordinate< CType > m_start;
-		Vector m_direction;
+		NormalVector m_direction;
 
 	  public:
 
@@ -24,7 +24,7 @@ namespace fgl::engine
 		InfiniteLine( const Coordinate< CType > point, const Vector vector ) : m_start( point ), m_direction( vector )
 		{}
 
-		Vector direction() const { return m_direction; }
+		NormalVector getDirection() const { return m_direction; }
 
 		Coordinate< CType > getPosition() const { return m_start; }
 	};

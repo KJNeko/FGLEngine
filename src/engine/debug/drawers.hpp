@@ -73,6 +73,12 @@ namespace fgl::engine::debug
 			const std::string label = "",
 			const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 
+		void drawVector(
+			const Coordinate< CoordinateSpace::World > point,
+			NormalVector vector,
+			const std::string label = "",
+			const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
+
 		void drawFrustum( const Frustum< CoordinateSpace::World >& frustum, const WorldCoordinate coordinate );
 		void drawFrustum();
 

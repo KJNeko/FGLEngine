@@ -11,6 +11,7 @@
 
 #include "engine/constants.hpp"
 #include "engine/primitives/CoordinateSpace.hpp"
+#include "engine/primitives/glmOperators.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
 #include "engine/primitives/matricies/MatrixEvolvedTypes.hpp"
 
@@ -108,12 +109,12 @@ namespace glm
 {
 
 	template < fgl::engine::CoordinateSpace CType >
-	inline double dot( const fgl::engine::Coordinate< CType > coord, const fgl::engine::Coordinate< CType > other )
+	inline float dot( const fgl::engine::Coordinate< CType > coord, const fgl::engine::Coordinate< CType > other )
 	{
 		return dot( static_cast< vec3 >( coord ), static_cast< vec3 >( other ) );
 	}
 
-	inline double dot( const fgl::engine::WorldCoordinate coord, const vec3 other )
+	inline float dot( const fgl::engine::WorldCoordinate coord, const vec3 other )
 	{
 		return dot( static_cast< vec3 >( coord ), other );
 	}

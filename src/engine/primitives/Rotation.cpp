@@ -31,19 +31,19 @@ namespace fgl::engine
 		return *this;
 	}
 
-	Vector Rotation::forward() const
+	NormalVector Rotation::forward() const
 	{
-		return mat() * Vector( constants::WORLD_FORWARD );
+		return mat() * NormalVector( constants::WORLD_FORWARD );
 	}
 
-	Vector Rotation::right() const
+	NormalVector Rotation::right() const
 	{
-		return mat() * Vector( constants::WORLD_RIGHT );
+		return mat() * NormalVector( constants::WORLD_RIGHT );
 	}
 
-	Vector Rotation::up() const
+	NormalVector Rotation::up() const
 	{
-		return mat() * Vector( constants::WORLD_UP );
+		return mat() * NormalVector( constants::WORLD_UP );
 	}
 
 	RotationMatrix Rotation::mat() const

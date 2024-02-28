@@ -8,7 +8,7 @@
 #include <functional>
 #include <iostream>
 
-#include "engine/primitives/Vector.hpp"
+#include "engine/primitives/vectors/Vector.hpp"
 
 namespace fgl::engine
 {

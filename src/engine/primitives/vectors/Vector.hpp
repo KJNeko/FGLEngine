@@ -65,6 +65,12 @@ namespace fgl::engine
 		return Vector( matrix * glm::vec4( static_cast< glm::vec3 >( vector ), 0.0f ) );
 	}
 
+	template < CoordinateSpace CType >
+	inline Coordinate< CType > operator+( const Coordinate< CType > lhs, const Vector rhs )
+	{
+		return Coordinate< CType >( static_cast< glm::vec3 >( lhs ) + static_cast< glm::vec3 >( rhs ) );
+	}
+
 } // namespace fgl::engine
 
 namespace glm
@@ -83,13 +89,6 @@ namespace glm
 	inline fgl::engine::Vector cross( const fgl::engine::Vector vec, const fgl::engine::Vector other )
 	{
 		return fgl::engine::Vector( cross( static_cast< vec3 >( vec ), static_cast< vec3 >( other ) ) );
-	}
-
-	template < fgl::engine::CoordinateSpace CType >
-	inline fgl::engine::Coordinate< CType >
-		operator+( const fgl::engine::Coordinate< CType > lhs, const fgl::engine::Vector rhs )
-	{
-		return fgl::engine::Coordinate< CType >( static_cast< vec3 >( lhs ) + static_cast< vec3 >( rhs ) );
 	}
 
 	inline float dot( const fgl::engine::Vector a, const fgl::engine::Vector b )

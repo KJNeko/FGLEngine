@@ -6,10 +6,11 @@
 
 #include <glm/glm.hpp>
 
-#include "Vector.hpp"
 #include "engine/math/taitBryanMatrix.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
 #include "engine/primitives/matricies/RotationMatrix.hpp"
+#include "engine/primitives/vectors/NormalVector.hpp"
+#include "engine/primitives/vectors/Vector.hpp"
 
 namespace fgl::engine
 {
@@ -53,11 +54,11 @@ namespace fgl::engine
 
 		Rotation& operator+=( const Rotation vec );
 
-		Vector forward() const;
+		NormalVector forward() const;
 
-		Vector right() const;
+		NormalVector right() const;
 
-		Vector up() const;
+		NormalVector up() const;
 
 		RotationMatrix mat() const;
 
@@ -81,9 +82,9 @@ namespace fgl::engine
 	template < MatrixType MType >
 	inline Rotation operator*( const Matrix< MType > mat, const Rotation rot )
 	{
-		const auto new_forward { mat * rot.forward() };
-		const auto new_up { mat * rot.up() };
-		const auto new_right { mat * rot.right() };
+		const NormalVector new_forward { mat * rot.forward() };
+		const NormalVector new_up { mat * rot.up() };
+		const NormalVector new_right { mat * rot.right() };
 
 		return {};
 	}

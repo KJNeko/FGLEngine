@@ -85,7 +85,7 @@ namespace fgl::engine::debug
 			ZoneScopedC( TRACY_DRAWER_FUNC_COLOR );
 			for ( const auto [ p1, p2 ] : box.lines() )
 			{
-				drawLine( { p1, p2 }, color );
+				drawLine( LineSegment( p1, p2 ), color );
 			}
 
 			for ( const auto point : box.points() )
@@ -112,7 +112,7 @@ namespace fgl::engine::debug
 			const Coordinate< CoordinateSpace::World > end,
 			const glm::vec3 color )
 		{
-			drawLine( { start, end }, color );
+			drawLine( LineSegment( start, end ), color );
 		}
 
 		void drawPointText( const Coordinate< CoordinateSpace::World > point, const glm::vec3 color )
@@ -178,8 +178,8 @@ namespace fgl::engine::debug
 			const std::string label,
 			const glm::vec3 color )
 		{
-			drawLine( point, point + glm::normalize( vector ), color );
-			drawPoint( point + glm::normalize( vector ), label, color );
+			drawLine( point, point + vector, color );
+			drawPoint( point + vector, label, color );
 			drawPoint( point, "", color );
 			//drawPointLabel( point, label );
 			//drawPointText( point + glm::normalize( vector ) );
@@ -200,6 +200,15 @@ namespace fgl::engine::debug
 				point + glm::normalize( vector ) + perpendicular_vector2,
 				point + glm::normalize( vector ) - perpendicular_vector2,
 				color );
+		}
+
+		void drawVector(
+			const Coordinate< CoordinateSpace::World > point,
+			NormalVector vector,
+			const std::string label,
+			const glm::vec3 color )
+		{
+			drawVector( point, Vector( vector ), label, color );
 		}
 
 		void drawFrustum(
@@ -225,7 +234,7 @@ namespace fgl::engine::debug
 			const std::string label,
 			const glm::vec3 color )
 		{
-			const auto normal { plane.direction() };
+			const NormalVector normal { plane.getDirection() };
 
 			assert( point != constants::DEFAULT_VEC3 );
 

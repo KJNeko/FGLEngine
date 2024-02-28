@@ -277,7 +277,7 @@ namespace fgl::engine
 
 							ImGui::Text( name_str.c_str() );
 							ImGui::SameLine( 120.0f );
-							printVec3( plane.direction() );
+							printVec3( static_cast< glm::vec3 >( plane.getDirection() ) );
 							ImGui::SameLine();
 							ImGui::Text( "Distance: %.3f", static_cast< double >( plane.distance() ) );
 							const auto pos { plane.getPosition() };

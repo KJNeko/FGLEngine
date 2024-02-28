@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "engine/primitives/Vector.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
+#include "engine/primitives/vectors/NormalVector.hpp"
+#include "engine/primitives/vectors/Vector.hpp"
 
 namespace fgl::engine
 {
@@ -15,14 +16,20 @@ namespace fgl::engine
 		Coordinate< CType > start;
 		Coordinate< CType > end;
 
-		Vector direction() const { return Vector( static_cast< glm::vec3 >( end - start ) ); }
+	  public:
 
-		LineSegment( const Coordinate< CType > i_start, const Coordinate< CType > i_end ) noexcept :
+		NormalVector getDirection() const { return NormalVector( static_cast< glm::vec3 >( end - start ) ); }
+
+		Coordinate< CType > getPosition() const { return start; }
+
+		Coordinate< CType > getEnd() const { return end; }
+
+		explicit LineSegment( const Coordinate< CType > i_start, const Coordinate< CType > i_end ) noexcept :
 		  start( i_start ),
 		  end( i_end )
 		{}
 
-		LineSegment( const glm::vec3 i_start, glm::vec3 i_end ) : start( i_start ), end( i_end ) {}
+		explicit LineSegment( const glm::vec3 i_start, glm::vec3 i_end ) : start( i_start ), end( i_end ) {}
 
 		inline LineSegment< CType > flip() const { return { end, start }; }
 	};
