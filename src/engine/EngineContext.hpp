@@ -4,16 +4,9 @@
 
 #pragma once
 
-#include <memory>
-#include <thread>
-#include <vector>
-
-#include "Device.hpp"
 #include "GameObject.hpp"
 #include "Renderer.hpp"
 #include "Window.hpp"
-#include "engine/descriptors/DescriptorPool.hpp"
-#include "engine/model/Model.hpp"
 #include "engine/systems/CullingSystem.hpp"
 #include "engine/systems/EntityRendererSystem.hpp"
 

@@ -620,7 +620,7 @@ namespace fgl::engine
 		endSingleTimeCommands( commandBuffer );
 	}
 
-	vk::Result Device::setDebugUtilsObjectName( const vk::DebugUtilsObjectNameInfoEXT& nameInfo )
+	vk::Result Device::setDebugUtilsObjectName( [[maybe_unused]] const vk::DebugUtilsObjectNameInfoEXT& nameInfo )
 	{
 #ifndef NDEBUG
 		if ( device().setDebugUtilsObjectNameEXT( &nameInfo ) != vk::Result::eSuccess )

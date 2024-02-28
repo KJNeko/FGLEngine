@@ -6,6 +6,7 @@
 
 #include <tracy/TracyC.h>
 
+#include "engine/FrameInfo.hpp"
 #include "engine/debug/drawers.hpp"
 #include "engine/model/Model.hpp"
 #include "engine/model/OrientedBoundingBox.hpp"

@@ -110,20 +110,24 @@
 
 				set(FGL_CONFIG "-std=c++23 -fmax-errors=1 -fconcepts-diagnostics-depth=8")
 
+				if (DEFINED USE_WERROR)
+					set(FGL_CONFIG "${FGL_CONFIG} -Werror")
+				endif ()
+
 				set(FGL_SHARED_OPTIMIZATION_FLAGS "-march=native")
-				#set(FGL_SHARED_OPTIMIZATION_FLAGS "-march=bdver2")
 
 				# Optimization flags
-				set(FGL_OPTIMIZATION_FLAGS_RELEASE "-O2 -s -fdevirtualize-at-ltrans -fdevirtualize-speculatively -funroll-loops") # System agonistc flags
+				set(FGL_OPTIMIZATION_FLAGS_RELEASE "-O2 -s -fdevirtualize-at-ltrans -fdevirtualize-speculatively -funroll-loops ${FGL_SHARED_OPTIMIZATION_FLAGS}") # System agonistc flags
+				set(FGL_OPTIMIZATION_FLAGS_RELWITHDEBINFO "-O2 -s -fdevirtualize-at-ltrans -fdevirtualize-speculatively -fdeclone-ctor-dtor -funroll-loops ${FGL_SHARED_OPTIMIZATION_FLAGS}")
 				set(FGL_OPTIMIZATION_FLAGS_DEBUG "-O0 -g -fstrict-aliasing -fno-omit-frame-pointer -ftrapv -fverbose-asm -femit-class-debug-always ${FGL_SHARED_OPTIMIZATION_FLAGS}") # Debug flags
 				set(FGL_OPTIMIZATION_FLAGS_SYSTEM "-march=native -flto=auto -fdeclone-ctor-dtor -fgcse -fgcse-las -fgcse-sm -ftree-loop-im -fivopts -ftree-loop-ivcanon -fira-hoist-pressure -fsched-pressure -fsched-spec-load -fipa-pta -s -ffat-lto-objects -fno-enforce-eh-specs -fstrict-enums ${FGL_SHARED_OPTIMIZATION_FLAGS}") # System specific flags. Probably not portable
-				set(FGL_OPTIMIZATION_FLAGS_RELWITHDEBINFO "-O2 -s -fdevirtualize-at-ltrans -fdevirtualize-speculatively -fdeclone-ctor-dtor -funroll-loops ${FGL_SHARED_OPTIMIZATION_FLAGS}")
 
 				# Final sets
 				set(FGL_FLAGS "${FGL_CONFIG} ${FGL_OPTIMIZATION_FLAGS_${UPPER_BUILD_TYPE}} ${FGL_WARNINGS}" PARENT_SCOPE) # Flags for our shit
 				#set(FGL_FLAGS "${FGL_OPTIMIZATION_FLAGS_${UPPER_BUILD_TYPE}}" PARENT_SCOPE)
-				set(FGL_CHILD_FLAGS "${FGL_OPTIMIZATION_FLAGS_${UPPER_BUILD_TYPE}}" PARENT_SCOPE) # Child flags for adding optmization to anything we build ourselves but doesn't follow our standard
-				#set(CMAKE_CXX_FLAGS "${FGL_CHILD_FLAGS}")
+				set(FGL_CHILD_FLAGS "${FGL_OPTIMIZATION_FLAGS_RELEASE}" PARENT_SCOPE) # Child flags for adding optimization to anything we build ourselves but doesn't follow our standard
+				# We use release flags since we really don't need to be using debug flags for anything not ours
+				set(CMAKE_CXX_FLAGS "${FGL_CHILD_FLAGS}")
 			endif ()
 		endfunction()
 

@@ -30,4 +30,9 @@ namespace fgl::engine
 			               { translation.x, translation.y, translation.z, 1.0f } };
 	}
 
+	Matrix< MatrixType::ModelToWorld > TransformComponent::mat() const
+	{
+		return Matrix< MatrixType::ModelToWorld >( mat4() );
+	}
+
 } // namespace fgl::engine

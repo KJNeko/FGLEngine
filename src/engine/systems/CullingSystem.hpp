@@ -6,10 +6,9 @@
 
 #include <thread>
 
-#include "engine/FrameInfo.hpp"
-
 namespace fgl::engine
 {
+	struct FrameInfo;
 
 	class CullingSystem
 	{
