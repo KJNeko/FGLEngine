@@ -8,7 +8,7 @@
 #include "PointPlane.hpp"
 #include "engine/primitives/lines/LineSegment.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
-#include "engine/primitives/point/Coordinate.hpp"
+#include "engine/primitives/points/Coordinate.hpp"
 
 namespace fgl::engine
 {

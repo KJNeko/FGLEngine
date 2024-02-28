@@ -12,7 +12,7 @@
 #include "engine/primitives/Frustum.hpp"
 #include "engine/primitives/TransformComponent.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
-#include "engine/primitives/point/Coordinate.hpp"
+#include "engine/primitives/points/Coordinate.hpp"
 
 namespace fgl::engine
 {
