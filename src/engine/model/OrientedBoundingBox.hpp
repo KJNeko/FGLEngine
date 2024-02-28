@@ -11,8 +11,8 @@
 
 #include "engine/constants.hpp"
 #include "engine/primitives/Coordinate.hpp"
-#include "engine/primitives/Matrix.hpp"
 #include "engine/primitives/Rotation.hpp"
+#include "engine/primitives/matricies/Matrix.hpp"
 
 namespace fgl::engine
 {
@@ -65,7 +65,8 @@ namespace fgl::engine
 	{
 		const Coordinate< EvolvedType< MType >() > new_middle { matrix * bounding_box.middle };
 		const glm::vec3 new_scale { matrix * glm::vec4( bounding_box.scale, 0.0f ) };
-		return OrientedBoundingBox< EvolvedType< MType >() >( new_middle, new_scale );
+		const Rotation new_rot { matrix * bounding_box.rotation };
+		return OrientedBoundingBox< EvolvedType< MType >() >( new_middle, new_scale, new_rot );
 	}
 
 	template < CoordinateSpace CType >

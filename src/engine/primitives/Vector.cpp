@@ -18,21 +18,6 @@ namespace fgl::engine
 		return *this;
 	}
 
-	Vector::Vector( Vector&& other )
-	{
-		x = other.x;
-		y = other.y;
-		z = other.z;
-	}
-
-	Vector& Vector::operator=( const Vector&& other )
-	{
-		x = other.x;
-		y = other.y;
-		z = other.z;
-		return *this;
-	}
-
 	Vector& Vector::operator=( const std::initializer_list< float > list )
 	{
 		assert( list.size() == 3 );
@@ -54,6 +39,18 @@ namespace fgl::engine
 		const Vector down { up };
 
 		return glm::cross( down, forward_dir );
+	}
+
+	Vector Vector::operator+=( const Vector vector )
+	{
+		glm::vec3::operator+=( static_cast< glm::vec3 >( vector ) );
+		return *this;
+	}
+
+	Vector Vector::operator-=( const Vector vector )
+	{
+		glm::vec3::operator-=( static_cast< glm::vec3 >( vector ) );
+		return *this;
 	}
 
 } // namespace fgl::engine

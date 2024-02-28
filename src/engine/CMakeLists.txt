@@ -35,5 +35,7 @@ else ()
 	target_compile_definitions(FGLEngine PRIVATE ENABLE_IMGUI_DRAWERS=0)
 endif ()
 
+target_compile_definitions(FGLEngine PRIVATE GLM_FORCE_INLINE=1)
+
 #GLM settings
 target_compile_definitions(FGLEngine PUBLIC GLM_FORCE_RADIANS GLM_FORCE_DEPTH_ZERO_TO_ONE GLM_FORCE_LEFT_HANDED)

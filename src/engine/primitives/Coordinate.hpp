@@ -10,9 +10,9 @@
 #include <ostream>
 
 #include "CoordinateSpace.hpp"
-#include "Matrix.hpp"
-#include "MatrixEvolvedTypes.hpp"
 #include "engine/constants.hpp"
+#include "engine/primitives/matricies/Matrix.hpp"
+#include "engine/primitives/matricies/MatrixEvolvedTypes.hpp"
 
 namespace fgl::engine
 {

@@ -6,18 +6,10 @@
 
 #include <glm/mat4x4.hpp>
 
+#include "MatrixEvolvedTypes.hpp"
+
 namespace fgl::engine
 {
-	enum class MatrixType
-	{
-		ModelToWorld,
-
-		WorldToCamera,
-		CameraToScreen,
-
-		//WorldToScreen is two combined matricies (WorldToView and ViewToScreen)
-		WorldToScreen
-	};
 
 	template < MatrixType MType >
 	struct Matrix : public glm::mat4

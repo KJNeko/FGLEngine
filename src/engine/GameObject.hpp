@@ -4,15 +4,10 @@
 
 #pragma once
 
-#include <glm/gtc/matrix_transform.hpp>
-
 #include <memory>
 #include <unordered_map>
 
-#include "constants.hpp"
-#include "engine/primitives/Matrix.hpp"
 #include "engine/primitives/TransformComponent.hpp"
-#include "engine/primitives/Vector.hpp"
 
 namespace fgl::engine
 {

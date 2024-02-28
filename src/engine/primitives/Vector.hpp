@@ -41,13 +41,16 @@ namespace fgl::engine
 		glm::vec3 right( const Vector up = Vector( constants::WORLD_UP ) ) const;
 		glm::vec3 forward() const;
 
+		Vector operator+=( const Vector );
+		Vector operator-=( const Vector );
+
 		//Copy
 		Vector( const Vector& other );
 		Vector& operator=( const Vector& other );
 
 		//Move (Should never really move?)
-		Vector( Vector&& other );
-		Vector& operator=( const Vector&& other );
+		Vector( Vector&& other ) = delete;
+		Vector& operator=( const Vector&& other ) = delete;
 
 		Vector& operator=( const std::initializer_list< float > list );
 	};
@@ -72,9 +75,14 @@ namespace glm
 		return fgl::engine::Vector( glm::normalize( static_cast< glm::vec3 >( vector ) ) );
 	}
 
-	inline vec3 cross( const fgl::engine::Vector vec, const glm::vec3 other )
+	inline fgl::engine::Vector cross( const fgl::engine::Vector vec, const glm::vec3 other )
 	{
-		return cross( static_cast< vec3 >( vec ), other );
+		return fgl::engine::Vector( cross( static_cast< vec3 >( vec ), other ) );
+	}
+
+	inline fgl::engine::Vector cross( const fgl::engine::Vector vec, const fgl::engine::Vector other )
+	{
+		return fgl::engine::Vector( cross( static_cast< vec3 >( vec ), static_cast< vec3 >( other ) ) );
 	}
 
 	template < fgl::engine::CoordinateSpace CType >

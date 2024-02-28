@@ -12,7 +12,7 @@
 #include "engine/model/Vertex.hpp"
 #include "engine/primitives/Coordinate.hpp"
 #include "engine/primitives/Frustum.hpp"
-#include "engine/primitives/Matrix.hpp"
+#include "engine/primitives/matricies/Matrix.hpp"
 
 namespace fgl::engine
 {

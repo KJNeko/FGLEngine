@@ -9,6 +9,7 @@
 namespace fgl::engine
 {
 	struct Rotation;
+	class RotationMatrix;
 
 	enum RotationOrder
 	{
@@ -22,5 +23,5 @@ namespace fgl::engine
 		DEFAULT = XZY
 	};
 
-	glm::mat4 taitBryanMatrix( const Rotation rotation, const RotationOrder order = DEFAULT );
+	RotationMatrix taitBryanMatrix( const Rotation rotation, const RotationOrder order = DEFAULT );
 } // namespace fgl::engine

@@ -25,34 +25,28 @@ namespace fgl::engine
 		return *this;
 	}
 
-	Rotation& Rotation::operator+=( const glm::vec3 i_vec )
+	Rotation& Rotation::operator+=( const Rotation i_vec )
 	{
-		static_cast< glm::vec3& >( *this ) += i_vec;
+		glm::vec3::operator+=( static_cast< glm::vec3 >( i_vec ) );
 		return *this;
 	}
 
-	glm::vec3 Rotation::forward() const
+	Vector Rotation::forward() const
 	{
-		//TODO: Figure out how to do this with Z axis bullshit
-		return glm::vec3 { glm::sin( yaw() ), glm::cos( yaw() ), 0.0f };
+		return mat() * Vector( constants::WORLD_FORWARD );
 	}
 
-	glm::vec3 Rotation::backwards() const
+	Vector Rotation::right() const
 	{
-		return -forward();
+		return mat() * Vector( constants::WORLD_RIGHT );
 	}
 
-	glm::vec3 Rotation::right( const glm::vec3 up ) const
+	Vector Rotation::up() const
 	{
-		return glm::cross( -up, forward() );
+		return mat() * Vector( constants::WORLD_UP );
 	}
 
-	glm::vec3 Rotation::left( const glm::vec3 up ) const
-	{
-		return -right( up );
-	}
-
-	glm::mat4 Rotation::mat4() const
+	RotationMatrix Rotation::mat() const
 	{
 		return taitBryanMatrix( *this );
 	}

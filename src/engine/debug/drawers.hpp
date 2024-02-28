@@ -110,10 +110,10 @@ namespace fgl::engine::debug
 	{
 
 		//Dummy functions
-		inline void drawBoundingBox( const BoundingBox< CoordinateSpace::World >&, const glm::vec3 )
+		inline void drawBoundingBox( const OrientedBoundingBox< CoordinateSpace::World >&, const glm::vec3 )
 		{}
 
-		inline void drawBoundingBox( const BoundingBox< CoordinateSpace::World >& )
+		inline void drawBoundingBox( const OrientedBoundingBox< CoordinateSpace::World >& )
 		{}
 
 		inline void drawLine(

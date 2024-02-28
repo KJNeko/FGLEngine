@@ -6,9 +6,9 @@
 
 #include "Coordinate.hpp"
 #include "Line.hpp"
-#include "Matrix.hpp"
 #include "OriginDistancePlane.hpp"
 #include "PointPlane.hpp"
+#include "engine/primitives/matricies/Matrix.hpp"
 
 namespace fgl::engine
 {

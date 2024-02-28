@@ -9,9 +9,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-#include "engine/primitives/Matrix.hpp"
 #include "engine/primitives/Rotation.hpp"
 #include "engine/primitives/Vector.hpp"
+#include "engine/primitives/matricies/Matrix.hpp"
 
 namespace Catch
 {

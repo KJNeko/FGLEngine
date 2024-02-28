@@ -11,6 +11,7 @@
 #include <utility>
 
 #include "engine/primitives/Rotation.hpp"
+#include "engine/primitives/matricies/RotationMatrix.hpp"
 
 namespace fgl::engine
 {
@@ -92,7 +93,7 @@ namespace fgl::engine
 		std::unreachable();
 	}
 
-	glm::mat4 taitBryanMatrix( const Rotation rotation, const RotationOrder order )
+	RotationMatrix taitBryanMatrix( const Rotation rotation, const RotationOrder order )
 	{
 		glm::mat4 mat { 1.0f };
 
@@ -122,7 +123,7 @@ namespace fgl::engine
 					mat[ 0 ] = glm::vec4( row_0, 0.0f );
 					mat[ 1 ] = glm::vec4( row_1, 0.0f );
 					mat[ 2 ] = glm::vec4( row_2, 0.0f );
-					return mat;
+					return RotationMatrix( mat );
 				}
 			case RotationOrder::XYZ:
 				{
@@ -137,7 +138,7 @@ namespace fgl::engine
 					mat[ 0 ] = glm::vec4( row_0, 0.0f );
 					mat[ 1 ] = glm::vec4( row_1, 0.0f );
 					mat[ 2 ] = glm::vec4( row_2, 0.0f );
-					return mat;
+					return RotationMatrix( mat );
 				}
 			case RotationOrder::YXZ:
 				{
@@ -148,7 +149,7 @@ namespace fgl::engine
 					mat[ 0 ] = glm::vec4( row_0, 0.0f );
 					mat[ 1 ] = glm::vec4( row_1, 0.0f );
 					mat[ 2 ] = glm::vec4( row_2, 0.0f );
-					return mat;
+					return RotationMatrix( mat );
 				}
 			case RotationOrder::YZX:
 				{
@@ -163,7 +164,7 @@ namespace fgl::engine
 					mat[ 0 ] = glm::vec4( row_0, 0.0f );
 					mat[ 1 ] = glm::vec4( row_1, 0.0f );
 					mat[ 2 ] = glm::vec4( row_2, 0.0f );
-					return mat;
+					return RotationMatrix( mat );
 				}
 			case RotationOrder::ZYX: // Roll, Pitch, Yaw
 				{
@@ -178,7 +179,7 @@ namespace fgl::engine
 					mat[ 0 ] = glm::vec4( row_0, 0.0f );
 					mat[ 1 ] = glm::vec4( row_1, 0.0f );
 					mat[ 2 ] = glm::vec4( row_2, 0.0f );
-					return mat;
+					return RotationMatrix( mat );
 				}
 			case RotationOrder::ZXY: // Roll, Yaw, Pitch
 				{
@@ -195,7 +196,7 @@ namespace fgl::engine
 					mat[ 0 ] = glm::vec4( row_0, 0.0f );
 					mat[ 1 ] = glm::vec4( row_1, 0.0f );
 					mat[ 2 ] = glm::vec4( row_2, 0.0f );
-					return mat;
+					return RotationMatrix( mat );
 				}
 			case RotationOrder::END_OF_ENUM:
 				[[fallthrough]];

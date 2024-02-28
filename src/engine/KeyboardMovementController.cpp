@@ -84,19 +84,18 @@ namespace fgl::engine
 		}
 		else
 		{
-			if ( glm::dot( static_cast< glm::vec3 >( rotate ), static_cast< glm::vec3 >( rotate ) )
-			     > std::numeric_limits< float >::epsilon() )
-				target.transform.rotation += look_speed * dt * glm::normalize( rotate );
+			if ( glm::dot( rotate, rotate ) > std::numeric_limits< float >::epsilon() )
+				target.transform.rotation += look_speed * ( dt * rotate );
 
 			target.transform.rotation.pitch() = glm::clamp( target.transform.rotation.pitch(), -1.5f, 1.5f );
 			target.transform.rotation.yaw() = glm::mod( target.transform.rotation.yaw(), glm::two_pi< float >() );
 		}
 
-		const glm::vec3 forward_dir { target.transform.rotation.forward() };
-		const glm::vec3 up_dir { constants::WORLD_UP };
-		const glm::vec3 right_dir { target.transform.rotation.right( up_dir ) };
+		const Vector forward_dir { target.transform.rotation.forward() };
+		const Vector up_dir { constants::WORLD_UP };
+		const Vector right_dir { target.transform.rotation.right() };
 
-		glm::vec3 move_dir { 0.0f };
+		Vector move_dir { 0.0f };
 		if ( glfwGetKey( window, key_mappings.move_forward ) == GLFW_PRESS ) move_dir += forward_dir;
 		if ( glfwGetKey( window, key_mappings.move_backward ) == GLFW_PRESS ) move_dir -= forward_dir;
 		if ( glfwGetKey( window, key_mappings.move_right ) == GLFW_PRESS ) move_dir += right_dir;

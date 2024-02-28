@@ -11,8 +11,8 @@
 #include "constants.hpp"
 #include "engine/primitives/Coordinate.hpp"
 #include "engine/primitives/Frustum.hpp"
-#include "engine/primitives/Matrix.hpp"
 #include "engine/primitives/TransformComponent.hpp"
+#include "engine/primitives/matricies/Matrix.hpp"
 
 namespace fgl::engine
 {
@@ -52,7 +52,7 @@ namespace fgl::engine
 
 		inline static TransformComponent frustum_alt_transform { WorldCoordinate( constants::WORLD_CENTER ),
 			                                                     glm::vec3( 1.0f ),
-			                                                     { 0.0f, 0.0f, 0.0f } };
+			                                                     Rotation() };
 
 		inline static bool update_frustums { true };
 		inline static bool update_using_alt { false };

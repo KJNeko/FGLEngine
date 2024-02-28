@@ -13,10 +13,10 @@
 #include <utility>
 
 #include "Coordinate.hpp"
-#include "Matrix.hpp"
 #include "Vector.hpp"
 #include "engine/constants.hpp"
 #include "engine/primitives/Line.hpp"
+#include "engine/primitives/matricies/Matrix.hpp"
 
 namespace fgl::engine
 {

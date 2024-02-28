@@ -5,11 +5,11 @@
 #pragma once
 
 #include "Rotation.hpp"
-#include "Vector.hpp"
-#include "engine/primitives/Matrix.hpp"
 
 namespace fgl::engine
 {
+	template < MatrixType >
+	struct Matrix;
 
 	//TransformComponent is always in world space
 	struct TransformComponent
@@ -22,7 +22,7 @@ namespace fgl::engine
 		//TODO: Figure this out and replace TransformComponent with a template of CType instead
 		glm::mat4 mat4() const;
 
-		inline Matrix< MatrixType::ModelToWorld > mat() const { return Matrix< MatrixType::ModelToWorld >( mat4() ); }
+		Matrix< MatrixType::ModelToWorld > mat() const;
 	};
 
 } // namespace fgl::engine

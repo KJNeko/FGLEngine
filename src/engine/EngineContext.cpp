@@ -195,7 +195,7 @@ namespace fgl::engine
 					ImGui::Text(
 						"Average rolling frametime: %.3f ms", static_cast< double >( rolling_ms_average.average() ) );
 
-					auto inputVec3 = []( const std::string label, glm::vec3& vec )
+					auto inputVec3 = []( const std::string label, glm::vec3 vec )
 					{
 						ImGui::PushID( label.c_str() );
 						ImGui::PushItemWidth( 80 );
@@ -212,7 +212,7 @@ namespace fgl::engine
 					auto inputRVec3 = [ &inputVec3 ]( const std::string label, Rotation& rot )
 					{
 						ImGui::PushID( label.c_str() );
-						inputVec3( label, rot );
+						inputVec3( label, rot.vec3() );
 						ImGui::PopID();
 					};
 
@@ -229,11 +229,14 @@ namespace fgl::engine
 						ImGui::Separator();
 
 						ImGui::PushItemWidth( 80 );
-						ImGui::DragFloat( "Rot X", &viewer.transform.rotation.x, 0.1f, 0.0f, glm::two_pi< float >() );
+						ImGui::DragFloat(
+							"Rot X", &viewer.transform.rotation.vec3().x, 0.1f, 0.0f, glm::two_pi< float >() );
 						ImGui::SameLine();
-						ImGui::DragFloat( "Rot Y", &viewer.transform.rotation.y, 0.1f, 0.0f, glm::two_pi< float >() );
+						ImGui::DragFloat(
+							"Rot Y", &viewer.transform.rotation.vec3().y, 0.1f, 0.0f, glm::two_pi< float >() );
 						ImGui::SameLine();
-						ImGui::DragFloat( "Rot Z", &viewer.transform.rotation.z, 0.1f, 0.0f, glm::two_pi< float >() );
+						ImGui::DragFloat(
+							"Rot Z", &viewer.transform.rotation.vec3().z, 0.1f, 0.0f, glm::two_pi< float >() );
 						ImGui::PopItemWidth();
 
 						ImGui::Separator();
@@ -327,13 +330,25 @@ namespace fgl::engine
 									ImGui::Text( "Rotation" );
 									ImGui::SameLine();
 									ImGui::DragFloat(
-										"X", &game_object.transform.rotation.x, 0.1f, 0.0f, glm::two_pi< float >() );
+										"X",
+										&game_object.transform.rotation.vec3().x,
+										0.1f,
+										0.0f,
+										glm::two_pi< float >() );
 									ImGui::SameLine();
 									ImGui::DragFloat(
-										"Y", &game_object.transform.rotation.y, 0.1f, 0.0f, glm::two_pi< float >() );
+										"Y",
+										&game_object.transform.rotation.vec3().y,
+										0.1f,
+										0.0f,
+										glm::two_pi< float >() );
 									ImGui::SameLine();
 									ImGui::DragFloat(
-										"Z", &game_object.transform.rotation.z, 0.1f, 0.0f, glm::two_pi< float >() );
+										"Z",
+										&game_object.transform.rotation.vec3().z,
+										0.1f,
+										0.0f,
+										glm::two_pi< float >() );
 									ImGui::PopID();
 								}
 
@@ -495,7 +510,7 @@ namespace fgl::engine
 					                             0.0f + ( static_cast< float >( x ) * 20.0f ),
 					                             0.0f };
 				sponza.transform.scale = { 0.007f, 0.007f, 0.007f };
-				sponza.transform.rotation = { 0.0f, 0.0f, 0.0f };
+				sponza.transform.rotation = Rotation( 0.0f, 0.0f, 0.0f );
 
 				game_objects.emplace( sponza.getId(), std::move( sponza ) );
 			}
