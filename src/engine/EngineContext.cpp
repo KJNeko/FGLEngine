@@ -218,6 +218,12 @@ namespace fgl::engine
 
 					if ( ImGui::CollapsingHeader( "Camera" ) )
 					{
+						if ( ImGui::Button( "Reset camera" ) )
+						{
+							viewer.transform.translation = WorldCoordinate( constants::WORLD_CENTER );
+							viewer.transform.rotation = {};
+						}
+
 						ImGui::PushItemWidth( 80 );
 						ImGui::DragFloat( "Pos X", &viewer.transform.translation.x, 0.1f );
 						ImGui::SameLine();
