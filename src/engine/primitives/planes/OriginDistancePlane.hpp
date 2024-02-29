@@ -30,12 +30,7 @@ namespace fgl::engine
 
 		OriginDistancePlane() = default;
 
-		OriginDistancePlane( const glm::vec3 vector, const float distance ) :
-		  m_distance( distance ),
-		  m_direction( vector )
-		{}
-
-		OriginDistancePlane( const NormalVector vector, const float distance ) :
+		explicit OriginDistancePlane( const NormalVector vector, const float distance ) :
 		  m_distance( distance ),
 		  m_direction( vector )
 		{}

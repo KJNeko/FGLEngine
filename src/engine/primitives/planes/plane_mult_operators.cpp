@@ -17,7 +17,7 @@ namespace fgl::engine
 		const glm::vec3 new_center { matrix * plane.getPosition() };
 		const float new_distance { glm::dot( new_center, static_cast< glm::vec3 >( new_direction ) ) };
 
-		return { new_direction, new_distance };
+		return OriginDistancePlane< EvolvedType< MatrixType::ModelToWorld >() > { new_direction, new_distance };
 	}
 
 	template <>

@@ -40,7 +40,6 @@ namespace fgl::engine
 
 		bool isForward( const Coordinate< CType > coord ) const { return distanceFrom( coord ) > 0.0f; }
 
-		//TODO: Add
 		bool intersects( const LineSegment< CType > line )
 		{
 			return isForward( line.getPosition() ) != isForward( line.getEnd() );
