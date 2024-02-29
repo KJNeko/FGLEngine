@@ -18,6 +18,9 @@ namespace fgl::engine
 		{
 			t.getDirection()
 		} -> is_normal_vector;
+		{
+			t.flip()
+		} -> std::same_as< T >;
 	};
 
 } // namespace fgl::engine

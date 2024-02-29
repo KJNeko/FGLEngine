@@ -4,7 +4,10 @@
 
 #pragma once
 
-#include "engine/primitives/points/Coordinate.hpp"
+#include <glm/vec3.hpp>
+
+#include "engine/constants.hpp"
+#include "engine/primitives/CoordinateSpace.hpp"
 
 namespace fgl::engine
 {
@@ -21,25 +24,14 @@ namespace fgl::engine
 
 		constexpr explicit Vector( const float value ) : glm::vec3( value ) {}
 
-		constexpr explicit Vector( const glm::vec3 i_vec ) : glm::vec3( i_vec )
-		{
-			assert(
-				( x <= 1.0f || std::numeric_limits< float >::max() )
-				&& "Value too high for Vector. Forgot to normalize?" );
-			assert(
-				( y <= 1.0f || std::numeric_limits< float >::max() )
-				&& "Value too high for Vector. Forgot to normalize?" );
-			assert(
-				( z <= 1.0f || std::numeric_limits< float >::max() )
-				&& "Value too high for Vector. Forgot to normalize?" );
-		}
+		constexpr explicit Vector( const glm::vec3 i_vec ) : glm::vec3( i_vec ) {}
 
 		constexpr explicit Vector( const float i_x, const float i_y, const float i_z ) : glm::vec3( i_x, i_y, i_z ) {}
 
-		Vector operator*( const float scalar ) const { return Vector( static_cast< glm::vec3 >( *this ) * scalar ); }
-
 		glm::vec3 right( const Vector up = Vector( constants::WORLD_UP ) ) const;
 		glm::vec3 forward() const;
+
+		Vector operator*( const float scalar ) const { return Vector( static_cast< glm::vec3 >( *this ) * scalar ); }
 
 		Vector operator+=( const Vector );
 		Vector operator-=( const Vector );
@@ -58,17 +50,6 @@ namespace fgl::engine
 	inline Vector operator-( const Vector vec )
 	{
 		return Vector( -static_cast< glm::vec3 >( vec ) );
-	}
-
-	inline Vector operator*( const glm::mat4 matrix, const Vector vector )
-	{
-		return Vector( matrix * glm::vec4( static_cast< glm::vec3 >( vector ), 0.0f ) );
-	}
-
-	template < CoordinateSpace CType >
-	inline Coordinate< CType > operator+( const Coordinate< CType > lhs, const Vector rhs )
-	{
-		return Coordinate< CType >( static_cast< glm::vec3 >( lhs ) + static_cast< glm::vec3 >( rhs ) );
 	}
 
 } // namespace fgl::engine

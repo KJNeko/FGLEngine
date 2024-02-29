@@ -15,26 +15,32 @@ namespace fgl::engine
 
 	void setCursorPos( GLFWwindow* window, const glm::vec2 pos )
 	{
-		glfwSetCursorPos( window, pos.x, pos.y );
+		glfwSetCursorPos( window, static_cast< double >( pos.x ), static_cast< double >( pos.y ) );
 	}
 
 	glm::vec2 getCursorPos( GLFWwindow* window )
 	{
 		//Take cursor input
-		double xpos { 0.0f };
-		double ypos { 0.0f };
+		double xpos { 0.0 };
+		double ypos { 0.0 };
 		glfwGetCursorPos( window, &xpos, &ypos );
 		return { xpos, ypos };
 	}
 
 	void KeyboardMovementController::moveInPlaneXZ( GLFWwindow* window, float dt, fgl::engine::GameObject& target )
 	{
-		Rotation rotate { 0.0f };
+		constexpr float rotation_rate { 1.0f };
+		constexpr float pitch_modifier { 1.0f };
+		constexpr float yaw_modifier { 1.0f };
 
-		if ( glfwGetKey( window, key_mappings.look_right ) == GLFW_PRESS ) rotate.yaw() += 1.f;
-		if ( glfwGetKey( window, key_mappings.look_left ) == GLFW_PRESS ) rotate.yaw() -= 1.f;
-		if ( glfwGetKey( window, key_mappings.look_up ) == GLFW_PRESS ) rotate.pitch() += 1.f;
-		if ( glfwGetKey( window, key_mappings.look_down ) == GLFW_PRESS ) rotate.pitch() -= 1.f;
+		float pitch_change { 0.0f };
+		float yaw_change { 0.0f };
+
+		if ( glfwGetKey( window, key_mappings.look_right ) == GLFW_PRESS ) yaw_change += rotation_rate * yaw_modifier;
+		if ( glfwGetKey( window, key_mappings.look_left ) == GLFW_PRESS ) yaw_change -= rotation_rate * yaw_modifier;
+		if ( glfwGetKey( window, key_mappings.look_up ) == GLFW_PRESS ) pitch_change += rotation_rate * pitch_modifier;
+		if ( glfwGetKey( window, key_mappings.look_down ) == GLFW_PRESS )
+			pitch_change -= rotation_rate * pitch_modifier;
 
 		static bool cursor_enabled { true };
 		static bool cursor_restored { false };
@@ -71,7 +77,23 @@ namespace fgl::engine
 			setCursorPos( window, { 0, 0 } );
 		}
 
-		if ( !cursor_enabled )
+		if ( cursor_enabled )
+		{
+			const auto original_rotation { target.transform.rotation };
+			Rotation yaw_rotation {};
+			Rotation pitch_rotation {};
+
+			if ( pitch_change > std::numeric_limits< float >::epsilon()
+			     || pitch_change < std::numeric_limits< float >::epsilon() )
+				pitch_rotation.pitch() += ( dt * pitch_change );
+
+			if ( yaw_change > std::numeric_limits< float >::epsilon()
+			     || yaw_change < std::numeric_limits< float >::epsilon() )
+				yaw_rotation.yaw() += ( dt * yaw_change );
+
+			target.transform.rotation = yaw_rotation * original_rotation * pitch_rotation;
+		}
+		else // No cursor
 		{
 			const auto pos { getCursorPos( window ) };
 			const float xpos { pos.x };
@@ -81,14 +103,6 @@ namespace fgl::engine
 			target.transform.rotation.pitch() -= ( ypos * 0.006f ) * look_speed;
 
 			setCursorPos( window, { 0, 0 } );
-		}
-		else
-		{
-			if ( glm::dot( rotate, rotate ) > std::numeric_limits< float >::epsilon() )
-				target.transform.rotation += look_speed * ( dt * rotate );
-
-			target.transform.rotation.pitch() = glm::clamp( target.transform.rotation.pitch(), -1.5f, 1.5f );
-			target.transform.rotation.yaw() = glm::mod( target.transform.rotation.yaw(), glm::two_pi< float >() );
 		}
 
 		const Vector forward_dir { target.transform.rotation.forward() };

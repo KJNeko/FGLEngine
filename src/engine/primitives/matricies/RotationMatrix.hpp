@@ -14,7 +14,7 @@ namespace fgl::engine
 	class NormalVector;
 	class Vector;
 
-	class RotationMatrix : public glm::mat4
+	class RotationMatrix : public glm::mat3
 	{};
 
 	//This will return a normal vector since it's purely a rotation

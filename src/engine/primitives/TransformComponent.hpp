@@ -5,11 +5,12 @@
 #pragma once
 
 #include "Rotation.hpp"
+#include "engine/primitives/points/Coordinate.hpp"
 
 namespace fgl::engine
 {
 	template < MatrixType >
-	struct Matrix;
+	class Matrix;
 
 	//TransformComponent is always in world space
 	struct TransformComponent

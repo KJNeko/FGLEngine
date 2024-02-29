@@ -11,7 +11,7 @@
 namespace fgl::engine
 {
 	template < CoordinateSpace CType >
-	struct LineSegment
+	class LineSegment
 	{
 		Coordinate< CType > start;
 		Coordinate< CType > end;
@@ -31,14 +31,8 @@ namespace fgl::engine
 
 		explicit LineSegment( const glm::vec3 i_start, glm::vec3 i_end ) : start( i_start ), end( i_end ) {}
 
-		inline LineSegment< CType > flip() const { return { end, start }; }
+		inline LineSegment flip() const { return LineSegment( end, start ); }
 	};
-
-	template < CoordinateSpace CType, MatrixType MType >
-	LineSegment< EvolvedType< CType >() > operator*( const Matrix< MType > mat, const LineSegment< CType > line )
-	{
-		return { mat * line.start, mat * line.end };
-	}
 
 	template < CoordinateSpace CType >
 	using Line = LineSegment< CType >;

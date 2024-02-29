@@ -15,7 +15,7 @@ namespace fgl::engine
 	NormalVector::NormalVector( const fgl::engine::Vector vector ) : NormalVector( static_cast< glm::vec3 >( vector ) )
 	{}
 
-	Vector NormalVector::operator*( const float scalar )
+	Vector NormalVector::operator*( const float scalar ) const
 	{
 		return Vector( static_cast< glm::vec3 >( *this ) * scalar );
 	}

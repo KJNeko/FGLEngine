@@ -8,8 +8,8 @@
 
 #include <memory>
 
-#include "engine/Device.hpp"
 #include "engine/image/ImageHandle.hpp"
+#include "engine/rendering/Device.hpp"
 
 namespace fgl::engine
 {

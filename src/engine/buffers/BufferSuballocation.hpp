@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "engine/Device.hpp"
 #include "engine/concepts/is_suballocation.hpp"
+#include "engine/rendering/Device.hpp"
 
 namespace fgl::engine
 {

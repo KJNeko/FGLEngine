@@ -2,7 +2,7 @@
 // Created by kj16609 on 2/14/24.
 //
 
-#include "engine/model/OrientedBoundingBox.hpp"
+#include "engine/primitives/boxes/OrientedBoundingBox.hpp"
 
 using namespace fgl::engine;
 

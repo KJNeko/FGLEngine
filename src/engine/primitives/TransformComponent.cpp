@@ -11,7 +11,7 @@ namespace fgl::engine
 
 	glm::mat4 TransformComponent::mat4() const
 	{
-		const glm::mat4 rotation_mat { taitBryanMatrix( rotation ) };
+		const glm::mat3 rotation_mat { rotation.mat() };
 
 		//TODO: This uses the Tait-Bryan angles stuff, It should use the respective function.
 		// Or maybe something else can be done here

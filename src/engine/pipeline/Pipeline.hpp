@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "PipelineConfigInfo.hpp"
-#include "engine/Device.hpp"
+#include "engine/rendering/Device.hpp"
 
 namespace fgl::engine
 {

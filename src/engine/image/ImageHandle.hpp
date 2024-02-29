@@ -6,7 +6,7 @@
 
 #include <memory>
 
-#include "engine/Device.hpp"
+#include "engine/rendering/Device.hpp"
 #include "vma/vma_impl.hpp"
 #include "vulkan/vulkan.hpp"
 

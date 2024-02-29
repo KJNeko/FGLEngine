@@ -9,7 +9,7 @@
 #include "engine/FrameInfo.hpp"
 #include "engine/debug/drawers.hpp"
 #include "engine/model/Model.hpp"
-#include "engine/model/OrientedBoundingBox.hpp"
+#include "engine/primitives/boxes/OrientedBoundingBox.hpp"
 
 namespace fgl::engine
 {

@@ -9,8 +9,8 @@
 #define EXPOSE_FRUSTUM_INTERNALS
 #define EXPOSE_CAMERA_INTERNAL
 #include "engine/Camera.hpp"
-#include "engine/model/OrientedBoundingBox.hpp"
 #include "engine/primitives/Frustum.hpp"
+#include "engine/primitives/boxes/OrientedBoundingBox.hpp"
 #include "gtest_printers.hpp"
 
 using namespace fgl::engine;

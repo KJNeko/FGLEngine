@@ -23,5 +23,8 @@ namespace fgl::engine
 		DEFAULT = XZY
 	};
 
-	RotationMatrix taitBryanMatrix( const Rotation rotation, const RotationOrder order = DEFAULT );
+	glm::mat3 taitBryanMatrix( const glm::vec3 rotation, const RotationOrder order = DEFAULT );
+
+	glm::mat3 taitBryanMatrix( const float x, const float y, const float z, const RotationOrder order = DEFAULT );
+
 } // namespace fgl::engine

@@ -4,30 +4,45 @@
 
 #include "Rotation.hpp"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+
 #include "engine/math/taitBryanMatrix.hpp"
 
 namespace fgl::engine
 {
 
-	Rotation::Rotation() : glm::vec3( 0.0f )
-	{}
+	glm::quat toQuat( const float pitch, const float roll, const float yaw )
+	{
+		const float cr { glm::cos( roll * 0.5f ) };
+		const float sr { glm::sin( roll * 0.5f ) };
+		const float cp { glm::cos( pitch * 0.5f ) };
+		const float sp { glm::sin( pitch * 0.5f ) };
+		const float cy { glm::cos( yaw * 0.5f ) };
+		const float sy { glm::sin( yaw * 0.5f ) };
 
-	Rotation::Rotation( const float value ) : glm::vec3( value )
+		return { sr * cp * sy - cr * sp * sy,
+			     cr * sp * cy + sr * cp * sy,
+			     cr * cp * sy - sr * sp * cy,
+			     cr * cp * cy + sr * sp * sy };
+	}
+
+	Rotation::Rotation() : glm::quat( 1.0f, 0.0f, 0.0f, 0.0f )
 	{}
 
 	Rotation::Rotation( const float pitch_r, const float roll_r, const float yaw_r ) :
-	  glm::vec3( pitch_r, roll_r, yaw_r )
+	  glm::quat( glm::toQuat( taitBryanMatrix( pitch_r, roll_r, yaw_r ) ) )
 	{}
 
 	Rotation& Rotation::operator=( const Rotation other )
 	{
-		glm::vec3::operator=( other );
+		glm::quat::operator=( other );
 		return *this;
 	}
 
 	Rotation& Rotation::operator+=( const Rotation i_vec )
 	{
-		glm::vec3::operator+=( static_cast< glm::vec3 >( i_vec ) );
+		glm::quat::operator+=( i_vec );
 		return *this;
 	}
 
@@ -48,7 +63,12 @@ namespace fgl::engine
 
 	RotationMatrix Rotation::mat() const
 	{
-		return taitBryanMatrix( *this );
+		return { glm::mat4_cast( *this ) };
+	}
+
+	Rotation Rotation::operator*( const Rotation rot ) const
+	{
+		return Rotation( glm::normalize( static_cast< glm::quat >( *this ) * static_cast< glm::quat >( rot ) ) );
 	}
 
 } // namespace fgl::engine

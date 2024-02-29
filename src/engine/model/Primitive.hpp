@@ -8,11 +8,12 @@
 
 #include "Vertex.hpp"
 #include "engine/buffers/vector/DeviceVector.hpp"
+#include "engine/primitives/CoordinateSpace.hpp"
+#include "engine/primitives/boxes/OrientedBoundingBox.hpp"
 #include "engine/texture/Texture.hpp"
 
 namespace fgl::engine
 {
-
 	using VertexBufferSuballocation = DeviceVector< Vertex >;
 
 	using IndexBufferSuballocation = DeviceVector< std::uint32_t >;

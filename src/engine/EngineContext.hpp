@@ -5,8 +5,8 @@
 #pragma once
 
 #include "GameObject.hpp"
-#include "Renderer.hpp"
 #include "Window.hpp"
+#include "engine/rendering/Renderer.hpp"
 #include "engine/systems/CullingSystem.hpp"
 #include "engine/systems/EntityRendererSystem.hpp"
 

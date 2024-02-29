@@ -18,7 +18,7 @@ namespace fgl::engine
 	class Coordinate;
 
 	template < CoordinateSpace type >
-	struct LineSegment;
+	class LineSegment;
 
 	class Camera;
 

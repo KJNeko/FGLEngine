@@ -5,7 +5,7 @@
 #include "drawers.hpp"
 
 #include "engine/Camera.hpp"
-#include "engine/model/OrientedBoundingBox.hpp"
+#include "engine/primitives/boxes/OrientedBoundingBox.hpp"
 #include "imgui/imgui.h"
 #include "tracy_colors.hpp"
 
@@ -83,8 +83,10 @@ namespace fgl::engine::debug
 		void drawBoundingBox( const OrientedBoundingBox< CoordinateSpace::World >& box, const glm::vec3 color )
 		{
 			ZoneScopedC( TRACY_DRAWER_FUNC_COLOR );
-			for ( const auto [ p1, p2 ] : box.lines() )
+			for ( const auto line : box.lines() )
 			{
+				auto p1 { line.getPosition() };
+				auto p2 { line.getEnd() };
 				drawLine( LineSegment( p1, p2 ), color );
 			}
 
@@ -97,8 +99,8 @@ namespace fgl::engine::debug
 		inline void
 			drawLine( const LineSegment< CoordinateSpace::World > line, const glm::vec3 color, const float thickness )
 		{
-			const Coordinate< CoordinateSpace::Screen > start_screen { toScreenSpace( line.start ) };
-			const Coordinate< CoordinateSpace::Screen > end_screen { toScreenSpace( line.end ) };
+			const Coordinate< CoordinateSpace::Screen > start_screen { toScreenSpace( line.getPosition() ) };
+			const Coordinate< CoordinateSpace::Screen > end_screen { toScreenSpace( line.getEnd() ) };
 
 			if ( !inView( start_screen ) && !inView( end_screen ) ) return;
 			if ( isBehind( start_screen ) || isBehind( end_screen ) ) return;

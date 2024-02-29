@@ -11,9 +11,9 @@
 #include <cstdint>
 #include <vector>
 
-#include "Device.hpp"
-#include "concepts/is_attachment.hpp"
+#include "engine/concepts/is_attachment.hpp"
 #include "engine/image/Image.hpp"
+#include "engine/rendering/Device.hpp"
 
 namespace fgl::engine
 {

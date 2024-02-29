@@ -40,7 +40,7 @@ namespace fgl::engine
 		Frustum< CoordinateSpace::World > frustum {};
 		WorldCoordinate last_frustum_pos { constants::WORLD_CENTER };
 
-		Rotation current_rotation { 0.0f };
+		Rotation current_rotation {};
 
 		const Matrix< MatrixType::ModelToWorld > frustumTranslationMatrix() const;
 

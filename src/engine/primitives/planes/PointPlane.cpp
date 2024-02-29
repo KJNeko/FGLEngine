@@ -10,7 +10,7 @@ namespace fgl::engine
 	template < CoordinateSpace CType >
 	Coordinate< CType > PointPlane< CType >::intersection( const LineSegment< CType > line ) const
 	{
-		return intersection( line.start, line.getDirection() );
+		return intersection( line.getPosition(), line.getDirection() );
 	}
 
 	template < CoordinateSpace CType >

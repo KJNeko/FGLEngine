@@ -11,8 +11,8 @@
 #include "Image.hpp"
 #include "ImageHandle.hpp"
 #include "Sampler.hpp"
-#include "engine/Device.hpp"
 #include "engine/concepts/is_image.hpp"
+#include "engine/rendering/Device.hpp"
 
 namespace fgl::engine
 {

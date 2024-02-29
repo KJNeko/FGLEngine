@@ -51,7 +51,7 @@ namespace fgl::engine
 		{
 			case ViewMode::TaitBryan:
 				{
-					const glm::mat4 rotation_matrix { taitBryanMatrix( rotation ) };
+					const auto rotation_matrix { rotation.mat() };
 
 					const glm::vec3 forward { rotation_matrix * glm::vec4( constants::WORLD_FORWARD, 0.0f ) };
 

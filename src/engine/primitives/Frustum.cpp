@@ -5,7 +5,7 @@
 #include "Frustum.hpp"
 
 #include "engine/debug/drawers.hpp"
-#include "engine/model/OrientedBoundingBox.hpp"
+#include "engine/primitives/boxes/OrientedBoundingBox.hpp"
 #include "engine/primitives/glmOperators.hpp"
 #include "imgui/imgui.h"
 
@@ -60,7 +60,7 @@ namespace fgl::engine
 
 		for ( const auto intersection_point : exit_intersections )
 		{
-			const float exit_distance { signedDistance( line.getDirection(), intersection_point, line.start ) };
+			const float exit_distance { signedDistance( line.getDirection(), intersection_point, line.getPosition() ) };
 
 			//if the distance is lower then it's before the previous
 			if ( exit_distance < distance )
@@ -79,12 +79,14 @@ namespace fgl::engine
 		assert( enter_intersections.size() > 0 );
 
 		WorldCoordinate first_exit { enter_intersections.at( 0 ) };
-		float distance { signedDistance( line.getDirection(), line.end, line.start ) };
+		float distance { signedDistance( line.getDirection(), line.getEnd(), line.getPosition() ) };
 		assert( distance > 0.0f );
 
 		for ( const auto intersection_point : enter_intersections )
 		{
-			const float enter_distance { signedDistance( line.getDirection(), intersection_point, line.start ) };
+			const float enter_distance {
+				signedDistance( line.getDirection(), intersection_point, line.getPosition() )
+			};
 
 			//If the distance is higher then set it.
 			if ( enter_distance > distance )
@@ -103,8 +105,8 @@ namespace fgl::engine
 	template <>
 	bool Frustum< CoordinateSpace::World >::intersects( const LineSegment< CoordinateSpace::World > line ) const
 	{
-		std::vector< WorldCoordinate > enter_intersections { line.start };
-		std::vector< WorldCoordinate > exit_intersections { line.end };
+		std::vector< WorldCoordinate > enter_intersections { line.getPosition() };
+		std::vector< WorldCoordinate > exit_intersections { line.getEnd() };
 
 		processPlane( near, line, enter_intersections, exit_intersections );
 		processPlane( far, line, enter_intersections, exit_intersections );
@@ -122,8 +124,8 @@ namespace fgl::engine
 		const auto first_exit { getFirstExit( exit_intersections, line ) };
 		const auto last_enter { getLastEnter( enter_intersections, line ) };
 
-		const float distance_to_exit { signedDistance( line.getDirection(), first_exit, line.start ) };
-		const float distance_to_enter { signedDistance( line.getDirection(), last_enter, line.start ) };
+		const float distance_to_exit { signedDistance( line.getDirection(), first_exit, line.getPosition() ) };
+		const float distance_to_enter { signedDistance( line.getDirection(), last_enter, line.getPosition() ) };
 
 		if ( show_intersect ) [[unlikely]]
 		{

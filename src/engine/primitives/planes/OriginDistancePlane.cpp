@@ -24,14 +24,14 @@ namespace fgl::engine
 	bool OriginDistancePlane< CoordinateSpace::World >::intersects( const LineSegment< CoordinateSpace::World > line )
 		const
 	{
-		return isForward( line.start ) != isForward( line.end );
+		return isForward( line.getPosition() ) != isForward( line.getEnd() );
 	}
 
 	template <>
 	Coordinate< CoordinateSpace::World > OriginDistancePlane<
 		CoordinateSpace::World >::intersection( const LineSegment< CoordinateSpace::World > line ) const
 	{
-		return intersection( line.start, line.getDirection() );
+		return intersection( line.getPosition(), line.getDirection() );
 	}
 
 	template < CoordinateSpace CType >

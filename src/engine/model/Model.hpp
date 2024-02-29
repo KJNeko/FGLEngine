@@ -12,14 +12,14 @@
 #include <optional>
 #include <vector>
 
-#include "OrientedBoundingBox.hpp"
 #include "Primitive.hpp"
 #include "Vertex.hpp"
-#include "engine/Device.hpp"
 #include "engine/buffers/Buffer.hpp"
 #include "engine/buffers/BufferSuballocation.hpp"
 #include "engine/buffers/vector/DeviceVector.hpp"
 #include "engine/buffers/vector/HostVector.hpp"
+#include "engine/primitives/boxes/OrientedBoundingBox.hpp"
+#include "engine/rendering/Device.hpp"
 #include "engine/utils.hpp"
 
 namespace fgl::engine

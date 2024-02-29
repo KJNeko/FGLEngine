@@ -17,7 +17,7 @@ namespace fgl::engine
 {
 
 	template < int N >
-	inline std::tuple< float, float > extract( const Rotation rotation, const RotationOrder order )
+	inline std::tuple< float, float > extract( const glm::vec3 rotation, const RotationOrder order )
 	{
 		switch ( order )
 		{
@@ -93,18 +93,20 @@ namespace fgl::engine
 		std::unreachable();
 	}
 
-	RotationMatrix taitBryanMatrix( const Rotation rotation, const RotationOrder order )
+	glm::mat3 taitBryanMatrix( const float x, const float y, const float z, const RotationOrder order )
 	{
-		glm::mat4 mat { 1.0f };
+		return taitBryanMatrix( glm::vec3( x, y, z ), order );
+	}
+
+	glm::mat3 taitBryanMatrix( const glm::vec3 rotation, const RotationOrder order )
+	{
+		glm::mat3 mat { 1.0f };
 
 		//TODO: Debug with Entry, There has got to be a better fix then this.
-		Rotation fixed_rotation { rotation };
-		fixed_rotation.pitch() = -fixed_rotation.pitch();
-		fixed_rotation.roll() = -fixed_rotation.roll();
 
-		const auto [ c1, s1 ] = extract< 1 >( fixed_rotation, order );
-		const auto [ c2, s2 ] = extract< 2 >( fixed_rotation, order );
-		const auto [ c3, s3 ] = extract< 3 >( fixed_rotation, order );
+		const auto [ c1, s1 ] = extract< 1 >( rotation, order );
+		const auto [ c2, s2 ] = extract< 2 >( rotation, order );
+		const auto [ c3, s3 ] = extract< 3 >( rotation, order );
 
 		switch ( order )
 		{

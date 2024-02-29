@@ -97,7 +97,7 @@ namespace fgl::engine
 		debug::setDebugDrawingCamera( camera );
 
 		auto viewer { GameObject::createGameObject() };
-		viewer.transform.translation = constants::WORLD_CENTER + glm::vec3( 0.0f, 0.0f, -2.5f );
+		viewer.transform.translation = WorldCoordinate( constants::WORLD_CENTER + glm::vec3( 0.0f, 0.0f, -2.5f ) );
 		KeyboardMovementController camera_controller {};
 
 		auto current_time { std::chrono::high_resolution_clock::now() };
@@ -209,10 +209,10 @@ namespace fgl::engine
 						ImGui::PopID();
 					};
 
-					auto inputRVec3 = [ &inputVec3 ]( const std::string label, Rotation& rot )
+					auto inputRVec3 = [ &inputVec3 ]( const std::string label, [[maybe_unused]] Rotation& rot )
 					{
 						ImGui::PushID( label.c_str() );
-						inputVec3( label, rot.vec3() );
+						//TODO: Fix this
 						ImGui::PopID();
 					};
 
@@ -229,14 +229,15 @@ namespace fgl::engine
 						ImGui::Separator();
 
 						ImGui::PushItemWidth( 80 );
-						ImGui::DragFloat(
-							"Rot X", &viewer.transform.rotation.vec3().x, 0.1f, 0.0f, glm::two_pi< float >() );
+						//TODO: Print rotation here again
+
 						ImGui::SameLine();
-						ImGui::DragFloat(
-							"Rot Y", &viewer.transform.rotation.vec3().y, 0.1f, 0.0f, glm::two_pi< float >() );
+						ImGui::Text( "Pitch %.4f", static_cast< double >( viewer.transform.rotation.pitch().value() ) );
 						ImGui::SameLine();
-						ImGui::DragFloat(
-							"Rot Z", &viewer.transform.rotation.vec3().z, 0.1f, 0.0f, glm::two_pi< float >() );
+						ImGui::Text( "Yaw %.4f", static_cast< double >( viewer.transform.rotation.yaw().value() ) );
+						ImGui::SameLine();
+						ImGui::Text( "Roll %.4f", static_cast< double >( viewer.transform.rotation.roll().value() ) );
+
 						ImGui::PopItemWidth();
 
 						ImGui::Separator();
@@ -329,26 +330,17 @@ namespace fgl::engine
 									ImGui::PushItemWidth( 80 );
 									ImGui::Text( "Rotation" );
 									ImGui::SameLine();
-									ImGui::DragFloat(
-										"X",
-										&game_object.transform.rotation.vec3().x,
-										0.1f,
-										0.0f,
-										glm::two_pi< float >() );
+									ImGui::Text(
+										"Pitch %.4f",
+										static_cast< double >( game_object.transform.rotation.pitch().value() ) );
 									ImGui::SameLine();
-									ImGui::DragFloat(
-										"Y",
-										&game_object.transform.rotation.vec3().y,
-										0.1f,
-										0.0f,
-										glm::two_pi< float >() );
+									ImGui::Text(
+										"Yaw %.4f",
+										static_cast< double >( game_object.transform.rotation.yaw().value() ) );
 									ImGui::SameLine();
-									ImGui::DragFloat(
-										"Z",
-										&game_object.transform.rotation.vec3().z,
-										0.1f,
-										0.0f,
-										glm::two_pi< float >() );
+									ImGui::Text(
+										"Roll %.4f",
+										static_cast< double >( game_object.transform.rotation.roll().value() ) );
 									ImGui::PopID();
 								}
 
@@ -506,9 +498,8 @@ namespace fgl::engine
 			{
 				auto sponza = GameObject::createGameObject();
 				sponza.model = model;
-				sponza.transform.translation = { 0.0f + ( static_cast< float >( y ) * 30.0f ),
-					                             0.0f + ( static_cast< float >( x ) * 20.0f ),
-					                             0.0f };
+				sponza.transform.translation = WorldCoordinate(
+					0.0f + ( static_cast< float >( y ) * 30.0f ), 0.0f + ( static_cast< float >( x ) * 20.0f ), 0.0f );
 				sponza.transform.scale = { 0.007f, 0.007f, 0.007f };
 				sponza.transform.rotation = Rotation( 0.0f, 0.0f, 0.0f );
 

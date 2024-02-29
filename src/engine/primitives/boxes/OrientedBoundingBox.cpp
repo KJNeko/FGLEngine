@@ -4,9 +4,6 @@
 
 #include "OrientedBoundingBox.hpp"
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/string_cast.hpp>
-
 #include <array>
 
 #include "engine/model/Vertex.hpp"
@@ -154,10 +151,10 @@ namespace fgl::engine
 		 */
 
 		points.resize( 8 );
-		points[ 0 ] = xp_yp_zp;
-		points[ 1 ] = xn_yp_zp;
-		points[ 2 ] = xn_yp_zn;
-		points[ 3 ] = xp_yp_zn;
+		points[ 0 ] = Coordinate< CType >( xp_yp_zp );
+		points[ 1 ] = Coordinate< CType >( xn_yp_zp );
+		points[ 2 ] = Coordinate< CType >( xn_yp_zn );
+		points[ 3 ] = Coordinate< CType >( xp_yp_zn );
 
 		//Bottom
 		const glm::vec3 xn_yn_zp { xn, yn, zp }; // (- - +)
@@ -172,10 +169,10 @@ namespace fgl::engine
 		 * (-,-,-) =========== (+,-,-)
 		 */
 
-		points[ 4 ] = xp_yn_zp;
-		points[ 5 ] = xn_yn_zp;
-		points[ 6 ] = xn_yn_zn;
-		points[ 7 ] = xp_yn_zn;
+		points[ 4 ] = Coordinate< CType >( xp_yn_zp );
+		points[ 5 ] = Coordinate< CType >( xn_yn_zp );
+		points[ 6 ] = Coordinate< CType >( xn_yn_zn );
+		points[ 7 ] = Coordinate< CType >( xp_yn_zn );
 
 		return points;
 	}

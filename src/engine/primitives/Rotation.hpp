@@ -5,6 +5,9 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+
+#include <utility>
 
 #include "engine/math/taitBryanMatrix.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
@@ -24,31 +27,83 @@ namespace glm
 
 namespace fgl::engine
 {
-
-	struct Rotation : protected glm::vec3
+	enum class RotationModifierType
 	{
-		template < int N >
-		friend std::tuple< float, float > extract( const Rotation rotation, const RotationOrder order );
+		Pitch,
+		Roll,
+		Yaw
+	};
+
+	struct Rotation;
+
+	template < RotationModifierType ModifierType >
+	class RotationModifier
+	{
+		using enum RotationModifierType;
+
+		Rotation& rot;
+
+		friend struct Rotation;
+
+		RotationModifier() = delete;
+
+		RotationModifier( Rotation& i_rot ) : rot( i_rot ) {}
+
+	  public:
+
+		Rotation& operator+=( const float scalar );
+		Rotation& operator-=( const float scalar );
+
+		operator float() const;
+
+		float value() const { return static_cast< float >( *this ); }
+
+		float value() { return static_cast< float >( *this ); }
+	};
+
+	struct Rotation : private glm::quat
+	{
+		friend class RotationModifier< RotationModifierType::Pitch >;
+		friend class RotationModifier< RotationModifierType::Roll >;
+		friend class RotationModifier< RotationModifierType::Yaw >;
+
+	  public:
 
 		Rotation();
-
-		explicit Rotation( const float value );
 
 		explicit Rotation( const float pitch_r, const float roll_r, const float yaw_r );
 
 		Rotation( const Rotation& other ) = default;
 
-		float& pitch() { return x; }
+		Rotation( const glm::quat other ) : glm::quat( other ) {}
 
-		float pitch() const { return x; }
+		auto pitch() { return RotationModifier< RotationModifierType::Pitch >( *this ); }
 
-		float& roll() { return y; }
+		auto roll() { return RotationModifier< RotationModifierType::Roll >( *this ); }
 
-		float roll() const { return z; }
+		auto yaw() { return RotationModifier< RotationModifierType::Yaw >( *this ); }
 
-		float& yaw() { return z; }
+		float pitch() const
+		{
+			//TODO: Ask entry to explain this stuff
+			const float sinr_cosp { 2.0f * ( w * x + y * z ) };
+			const float cosr_cosp { 1.0f - 2.0f * ( x * x + y * y ) };
+			return std::atan2( sinr_cosp, cosr_cosp );
+		}
 
-		float yaw() const { return z; }
+		float roll() const
+		{
+			const float sinp { glm::sqrt( 1.0f + 2.0f * ( w * y - x * z ) ) };
+			const float cosp { glm::sqrt( 1.0f - 2.0f * ( w * y - x * z ) ) };
+			return 2.0f * std::atan2( sinp, cosp ) - ( std::numbers::pi_v< float > / 2.0f );
+		}
+
+		float yaw() const
+		{
+			const float siny_cosp { 2.0f * ( w * z + x * y ) };
+			const float cosy_cosp { 1.0f - 2.0f * ( y * y + z * z ) };
+			return std::atan2( siny_cosp, cosy_cosp );
+		}
 
 		Rotation& operator=( const Rotation other );
 
@@ -62,36 +117,58 @@ namespace fgl::engine
 
 		RotationMatrix mat() const;
 
-		const glm::vec3& vec3() const { return *this; }
-
-		glm::vec3& vec3() { return *this; }
-
 		friend float glm::dot( const Rotation, const Rotation );
-		friend Rotation operator*( const float, const Rotation );
+
+		Rotation operator*( const Rotation other ) const;
 	};
 
-	inline Rotation operator*( const float scalar, const Rotation rot )
+	template < RotationModifierType ModifierType >
+	RotationModifier< ModifierType >::operator float() const
 	{
-		return Rotation( rot.x * scalar, rot.y * scalar, rot.z * scalar );
-	}
-
-	// TODO: Make normalize function for roation.
-	// To do this I simply just need to take the forward direction and rebuild the Rotation.
-	// Using trig
-
-	template < MatrixType MType >
-	inline Rotation operator*( const Matrix< MType > mat, const Rotation rot )
-	{
-		const NormalVector new_forward { mat * rot.forward() };
-		const NormalVector new_up { mat * rot.up() };
-		const NormalVector new_right { mat * rot.right() };
-
-		return {};
+		switch ( ModifierType )
+		{
+			case RotationModifierType::Pitch:
+				return const_cast< const Rotation& >( rot ).pitch();
+			case RotationModifierType::Roll:
+				return const_cast< const Rotation& >( rot ).roll();
+			case RotationModifierType::Yaw:
+				return const_cast< const Rotation& >( rot ).yaw();
+		}
+		std::unreachable();
 	}
 
 	namespace constants
 	{
 		constexpr glm::vec3 DEFAULT_ROTATION { 0.0f, 0.0f, 0.0f };
+	}
+
+	template < RotationModifierType MT >
+	consteval glm::vec3 getModifierAxis()
+	{
+		switch ( MT )
+		{
+			case RotationModifierType::Pitch:
+				return constants::WORLD_RIGHT;
+			case RotationModifierType::Roll:
+				return constants::WORLD_FORWARD;
+			case RotationModifierType::Yaw:
+				return constants::WORLD_DOWN;
+		}
+	}
+
+	template < RotationModifierType ModifierType >
+	Rotation& RotationModifier< ModifierType >::operator+=( const float scalar )
+	{
+		rot = Rotation( static_cast< glm::quat >( rot ) * glm::angleAxis( scalar, getModifierAxis< ModifierType >() ) );
+		return rot;
+	}
+
+	template < RotationModifierType ModifierType >
+	Rotation& RotationModifier< ModifierType >::operator-=( const float scalar )
+	{
+		rot =
+			Rotation( static_cast< glm::quat >( rot ) * glm::angleAxis( -scalar, getModifierAxis< ModifierType >() ) );
+		return rot;
 	}
 
 } // namespace fgl::engine
@@ -100,7 +177,7 @@ namespace glm
 {
 	inline float dot( const fgl::engine::Rotation lhs, const fgl::engine::Rotation rhs )
 	{
-		return dot( static_cast< glm::vec3 >( lhs ), static_cast< glm::vec3 >( rhs ) );
+		return dot( static_cast< glm::quat >( lhs ), static_cast< glm::quat >( rhs ) );
 	}
 
 } // namespace glm

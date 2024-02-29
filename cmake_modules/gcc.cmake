@@ -114,7 +114,7 @@
 					set(FGL_CONFIG "${FGL_CONFIG} -Werror")
 				endif ()
 
-				set(FGL_SHARED_OPTIMIZATION_FLAGS "-march=native")
+				set(FGL_SHARED_OPTIMIZATION_FLAGS "-march=native -flto=auto")
 
 				# Optimization flags
 				set(FGL_OPTIMIZATION_FLAGS_RELEASE "-O2 -s -fdevirtualize-at-ltrans -fdevirtualize-speculatively -funroll-loops ${FGL_SHARED_OPTIMIZATION_FLAGS}") # System agonistc flags

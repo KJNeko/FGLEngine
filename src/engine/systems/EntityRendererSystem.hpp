@@ -8,12 +8,12 @@
 #include <vector>
 
 #include "engine/Camera.hpp"
-#include "engine/Device.hpp"
 #include "engine/FrameInfo.hpp"
 #include "engine/GameObject.hpp"
-#include "engine/SwapChain.hpp"
 #include "engine/model/Model.hpp"
 #include "engine/pipeline/PipelineT.hpp"
+#include "engine/rendering/Device.hpp"
+#include "engine/rendering/SwapChain.hpp"
 
 namespace fgl::engine
 {
