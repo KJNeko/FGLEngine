@@ -152,6 +152,7 @@ namespace fgl::engine
 
 	void imGuiFrustumSettings()
 	{
+#if ENABLE_IMGUI
 		//Check if any of the box's points are inside the frustum
 		if ( ImGui::CollapsingHeader( "Frustum intersection settings" ) )
 		{
@@ -166,6 +167,7 @@ namespace fgl::engine
 				check_points = false;
 			}
 		}
+#endif
 	}
 
 	template <>

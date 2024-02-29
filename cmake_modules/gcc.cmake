@@ -116,11 +116,13 @@
 
 				set(FGL_SHARED_OPTIMIZATION_FLAGS "-march=native -flto=auto")
 
+				set(FGL_GENERAL_OPTIMIZATION_FLAGS "-fdevirtualize-at-ltrans -fdevirtualize-speculatively -fdeclone-ctor-dtor -funroll-loops")
+
 				# Optimization flags
-				set(FGL_OPTIMIZATION_FLAGS_RELEASE "-O2 -s -fdevirtualize-at-ltrans -fdevirtualize-speculatively -funroll-loops ${FGL_SHARED_OPTIMIZATION_FLAGS}") # System agonistc flags
-				set(FGL_OPTIMIZATION_FLAGS_RELWITHDEBINFO "-O2 -s -fdevirtualize-at-ltrans -fdevirtualize-speculatively -fdeclone-ctor-dtor -funroll-loops ${FGL_SHARED_OPTIMIZATION_FLAGS}")
+				set(FGL_OPTIMIZATION_FLAGS_RELEASE "-O2 -s ${FGL_GENERAL_OPTIMIZATION_FLAGS} ${FGL_SHARED_OPTIMIZATION_FLAGS}") # System agonistc flags
+				set(FGL_OPTIMIZATION_FLAGS_RELWITHDEBINFO "-O2 ${FLG_GENERAL_OPTIMIZATION_FLAGS} ${FGL_SHARED_OPTIMIZATION_FLAGS}")
 				set(FGL_OPTIMIZATION_FLAGS_DEBUG "-O0 -g -fstrict-aliasing -fno-omit-frame-pointer -ftrapv -fverbose-asm -femit-class-debug-always ${FGL_SHARED_OPTIMIZATION_FLAGS}") # Debug flags
-				set(FGL_OPTIMIZATION_FLAGS_SYSTEM "-march=native -flto=auto -fdeclone-ctor-dtor -fgcse -fgcse-las -fgcse-sm -ftree-loop-im -fivopts -ftree-loop-ivcanon -fira-hoist-pressure -fsched-pressure -fsched-spec-load -fipa-pta -s -ffat-lto-objects -fno-enforce-eh-specs -fstrict-enums ${FGL_SHARED_OPTIMIZATION_FLAGS}") # System specific flags. Probably not portable
+				set(FGL_OPTIMIZATION_FLAGS_SYSTEM "-O2 -fdeclone-ctor-dtor -fgcse -fgcse-las -fgcse-sm -ftree-loop-im -fivopts -ftree-loop-ivcanon -fira-hoist-pressure -fsched-pressure -fsched-spec-load -fipa-pta -s -ffat-lto-objects -fno-enforce-eh-specs -fstrict-enums ${FGL_SHARED_OPTIMIZATION_FLAGS}") # System specific flags. Probably not portable
 
 				# Final sets
 				set(FGL_FLAGS "${FGL_CONFIG} ${FGL_OPTIMIZATION_FLAGS_${UPPER_BUILD_TYPE}} ${FGL_WARNINGS}" PARENT_SCOPE) # Flags for our shit

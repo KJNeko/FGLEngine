@@ -135,7 +135,9 @@ namespace fgl::engine
 				}
 			}
 
+#if ENABLE_IMGUI
 			ImGui::Text( "Tris: %lu", tri_counter );
+#endif
 
 			if ( draw_pairs.empty() )
 			{

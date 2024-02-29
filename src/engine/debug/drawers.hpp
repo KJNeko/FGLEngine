@@ -148,6 +148,10 @@ namespace fgl::engine::debug
 		inline void drawVector( const Coordinate< CoordinateSpace::World >, Vector, const std::string, const glm::vec3 )
 		{}
 
+		inline void
+			drawVector( const Coordinate< CoordinateSpace::World >, NormalVector, const std::string, const glm::vec3 )
+		{}
+
 		inline void drawFrustum( const Frustum< CoordinateSpace::World >&, const WorldCoordinate )
 		{}
 
