@@ -106,22 +106,23 @@
 				AppendFlag("-fdiagnostics-show-template-tree") # Shows the template diagnostic info as a tree instead.
 				AppendFlag("-fdiagnostics-path-format=inline-events")
 
-				#set(FGL_WARNINGS "${FGL_WARNINGS_GENERIC} -Wpessimizing-move -Wpedantic -Weffc++ -pedantic-errors -Wnoexcept -Wuninitialized -Wunused -Wunused-parameter -Winit-self -Wconversion -Wuseless-cast -Wextra-semi -Wsuggest-final-types -Wsuggest-final-methods -Wsuggest-override -Wformat-signedness -Wno-format-zero-length -Wmissing-include-dirs -Wshift-overflow=2 -Walloc-zero -Walloca -Wsign-promo -Wconversion -Wduplicated-branches -Wduplicated-cond -Wshadow -Wshadow=local -Wvirtual-inheritance -Wno-virtual-move-assign -Wunsafe-loop-optimizations -Wnormalized -Wpacked -Wredundant-decls -Wctor-dtor-privacy -Wdeprecated-copy-dtor -Wstrict-null-sentinel -Wold-style-cast -Woverloaded-virtual -Wzero-as-null-pointer-constant -Wconditionally-supported -Wwrite-strings -Wunused-const-variable=2 -Wdouble-promotion -Wpointer-arith -Wcast-align=strict -Wcast-qual -Wconversion -Wsign-conversion -Wimplicit-fallthrough=1 -Wmisleading-indentation -Wdangling-else -Wdate-time -Wformat=2 -Wformat-overflow=2 -Wformat-signedness -Wformat-truncation=2 -Wswitch-default -Wstringop-overflow=4 -Warray-bounds=2 -Wattribute-alias=2 -Wcatch-value=2 -Wplacement-new=2 -Wtrampolines -Winvalid-imported-macros -Winvalid-imported-macros")
-
 				set(FGL_CONFIG "-std=c++23 -fmax-errors=3 -fconcepts-diagnostics-depth=8")
 
 				if (DEFINED USE_WERROR)
 					set(FGL_CONFIG "${FGL_CONFIG} -Werror")
 				endif ()
 
-				set(FGL_SHARED_OPTIMIZATION_FLAGS "-march=native -flto=auto")
+				# Safe for debug
+				set(FGL_SHARED_OPTIMIZATION_FLAGS "-march=native -flto=auto -funit-at-a-time")
 
-				set(FGL_GENERAL_OPTIMIZATION_FLAGS "-fdevirtualize-at-ltrans -fdevirtualize-speculatively -fdeclone-ctor-dtor -funroll-loops")
+				set(FGL_GENERAL_OPTIMIZATION_FLAGS "-fdevirtualize-at-ltrans -fdevirtualize-speculatively -funroll-loops -funit-at-a-time -floop-nest-optimize -floop-parallelize-all -fsimd-cost-model=unlimited -fsplit-paths -fstrict-aliasing")
+
+				set(FGL_SHARED_DEBUG "-gdwarf-4 -fvar-tracking-assignments")
 
 				# Optimization flags
 				set(FGL_OPTIMIZATION_FLAGS_RELEASE "-O2 -s ${FGL_GENERAL_OPTIMIZATION_FLAGS} ${FGL_SHARED_OPTIMIZATION_FLAGS}") # System agonistc flags
-				set(FGL_OPTIMIZATION_FLAGS_RELWITHDEBINFO "-O2 ${FLG_GENERAL_OPTIMIZATION_FLAGS} ${FGL_SHARED_OPTIMIZATION_FLAGS}")
-				set(FGL_OPTIMIZATION_FLAGS_DEBUG "-O0 -g -fstrict-aliasing -fno-omit-frame-pointer -ftrapv -fverbose-asm -femit-class-debug-always ${FGL_SHARED_OPTIMIZATION_FLAGS}") # Debug flags
+				set(FGL_OPTIMIZATION_FLAGS_RELWITHDEBINFO "-O2 ${FLG_GENERAL_OPTIMIZATION_FLAGS} ${FGL_SHARED_OPTIMIZATION_FLAGS} ${FGL_SHARED_DEBUG}")
+				set(FGL_OPTIMIZATION_FLAGS_DEBUG "-O0 -g -fstrict-aliasing -fno-omit-frame-pointer -ftrapv -fverbose-asm -femit-class-debug-always ${FGL_SHARED_OPTIMIZATION_FLAGS} ${FGL_SHARED_DEBUG}") # Debug flags
 				set(FGL_OPTIMIZATION_FLAGS_SYSTEM "-O2 -fdeclone-ctor-dtor -fgcse -fgcse-las -fgcse-sm -ftree-loop-im -fivopts -ftree-loop-ivcanon -fira-hoist-pressure -fsched-pressure -fsched-spec-load -fipa-pta -s -ffat-lto-objects -fno-enforce-eh-specs -fstrict-enums ${FGL_SHARED_OPTIMIZATION_FLAGS}") # System specific flags. Probably not portable
 
 				# Final sets
