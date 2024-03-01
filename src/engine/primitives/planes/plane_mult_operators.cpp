@@ -14,8 +14,8 @@ namespace fgl::engine
 		const Matrix< MatrixType::ModelToWorld > matrix, const OriginDistancePlane< CoordinateSpace::Model > plane )
 	{
 		const NormalVector new_direction { matrix * plane.direction() };
-		const glm::vec3 new_center { matrix * plane.getPosition() };
-		const float new_distance { glm::dot( new_center, static_cast< glm::vec3 >( new_direction ) ) };
+		const Coordinate< EvolvedType< MatrixType::ModelToWorld >() > new_center { matrix * plane.getPosition() };
+		const float new_distance { glm::dot( new_center.vec(), new_direction.vec() ) };
 
 		return OriginDistancePlane< EvolvedType< MatrixType::ModelToWorld >() > { new_direction, new_distance };
 	}

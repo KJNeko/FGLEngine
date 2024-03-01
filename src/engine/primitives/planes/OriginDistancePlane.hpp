@@ -28,12 +28,16 @@ namespace fgl::engine
 
 	  public:
 
+		constexpr static auto SpaceType { CType };
+
 		OriginDistancePlane() = default;
 
 		explicit OriginDistancePlane( const NormalVector vector, const float distance ) :
 		  m_distance( distance ),
 		  m_direction( vector )
 		{}
+
+		NormalVector getDirection() const { return m_direction; }
 
 		//! Returns the closest point on the plane to the 0,0,0 origin
 		Coordinate< CType > getPosition() const { return Coordinate< CType >( m_direction * m_distance ); }
@@ -49,11 +53,6 @@ namespace fgl::engine
 		NormalVector direction() const { return m_direction; }
 
 		float distance() const { return m_distance; }
-
-		bool operator==( const OriginDistancePlane& other ) const
-		{
-			return m_distance == other.m_distance && m_direction == other.m_direction;
-		}
 
 		bool intersects( const LineSegment< CType > line ) const;
 		bool intersects( const InfiniteLine< CType > line ) const;

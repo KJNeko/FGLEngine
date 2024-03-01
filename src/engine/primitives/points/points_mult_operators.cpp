@@ -14,7 +14,7 @@ namespace fgl::engine
 		operator*( const Matrix< MatrixType::ModelToWorld > mat, const Coordinate< CoordinateSpace::Model > coord )
 	{
 		return Coordinate< EvolvedType< MatrixType::ModelToWorld >() >(
-			static_cast< glm::mat4 >( mat ) * glm::vec4( static_cast< glm::vec3 >( coord ), 1.0f ) );
+			static_cast< glm::mat4 >( mat ) * glm::vec4( static_cast< glm::vec3 >( coord.vec() ), 1.0f ) );
 	}
 
 } // namespace fgl::engine

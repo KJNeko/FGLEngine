@@ -12,12 +12,14 @@ namespace fgl::engine
 {
 	//! Bounding box alligned with the world axis
 	template < CoordinateSpace CType >
-	class AxisAlignedBoundingBox : public interface::OrientedBoundingBox
+	class AxisAlignedBoundingBox : public interface::BoundingBox
 	{
 		Coordinate< CType > m_top_right_forward;
 		Coordinate< CType > m_bottom_left_back;
 
 	  public:
+
+		constexpr static auto SpaceType { CType };
 
 		AxisAlignedBoundingBox() :
 		  m_top_right_forward( constants::WORLD_CENTER ),
@@ -31,8 +33,7 @@ namespace fgl::engine
 		{}
 
 		explicit AxisAlignedBoundingBox( const Coordinate< CType > midpoint, const Scale scale ) :
-		  AxisAlignedBoundingBox(
-			  midpoint + static_cast< glm::vec3 >( scale ), midpoint - static_cast< glm::vec3 >( scale ) )
+		  AxisAlignedBoundingBox( midpoint + scale, midpoint - scale )
 		{}
 
 		Coordinate< CType > center() const;

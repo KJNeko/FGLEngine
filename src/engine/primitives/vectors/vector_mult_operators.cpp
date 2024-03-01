@@ -12,12 +12,12 @@ namespace fgl::engine
 	template <>
 	Vector operator*( const Matrix< MatrixType::ModelToWorld > mat, const Vector vector )
 	{
-		return Vector( static_cast< glm::mat4 >( mat ) * glm::vec4( vector, 0.0f ) );
+		return Vector( static_cast< glm::mat4 >( mat ) * glm::vec4( vector.vec(), 0.0f ) );
 	}
 
 	template <>
 	NormalVector operator*( const Matrix< MatrixType::ModelToWorld > mat, const NormalVector vector )
 	{
-		return NormalVector( static_cast< glm::mat4 >( mat ) * glm::vec4( vector, 0.0f ) );
+		return NormalVector( static_cast< glm::mat4 >( mat ) * glm::vec4( vector.vec(), 0.0f ) );
 	}
 } // namespace fgl::engine

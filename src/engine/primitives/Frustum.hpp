@@ -48,11 +48,7 @@ namespace fgl::engine
 		  right( right_plane ),
 		  left( left_plane ),
 		  m_position( position )
-		{
-			assert( right_plane.getDirection() != left_plane.getDirection() );
-			assert( top_plane.getDirection() != bottom_plane.getDirection() );
-			assert( near_plane.getDirection() != far_plane.getDirection() );
-		}
+		{}
 
 		Vector forwardVec() const { return near.direction(); }
 

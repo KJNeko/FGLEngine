@@ -14,9 +14,9 @@ namespace fgl
 	template < CoordinateSpace CType >
 	Coordinate< CType > midpoint( const Coordinate< CType > left, const Coordinate< CType > right )
 	{
-		const auto x { ( left.x + right.x ) / 2.0f };
-		const auto y { ( left.y + right.y ) / 2.0f };
-		const auto z { ( left.z + right.z ) / 2.0f };
+		const auto x { ( left.vec().x + right.vec().x ) / 2.0f };
+		const auto y { ( left.vec().y + right.vec().y ) / 2.0f };
+		const auto z { ( left.vec().z + right.vec().z ) / 2.0f };
 
 		return Coordinate< CType >( x, y, z );
 	}

@@ -9,6 +9,7 @@
 #include <array>
 #include <vector>
 
+#include "BoundingBox.hpp"
 #include "engine/constants.hpp"
 #include "engine/primitives/Rotation.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
@@ -25,13 +26,13 @@ namespace fgl::engine
 	struct Vertex;
 
 	template < CoordinateSpace CType >
-	struct OrientedBoundingBox
+	struct OrientedBoundingBox : public interface::BoundingBox
 	{
 		Coordinate< CType > middle;
 		glm::vec3 scale;
 		Rotation rotation;
 
-		OrientedBoundingBox() : middle( constants::DEFAULT_VEC3 ), scale( 0.0f ), rotation( 0.0f, 0.0f, 0.0f ) {}
+		OrientedBoundingBox() : middle( constants::DEFAULT_VEC3 ), scale( 0.0f ), rotation() {}
 
 		OrientedBoundingBox(
 			const Coordinate< CType > pos, glm::vec3 inital_scale, const Rotation inital_rotation = {} ) :
@@ -40,11 +41,15 @@ namespace fgl::engine
 		  rotation( inital_rotation )
 		{}
 
+	  private:
+
 		//! Returns the top left (-x, -y, -z) coordinate
-		inline glm::vec3 bottomLeftBack() const { return middle - scale; }
+		inline glm::vec3 bottomLeftBack() const { return middle.vec() - scale; }
 
 		//! Returns the bottom right (x, y, z) coordinate
-		inline glm::vec3 topRightForward() const { return middle + scale; }
+		inline glm::vec3 topRightForward() const { return middle.vec() + scale; }
+
+	  public:
 
 		// 6 sides, 2 triangles each, 3 verts per triangle
 		constexpr static std::uint32_t indicies_count { 6 * 2 * 3 };
@@ -53,8 +58,6 @@ namespace fgl::engine
 
 		std::vector< Coordinate< CType > > points() const;
 		std::vector< LineSegment< CType > > lines() const;
-
-		bool isInFrustum( const Frustum< CType >& frustum ) const;
 
 		OrientedBoundingBox combine( const OrientedBoundingBox& other ) const;
 	};

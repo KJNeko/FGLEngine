@@ -4,6 +4,8 @@
 
 #include "Vector.hpp"
 
+#include "NormalVector.hpp"
+
 namespace fgl::engine
 {
 
@@ -15,15 +17,6 @@ namespace fgl::engine
 		x = other.x;
 		y = other.y;
 		z = other.z;
-		return *this;
-	}
-
-	Vector& Vector::operator=( const std::initializer_list< float > list )
-	{
-		assert( list.size() == 3 );
-		x = *( list.begin() );
-		y = *( list.begin() + 1 );
-		z = *( list.begin() + 2 );
 		return *this;
 	}
 
@@ -52,5 +45,8 @@ namespace fgl::engine
 		glm::vec3::operator-=( static_cast< glm::vec3 >( vector ) );
 		return *this;
 	}
+
+	Vector::Vector( const NormalVector normal_vector ) : glm::vec3( normal_vector.vec() )
+	{}
 
 } // namespace fgl::engine

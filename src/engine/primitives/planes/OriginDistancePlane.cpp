@@ -17,7 +17,7 @@ namespace fgl::engine
 	template <>
 	float OriginDistancePlane< CoordinateSpace::World >::distanceFrom( const WorldCoordinate coord ) const
 	{
-		return glm::dot( m_direction, coord ) - m_distance;
+		return glm::dot( m_direction.vec(), coord.vec() ) - m_distance;
 	}
 
 	template <>
@@ -38,8 +38,8 @@ namespace fgl::engine
 	Coordinate< CType > OriginDistancePlane<
 		CType >::intersection( const Coordinate< CType > point, const NormalVector direction ) const
 	{
-		const float line_dot { glm::dot( this->direction(), point ) };
-		const float direction_dot { glm::dot( this->direction(), direction ) };
+		const float line_dot { glm::dot( this->direction().vec(), point.vec() ) };
+		const float direction_dot { glm::dot( this->direction().vec(), direction.vec() ) };
 
 		// if the dot product of the direction of the plane and the direction of the line is zero, Then there will never be an intersection
 		if ( direction_dot <= std::numeric_limits< float >::epsilon()
@@ -48,7 +48,7 @@ namespace fgl::engine
 
 		const float t { -( line_dot - this->distance() ) / direction_dot };
 
-		const WorldCoordinate intersection_point { point + ( t * direction ) };
+		const WorldCoordinate intersection_point { point + ( direction * t ) };
 
 		return intersection_point;
 	}

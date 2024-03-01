@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "LineBase.hpp"
+#include "engine/FGL_DEFINES.hpp"
+#include "engine/primitives/planes/concepts.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 #include "engine/primitives/vectors/NormalVector.hpp"
 #include "engine/primitives/vectors/Vector.hpp"
@@ -11,14 +14,18 @@
 namespace fgl::engine
 {
 	template < CoordinateSpace CType >
-	class LineSegment
+	class LineSegment final : public LineBase
 	{
 		Coordinate< CType > start;
 		Coordinate< CType > end;
 
+		glm::vec3 getVec3Position() const override { return getPosition().vec(); }
+
+		glm::vec3 getVec3Direction() const override { return getDirection().vec(); }
+
 	  public:
 
-		NormalVector getDirection() const { return NormalVector( static_cast< glm::vec3 >( end - start ) ); }
+		NormalVector getDirection() const { return NormalVector( end - start ); }
 
 		Coordinate< CType > getPosition() const { return start; }
 
@@ -32,6 +39,20 @@ namespace fgl::engine
 		explicit LineSegment( const glm::vec3 i_start, glm::vec3 i_end ) : start( i_start ), end( i_end ) {}
 
 		inline LineSegment flip() const { return LineSegment( end, start ); }
+
+		template < typename T >
+			requires is_plane< T >
+		bool FGL_FLATTEN intersects( const T plane ) const
+		{
+			return plane.isForward( start ) != plane.isForward( end );
+		}
+
+		template < typename T >
+			requires is_plane< T >
+		Coordinate< CType > FGL_FLATTEN intersection( const T plane ) const
+		{
+			return Coordinate< CType >( planeIntersection( plane.getDirection().vec(), plane.distance() ) );
+		}
 	};
 
 	template < CoordinateSpace CType >

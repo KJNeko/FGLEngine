@@ -7,6 +7,7 @@
 #include <glm/vec3.hpp>
 
 #include "engine/primitives/CoordinateSpace.hpp"
+#include "engine/primitives/points/concepts.hpp"
 
 namespace fgl::engine
 {
@@ -16,15 +17,29 @@ namespace fgl::engine
 
 	class Vector;
 
-	class NormalVector : public glm::vec3
+	class NormalVector : private glm::vec3
 	{
 		constexpr explicit NormalVector( const glm::vec3 point, [[maybe_unused]] const bool ) : glm::vec3( point ) {}
 
 	  public:
 
+		const glm::vec3& vec() const { return static_cast< const glm::vec3& >( *this ); }
+
+		glm::vec3& vec() { return static_cast< glm::vec3& >( *this ); }
+
 		//TODO: Make my own normalize function to bypass the fact glm::normalize can't be constexpr
+		NormalVector() : glm::vec3( glm::normalize( glm::vec3( 1.0f ) ) ) {}
+
+		NormalVector( const NormalVector& other ) = default;
+
 		NormalVector( const Vector vec );
+
 		explicit NormalVector( const glm::vec3 vec );
+
+		template < typename T >
+			requires is_coordinate< T >
+		explicit NormalVector( const T vec ) : NormalVector( vec.vec() )
+		{}
 
 		Vector operator*( const float scalar ) const;
 

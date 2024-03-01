@@ -110,8 +110,6 @@ namespace fgl::engine
 
 		for ( const tinygltf::Mesh& mesh : model.meshes )
 		{
-			std::vector< glm::vec3 > model_positions;
-
 			for ( const tinygltf::Primitive& primitive : mesh.primitives )
 			{
 				//TODO: Implement modes
@@ -149,7 +147,6 @@ namespace fgl::engine
 				std::vector< ModelCoordinate > position_data {
 					extractData< ModelCoordinate >( model, position_accessor )
 				};
-				model_positions.insert( model_positions.end(), position_data.begin(), position_data.end() );
 
 				std::vector< glm::vec3 > normals {};
 
@@ -191,7 +188,7 @@ namespace fgl::engine
 					//Fix position to be -Z UP
 					//verts[ i ].m_position = position_data[ i ];
 					verts[ i ].m_position =
-						glm::vec3( position_data[ i ].x, position_data[ i ].z, position_data[ i ].y );
+						glm::vec3( position_data[ i ].vec().x, position_data[ i ].vec().z, position_data[ i ].vec().y );
 					verts[ i ].m_normal = normals[ i ];
 				}
 

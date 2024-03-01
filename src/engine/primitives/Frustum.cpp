@@ -6,7 +6,6 @@
 
 #include "engine/debug/drawers.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"
-#include "engine/primitives/glmOperators.hpp"
 #include "imgui/imgui.h"
 
 namespace fgl::engine
@@ -14,9 +13,9 @@ namespace fgl::engine
 
 	float signedDistance( const NormalVector direction, const WorldCoordinate& point, const WorldCoordinate& origin )
 	{
-		const glm::vec3 vector_between { point - origin };
+		const glm::vec3 vector_between { point.vec() - origin.vec() };
 
-		float dot { glm::dot( vector_between, direction ) };
+		float dot { glm::dot( vector_between, direction.vec() ) };
 
 		assert( !std::isnan( dot ) );
 		assert( !std::isinf( dot ) );
@@ -30,11 +29,13 @@ namespace fgl::engine
 		std::vector< WorldCoordinate >& out_enter_intersections,
 		std::vector< WorldCoordinate >& out_exit_intersections )
 	{
-		const WorldCoordinate intersection { plane.intersection( line ) };
+		const WorldCoordinate intersection { line.intersection( plane ) };
 
-		if ( std::isnan( intersection.x ) || std::isnan( intersection.y ) || std::isnan( intersection.z ) ) return;
+		if ( std::isnan( intersection.vec().x ) || std::isnan( intersection.vec().y )
+		     || std::isnan( intersection.vec().z ) )
+			return;
 
-		const float dot { glm::dot( line.getDirection(), plane.getDirection() ) };
+		const float dot { glm::dot( line.getDirection().vec(), plane.getDirection().vec() ) };
 
 		assert( !std::isnan( dot ) );
 		assert( !std::isinf( dot ) );

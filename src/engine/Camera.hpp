@@ -60,7 +60,7 @@ namespace fgl::engine
 		Camera()
 		{
 			setPerspectiveProjection( 90.0f, 16.0f / 9.0f, constants::NEAR_PLANE, constants::FAR_PLANE );
-			setView( constants::CENTER, Rotation( 0.0f, 0.0f, 0.0f ) );
+			setView( WorldCoordinate( constants::CENTER ), Rotation( 0.0f, 0.0f, 0.0f ) );
 		}
 
 		WorldCoordinate getFrustumPosition() const;
@@ -112,7 +112,7 @@ namespace fgl::engine
 			TaitBryan
 		};
 
-		void setView( glm::vec3 pos, const Rotation rotation, const ViewMode mode = TaitBryan );
+		void setView( WorldCoordinate pos, const Rotation rotation, const ViewMode mode = TaitBryan );
 	};
 
 } // namespace fgl::engine

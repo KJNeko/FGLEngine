@@ -5,12 +5,13 @@
 #pragma once
 
 #include "engine/primitives/CoordinateSpace.hpp"
-#include "engine/primitives/lines/LineSegment.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
-#include "engine/primitives/vectors/Vector.hpp"
+#include "engine/primitives/vectors/NormalVector.hpp"
 
 namespace fgl::engine
 {
+
+	class Vector;
 
 	template < CoordinateSpace CType >
 	class PointPlane
@@ -20,7 +21,9 @@ namespace fgl::engine
 
 	  public:
 
-		explicit PointPlane( const Coordinate< CType > pos, const Vector vec ) : coordinate( pos ), vector( vec ) {}
+		constexpr static auto SpaceType { CType };
+
+		explicit PointPlane( const Coordinate< CType > pos, const Vector vec );
 
 		explicit PointPlane( const Coordinate< CType > pos, const NormalVector vec ) : coordinate( pos ), vector( vec )
 		{}
@@ -29,26 +32,16 @@ namespace fgl::engine
 
 		NormalVector getDirection() const { return vector; }
 
-		float distance() const { return glm::dot( vector, coordinate ); }
+		float distance() const;
 
 		Coordinate< CType > getPosition() const { return coordinate; }
 
 		float distanceFrom( const Coordinate< CType > coord ) const
 		{
-			return static_cast< float >( glm::dot( coord - coordinate, vector ) );
+			return static_cast< float >( glm::dot( ( coord - coordinate ).vec(), vector.vec() ) );
 		}
 
 		bool isForward( const Coordinate< CType > coord ) const { return distanceFrom( coord ) > 0.0f; }
-
-		bool intersects( const LineSegment< CType > line )
-		{
-			return isForward( line.getPosition() ) != isForward( line.getEnd() );
-		}
-
-		Coordinate< CType > intersection( const LineSegment< CType > line ) const;
-		Coordinate< CType > intersection( const Coordinate< CType > point, const NormalVector direction ) const;
-
-		Coordinate< CType > mapToPlane( const Coordinate< CType > point ) const;
 	};
 
 	template < CoordinateSpace CType >

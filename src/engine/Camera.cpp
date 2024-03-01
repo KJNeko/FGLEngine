@@ -31,7 +31,7 @@ namespace fgl::engine
 
 	void Camera::setViewDirection( glm::vec3 position, const Vector direction, glm::vec3 up )
 	{
-		glm::lookAt( position, position + direction, up );
+		glm::lookAt( position, position + direction.vec(), up );
 		//frustum = view_matrix * base_frustum;
 		return;
 	}
@@ -41,7 +41,7 @@ namespace fgl::engine
 		setViewDirection( position, Vector( glm::normalize( target - position ) ), up );
 	}
 
-	void Camera::setView( glm::vec3 pos, const Rotation rotation, const ViewMode mode )
+	void Camera::setView( WorldCoordinate pos, const Rotation rotation, const ViewMode mode )
 	{
 		//Flip Z due to the fact we use Z+ outside of this function. It must be Z- inside
 		//position.z = -position.z;
@@ -57,8 +57,8 @@ namespace fgl::engine
 
 					const glm::vec3 camera_up { rotation_matrix * glm::vec4( constants::WORLD_UP, 0.0f ) };
 
-					view_matrix =
-						Matrix< MatrixType::WorldToCamera >( glm::lookAtLH( pos, pos + forward, -camera_up ) );
+					view_matrix = Matrix<
+						MatrixType::WorldToCamera >( glm::lookAtLH( pos.vec(), ( pos + forward ).vec(), -camera_up ) );
 					inverse_view_matrix = glm::inverse( view_matrix );
 
 					break;
@@ -107,9 +107,9 @@ namespace fgl::engine
 		const Vector left_forward { far_forward - right_half };
 
 		const Plane< CoordinateSpace::Model > right_plane { constants::WORLD_CENTER,
-			                                                glm::cross( right_forward, constants::WORLD_DOWN ) };
+			                                                glm::cross( right_forward.vec(), constants::WORLD_DOWN ) };
 		const Plane< CoordinateSpace::Model > left_plane { constants::WORLD_CENTER,
-			                                               glm::cross( left_forward, constants::WORLD_UP ) };
+			                                               glm::cross( left_forward.vec(), constants::WORLD_UP ) };
 
 		const ModelCoordinate top_half { constants::WORLD_UP * half_height };
 
@@ -117,10 +117,11 @@ namespace fgl::engine
 		const Vector bottom_forward { far_forward - top_half };
 
 		const Plane< CoordinateSpace::Model > top_plane { constants::WORLD_CENTER,
-			                                              glm::cross( top_forward, constants::WORLD_RIGHT ) };
+			                                              glm::cross( top_forward.vec(), constants::WORLD_RIGHT ) };
 
-		const Plane< CoordinateSpace::Model > bottom_plane { constants::WORLD_CENTER,
-			                                                 glm::cross( bottom_forward, constants::WORLD_LEFT ) };
+		const Plane< CoordinateSpace::Model > bottom_plane {
+			constants::WORLD_CENTER, glm::cross( bottom_forward.vec(), constants::WORLD_LEFT )
+		};
 
 		return { near_plane,
 			     far_plane,

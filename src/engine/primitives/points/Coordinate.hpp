@@ -12,7 +12,6 @@
 #include "engine/constants.hpp"
 #include "engine/primitives/CoordinateSpace.hpp"
 #include "engine/primitives/Scale.hpp"
-#include "engine/primitives/glmOperators.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
 #include "engine/primitives/matricies/MatrixEvolvedTypes.hpp"
 
@@ -22,11 +21,9 @@ namespace fgl::engine
 	class Vector;
 	class NormalVector;
 
-	template < CoordinateSpace type >
-	class Coordinate : public glm::vec3
+	template < CoordinateSpace CType >
+	class Coordinate : protected glm::vec3
 	{
-		using ValueT = float;
-
 	  public:
 
 		float& up() { return z; }
@@ -41,6 +38,9 @@ namespace fgl::engine
 
 		float forward() const { return y; }
 
+		Coordinate( const Coordinate& other ) noexcept = default;
+		Coordinate( Coordinate&& other ) = default;
+
 		Coordinate() noexcept : glm::vec3( constants::DEFAULT_VEC3 ) {}
 
 		explicit Coordinate( const glm::vec3 position ) noexcept : glm::vec3( position ) {}
@@ -49,40 +49,30 @@ namespace fgl::engine
 		{}
 
 		explicit Coordinate( const float value ) : glm::vec3( value ) {}
+
+		explicit Coordinate( const Vector vector );
+
+		glm::vec3& vec() { return static_cast< glm::vec3& >( *this ); }
+
+		const glm::vec3& vec() const { return static_cast< const glm::vec3& >( *this ); }
+
+		Coordinate operator+( const Vector other ) const;
+		Coordinate operator-( const Vector other ) const;
+		Coordinate& operator+=( const Vector other );
+		Coordinate& operator-=( const Vector other );
+
+		Coordinate operator+( const NormalVector other ) const;
+		Coordinate operator-( const NormalVector other ) const;
+
+		Coordinate operator+( const Coordinate other ) const;
+		Coordinate operator-( const Coordinate other ) const;
+
+		Coordinate operator+( const glm::vec3 other ) const;
+		Coordinate operator-( const glm::vec3 other ) const;
+
+		Coordinate& operator=( const Coordinate& other ) = default;
+		Coordinate& operator=( Coordinate&& other ) = default;
 	};
-
-	template < CoordinateSpace CType >
-	Coordinate< CType > operator+( const Coordinate< CType > lhs, const Vector vector );
-
-	template < CoordinateSpace CType >
-	Coordinate< CType > operator+( const Coordinate< CType > lhs, const Scale scale );
-
-	template < CoordinateSpace CType >
-	Coordinate< CType > operator+( const Coordinate< CType > lhs, const NormalVector vector );
-
-	template < CoordinateSpace CType >
-	Coordinate< CType > operator+( const Coordinate< CType > lhs, const Coordinate< CType > rhs )
-	{
-		return Coordinate< CType >( static_cast< glm::vec3 >( lhs ) + static_cast< glm::vec3 >( rhs ) );
-	}
-
-	template < CoordinateSpace CType >
-	Coordinate< CType > operator-( const Coordinate< CType > lhs, const Coordinate< CType > rhs )
-	{
-		return Coordinate< CType >( static_cast< glm::vec3 >( lhs ) - static_cast< glm::vec3 >( rhs ) );
-	}
-
-	template < CoordinateSpace CType >
-	Coordinate< CType > operator+( const Coordinate< CType > lhs, const glm::vec3 rhs )
-	{
-		return Coordinate< CType >( static_cast< glm::vec3 >( lhs ) + rhs );
-	}
-
-	template < CoordinateSpace CType >
-	Coordinate< CType > operator-( const Coordinate< CType > lhs, const glm::vec3 rhs )
-	{
-		return Coordinate< CType >( static_cast< glm::vec3 >( lhs ) - rhs );
-	}
 
 	using ModelCoordinate = Coordinate< CoordinateSpace::Model >;
 	using WorldCoordinate = Coordinate< CoordinateSpace::World >;
@@ -90,26 +80,3 @@ namespace fgl::engine
 	static_assert( sizeof( glm::vec3 ) == sizeof( ModelCoordinate ) );
 
 } // namespace fgl::engine
-
-namespace glm
-{
-
-	template < fgl::engine::CoordinateSpace CType >
-	inline float dot( const fgl::engine::Coordinate< CType > coord, const fgl::engine::Coordinate< CType > other )
-	{
-		return dot( static_cast< vec3 >( coord ), static_cast< vec3 >( other ) );
-	}
-
-	inline float dot( const fgl::engine::WorldCoordinate coord, const vec3 other )
-	{
-		return dot( static_cast< vec3 >( coord ), other );
-	}
-
-	inline float distance(
-		const fgl::engine::Coordinate< fgl::engine::CoordinateSpace::World > coord,
-		const fgl::engine::Coordinate< fgl::engine::CoordinateSpace::World > other )
-	{
-		return distance( static_cast< vec3 >( coord ), static_cast< vec3 >( other ) );
-	}
-
-} // namespace glm

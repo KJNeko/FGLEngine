@@ -27,7 +27,7 @@ namespace fgl::engine
 			                 scale.z * rotation_mat[ 2 ][ 1 ],
 			                 scale.z * rotation_mat[ 2 ][ 2 ],
 			                 0.0f },
-			               { translation.x, translation.y, translation.z, 1.0f } };
+			               { translation.vec().x, translation.vec().y, translation.vec().z, 1.0f } };
 	}
 
 	Matrix< MatrixType::ModelToWorld > TransformComponent::mat() const

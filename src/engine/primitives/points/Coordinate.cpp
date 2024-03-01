@@ -4,74 +4,81 @@
 
 #include "Coordinate.hpp"
 
+#include "engine/primitives/planes/concepts.hpp"
 #include "engine/primitives/vectors/NormalVector.hpp"
 #include "engine/primitives/vectors/Vector.hpp"
 
 namespace fgl::engine
 {
 
-	template <>
-	Coordinate< CoordinateSpace::Model >
-		operator+( const Coordinate< CoordinateSpace::Model > coord, const Vector vector )
+	template < CoordinateSpace CType >
+	Coordinate< CType >::Coordinate( const Vector vector ) : glm::vec3( vector.vec() )
+	{}
+
+	template < CoordinateSpace CType >
+	Coordinate< CType > Coordinate< CType >::operator+( const Vector other ) const
 	{
-		return Coordinate<
-			CoordinateSpace::Model >( static_cast< glm::vec3 >( coord ) + static_cast< glm::vec3 >( vector ) );
+		return Coordinate< CType >( vec() + other.vec() );
 	}
 
-	template <>
-	Coordinate< CoordinateSpace::Model >
-		operator+( const Coordinate< CoordinateSpace::Model > coord, const NormalVector vector )
+	template < CoordinateSpace CType >
+	Coordinate< CType > Coordinate< CType >::operator-( const Vector other ) const
 	{
-		return Coordinate<
-			CoordinateSpace::Model >( static_cast< glm::vec3 >( coord ) + static_cast< glm::vec3 >( vector ) );
+		return Coordinate< CType >( vec() - other.vec() );
 	}
 
-	template <>
-	Coordinate< CoordinateSpace::Model >
-		operator+( const Coordinate< CoordinateSpace::Model > coord, const Coordinate< CoordinateSpace::Model > other )
+	template < CoordinateSpace CType >
+	Coordinate< CType >& Coordinate< CType >::operator+=( const Vector other )
 	{
-		return Coordinate<
-			CoordinateSpace::Model >( static_cast< glm::vec3 >( coord ) + static_cast< glm::vec3 >( other ) );
+		this->vec() += other.vec();
+		return *this;
 	}
 
-	template <>
-	Coordinate< CoordinateSpace::Model >
-		operator-( const Coordinate< CoordinateSpace::Model > coord, const Coordinate< CoordinateSpace::Model > other )
+	template < CoordinateSpace CType >
+	Coordinate< CType >& Coordinate< CType >::operator-=( const Vector other )
 	{
-		return Coordinate<
-			CoordinateSpace::Model >( static_cast< glm::vec3 >( coord ) - static_cast< glm::vec3 >( other ) );
+		this->vec() -= other.vec();
+		return *this;
 	}
 
-	template <>
-	Coordinate< CoordinateSpace::World >
-		operator+( const Coordinate< CoordinateSpace::World > coord, const Vector vector )
+	template < CoordinateSpace CType >
+	Coordinate< CType > Coordinate< CType >::operator+( const NormalVector other ) const
 	{
-		return Coordinate<
-			CoordinateSpace::World >( static_cast< glm::vec3 >( coord ) + static_cast< glm::vec3 >( vector ) );
+		return Coordinate< CType >( vec() + other.vec() );
 	}
 
-	template <>
-	Coordinate< CoordinateSpace::World >
-		operator+( const Coordinate< CoordinateSpace::World > coord, const NormalVector vector )
+	template < CoordinateSpace CType >
+	Coordinate< CType > Coordinate< CType >::operator-( const NormalVector other ) const
 	{
-		return Coordinate<
-			CoordinateSpace::World >( static_cast< glm::vec3 >( coord ) + static_cast< glm::vec3 >( vector ) );
+		return Coordinate< CType >( vec() - other.vec() );
 	}
 
-	template <>
-	Coordinate< CoordinateSpace::World >
-		operator+( const Coordinate< CoordinateSpace::World > coord, const Coordinate< CoordinateSpace::World > other )
+	template < CoordinateSpace CType >
+	Coordinate< CType > Coordinate< CType >::operator+( const Coordinate other ) const
 	{
-		return Coordinate<
-			CoordinateSpace::World >( static_cast< glm::vec3 >( coord ) + static_cast< glm::vec3 >( other ) );
+		return Coordinate< CType >( vec() + other.vec() );
 	}
 
-	template <>
-	Coordinate< CoordinateSpace::World >
-		operator-( const Coordinate< CoordinateSpace::World > coord, const Coordinate< CoordinateSpace::World > other )
+	template < CoordinateSpace CType >
+	Coordinate< CType > Coordinate< CType >::operator-( const Coordinate other ) const
 	{
-		return Coordinate<
-			CoordinateSpace::World >( static_cast< glm::vec3 >( coord ) - static_cast< glm::vec3 >( other ) );
+		return Coordinate< CType >( vec() - other.vec() );
 	}
+
+	template < CoordinateSpace CType >
+	Coordinate< CType > Coordinate< CType >::operator+( const glm::vec3 other ) const
+	{
+		return Coordinate< CType >( vec() + other );
+	}
+
+	template < CoordinateSpace CType >
+	Coordinate< CType > Coordinate< CType >::operator-( const glm::vec3 other ) const
+	{
+		return Coordinate< CType >( vec() - other );
+	}
+
+	template class Coordinate< CoordinateSpace::Model >;
+	template class Coordinate< CoordinateSpace::World >;
+	template class Coordinate< CoordinateSpace::Screen >;
 
 } // namespace fgl::engine

@@ -15,27 +15,6 @@ namespace fgl::engine
 {
 
 	template < CoordinateSpace CType >
-	bool OrientedBoundingBox< CType >::isInFrustum( const Frustum< CType >& frustum ) const
-	{
-		if constexpr ( CType != CoordinateSpace::World )
-		{
-			//TODO: Figure out how to make this a compiler error
-			throw std::runtime_error( "Frustum and bounding box must be in World coordinate space!" );
-		}
-		else
-		{
-			ZoneScoped;
-			const std::vector< Coordinate< CType > >& points { this->points() };
-			for ( const auto& point : points )
-			{
-				if ( frustum.pointInside( point ) ) return true;
-			}
-
-			return false;
-		}
-	}
-
-	template < CoordinateSpace CType >
 	consteval std::array< std::uint32_t, OrientedBoundingBox< CType >::indicies_count > OrientedBoundingBox<
 		CType >::triangleIndicies()
 	{
@@ -107,15 +86,15 @@ namespace fgl::engine
 	template < CoordinateSpace CType >
 	std::vector< Coordinate< CType > > OrientedBoundingBox< CType >::points() const
 	{
-		assert( middle != constants::DEFAULT_VEC3 );
+		assert( middle.vec() != constants::DEFAULT_VEC3 );
 		assert( scale != glm::vec3( 0.0f ) );
 		std::vector< Coordinate< CType > > points;
 
 		// xp == x positive (Highest x point)
 		// xn == x negative (Lowest x point)
 
-		const glm::vec3 xp_yp_zp { middle + scale };
-		const glm::vec3 xn_yn_zn { middle - scale };
+		const glm::vec3 xp_yp_zp { middle.vec() + scale };
+		const glm::vec3 xn_yn_zn { middle.vec() - scale };
 
 		const auto xn { xn_yn_zn.x };
 		const auto yn { xn_yn_zn.y };
@@ -174,6 +153,8 @@ namespace fgl::engine
 		points[ 6 ] = Coordinate< CType >( xn_yn_zn );
 		points[ 7 ] = Coordinate< CType >( xp_yn_zn );
 
+		//Rotate all the points around middle using the rotation
+
 		return points;
 	}
 
@@ -181,10 +162,10 @@ namespace fgl::engine
 	OrientedBoundingBox< CType > OrientedBoundingBox< CType >::combine( const OrientedBoundingBox< CType >& other )
 		const
 	{
-		assert( middle != constants::DEFAULT_VEC3 );
+		assert( middle.vec() != constants::DEFAULT_VEC3 );
 		assert( scale != glm::vec3( 0.0f ) );
 
-		assert( other.middle != constants::DEFAULT_VEC3 );
+		assert( other.middle.vec() != constants::DEFAULT_VEC3 );
 		assert( other.scale != glm::vec3( 0.0f ) );
 
 		ZoneScoped;
@@ -231,19 +212,19 @@ namespace fgl::engine
 		assert( points.size() > 0 );
 
 		// neg (min)
-		glm::vec3 top_left_front { points[ 0 ] };
+		glm::vec3 top_left_front { points[ 0 ].vec() };
 		// pos (max)
-		glm::vec3 bottom_right_back { points[ 0 ] };
+		glm::vec3 bottom_right_back { points[ 0 ].vec() };
 
 		for ( const auto& pos : points )
 		{
-			top_left_front.x = std::min( static_cast< glm::vec3 >( pos ).x, top_left_front.x );
-			top_left_front.y = std::min( static_cast< glm::vec3 >( pos ).y, top_left_front.y );
-			top_left_front.z = std::min( static_cast< glm::vec3 >( pos ).z, top_left_front.z );
+			top_left_front.x = std::min( pos.vec().x, top_left_front.x );
+			top_left_front.y = std::min( pos.vec().y, top_left_front.y );
+			top_left_front.z = std::min( pos.vec().z, top_left_front.z );
 
-			bottom_right_back.x = std::max( static_cast< glm::vec3 >( pos ).x, bottom_right_back.x );
-			bottom_right_back.y = std::max( static_cast< glm::vec3 >( pos ).y, bottom_right_back.y );
-			bottom_right_back.z = std::max( static_cast< glm::vec3 >( pos ).z, bottom_right_back.z );
+			bottom_right_back.x = std::max( pos.vec().x, bottom_right_back.x );
+			bottom_right_back.y = std::max( pos.vec().y, bottom_right_back.y );
+			bottom_right_back.z = std::max( pos.vec().z, bottom_right_back.z );
 		}
 
 		//Calculate midpoint

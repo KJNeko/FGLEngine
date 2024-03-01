@@ -9,10 +9,14 @@
 namespace fgl::engine::interface
 {
 
-	//! Dummy class to allow for inheriting to pass 'is_bounding_box[
-	class OrientedBoundingBox
-	{};
+	class NormalVector;
 
-	template < typename T > concept is_bounding_box = std::is_base_of_v< OrientedBoundingBox, T >;
+	//! Dummy class to allow for inheriting to pass 'is_bounding_box[
+	class BoundingBox
+	{
+	  public:
+
+		virtual ~BoundingBox() {};
+	};
 
 } // namespace fgl::engine::interface

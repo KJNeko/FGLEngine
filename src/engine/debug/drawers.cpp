@@ -36,7 +36,7 @@ namespace fgl::engine::debug
 		const ImVec2 window_size { windowSize() };
 
 		const Coordinate< CoordinateSpace::Screen > screen_point { glm::projectZO(
-			static_cast< glm::vec3 >( world_point ),
+			world_point.vec(),
 			glm::mat4( 1.0f ),
 			getDebugDrawingCamera().getProjectionViewMatrix(),
 			glm::vec4( 0.0f, 0.0f, window_size.x, window_size.y ) ) };
@@ -51,7 +51,7 @@ namespace fgl::engine::debug
 
 	ImVec2 glmToImgui( const Coordinate< CoordinateSpace::Screen > coordinate )
 	{
-		return glmToImgui( static_cast< glm::vec3 >( coordinate ) );
+		return glmToImgui( coordinate.vec() );
 	}
 
 	bool isBehind( const glm::vec3 point )
@@ -83,7 +83,7 @@ namespace fgl::engine::debug
 		void drawBoundingBox( const OrientedBoundingBox< CoordinateSpace::World >& box, const glm::vec3 color )
 		{
 			ZoneScopedC( TRACY_DRAWER_FUNC_COLOR );
-			for ( const auto line : box.lines() )
+			for ( const auto& line : box.lines() )
 			{
 				auto p1 { line.getPosition() };
 				auto p2 { line.getEnd() };
@@ -102,8 +102,8 @@ namespace fgl::engine::debug
 			const Coordinate< CoordinateSpace::Screen > start_screen { toScreenSpace( line.getPosition() ) };
 			const Coordinate< CoordinateSpace::Screen > end_screen { toScreenSpace( line.getEnd() ) };
 
-			if ( !inView( start_screen ) && !inView( end_screen ) ) return;
-			if ( isBehind( start_screen ) || isBehind( end_screen ) ) return;
+			if ( !inView( start_screen.vec() ) && !inView( end_screen.vec() ) ) return;
+			if ( isBehind( start_screen.vec() ) || isBehind( end_screen.vec() ) ) return;
 
 			ImGui::GetForegroundDrawList()->AddLine(
 				glmToImgui( start_screen ), glmToImgui( end_screen ), ImColor( color.x, color.y, color.z ), thickness );
@@ -119,14 +119,14 @@ namespace fgl::engine::debug
 
 		void drawPointText( const Coordinate< CoordinateSpace::World > point, const glm::vec3 color )
 		{
-			const glm::vec3 screen_point { toScreenSpace( point ) };
+			const glm::vec3 screen_point { toScreenSpace( point ).vec() };
 
 			if ( !inView( screen_point ) ) return;
 
 			drawPoint( point, "", color );
 
-			const std::string text { "World: (" + std::to_string( point.x ) + ", " + std::to_string( point.y ) + ", "
-				                     + std::to_string( point.z ) + ")" };
+			const std::string text { "World: (" + std::to_string( point.vec().x ) + ", "
+				                     + std::to_string( point.vec().y ) + ", " + std::to_string( point.vec().z ) + ")" };
 
 			screen::drawText( glm::vec2( screen_point.x, screen_point.y ), text, color, glm::vec2( 0.0f, 20.f ) );
 
@@ -137,14 +137,16 @@ namespace fgl::engine::debug
 			screen::drawText( glm::vec2( screen_point.x, screen_point.y ), text2, color, glm::vec2( 0.0f, 30.0f ) );
 
 			const Frustum frustum { getDebugDrawingCamera().getFrustumBounds() };
-			const bool in_view { frustum.pointInside( point ) };
+			//const bool in_view { frustum.pointInside( point ) };
+			//TODO: This
+			const bool in_view { false };
 
 			drawBoolAlpha( point, in_view, glm::vec2( 0.0f, 40.0f ) );
 		}
 
 		void drawPointLabel( const Coordinate< CoordinateSpace::World > point, const std::string label )
 		{
-			const glm::vec3 screen_point { toScreenSpace( point ) };
+			const glm::vec3 screen_point { toScreenSpace( point ).vec() };
 
 			if ( !inView( screen_point ) ) return;
 
@@ -154,7 +156,7 @@ namespace fgl::engine::debug
 		void drawPoint(
 			const Coordinate< CoordinateSpace::World > point, const std::string label, const glm::vec3 color )
 		{
-			const auto screen_point { toScreenSpace( point ) };
+			const glm::vec3 screen_point { toScreenSpace( point ).vec() };
 			if ( !inView( screen_point ) ) return;
 
 			const float div { screen_point.z };
@@ -171,7 +173,8 @@ namespace fgl::engine::debug
 
 			const auto color { value ? glm::vec3( 0.0f, 1.0f, 0.0f ) : glm::vec3( 1.0f, 0.0f, 0.0f ) };
 
-			screen::drawText( glm::vec2( screen_point.x, screen_point.y + offset.y ), value ? "true" : "false", color );
+			screen::drawText(
+				glm::vec2( screen_point.vec().x, screen_point.vec().y + offset.y ), value ? "true" : "false", color );
 		}
 
 		void drawVector(
@@ -188,19 +191,20 @@ namespace fgl::engine::debug
 
 			//Draw ending lines for the vector (two perpendicular lines)
 			const WorldCoordinate perpendicular_vector {
-				glm::normalize( glm::cross( vector, glm::vec3( 0.0f, 1.0f, 0.0f ) ) ) / 4.0f
+				glm::normalize( glm::cross( vector.vec(), glm::vec3( 0.0f, 1.0f, 0.0f ) ) ) / 4.0f
 			};
-			const WorldCoordinate perpendicular_vector2 { glm::normalize( glm::cross( vector, perpendicular_vector ) )
-				                                          / 4.0f };
+			const WorldCoordinate perpendicular_vector2 {
+				glm::normalize( glm::cross( vector.vec(), perpendicular_vector.vec() ) ) / 4.0f
+			};
 
 			drawLine(
-				point + glm::normalize( vector ) + perpendicular_vector,
-				point + glm::normalize( vector ) - perpendicular_vector,
+				point + glm::normalize( vector.vec() ) + perpendicular_vector,
+				point + glm::normalize( vector.vec() ) - perpendicular_vector,
 				color );
 
 			drawLine(
-				point + glm::normalize( vector ) + perpendicular_vector2,
-				point + glm::normalize( vector ) - perpendicular_vector2,
+				point + glm::normalize( vector.vec() ) + perpendicular_vector2,
+				point + glm::normalize( vector.vec() ) - perpendicular_vector2,
 				color );
 		}
 
@@ -238,7 +242,7 @@ namespace fgl::engine::debug
 		{
 			const NormalVector normal { plane.getDirection() };
 
-			assert( point != constants::DEFAULT_VEC3 );
+			assert( point.vec() != constants::DEFAULT_VEC3 );
 
 			drawLine( point, point + normal, color );
 			drawPoint( point + normal, label, color );

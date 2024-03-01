@@ -6,8 +6,10 @@
 
 #include <glm/vec3.hpp>
 
+#include "engine/FGL_DEFINES.hpp"
 #include "engine/constants.hpp"
 #include "engine/primitives/CoordinateSpace.hpp"
+#include "engine/primitives/points/concepts.hpp"
 
 namespace fgl::engine
 {
@@ -15,16 +17,29 @@ namespace fgl::engine
 	template < CoordinateSpace type >
 	class Coordinate;
 
+	class NormalVector;
+
 	//TODO: Make normalized form of Vector
-	class Vector : public glm::vec3
+	class Vector : private glm::vec3
 	{
 	  public:
+
+		const glm::vec3& vec() const { return static_cast< const glm::vec3& >( *this ); }
+
+		glm::vec3& vec() { return static_cast< glm::vec3& >( *this ); }
 
 		constexpr Vector() : glm::vec3( constants::DEFAULT_VEC3 ) {}
 
 		constexpr explicit Vector( const float value ) : glm::vec3( value ) {}
 
 		constexpr explicit Vector( const glm::vec3 i_vec ) : glm::vec3( i_vec ) {}
+
+		template < typename T >
+			requires is_coordinate< T >
+		explicit Vector( const T coord ) : glm::vec3( coord.vec() )
+		{}
+
+		explicit Vector( const NormalVector normal_vector );
 
 		constexpr explicit Vector( const float i_x, const float i_y, const float i_z ) : glm::vec3( i_x, i_y, i_z ) {}
 
@@ -44,37 +59,23 @@ namespace fgl::engine
 		Vector( Vector&& other ) = delete;
 		Vector& operator=( const Vector&& other ) = delete;
 
-		Vector& operator=( const std::initializer_list< float > list );
+		//Coordinate has an operator for vector that's much easier to define. So we just invert the order and use that one.
+		template < CoordinateSpace CType >
+		Vector FGL_FLATTEN operator+( const Coordinate< CType > coord )
+		{
+			return coord + *this;
+		}
+
+		template < CoordinateSpace CType >
+		Vector FGL_FLATTEN operator-( const Coordinate< CType > coord )
+		{
+			return coord - *this;
+		}
 	};
 
 	inline Vector operator-( const Vector vec )
 	{
-		return Vector( -static_cast< glm::vec3 >( vec ) );
+		return Vector( -vec.vec() );
 	}
 
 } // namespace fgl::engine
-
-namespace glm
-{
-
-	inline fgl::engine::Vector normalize( fgl::engine::Vector vector )
-	{
-		return fgl::engine::Vector( glm::normalize( static_cast< glm::vec3 >( vector ) ) );
-	}
-
-	inline fgl::engine::Vector cross( const fgl::engine::Vector vec, const glm::vec3 other )
-	{
-		return fgl::engine::Vector( cross( static_cast< vec3 >( vec ), other ) );
-	}
-
-	inline fgl::engine::Vector cross( const fgl::engine::Vector vec, const fgl::engine::Vector other )
-	{
-		return fgl::engine::Vector( cross( static_cast< vec3 >( vec ), static_cast< vec3 >( other ) ) );
-	}
-
-	inline float dot( const fgl::engine::Vector a, const fgl::engine::Vector b )
-	{
-		return dot( static_cast< vec3 >( a ), static_cast< vec3 >( b ) );
-	}
-
-} // namespace glm

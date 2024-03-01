@@ -7,10 +7,6 @@
 namespace fgl::engine
 {
 
-	class Scale : public glm::vec3
-	{
-		//Delete implicit conversion
-		//operator glm::vec3() = delete;
-	};
+	using Scale = glm::vec3;
 
 } // namespace fgl::engine

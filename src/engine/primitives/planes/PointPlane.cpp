@@ -4,41 +4,21 @@
 
 #include "PointPlane.hpp"
 
+#include "engine/primitives/vectors/Vector.hpp"
+
 namespace fgl::engine
 {
 
 	template < CoordinateSpace CType >
-	Coordinate< CType > PointPlane< CType >::intersection( const LineSegment< CType > line ) const
-	{
-		return intersection( line.getPosition(), line.getDirection() );
-	}
+	PointPlane< CType >::PointPlane( const Coordinate< CType > pos, const Vector vec ) :
+	  coordinate( pos ),
+	  vector( vec )
+	{}
 
 	template < CoordinateSpace CType >
-	Coordinate< CType > PointPlane<
-		CType >::intersection( const Coordinate< CType > point, const NormalVector direction ) const
+	float PointPlane< CType >::distance() const
 	{
-		const float line_dot { glm::dot( this->getDirection(), point ) };
-		const float direction_dot { glm::dot( this->getDirection(), direction ) };
-
-		// if the dot product of the direction of the plane and the direction of the line is zero, Then there will never be an intersection
-		if ( direction_dot <= std::numeric_limits< float >::epsilon()
-		     && direction_dot >= -std::numeric_limits< float >::epsilon() )
-			return { Coordinate< CType >( std::numeric_limits< float >::quiet_NaN() ) };
-
-		const float t { -( line_dot - this->distance() ) / direction_dot };
-
-		const Coordinate< CType > intersection_point { point + ( t * direction ) };
-
-		return intersection_point;
-	}
-
-	template < CoordinateSpace CType >
-	Coordinate< CType > PointPlane< CType >::mapToPlane( const Coordinate< CType > point ) const
-	{
-		const float distance { distanceFrom( point ) };
-		const Coordinate< CType > point2 { this->getDirection() * distance };
-
-		return point - point2;
+		return glm::dot( vector.vec(), coordinate.vec() );
 	}
 
 	template class PointPlane< CoordinateSpace::World >;

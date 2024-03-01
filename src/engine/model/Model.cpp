@@ -76,7 +76,7 @@ namespace fgl::engine
 	  m_draw_parameters( buildParameters( builder.m_primitives ) ),
 	  m_bounding_box( bounding_box )
 	{
-		assert( bounding_box.middle != constants::DEFAULT_VEC3 );
+		assert( bounding_box.middle.vec() != constants::DEFAULT_VEC3 );
 		m_primitives = std::move( builder.m_primitives );
 	}
 

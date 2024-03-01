@@ -20,11 +20,6 @@ namespace fgl::engine
 	struct Rotation;
 }
 
-namespace glm
-{
-	inline float dot( const fgl::engine::Rotation lhs, const fgl::engine::Rotation rhs );
-}
-
 namespace fgl::engine
 {
 	enum class RotationModifierType
@@ -117,8 +112,6 @@ namespace fgl::engine
 
 		RotationMatrix mat() const;
 
-		friend float glm::dot( const Rotation, const Rotation );
-
 		Rotation operator*( const Rotation other ) const;
 	};
 
@@ -172,12 +165,3 @@ namespace fgl::engine
 	}
 
 } // namespace fgl::engine
-
-namespace glm
-{
-	inline float dot( const fgl::engine::Rotation lhs, const fgl::engine::Rotation rhs )
-	{
-		return dot( static_cast< glm::quat >( lhs ), static_cast< glm::quat >( rhs ) );
-	}
-
-} // namespace glm

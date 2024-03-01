@@ -225,11 +225,11 @@ namespace fgl::engine
 						}
 
 						ImGui::PushItemWidth( 80 );
-						ImGui::DragFloat( "Pos X", &viewer.transform.translation.x, 0.1f );
+						ImGui::DragFloat( "Pos X", &viewer.transform.translation.vec().x, 0.1f );
 						ImGui::SameLine();
-						ImGui::DragFloat( "Pos Y", &viewer.transform.translation.y, 0.1f );
+						ImGui::DragFloat( "Pos Y", &viewer.transform.translation.vec().y, 0.1f );
 						ImGui::SameLine();
-						ImGui::DragFloat( "Pos Z", &viewer.transform.translation.z, 0.1f );
+						ImGui::DragFloat( "Pos Z", &viewer.transform.translation.vec().z, 0.1f );
 						ImGui::PopItemWidth();
 
 						ImGui::Separator();
@@ -254,7 +254,7 @@ namespace fgl::engine
 						if ( ImGui::CollapsingHeader( "Frustum matrix", &camera.update_using_alt ) )
 						{
 							ImGui::PushID( "FrustumMatrix" );
-							inputVec3( "Translation", Camera::frustum_alt_transform.translation );
+							inputVec3( "Translation", Camera::frustum_alt_transform.translation.vec() );
 							inputRVec3( "Rotation", Camera::frustum_alt_transform.rotation );
 							ImGui::PopID();
 						}
@@ -284,15 +284,15 @@ namespace fgl::engine
 
 							ImGui::Text( name_str.c_str() );
 							ImGui::SameLine( 120.0f );
-							printVec3( static_cast< glm::vec3 >( plane.getDirection() ) );
+							printVec3( plane.getDirection().vec() );
 							ImGui::SameLine();
 							ImGui::Text( "Distance: %.3f", static_cast< double >( plane.distance() ) );
 							const auto pos { plane.getPosition() };
 							ImGui::Text(
 								"Center: %.2f %.2f %.2f",
-								static_cast< double >( pos.x ),
-								static_cast< double >( pos.y ),
-								static_cast< double >( pos.z ) );
+								static_cast< double >( pos.vec().x ),
+								static_cast< double >( pos.vec().y ),
+								static_cast< double >( pos.vec().z ) );
 						};
 
 						printPlane( frustum.near, "Near" );
@@ -321,11 +321,11 @@ namespace fgl::engine
 									ImGui::PushItemWidth( 80 );
 									ImGui::Text( "Position" );
 									ImGui::SameLine();
-									ImGui::DragFloat( "X", &game_object.transform.translation.x, 0.1f );
+									ImGui::DragFloat( "X", &game_object.transform.translation.vec().x, 0.1f );
 									ImGui::SameLine();
-									ImGui::DragFloat( "Y", &game_object.transform.translation.y, 0.1f );
+									ImGui::DragFloat( "Y", &game_object.transform.translation.vec().y, 0.1f );
 									ImGui::SameLine();
-									ImGui::DragFloat( "Z", &game_object.transform.translation.z, 0.1f );
+									ImGui::DragFloat( "Z", &game_object.transform.translation.vec().z, 0.1f );
 									ImGui::PopID();
 								}
 
