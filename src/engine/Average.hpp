@@ -11,24 +11,18 @@ template < typename T, std::uint64_t max_count = 100 >
 	requires std::is_integral_v< T > || std::is_floating_point_v< T >
 class Average
 {
+	std::once_flag flag {};
 	std::array< T, max_count > data {};
 
   public:
 
-	std::array< T, max_count >& getData() { return data; }
-
 	consteval std::uint64_t count() const { return max_count; }
 
-	void push( const T t )
+	void FGL_FLATTEN push( const T t )
 	{
-		std::array< T, max_count > shift_array {};
-		for ( std::uint64_t i = 1; i < max_count; ++i )
-		{
-			shift_array[ i - 1 ] = data[ i ];
-		}
-
-		shift_array[ max_count - 1 ] = t;
-		data = shift_array;
+		std::call_once( flag, [ this, t ]() { std::fill( data.begin(), data.end(), t ); } );
+		std::shift_right( data.begin(), data.end(), 1 );
+		data[ 0 ] = t;
 	}
 
 	T average() const

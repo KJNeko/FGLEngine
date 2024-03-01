@@ -5,7 +5,6 @@
 #include "InfiniteLine.hpp"
 
 #include "engine/primitives/planes/OriginDistancePlane.hpp"
-#include "engine/primitives/planes/PointPlane.hpp"
 
 namespace fgl::engine
 {

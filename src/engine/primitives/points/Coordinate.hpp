@@ -26,18 +26,6 @@ namespace fgl::engine
 	{
 	  public:
 
-		float& up() { return z; }
-
-		float up() const { return z; }
-
-		float& right() { return x; }
-
-		float right() const { return x; }
-
-		float& forward() { return y; }
-
-		float forward() const { return y; }
-
 		Coordinate( const Coordinate& other ) noexcept = default;
 		Coordinate( Coordinate&& other ) = default;
 
@@ -51,6 +39,18 @@ namespace fgl::engine
 		explicit Coordinate( const float value ) : glm::vec3( value ) {}
 
 		explicit Coordinate( const Vector vector );
+
+		float& up() { return z; }
+
+		float up() const { return z; }
+
+		float& right() { return x; }
+
+		float right() const { return x; }
+
+		float& forward() { return y; }
+
+		float forward() const { return y; }
 
 		glm::vec3& vec() { return static_cast< glm::vec3& >( *this ); }
 

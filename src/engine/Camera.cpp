@@ -21,7 +21,7 @@ namespace fgl::engine
 		//TODO: Figure out frustum culling for orthographic projection. (If we even wanna use it)
 	}
 
-	void Camera::setPerspectiveProjection( float fovy, float aspect, float near, float far )
+	void FGL_FLATTEN_HOT Camera::setPerspectiveProjection( float fovy, float aspect, float near, float far )
 	{
 		projection_matrix = Matrix< MatrixType::CameraToScreen >( glm::perspectiveLH_ZO( fovy, aspect, near, far ) );
 
@@ -40,7 +40,7 @@ namespace fgl::engine
 		setViewDirection( position, Vector( glm::normalize( target - position ) ), up );
 	}
 
-	void Camera::setView( WorldCoordinate pos, const Rotation rotation, const ViewMode mode )
+	void FGL_FLATTEN_HOT Camera::setView( WorldCoordinate pos, const Rotation rotation, const ViewMode mode )
 	{
 		switch ( mode )
 		{
@@ -89,8 +89,10 @@ namespace fgl::engine
 	Frustum< CoordinateSpace::Model >
 		createFrustum( const float aspect, const float fov_y, const float near, const float far )
 	{
-		const Plane< CoordinateSpace::Model > near_plane { constants::WORLD_FORWARD * near, constants::WORLD_FORWARD };
-		const Plane< CoordinateSpace::Model > far_plane { constants::WORLD_FORWARD * far, constants::WORLD_BACKWARD };
+		const Plane< CoordinateSpace::Model > near_plane { ModelCoordinate( constants::WORLD_FORWARD * near ),
+			                                               NormalVector::bypass( constants::WORLD_FORWARD ) };
+		const Plane< CoordinateSpace::Model > far_plane { ModelCoordinate( constants::WORLD_FORWARD * far ),
+			                                              NormalVector::bypass( constants::WORLD_BACKWARD ) };
 
 		const float half_height { far * glm::tan( fov_y / 2.0f ) };
 		const float half_width { half_height * aspect };
@@ -101,21 +103,28 @@ namespace fgl::engine
 		const Vector right_forward { far_forward + right_half };
 		const Vector left_forward { far_forward - right_half };
 
-		const Plane< CoordinateSpace::Model > right_plane { constants::WORLD_CENTER,
-			                                                glm::cross( right_forward.vec(), constants::WORLD_DOWN ) };
-		const Plane< CoordinateSpace::Model > left_plane { constants::WORLD_CENTER,
-			                                               glm::cross( left_forward.vec(), constants::WORLD_UP ) };
+		const Plane< CoordinateSpace::Model > right_plane {
+			ModelCoordinate( constants::WORLD_CENTER ),
+			NormalVector( glm::cross( right_forward.vec(), constants::WORLD_DOWN ) )
+		};
+		const Plane< CoordinateSpace::Model > left_plane {
+			ModelCoordinate( constants::WORLD_CENTER ),
+			NormalVector( glm::cross( left_forward.vec(), constants::WORLD_UP ) )
+		};
 
 		const ModelCoordinate top_half { constants::WORLD_UP * half_height };
 
 		const Vector top_forward { far_forward + top_half };
 		const Vector bottom_forward { far_forward - top_half };
 
-		const Plane< CoordinateSpace::Model > top_plane { constants::WORLD_CENTER,
-			                                              glm::cross( top_forward.vec(), constants::WORLD_RIGHT ) };
+		const Plane< CoordinateSpace::Model > top_plane {
+			ModelCoordinate( constants::WORLD_CENTER ),
+			NormalVector( glm::cross( top_forward.vec(), constants::WORLD_RIGHT ) )
+		};
 
 		const Plane< CoordinateSpace::Model > bottom_plane {
-			constants::WORLD_CENTER, glm::cross( bottom_forward.vec(), constants::WORLD_LEFT )
+			ModelCoordinate( constants::WORLD_CENTER ),
+			NormalVector( glm::cross( bottom_forward.vec(), constants::WORLD_LEFT ) )
 		};
 
 		return { near_plane,

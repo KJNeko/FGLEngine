@@ -4,61 +4,52 @@
 
 #include "OriginDistancePlane.hpp"
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/intersect.hpp>
-#include <glm/gtx/vector_angle.hpp>
-
 #include "engine/primitives/lines/InfiniteLine.hpp"
-#include "engine/primitives/lines/LineSegment.hpp"
+#include "engine/primitives/vectors/Vector.hpp"
 
 namespace fgl::engine
 {
 
-	template <>
-	float OriginDistancePlane< CoordinateSpace::World >::distanceFrom( const WorldCoordinate coord ) const
-	{
-		return glm::dot( m_direction.vec(), coord.vec() ) - m_distance;
-	}
+	template < CoordinateSpace CType >
+	OriginDistancePlane< CType >::OriginDistancePlane() :
+	  m_distance( std::numeric_limits< float >::infinity() ),
+	  m_direction( constants::WORLD_FORWARD )
+	{}
 
-	template <>
-	bool OriginDistancePlane< CoordinateSpace::World >::intersects( const LineSegment< CoordinateSpace::World > line )
-		const
-	{
-		return isForward( line.getPosition() ) != isForward( line.getEnd() );
-	}
+	template < CoordinateSpace CType >
+	OriginDistancePlane< CType >::OriginDistancePlane( const NormalVector vector, const float distance ) :
+	  m_distance( distance ),
+	  m_direction( vector )
+	{}
 
-	template <>
-	Coordinate< CoordinateSpace::World > OriginDistancePlane<
-		CoordinateSpace::World >::intersection( const LineSegment< CoordinateSpace::World > line ) const
+	template < CoordinateSpace CType >
+	OriginDistancePlane< CType >::OriginDistancePlane( const Vector vector, const float distance ) :
+	  m_distance( distance ),
+	  m_direction( vector )
+	{}
+
+	template < CoordinateSpace CType >
+	Coordinate< CType > OriginDistancePlane< CType >::getPosition() const
 	{
-		return intersection( line.getPosition(), line.getDirection() );
+		return Coordinate< CType >( m_direction * m_distance );
 	}
 
 	template < CoordinateSpace CType >
-	Coordinate< CType > OriginDistancePlane<
-		CType >::intersection( const Coordinate< CType > point, const NormalVector direction ) const
+	float OriginDistancePlane< CType >::distanceFrom( const Coordinate< CType > coord ) const
 	{
-		const float line_dot { glm::dot( this->direction().vec(), point.vec() ) };
-		const float direction_dot { glm::dot( this->direction().vec(), direction.vec() ) };
-
-		// if the dot product of the direction of the plane and the direction of the line is zero, Then there will never be an intersection
-		if ( direction_dot <= std::numeric_limits< float >::epsilon()
-		     && direction_dot >= -std::numeric_limits< float >::epsilon() )
-			return { WorldCoordinate( std::numeric_limits< float >::quiet_NaN() ) };
-
-		const float t { -( line_dot - this->distance() ) / direction_dot };
-
-		const WorldCoordinate intersection_point { point + ( direction * t ) };
-
-		return intersection_point;
+		return glm::dot( m_direction.vec(), coord.vec() ) - m_distance;
 	}
 
 	template < CoordinateSpace CType >
 	Coordinate< CType > OriginDistancePlane< CType >::mapToPlane( const Coordinate< CType > point ) const
 	{
-		const float distance { distanceFrom( point ) };
+		const float distance { this->distanceFrom( point ) };
 
 		return point - ( this->m_direction * distance );
 	}
+
+	template class OriginDistancePlane< CoordinateSpace::Model >;
+	template class OriginDistancePlane< CoordinateSpace::World >;
+	template class OriginDistancePlane< CoordinateSpace::Screen >;
 
 } // namespace fgl::engine

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "engine/primitives/lines/InfiniteLine.hpp"
 #include "engine/primitives/planes/OriginDistancePlane.hpp"
 #include "engine/primitives/planes/PointPlane.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
@@ -16,12 +17,18 @@ namespace fgl::engine
 	template < CoordinateSpace CType = CoordinateSpace::World >
 	struct Frustum
 	{
-		Plane< CType > near { constants::WORLD_CENTER, constants::WORLD_FORWARD };
-		Plane< CType > far { constants::WORLD_CENTER, constants::WORLD_FORWARD };
-		Plane< CType > top { constants::WORLD_CENTER, constants::WORLD_FORWARD };
-		Plane< CType > bottom { constants::WORLD_CENTER, constants::WORLD_FORWARD };
-		Plane< CType > right { constants::WORLD_CENTER, constants::WORLD_FORWARD };
-		Plane< CType > left { constants::WORLD_CENTER, constants::WORLD_FORWARD };
+		Plane< CType > near { Coordinate< CType >( constants::WORLD_CENTER ),
+			                  NormalVector::bypass( constants::WORLD_FORWARD ) };
+		Plane< CType > far { Coordinate< CType >( constants::WORLD_CENTER ),
+			                 NormalVector::bypass( constants::WORLD_FORWARD ) };
+		Plane< CType > top { Coordinate< CType >( constants::WORLD_CENTER ),
+			                 NormalVector::bypass( constants::WORLD_FORWARD ) };
+		Plane< CType > bottom { Coordinate< CType >( constants::WORLD_CENTER ),
+			                    NormalVector::bypass( constants::WORLD_FORWARD ) };
+		Plane< CType > right { Coordinate< CType >( constants::WORLD_CENTER ),
+			                   NormalVector::bypass( constants::WORLD_FORWARD ) };
+		Plane< CType > left { Coordinate< CType >( constants::WORLD_CENTER ),
+			                  NormalVector::bypass( constants::WORLD_FORWARD ) };
 
 		Coordinate< CType > m_position {};
 
@@ -48,11 +55,11 @@ namespace fgl::engine
 		  m_position( position )
 		{}
 
-		Vector forwardVec() const { return near.direction(); }
+		Vector FGL_FORCE_INLINE forwardVec() const;
 
-		Vector upVec() const { return glm::cross( forwardVec(), left.direction() ); }
+		Vector FGL_FORCE_INLINE upVec() const;
 
-		Vector rightVec() const { return glm::cross( forwardVec(), upVec() ); }
+		Vector FGL_FORCE_INLINE rightVec() const;
 
 		Coordinate< CType > getPosition() const { return m_position; }
 
@@ -76,22 +83,27 @@ namespace fgl::engine
 
 		std::array< Coordinate< CType >, 4 * 2 > points() const
 		{
-			const Vector pv0 { glm::cross( top.direction(), left.direction() ) };
-			const Vector pv1 { glm::cross( top.direction(), right.direction() ) };
-			const Vector pv2 { glm::cross( bottom.direction(), left.direction() ) };
-			const Vector pv3 { glm::cross( bottom.direction(), right.direction() ) };
+			const Vector pv0 { glm::cross( top.getDirection().vec(), left.getDirection().vec() ) };
+			const Vector pv1 { glm::cross( top.getDirection().vec(), right.getDirection().vec() ) };
+			const Vector pv2 { glm::cross( bottom.getDirection().vec(), left.getDirection().vec() ) };
+			const Vector pv3 { glm::cross( bottom.getDirection().vec(), right.getDirection().vec() ) };
 
-			const auto p0 { far.intersection( m_position, pv0 ) };
-			const auto p1 { far.intersection( m_position, pv1 ) };
-			const auto p2 { far.intersection( m_position, pv2 ) };
-			const auto p3 { far.intersection( m_position, pv3 ) };
+			const auto l0 { InfiniteLine< CoordinateSpace::World >( m_position, pv0 ) };
+			const auto l1 { InfiniteLine< CoordinateSpace::World >( m_position, pv1 ) };
+			const auto l2 { InfiniteLine< CoordinateSpace::World >( m_position, pv2 ) };
+			const auto l3 { InfiniteLine< CoordinateSpace::World >( m_position, pv3 ) };
 
-			const auto p4 { near.intersection( m_position, pv0 ) };
-			const auto p5 { near.intersection( m_position, pv1 ) };
-			const auto p6 { near.intersection( m_position, pv2 ) };
-			const auto p7 { near.intersection( m_position, pv3 ) };
+			const auto p0 { l0.intersection( far ) };
+			const auto p1 { l1.intersection( far ) };
+			const auto p2 { l2.intersection( far ) };
+			const auto p3 { l3.intersection( far ) };
 
-			return { p0, p1, p2, p3, p4, p5, p6, p7 };
+			const auto p4 { l0.intersection( near ) };
+			const auto p5 { l1.intersection( near ) };
+			const auto p6 { l2.intersection( near ) };
+			const auto p7 { l3.intersection( near ) };
+
+			return { { p0, p1, p2, p3, p4, p5, p6, p7 } };
 		}
 
 		bool operator==( const Frustum< CType >& other ) const

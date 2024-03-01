@@ -4,63 +4,49 @@
 
 #pragma once
 
-#include <glm/fwd.hpp>
-#include <glm/geometric.hpp>
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
-
-#include <stdexcept>
-#include <utility>
-
-#include "engine/constants.hpp"
-#include "engine/primitives/lines/LineSegment.hpp"
-#include "engine/primitives/matricies/Matrix.hpp"
+#include "engine/FGL_DEFINES.hpp"
+#include "engine/primitives/CoordinateSpace.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
-#include "engine/primitives/vectors/Vector.hpp"
+#include "engine/primitives/vectors/NormalVector.hpp"
 
 namespace fgl::engine
 {
+	class Vector;
+
 	template < CoordinateSpace CType = CoordinateSpace::World >
 	class OriginDistancePlane
 	{
-		float m_distance { constants::DEFAULT_FLOAT };
-		NormalVector m_direction { constants::WORLD_FORWARD };
+		float m_distance;
+		NormalVector m_direction;
 
 	  public:
 
 		constexpr static auto SpaceType { CType };
 
-		OriginDistancePlane() = default;
+		OriginDistancePlane();
 
-		explicit OriginDistancePlane( const NormalVector vector, const float distance ) :
-		  m_distance( distance ),
-		  m_direction( vector )
-		{}
+		explicit OriginDistancePlane( const NormalVector vector, const float distance );
 
-		NormalVector getDirection() const { return m_direction; }
+		explicit OriginDistancePlane( const Vector vector, const float distance );
+
+		inline NormalVector getDirection() const { return m_direction; }
 
 		//! Returns the closest point on the plane to the 0,0,0 origin
-		Coordinate< CType > getPosition() const { return Coordinate< CType >( m_direction * m_distance ); }
+		Coordinate< CType > getPosition() const;
 
-		//! Returns the distance from a point to the plane. Negative if behind, positive if in front
-		float distanceFrom( const WorldCoordinate coord ) const;
+		float distanceFrom( const Coordinate< CType > coord ) const;
 
-		bool isForward( const WorldCoordinate coord ) const { return distanceFrom( coord ) > 0.0f; }
+		bool FGL_FORCE_INLINE_FLATTEN isForward( const Coordinate< CType > coord ) const
+		{
+			return distanceFrom( coord ) > 0.0f;
+		}
 
-		bool isBehind( const WorldCoordinate coord ) const { return !isForward( coord ); }
+		bool FGL_FORCE_INLINE_FLATTEN isBehind( const Coordinate< CType > coord ) const { return !isForward( coord ); }
 
 		//! Returns a normalized Vector
 		NormalVector direction() const { return m_direction; }
 
 		float distance() const { return m_distance; }
-
-		bool intersects( const LineSegment< CType > line ) const;
-		bool intersects( const InfiniteLine< CType > line ) const;
-
-		Coordinate< CType > intersection( const LineSegment< CType > line ) const;
-		Coordinate< CType > intersection( const InfiniteLine< CType > line ) const;
-
-		Coordinate< CType > intersection( const Coordinate< CType > point, const NormalVector direction ) const;
 
 		Coordinate< CType > mapToPlane( const Coordinate< CType > point ) const;
 	};

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "engine/FGL_DEFINES.hpp"
 #include "engine/primitives/CoordinateSpace.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 #include "engine/primitives/vectors/NormalVector.hpp"
@@ -23,25 +24,23 @@ namespace fgl::engine
 
 		constexpr static auto SpaceType { CType };
 
-		explicit PointPlane( const Coordinate< CType > pos, const Vector vec );
+		PointPlane();
 
-		explicit PointPlane( const Coordinate< CType > pos, const NormalVector vec ) : coordinate( pos ), vector( vec )
-		{}
+		PointPlane( const Coordinate< CType > pos, const Vector vec );
 
-		explicit PointPlane( const glm::vec3 pos, const glm::vec3 vec ) : coordinate( pos ), vector( vec ) {}
+		PointPlane( const Coordinate< CType > pos, const NormalVector vec );
 
-		NormalVector getDirection() const { return vector; }
+		NormalVector FGL_FORCE_INLINE getDirection() const { return vector; }
 
 		float distance() const;
 
-		Coordinate< CType > getPosition() const { return coordinate; }
+		Coordinate< CType > FGL_FORCE_INLINE getPosition() const { return coordinate; }
 
-		float distanceFrom( const Coordinate< CType > coord ) const
-		{
-			return static_cast< float >( glm::dot( ( coord - coordinate ).vec(), vector.vec() ) );
-		}
+		float distanceFrom( const Coordinate< CType > coord ) const;
 
 		bool isForward( const Coordinate< CType > coord ) const { return distanceFrom( coord ) > 0.0f; }
+
+		Coordinate< CType > mapToPlane( const Coordinate< CType > point ) const;
 	};
 
 	template < CoordinateSpace CType >

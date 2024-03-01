@@ -16,6 +16,9 @@ namespace fgl::engine
 	template < CoordinateSpace >
 	class Coordinate;
 
+	class Vector;
+	class NormalVector;
+
 	template < typename T >
 	concept is_plane = requires( T t ) {
 		{
@@ -33,6 +36,9 @@ namespace fgl::engine
 		{
 			t.isForward( std::declval< Coordinate< T::SpaceType > >() )
 		} -> std::same_as< bool >;
+		{
+			t.mapToPlane( std::declval< Coordinate< T::SpaceType > >() )
+		} -> is_coordinate;
 	};
 
 } // namespace fgl::engine

@@ -46,7 +46,7 @@ namespace fgl::engine
 		loadGameObjects();
 	}
 
-	static Average< float, 120 > rolling_ms_average;
+	static Average< float, 60 * 15 > rolling_ms_average;
 
 	void EngineContext::run()
 	{
@@ -496,7 +496,7 @@ namespace fgl::engine
 
 		model->syncBuffers( command_buffer );
 
-		int val { 4 };
+		int val { 16 };
 
 		for ( int x = 0; x < val; ++x )
 		{

@@ -7,7 +7,7 @@
 #include <array>
 
 #include "engine/model/Vertex.hpp"
-#include "engine/primitives/Frustum.hpp"
+#include "engine/primitives/lines/LineSegment.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 

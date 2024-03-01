@@ -4,7 +4,10 @@
 
 #pragma once
 
+#include "LineBase.hpp"
+#include "engine/FGL_DEFINES.hpp"
 #include "engine/primitives/CoordinateSpace.hpp"
+#include "engine/primitives/planes/concepts.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 #include "engine/primitives/vectors/NormalVector.hpp"
 
@@ -12,12 +15,14 @@ namespace fgl::engine
 {
 
 	template < CoordinateSpace CType >
-	class InfiniteLine
+	class InfiniteLine : public LineBase
 	{
 		Coordinate< CType > m_start;
 		NormalVector m_direction;
 
-		Coordinate< CType > intersection( const Coordinate< CType > position, const NormalVector vector );
+		glm::vec3 getVec3Position() const override { return getPosition().vec(); }
+
+		glm::vec3 getVec3Direction() const override { return getDirection().vec(); }
 
 	  public:
 
@@ -36,11 +41,19 @@ namespace fgl::engine
 
 		inline InfiniteLine flip() const { return -( *this ); }
 
-		bool intersects( const PointPlane< CType > t ) const;
-		Coordinate< CType > intersection( const PointPlane< CType > t ) const;
+		template < typename T >
+			requires is_plane< T >
+		bool FGL_FLATTEN intersects( const T plane ) const
+		{
+			return !std::isnan( glm::dot( plane.getDirection(), getDirection() ) );
+		}
 
-		bool intersects( const OriginDistancePlane< CType > t ) const;
-		Coordinate< CType > intersection( const OriginDistancePlane< CType > t ) const;
+		template < typename T >
+			requires is_plane< T >
+		Coordinate< CType > FGL_FLATTEN intersection( const T plane ) const
+		{
+			return Coordinate< CType >( planeIntersection( plane.getDirection().vec(), plane.distance() ) );
+		}
 	};
 
 } // namespace fgl::engine

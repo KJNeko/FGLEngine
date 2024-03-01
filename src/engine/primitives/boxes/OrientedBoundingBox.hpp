@@ -59,6 +59,12 @@ namespace fgl::engine
 		std::vector< Coordinate< CType > > points() const;
 		std::vector< LineSegment< CType > > lines() const;
 
+		NormalVector forward() const { return rotation.forward(); }
+
+		NormalVector right() const { return rotation.right(); }
+
+		NormalVector up() const { return rotation.up(); }
+
 		OrientedBoundingBox combine( const OrientedBoundingBox& other ) const;
 	};
 
