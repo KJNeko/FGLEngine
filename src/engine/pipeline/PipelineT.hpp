@@ -7,6 +7,7 @@
 #include "Pipeline.hpp"
 #include "engine/PushConstant.hpp"
 #include "engine/descriptors/Descriptor.hpp"
+#include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/descriptors/DescriptorSetLayout.hpp"
 
 namespace fgl::engine

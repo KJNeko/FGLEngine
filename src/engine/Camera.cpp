@@ -5,7 +5,6 @@
 #include "Camera.hpp"
 
 #include "GameObject.hpp"
-#include "engine/math/taitBryanMatrix.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
@@ -43,10 +42,6 @@ namespace fgl::engine
 
 	void Camera::setView( WorldCoordinate pos, const Rotation rotation, const ViewMode mode )
 	{
-		//Flip Z due to the fact we use Z+ outside of this function. It must be Z- inside
-		//position.z = -position.z;
-		// Maybe unneeded?
-
 		switch ( mode )
 		{
 			case ViewMode::TaitBryan:
