@@ -20,9 +20,7 @@ namespace fgl::engine
 
 		constexpr static auto SpaceType { CType };
 
-		AxisAlignedBoundingCube() :
-		  m_middle( constants::WORLD_CENTER ),
-		  m_span( 1.0f ) {}
+		AxisAlignedBoundingCube() : m_middle( constants::WORLD_CENTER ), m_span( 1.0f ) {}
 
 		explicit AxisAlignedBoundingCube( const Coordinate< CType > middle, const float span ) :
 		  m_middle( middle ),

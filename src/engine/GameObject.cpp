@@ -9,5 +9,4 @@
 namespace fgl::engine
 {
 
-
 } // namespace fgl::engine

@@ -4,7 +4,6 @@
 
 #include "AABoundingBox.hpp"
 
-
 namespace fgl::engine
 {
 	template class AxisAlignedBoundingBox< CoordinateSpace::Model >;
