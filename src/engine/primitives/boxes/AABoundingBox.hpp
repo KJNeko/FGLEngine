@@ -5,6 +5,7 @@
 #pragma once
 
 #include "BoundingBox.hpp"
+#include "engine/math/midpoint.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 #include "engine/primitives/vectors/NormalVector.hpp"
 
@@ -36,7 +37,7 @@ namespace fgl::engine
 		  AxisAlignedBoundingBox( midpoint + scale, midpoint - scale )
 		{}
 
-		Coordinate< CType > center() const;
+		Coordinate< CType > center() const { return fgl::midpoint( m_top_right_forward, m_bottom_left_back ); }
 
 		inline Coordinate< CType > topLeftForward() { return m_top_right_forward; }
 

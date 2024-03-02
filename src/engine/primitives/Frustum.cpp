@@ -200,7 +200,7 @@ namespace fgl::engine
 		{
 			if ( pointInside( point ) )
 			{
-				debug::world::drawBoundingBox( box );
+				//debug::world::drawBoundingBox( box );
 				return true;
 			}
 		}
@@ -257,7 +257,7 @@ namespace fgl::engine
 		if ( testAxis( box.forward(), frustum_points, box_points ) ) return false;
 		if ( testAxis( box.up(), frustum_points, box_points ) ) return false;
 
-		debug::world::drawBoundingBox( box );
+		//debug::world::drawBoundingBox( box );
 
 		return true;
 	}
