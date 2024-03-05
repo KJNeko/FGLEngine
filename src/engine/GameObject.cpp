@@ -4,9 +4,13 @@
 
 #include "GameObject.hpp"
 
-#include "engine/math/taitBryanMatrix.hpp"
-
 namespace fgl::engine
 {
+
+	GameObject GameObject::createGameObject()
+	{
+		static ID current_id { 0 };
+		return { current_id++ };
+	}
 
 } // namespace fgl::engine

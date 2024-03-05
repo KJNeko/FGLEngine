@@ -12,6 +12,7 @@
 
 #include "engine/debug/drawers.hpp"
 #include "engine/literals/size.hpp"
+#include "engine/tree/quadtree/OctTreeNode.hpp"
 
 namespace fgl::engine
 {
@@ -84,45 +85,50 @@ namespace fgl::engine
 
 			std::uint64_t tri_counter { 0 };
 
-			for ( auto& [ key, obj ] : info.game_objects )
+			for ( auto* node : info.game_objects.getAllLeafsInFrustum( info.camera_frustum ) )
 			{
-				if ( obj.model == nullptr ) continue;
-
-				if ( !obj.is_visible ) continue;
-
-				for ( const auto& primitive : obj.model->m_primitives )
+				for ( const auto& obj : *node )
 				{
-					tri_counter += ( primitive.m_index_buffer.count() / 3 );
+					if ( obj.m_model == nullptr ) continue;
 
-					const ModelMatrixInfo matrix_info { .model_matrix = obj.transform.mat4(),
-						                                .texture_idx = primitive.m_texture->getID() };
-					//.normal_matrix = obj.transform.normalMatrix() };
+					if ( !obj.m_is_visible ) continue;
 
-					vk::DrawIndexedIndirectCommand cmd;
-
-					cmd.firstIndex = primitive.m_index_buffer.getOffsetCount();
-					cmd.indexCount = primitive.m_index_buffer.count();
-
-					cmd.vertexOffset = primitive.m_vertex_buffer.getOffsetCount();
-
-					cmd.instanceCount = 1;
-
-					auto itter = std::find(
-						draw_pairs.begin(), draw_pairs.end(), std::make_pair( cmd, std::vector< ModelMatrixInfo >() ) );
-
-					if ( itter != draw_pairs.end() )
+					for ( const auto& primitive : obj.m_model->m_primitives )
 					{
-						//Draw command for this mesh already exists. Simply add a count to it
-						auto [ existing_cmd, model_matrix ] = *itter;
+						tri_counter += ( primitive.m_index_buffer.count() / 3 );
 
-						draw_pairs.erase( itter );
-						existing_cmd.instanceCount++;
-						model_matrix.emplace_back( matrix_info );
-						draw_pairs.emplace( existing_cmd, std::move( model_matrix ) );
-					}
-					else
-					{
-						draw_pairs.emplace( cmd, std::vector< ModelMatrixInfo > { matrix_info } );
+						const ModelMatrixInfo matrix_info { .model_matrix = obj.m_transform.mat4(),
+							                                .texture_idx = primitive.m_texture->getID() };
+						//.normal_matrix = obj.transform.normalMatrix() };
+
+						vk::DrawIndexedIndirectCommand cmd;
+
+						cmd.firstIndex = primitive.m_index_buffer.getOffsetCount();
+						cmd.indexCount = primitive.m_index_buffer.count();
+
+						cmd.vertexOffset = primitive.m_vertex_buffer.getOffsetCount();
+
+						cmd.instanceCount = 1;
+
+						auto itter = std::find(
+							draw_pairs.begin(),
+							draw_pairs.end(),
+							std::make_pair( cmd, std::vector< ModelMatrixInfo >() ) );
+
+						if ( itter != draw_pairs.end() )
+						{
+							//Draw command for this mesh already exists. Simply add a count to it
+							auto [ existing_cmd, model_matrix ] = *itter;
+
+							draw_pairs.erase( itter );
+							existing_cmd.instanceCount++;
+							model_matrix.emplace_back( matrix_info );
+							draw_pairs.emplace( existing_cmd, std::move( model_matrix ) );
+						}
+						else
+						{
+							draw_pairs.emplace( cmd, std::vector< ModelMatrixInfo > { matrix_info } );
+						}
 					}
 				}
 			}

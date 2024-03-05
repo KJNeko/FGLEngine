@@ -79,7 +79,7 @@ namespace fgl::engine
 		}
 
 		template < typename T >
-		bool intersects( const T t ) const;
+		bool intersects( const T& t ) const;
 
 		std::array< Coordinate< CType >, 4 * 2 > points() const
 		{

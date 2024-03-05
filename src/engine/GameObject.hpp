@@ -21,18 +21,17 @@ namespace fgl::engine
 		using ID = unsigned int;
 		using Map = std::unordered_map< ID, GameObject >;
 
-		//Hot
-		ID m_id;
-		bool is_world { false };
-		bool is_visible { true };
+		static constexpr ID INVALID_ID { std::numeric_limits< ID >::max() };
+
+		ID m_id { INVALID_ID };
+		bool m_is_static { false };
+		bool m_is_visible { true };
+		TransformComponent m_transform {};
 
 		//Dummy data to figure out what is above the cache limit
-		bool hot_limter { false };
+		//bool hot_limter { false };
 
-		//Cold
-		std::shared_ptr< Model > model {};
-		glm::vec3 color {};
-		TransformComponent transform {};
+		std::shared_ptr< Model > m_model { nullptr };
 
 	  private:
 
@@ -40,21 +39,23 @@ namespace fgl::engine
 
 	  public:
 
-		GameObject() = delete;
+		GameObject() {}
+
 		GameObject( const GameObject& other ) = delete;
 		GameObject& operator=( const GameObject& other ) = delete;
+
 		GameObject( GameObject&& other ) = default;
 		GameObject& operator=( GameObject&& ) = default;
 
-		static GameObject createGameObject()
-		{
-			static ID current_id { 0 };
-			return { current_id++ };
-		}
+		inline const WorldCoordinate& getPosition() const { return m_transform.translation; }
 
-		ID getId() const { return m_id; }
+		inline const Rotation& getRotation() const { return m_transform.rotation; }
+
+		static GameObject createGameObject();
+
+		inline ID getId() const { return m_id; }
 	};
 
-	static_assert( offsetof( GameObject, hot_limter ) < 64, "Hot limit reached" );
+	//	static_assert( offsetof( GameObject, hot_limter ) < 64, "Hot limit reached" );
 
 } // namespace fgl::engine

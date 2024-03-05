@@ -4,14 +4,17 @@
 
 #pragma once
 
+#include "AxisAlignedBoundingBox.hpp"
 #include "BoundingBox.hpp"
 #include "engine/primitives/CoordinateSpace.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
+#include "engine/primitives/vectors/NormalVector.hpp"
 
 namespace fgl::engine
 {
+
 	template < CoordinateSpace CType >
-	class AxisAlignedBoundingCube : public interface::BoundingBox
+	class AxisAlignedBoundingCube final : public AxisAlignedBoundingBox< CType >
 	{
 		Coordinate< CType > m_middle;
 		float m_span;
@@ -27,13 +30,23 @@ namespace fgl::engine
 		  m_span( span )
 		{}
 
-		inline float span() const { return m_span; }
+		bool contains( const Coordinate< CType >& coordinate ) const;
 
-		inline Coordinate< CType > getPosition() const { return m_middle; }
+		float span() const { return m_span; }
 
-		inline Coordinate< CType > topLeftForward() { return m_middle + Coordinate< CType >( m_span ); }
+		Scale scale() const override { return Scale( m_span, m_span, m_span ); }
 
-		inline Coordinate< CType > bottomLeftBack() const { m_middle - Coordinate< CType >( m_span ); }
+		inline Coordinate< CType > topLeftForward() const override { return m_middle + scale(); }
+
+		inline Coordinate< CType > bottomLeftBack() const override { return m_middle - scale(); }
+
+		Coordinate< CType > getPosition() const override { return m_middle; }
+
+		constexpr NormalVector right() const { return NormalVector::bypass( constants::WORLD_RIGHT ); }
+
+		constexpr NormalVector up() const { return NormalVector::bypass( constants::WORLD_UP ); }
+
+		constexpr NormalVector forward() const { return NormalVector::bypass( constants::WORLD_FORWARD ); }
 	};
 
 } // namespace fgl::engine

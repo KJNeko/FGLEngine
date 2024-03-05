@@ -9,6 +9,7 @@
 #include "engine/rendering/Renderer.hpp"
 #include "engine/systems/CullingSystem.hpp"
 #include "engine/systems/EntityRendererSystem.hpp"
+#include "engine/tree/quadtree/OctTreeNode.hpp"
 
 namespace fgl::engine
 {
@@ -21,7 +22,8 @@ namespace fgl::engine
 		Window m_window { DEFAULT_WIDTH, DEFAULT_HEIGHT, "titor Engine" };
 		Renderer m_renderer { m_window };
 
-		GameObject::Map game_objects {};
+		//GameObject::Map game_objects {};
+		OctTreeNode m_game_objects_root { WorldCoordinate( constants::WORLD_CENTER ) };
 
 		CullingSystem m_culling_system {};
 		EntityRendererSystem m_entity_renderer { Device::getInstance(), m_renderer.getSwapChainRenderPass() };

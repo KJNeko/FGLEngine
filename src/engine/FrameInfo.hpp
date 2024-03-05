@@ -16,6 +16,7 @@
 #include "engine/descriptors/Descriptor.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/descriptors/DescriptorSetLayout.hpp"
+#include "engine/tree/quadtree/OctTreeNode.hpp"
 
 #define MAX_LIGHTS 10
 
@@ -63,6 +64,8 @@ namespace fgl::engine
 
 	using GBufferDescriptorSet = DescriptorSetLayout< 0, PositionDescriptor, NormalDescriptor, AlbedoDescriptor >;
 
+	class OctTreeNode;
+
 	struct FrameInfo
 	{
 		std::uint16_t frame_idx;
@@ -70,7 +73,7 @@ namespace fgl::engine
 		vk::CommandBuffer command_buffer;
 		Camera& camera;
 		DescriptorSet& global_descriptor_set;
-		GameObject::Map& game_objects;
+		OctTreeNode& game_objects;
 		TracyVkCtx tracy_ctx;
 
 		//Buffers

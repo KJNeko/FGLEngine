@@ -22,9 +22,13 @@ namespace fgl::engine
 	class NormalVector;
 
 	template < CoordinateSpace CType >
-	class Coordinate : protected glm::vec3
+	class Coordinate : private glm::vec3
 	{
 	  public:
+
+		using glm::vec3::x;
+		using glm::vec3::y;
+		using glm::vec3::z;
 
 		Coordinate( const Coordinate& other ) noexcept = default;
 		Coordinate( Coordinate&& other ) = default;

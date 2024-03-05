@@ -37,11 +37,19 @@ namespace fgl::engine
 		  AxisAlignedBoundingBox( midpoint + scale, midpoint - scale )
 		{}
 
-		Coordinate< CType > center() const { return fgl::midpoint( m_top_right_forward, m_bottom_left_back ); }
+		virtual Coordinate< CType > getPosition() const
+		{
+			return fgl::midpoint( m_top_right_forward, m_bottom_left_back );
+		}
 
-		inline Coordinate< CType > topLeftForward() { return m_top_right_forward; }
+		virtual inline Coordinate< CType > topLeftForward() const { return m_top_right_forward; }
 
-		inline Coordinate< CType > bottomLeftBack() const { return m_bottom_left_back; }
+		virtual inline Coordinate< CType > bottomLeftBack() const { return m_bottom_left_back; }
+
+		virtual Scale scale() const;
+
+		std::vector< Coordinate< CType > > points() const;
+		std::vector< LineSegment< CType > > lines() const;
 
 		constexpr NormalVector right() const { return NormalVector::bypass( constants::WORLD_RIGHT ); }
 
@@ -49,8 +57,5 @@ namespace fgl::engine
 
 		constexpr NormalVector forward() const { return NormalVector::bypass( constants::WORLD_FORWARD ); }
 	};
-
-	template < CoordinateSpace CType >
-	using AABoundingBox = AxisAlignedBoundingBox< CType >;
 
 } // namespace fgl::engine

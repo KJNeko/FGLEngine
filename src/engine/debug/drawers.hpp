@@ -13,6 +13,10 @@ namespace fgl::engine
 {
 	template < CoordinateSpace type >
 	struct OrientedBoundingBox;
+	template < CoordinateSpace type >
+	class AxisAlignedBoundingBox;
+	template < CoordinateSpace type >
+	class AxisAlignedBoundingCube;
 
 	template < CoordinateSpace type >
 	class Coordinate;
@@ -40,6 +44,11 @@ namespace fgl::engine::debug
 	{
 		void drawBoundingBox(
 			const OrientedBoundingBox< CoordinateSpace::World >& box, const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
+		void drawBoundingBox(
+			const AxisAlignedBoundingBox< CoordinateSpace::World >& box, const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
+		void drawBoundingBox(
+			const AxisAlignedBoundingCube< CoordinateSpace::World >& box,
+			const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 
 		void drawLine(
 			const Coordinate< CoordinateSpace::World > start,

@@ -79,7 +79,7 @@ namespace fgl::engine
 
 		if ( cursor_enabled )
 		{
-			const auto original_rotation { target.transform.rotation };
+			const auto& original_rotation { target.m_transform.rotation };
 			Rotation yaw_rotation {};
 			Rotation pitch_rotation {};
 
@@ -91,7 +91,7 @@ namespace fgl::engine
 			     || yaw_change < std::numeric_limits< float >::epsilon() )
 				yaw_rotation.yaw() += ( dt * yaw_change );
 
-			target.transform.rotation = yaw_rotation * original_rotation * pitch_rotation;
+			target.m_transform.rotation = yaw_rotation * original_rotation * pitch_rotation;
 		}
 		else // No cursor
 		{
@@ -99,15 +99,19 @@ namespace fgl::engine
 			const float xpos { pos.x };
 			const float ypos { pos.y };
 
-			target.transform.rotation.yaw() += ( xpos * 0.006f ) * look_speed;
-			target.transform.rotation.pitch() -= ( ypos * 0.006f ) * look_speed;
+			Rotation target_rotation { target.m_transform.rotation };
+
+			target_rotation.yaw() += ( xpos * 0.006f ) * look_speed;
+			target_rotation.pitch() -= ( ypos * 0.006f ) * look_speed;
+
+			target.m_transform.rotation = target_rotation;
 
 			setCursorPos( window, { 0, 0 } );
 		}
 
-		const Vector forward_dir { target.transform.rotation.forward() };
+		const Vector forward_dir { target.m_transform.rotation.forward() };
 		const Vector up_dir { constants::WORLD_UP };
-		const Vector right_dir { target.transform.rotation.right() };
+		const Vector right_dir { target.m_transform.rotation.right() };
 
 		Vector move_dir { 0.0f };
 		if ( glfwGetKey( window, key_mappings.move_forward ) == GLFW_PRESS ) move_dir += forward_dir;
@@ -120,7 +124,7 @@ namespace fgl::engine
 		const NormalVector n_move_dir { move_dir };
 
 		if ( glm::dot( move_dir.vec(), move_dir.vec() ) > std::numeric_limits< float >::epsilon() )
-			target.transform.translation += n_move_dir * ( move_speed * dt );
+			target.m_transform.translation += n_move_dir * ( move_speed * dt );
 	}
 
 } // namespace fgl::engine

@@ -5,6 +5,8 @@
 #include "drawers.hpp"
 
 #include "engine/Camera.hpp"
+#include "engine/primitives/boxes/AxisAlignedBoundingBox.hpp"
+#include "engine/primitives/boxes/AxisAlignedBoundingCube.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"
 #include "imgui/imgui.h"
 #include "tracy_colors.hpp"
@@ -81,6 +83,38 @@ namespace fgl::engine::debug
 		}
 
 		void drawBoundingBox( const OrientedBoundingBox< CoordinateSpace::World >& box, const glm::vec3 color )
+		{
+			ZoneScopedC( TRACY_DRAWER_FUNC_COLOR );
+			for ( const auto& line : box.lines() )
+			{
+				auto p1 { line.getPosition() };
+				auto p2 { line.getEnd() };
+				drawLine( LineSegment( p1, p2 ), color );
+			}
+
+			for ( const auto point : box.points() )
+			{
+				drawPointText( point, color );
+			}
+		}
+
+		void drawBoundingBox( const AxisAlignedBoundingBox< CoordinateSpace::World >& box, const glm::vec3 color )
+		{
+			ZoneScopedC( TRACY_DRAWER_FUNC_COLOR );
+			for ( const auto& line : box.lines() )
+			{
+				auto p1 { line.getPosition() };
+				auto p2 { line.getEnd() };
+				drawLine( LineSegment( p1, p2 ), color );
+			}
+
+			for ( const auto point : box.points() )
+			{
+				drawPointText( point, color );
+			}
+		}
+
+		void drawBoundingBox( const AxisAlignedBoundingCube< CoordinateSpace::World >& box, const glm::vec3 color )
 		{
 			ZoneScopedC( TRACY_DRAWER_FUNC_COLOR );
 			for ( const auto& line : box.lines() )

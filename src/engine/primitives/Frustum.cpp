@@ -5,6 +5,8 @@
 #include "Frustum.hpp"
 
 #include "engine/debug/drawers.hpp"
+#include "engine/primitives/boxes/AxisAlignedBoundingBox.hpp"
+#include "engine/primitives/boxes/AxisAlignedBoundingCube.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"
 #include "imgui/imgui.h"
 
@@ -104,7 +106,7 @@ namespace fgl::engine
 
 	template <>
 	template <>
-	bool Frustum< CoordinateSpace::World >::intersects( const LineSegment< CoordinateSpace::World > line ) const
+	bool Frustum< CoordinateSpace::World >::intersects( const LineSegment< CoordinateSpace::World >& line ) const
 	{
 		std::vector< WorldCoordinate > enter_intersections { line.getPosition() };
 		std::vector< WorldCoordinate > exit_intersections { line.getEnd() };
@@ -159,7 +161,7 @@ namespace fgl::engine
 
 	template <>
 	template <>
-	bool Frustum< CoordinateSpace::World >::intersects( const WorldCoordinate t ) const
+	bool Frustum< CoordinateSpace::World >::intersects( const WorldCoordinate& t ) const
 	{
 		return pointInside( t );
 	}
@@ -191,59 +193,64 @@ namespace fgl::engine
 
 	template <>
 	template <>
-	bool Frustum< CoordinateSpace::World >::intersects( const OrientedBoundingBox< CoordinateSpace::World > box ) const
+	bool Frustum< CoordinateSpace::World >::intersects( const std::vector< WorldCoordinate >& point_cloud ) const
 	{
-		const auto box_points { box.points() };
-
-		//Early test.
-		for ( const auto point : box_points )
+		for ( const auto point : point_cloud )
 		{
-			if ( pointInside( point ) )
-			{
-				//debug::world::drawBoundingBox( box );
-				return true;
-			}
+			if ( intersects( point ) ) return true;
 		}
 
-		// Dividing Hyperline Theorem
-		// Since the bounding box is oriented we need to test all points from it and 3 axis from the frustum and 3 axis from the box.
-		// If we find 1 line that seperates then we fail the test and can early exit
-		// This test might be more optimal to do then a pointInside check since it will early fail rather then early pass.
-		// We can also make this more optimal by discarding overlapping points. For example, Testing the right axis vector on the Frustum means we can discard the 'low' points. Since the 'high' points would be identical.
-		// Though this will likely be a micro-optimizaton in the long run anyways. But less tests means we might be able to almost half the points being tested.
+		return false;
+	}
 
-		//TODO: Make this a dedicate function to work with any set of points (left points, right points, Axis)
+	//! Returns the max and min of a point along an axis
+	std::pair< float, float > minMaxDot( const NormalVector axis, const auto points )
+	{
+		assert( points.size() > 2 );
+		float min { glm::dot( points[ 0 ].vec(), axis.vec() ) };
+		float max { glm::dot( points[ 0 ].vec(), axis.vec() ) };
+
+		for ( std::size_t i = 1; i < points.size(); ++i )
+		{
+			const auto value { glm::dot( points[ i ].vec(), axis.vec() ) };
+			if ( value < min )
+				min = value;
+			else if ( value > max )
+				max = value;
+		}
+
+		return std::make_pair( min, max );
+	}
+
+	//! Returns true if we can draw a line between the two point sets.
+	template < typename TL, typename TR >
+	//TODO: Concept this to only allow for arrays/vectors
+	bool testAxis( const NormalVector axis, const TL& left_points, const TR& right_points )
+	{
+		const auto [ min_left, max_left ] = minMaxDot( axis, left_points );
+		const auto [ min_right, max_right ] = minMaxDot( axis, right_points );
+
+		//If there is an overlap then we are unable to draw a line between the two.
+		return max_left < min_right || max_right < min_left;
+	}
+
+	// Dividing Hyperline Theorem
+	// Since the bounding box is oriented we need to test all points from it and 3 axis from the frustum and 3 axis from the box.
+	// If we find 1 line that seperates then we fail the test and can early exit
+	// This test might be more optimal to do then a pointInside check since it will early fail rather then early pass.
+	// We can also make this more optimal by discarding overlapping points. For example, Testing the right axis vector on the Frustum means we can discard the 'low' points. Since the 'high' points would be identical.
+	// Though this will likely be a micro-optimizaton in the long run anyways. But less tests means we might be able to almost half the points being tested.
+
+	template <>
+	template <>
+	bool Frustum< CoordinateSpace::World >::intersects( const OrientedBoundingBox< CoordinateSpace::World >&
+	                                                        bounding_box ) const
+	{
+		const auto box_points { bounding_box.points() };
+
+		if ( intersects( box_points ) ) return true;
 
 		const auto frustum_points { this->points() };
-
-		auto minMaxDot = []( const NormalVector axis, const auto points ) -> std::pair< float, float >
-		{
-			assert( points.size() > 2 );
-			float min { glm::dot( points[ 0 ].vec(), axis.vec() ) };
-			float max { glm::dot( points[ 0 ].vec(), axis.vec() ) };
-
-			for ( std::size_t i = 1; i < points.size(); ++i )
-			{
-				const auto value { glm::dot( points[ i ].vec(), axis.vec() ) };
-				if ( value < min )
-					min = value;
-				else if ( value > max )
-					max = value;
-			}
-
-			return std::make_pair( min, max );
-		};
-
-		//! Returns true if we can draw a line between the two point sets.
-		auto testAxis =
-			[ &minMaxDot ]( const NormalVector axis, const auto left_points, const auto right_points ) -> bool
-		{
-			const auto [ min_left, max_left ] = minMaxDot( axis, left_points );
-			const auto [ min_right, max_right ] = minMaxDot( axis, right_points );
-
-			//If there is an overlap then we are unable to draw a line between the two.
-			return max_left < min_right || max_right < min_left;
-		};
 
 		if ( testAxis( this->right.getDirection(), frustum_points, box_points ) ) return false;
 		if ( testAxis( this->left.getDirection(), frustum_points, box_points ) ) return false;
@@ -253,11 +260,61 @@ namespace fgl::engine
 		if ( testAxis( this->bottom.getDirection(), frustum_points, box_points ) ) return false;
 
 		// Now to test every axis from the bounding box
-		if ( testAxis( box.right(), frustum_points, box_points ) ) return false;
-		if ( testAxis( box.forward(), frustum_points, box_points ) ) return false;
-		if ( testAxis( box.up(), frustum_points, box_points ) ) return false;
+		if ( testAxis( bounding_box.right(), frustum_points, box_points ) ) return false;
+		if ( testAxis( bounding_box.forward(), frustum_points, box_points ) ) return false;
+		if ( testAxis( bounding_box.up(), frustum_points, box_points ) ) return false;
 
-		//debug::world::drawBoundingBox( box );
+		return true;
+	}
+
+	template <>
+	template <>
+	bool Frustum< CoordinateSpace::World >::intersects( const AxisAlignedBoundingBox< CoordinateSpace::World >&
+	                                                        bounding_box ) const
+	{
+		const auto box_points { bounding_box.points() };
+
+		if ( intersects( box_points ) ) return true;
+
+		const auto frustum_points { this->points() };
+
+		if ( testAxis( this->right.getDirection(), frustum_points, box_points ) ) return false;
+		if ( testAxis( this->left.getDirection(), frustum_points, box_points ) ) return false;
+		if ( testAxis( this->near.getDirection(), frustum_points, box_points ) ) return false;
+		if ( testAxis( this->far.getDirection(), frustum_points, box_points ) ) return false;
+		if ( testAxis( this->top.getDirection(), frustum_points, box_points ) ) return false;
+		if ( testAxis( this->bottom.getDirection(), frustum_points, box_points ) ) return false;
+
+		// Now to test every axis from the bounding box
+		if ( testAxis( bounding_box.right(), frustum_points, box_points ) ) return false;
+		if ( testAxis( bounding_box.forward(), frustum_points, box_points ) ) return false;
+		if ( testAxis( bounding_box.up(), frustum_points, box_points ) ) return false;
+
+		return true;
+	}
+
+	template <>
+	template <>
+	bool Frustum< CoordinateSpace::World >::intersects( const AxisAlignedBoundingCube< CoordinateSpace::World >&
+	                                                        bounding_box ) const
+	{
+		const auto box_points { bounding_box.points() };
+
+		if ( intersects( box_points ) ) return true;
+
+		const auto frustum_points { this->points() };
+
+		if ( testAxis( this->right.getDirection(), frustum_points, box_points ) ) return false;
+		if ( testAxis( this->left.getDirection(), frustum_points, box_points ) ) return false;
+		if ( testAxis( this->near.getDirection(), frustum_points, box_points ) ) return false;
+		if ( testAxis( this->far.getDirection(), frustum_points, box_points ) ) return false;
+		if ( testAxis( this->top.getDirection(), frustum_points, box_points ) ) return false;
+		if ( testAxis( this->bottom.getDirection(), frustum_points, box_points ) ) return false;
+
+		// Now to test every axis from the bounding box
+		if ( testAxis( bounding_box.right(), frustum_points, box_points ) ) return false;
+		if ( testAxis( bounding_box.forward(), frustum_points, box_points ) ) return false;
+		if ( testAxis( bounding_box.up(), frustum_points, box_points ) ) return false;
 
 		return true;
 	}

@@ -97,7 +97,9 @@ namespace fgl::engine
 		debug::setDebugDrawingCamera( camera );
 
 		auto viewer { GameObject::createGameObject() };
-		viewer.transform.translation = WorldCoordinate( constants::WORLD_CENTER + glm::vec3( 0.0f, 0.0f, -2.5f ) );
+
+		viewer.m_transform.translation = WorldCoordinate( constants::WORLD_CENTER + glm::vec3( 0.0f, 0.0f, -2.5f ) );
+
 		KeyboardMovementController camera_controller {};
 
 		auto current_time { std::chrono::high_resolution_clock::now() };
@@ -148,7 +150,7 @@ namespace fgl::engine
 			}
 
 			camera_controller.moveInPlaneXZ( m_window.window(), delta_time, viewer );
-			camera.setView( viewer.transform.translation, viewer.transform.rotation );
+			camera.setView( viewer.getPosition(), viewer.getRotation() );
 
 			if ( auto command_buffer = m_renderer.beginFrame(); command_buffer )
 			{
@@ -163,7 +165,7 @@ namespace fgl::engine
 					                   command_buffer,
 					                   camera,
 					                   global_descriptor_sets[ frame_index ],
-					                   game_objects,
+					                   m_game_objects_root,
 					                   m_renderer.getCurrentTracyCTX(),
 					                   matrix_info_buffers[ frame_index ],
 					                   draw_parameter_buffers[ frame_index ],
@@ -220,16 +222,16 @@ namespace fgl::engine
 					{
 						if ( ImGui::Button( "Reset camera" ) )
 						{
-							viewer.transform.translation = WorldCoordinate( constants::WORLD_CENTER );
-							viewer.transform.rotation = {};
+							viewer.m_transform.translation = WorldCoordinate( constants::WORLD_CENTER );
+							viewer.m_transform.rotation = {};
 						}
 
 						ImGui::PushItemWidth( 80 );
-						ImGui::DragFloat( "Pos X", &viewer.transform.translation.vec().x, 0.1f );
+						ImGui::DragFloat( "Pos X", &viewer.m_transform.translation.vec().x, 0.1f );
 						ImGui::SameLine();
-						ImGui::DragFloat( "Pos Y", &viewer.transform.translation.vec().y, 0.1f );
+						ImGui::DragFloat( "Pos Y", &viewer.m_transform.translation.vec().y, 0.1f );
 						ImGui::SameLine();
-						ImGui::DragFloat( "Pos Z", &viewer.transform.translation.vec().z, 0.1f );
+						ImGui::DragFloat( "Pos Z", &viewer.m_transform.translation.vec().z, 0.1f );
 						ImGui::PopItemWidth();
 
 						ImGui::Separator();
@@ -238,11 +240,12 @@ namespace fgl::engine
 						//TODO: Print rotation here again
 
 						ImGui::SameLine();
-						ImGui::Text( "Pitch %.4f", static_cast< double >( viewer.transform.rotation.pitch().value() ) );
+						ImGui::
+							Text( "Pitch %.4f", static_cast< double >( viewer.m_transform.rotation.pitch().value() ) );
 						ImGui::SameLine();
-						ImGui::Text( "Yaw %.4f", static_cast< double >( viewer.transform.rotation.yaw().value() ) );
+						ImGui::Text( "Yaw %.4f", static_cast< double >( viewer.m_transform.rotation.yaw().value() ) );
 						ImGui::SameLine();
-						ImGui::Text( "Roll %.4f", static_cast< double >( viewer.transform.rotation.roll().value() ) );
+						ImGui::Text( "Roll %.4f", static_cast< double >( viewer.m_transform.rotation.roll().value() ) );
 
 						ImGui::PopItemWidth();
 
@@ -305,108 +308,111 @@ namespace fgl::engine
 
 					imGuiFrustumSettings();
 
-					if ( ImGui::CollapsingHeader( "Models" ) )
+					if ( ImGui::CollapsingHeader( "Game Objects" ) )
 					{
-						for ( auto& [ id, game_object ] : game_objects )
+						for ( auto* leaf : m_game_objects_root.getAllLeafs() )
 						{
-							if ( game_object.model == nullptr ) continue;
-
-							ImGui::PushID( std::to_string( id ).c_str() );
-
-							if ( ImGui::TreeNode( game_object.model->getName().c_str() ) )
+							for ( auto& game_object : *leaf )
 							{
-								ImGui::PushID( game_object.model->getName().c_str() );
+								if ( game_object.m_model == nullptr ) continue;
+
+								ImGui::PushID( std::to_string( game_object.getId() ).c_str() );
+
+								if ( ImGui::TreeNode( game_object.m_model->getName().c_str() ) )
 								{
-									ImGui::PushID( "Position" );
-									ImGui::PushItemWidth( 80 );
-									ImGui::Text( "Position" );
-									ImGui::SameLine();
-									ImGui::DragFloat( "X", &game_object.transform.translation.vec().x, 0.1f );
-									ImGui::SameLine();
-									ImGui::DragFloat( "Y", &game_object.transform.translation.vec().y, 0.1f );
-									ImGui::SameLine();
-									ImGui::DragFloat( "Z", &game_object.transform.translation.vec().z, 0.1f );
-									ImGui::PopID();
-								}
-
-								ImGui::Separator();
-
-								{
-									ImGui::PushID( "Rotation" );
-									ImGui::PushItemWidth( 80 );
-									ImGui::Text( "Rotation" );
-									ImGui::SameLine();
-									ImGui::Text(
-										"Pitch %.4f",
-										static_cast< double >( game_object.transform.rotation.pitch().value() ) );
-									ImGui::SameLine();
-									ImGui::Text(
-										"Yaw %.4f",
-										static_cast< double >( game_object.transform.rotation.yaw().value() ) );
-									ImGui::SameLine();
-									ImGui::Text(
-										"Roll %.4f",
-										static_cast< double >( game_object.transform.rotation.roll().value() ) );
-									ImGui::PopID();
-								}
-
-								ImGui::Separator();
-
-								{
-									ImGui::PushID( "Scale" );
-									ImGui::PushItemWidth( 80 );
-									ImGui::Text( "Scale" );
-									ImGui::SameLine();
-									ImGui::DragFloat( "X", &game_object.transform.scale.x, 0.1f );
-									ImGui::SameLine();
-									ImGui::DragFloat( "Y", &game_object.transform.scale.y, 0.1f );
-									ImGui::SameLine();
-									ImGui::DragFloat( "Z", &game_object.transform.scale.z, 0.1f );
-									ImGui::TreePop();
-									ImGui::PopID();
-								}
-
-								if ( ImGui::CollapsingHeader( "Textures" ) )
-								{
-									std::vector< TextureID > textures;
-
-									ImGui::PushID( "Textures" );
-
-									for ( auto& primitive : game_object.model->m_primitives )
+									ImGui::PushID( game_object.m_model->getName().c_str() );
 									{
-										if ( !primitive.m_texture.has_value() ) continue;
+										ImGui::PushID( "Position" );
+										ImGui::PushItemWidth( 80 );
+										ImGui::Text( "Position" );
+										ImGui::SameLine();
+										ImGui::DragFloat( "X", &game_object.m_transform.translation.vec().x, 0.1f );
+										ImGui::SameLine();
+										ImGui::DragFloat( "Y", &game_object.m_transform.translation.vec().y, 0.1f );
+										ImGui::SameLine();
+										ImGui::DragFloat( "Z", &game_object.m_transform.translation.vec().z, 0.1f );
+										ImGui::PopID();
+									}
 
-										auto& texture { primitive.m_texture.value() };
+									ImGui::Separator();
 
-										const auto& extent { texture.getExtent() };
+									{
+										ImGui::PushID( "Rotation" );
+										ImGui::PushItemWidth( 80 );
+										ImGui::Text( "Rotation" );
+										ImGui::SameLine();
+										ImGui::Text(
+											"Pitch %.4f",
+											static_cast< double >( game_object.m_transform.rotation.pitch().value() ) );
+										ImGui::SameLine();
+										ImGui::Text(
+											"Yaw %.4f",
+											static_cast< double >( game_object.m_transform.rotation.yaw().value() ) );
+										ImGui::SameLine();
+										ImGui::Text(
+											"Roll %.4f",
+											static_cast< double >( game_object.m_transform.rotation.roll().value() ) );
+										ImGui::PopID();
+									}
 
-										auto& image_view { texture.getImageView() };
-										auto& sampler { image_view.getSampler() };
+									ImGui::Separator();
 
-										if ( !sampler.has_value() ) continue;
+									{
+										ImGui::PushID( "Scale" );
+										ImGui::PushItemWidth( 80 );
+										ImGui::Text( "Scale" );
+										ImGui::SameLine();
+										ImGui::DragFloat( "X", &game_object.m_transform.scale.x, 0.1f );
+										ImGui::SameLine();
+										ImGui::DragFloat( "Y", &game_object.m_transform.scale.y, 0.1f );
+										ImGui::SameLine();
+										ImGui::DragFloat( "Z", &game_object.m_transform.scale.z, 0.1f );
+										ImGui::TreePop();
+										ImGui::PopID();
+									}
 
-										ImVec2 size;
-										size.x = static_cast< float >( extent.width );
-										size.y = static_cast< float >( extent.height );
+									if ( ImGui::CollapsingHeader( "Textures" ) )
+									{
+										std::vector< TextureID > textures;
 
-										if ( std::find( textures.begin(), textures.end(), texture.getID() )
-										     == textures.end() )
+										ImGui::PushID( "Textures" );
+
+										for ( auto& primitive : game_object.m_model->m_primitives )
 										{
-											textures.emplace_back( texture.getID() );
+											if ( !primitive.m_texture.has_value() ) continue;
 
-											ImGui::Image(
-												static_cast< ImTextureID >( primitive.m_texture
-											                                    ->getImGuiDescriptorSet() ),
-												size );
+											auto& texture { primitive.m_texture.value() };
+
+											const auto& extent { texture.getExtent() };
+
+											auto& image_view { texture.getImageView() };
+											auto& sampler { image_view.getSampler() };
+
+											if ( !sampler.has_value() ) continue;
+
+											ImVec2 size;
+											size.x = static_cast< float >( extent.width );
+											size.y = static_cast< float >( extent.height );
+
+											if ( std::find( textures.begin(), textures.end(), texture.getID() )
+											     == textures.end() )
+											{
+												textures.emplace_back( texture.getID() );
+
+												ImGui::Image(
+													static_cast< ImTextureID >( primitive.m_texture
+												                                    ->getImGuiDescriptorSet() ),
+													size );
+											}
 										}
+
+										ImGui::PopID();
 									}
 
 									ImGui::PopID();
 								}
-
 								ImGui::PopID();
 							}
-							ImGui::PopID();
 						}
 					}
 
@@ -503,13 +509,13 @@ namespace fgl::engine
 			for ( int y = 0; y < val; ++y )
 			{
 				auto sponza = GameObject::createGameObject();
-				sponza.model = model;
-				sponza.transform.translation = WorldCoordinate(
+				sponza.m_model = model;
+				sponza.m_transform.translation = WorldCoordinate(
 					0.0f + ( static_cast< float >( y ) * 30.0f ), 0.0f + ( static_cast< float >( x ) * 20.0f ), 0.0f );
-				sponza.transform.scale = { 0.007f, 0.007f, 0.007f };
-				sponza.transform.rotation = Rotation( 0.0f, 0.0f, 0.0f );
+				sponza.m_transform.scale = { 0.007f, 0.007f, 0.007f };
+				sponza.m_transform.rotation = Rotation( 0.0f, 0.0f, 0.0f );
 
-				game_objects.emplace( sponza.getId(), std::move( sponza ) );
+				m_game_objects_root.addGameObject( std::move( sponza ) );
 			}
 		}
 
