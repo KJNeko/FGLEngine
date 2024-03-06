@@ -9,7 +9,7 @@
 #include "engine/rendering/Renderer.hpp"
 #include "engine/systems/CullingSystem.hpp"
 #include "engine/systems/EntityRendererSystem.hpp"
-#include "engine/tree/quadtree/OctTreeNode.hpp"
+#include "engine/tree/octtree/OctTreeNode.hpp"
 
 namespace fgl::engine
 {

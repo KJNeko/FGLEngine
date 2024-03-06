@@ -12,7 +12,7 @@
 
 #include "engine/debug/drawers.hpp"
 #include "engine/literals/size.hpp"
-#include "engine/tree/quadtree/OctTreeNode.hpp"
+#include "engine/tree/octtree/OctTreeNode.hpp"
 
 namespace fgl::engine
 {

@@ -16,7 +16,7 @@
 #include "engine/descriptors/Descriptor.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/descriptors/DescriptorSetLayout.hpp"
-#include "engine/tree/quadtree/OctTreeNode.hpp"
+#include "engine/tree/octtree/OctTreeNode.hpp"
 
 #define MAX_LIGHTS 10
 
