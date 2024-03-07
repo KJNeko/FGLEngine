@@ -19,7 +19,10 @@ static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
 	const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 	[[maybe_unused]] void* pUserData )
 {
-	std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+	if ( pCallbackData->flags & VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT )
+		throw std::runtime_error( pCallbackData->pMessage );
+	else
+		std::cout << pCallbackData->pMessage << std::endl;
 
 	return VK_FALSE;
 }
@@ -126,9 +129,12 @@ namespace fgl::engine
 		vk::InstanceCreateInfo createInfo {};
 		createInfo.pApplicationInfo = &appInfo;
 
-		auto extensions = getRequiredExtensions();
+		auto extensions { getRequiredInstanceExtensions() };
+		assert( extensions.size() >= 1 );
 		createInfo.enabledExtensionCount = static_cast< uint32_t >( extensions.size() );
 		createInfo.ppEnabledExtensionNames = extensions.data();
+
+		hasGlfwRequiredInstanceExtensions();
 
 		vk::DebugUtilsMessengerCreateInfoEXT debugCreateInfo {};
 		if ( enableValidationLayers )
@@ -147,8 +153,6 @@ namespace fgl::engine
 
 		if ( vk::createInstance( &createInfo, nullptr, &m_instance ) != vk::Result::eSuccess )
 			throw std::runtime_error( "Failed to create Vulkan instance" );
-
-		hasGflwRequiredInstanceExtensions();
 	}
 
 	void Device::pickPhysicalDevice()
@@ -195,6 +199,10 @@ namespace fgl::engine
 		vk::PhysicalDeviceFeatures deviceFeatures = {};
 		deviceFeatures.samplerAnisotropy = VK_TRUE;
 		deviceFeatures.multiDrawIndirect = VK_TRUE;
+		deviceFeatures.drawIndirectFirstInstance = VK_TRUE;
+#ifndef NDEBUG
+		//deviceFeatures.robustBufferAccess = VK_TRUE;
+#endif
 
 		vk::PhysicalDeviceDescriptorIndexingFeatures indexing_features {};
 		indexing_features.setRuntimeDescriptorArray( true );
@@ -214,7 +222,7 @@ namespace fgl::engine
 
 		//Get device extension list
 		const auto supported_extensions { m_physical_device.enumerateDeviceExtensionProperties() };
-		std::cout << "Supported extensions:" << std::endl;
+		std::cout << "Supported device extensions:" << std::endl;
 		for ( auto& desired_ext : deviceExtensions )
 		{
 			bool found { false };
@@ -227,6 +235,7 @@ namespace fgl::engine
 				}
 			}
 			std::cout << "\t" << desired_ext << ": " << found << std::endl;
+			if ( !found ) throw std::runtime_error( "Failed to find required extension" );
 		}
 
 		// might not really be necessary anymore because device specific validation layers
@@ -241,7 +250,7 @@ namespace fgl::engine
 			createInfo.enabledLayerCount = 0;
 		}
 
-		if ( m_physical_device.createDevice( &createInfo, nullptr, &device_ ) != vk::Result::eSuccess )
+		if ( auto res = m_physical_device.createDevice( &createInfo, nullptr, &device_ ); res != vk::Result::eSuccess )
 		{
 			throw std::runtime_error( "failed to create logical device!" );
 		}
@@ -308,7 +317,13 @@ namespace fgl::engine
 
 	void Device::setupDebugMessenger()
 	{
-		if ( !enableValidationLayers ) return;
+		std::cout << "Setting up debug messenger: " << std::endl;
+
+		if ( !enableValidationLayers )
+		{
+			std::cout << "-- Validation disabled" << std::endl;
+			return;
+		}
 
 		pfnVkCreateDebugUtilsMessengerEXT = reinterpret_cast<
 			PFN_vkCreateDebugUtilsMessengerEXT >( m_instance.getProcAddr( "vkCreateDebugUtilsMessengerEXT" ) );
@@ -336,6 +351,8 @@ namespace fgl::engine
 		{
 			throw std::runtime_error( "failed to set up debug messenger!" );
 		}
+
+		std::cout << "-- Debug callback setup" << std::endl;
 	}
 
 	bool Device::checkValidationLayerSupport()
@@ -364,13 +381,18 @@ namespace fgl::engine
 		return true;
 	}
 
-	std::vector< const char* > Device::getRequiredExtensions()
+	std::vector< const char* > Device::getRequiredInstanceExtensions()
 	{
 		uint32_t glfwExtensionCount = 0;
 		const char** glfwExtensions;
 		glfwExtensions = glfwGetRequiredInstanceExtensions( &glfwExtensionCount );
 
+		if ( glfwExtensions == nullptr ) throw std::runtime_error( "Failed to get required extensions from glfw" );
+
 		std::vector< const char* > extensions( glfwExtensions, glfwExtensions + glfwExtensionCount );
+
+		// "VK_KHR_surface" is guaranteed to be in this list
+		assert( extensions.size() >= 1 );
 
 		if ( enableValidationLayers )
 		{
@@ -380,29 +402,31 @@ namespace fgl::engine
 		return extensions;
 	}
 
-	void Device::hasGflwRequiredInstanceExtensions()
+	void Device::hasGlfwRequiredInstanceExtensions()
 	{
-		std::vector< vk::ExtensionProperties > extensions { vk::enumerateInstanceExtensionProperties() };
+		std::vector< vk::ExtensionProperties > instance_extensions { vk::enumerateInstanceExtensionProperties() };
 
-		std::cout << "available extensions:" << std::endl;
+		std::cout << "available instance instance_extensions:" << std::endl;
 		std::unordered_set< std::string > available;
-		for ( const auto& extension : extensions )
+		for ( const auto& extension : instance_extensions )
 		{
 			std::cout << "\t" << extension.extensionName << std::endl;
 			available.insert( extension.extensionName );
 		}
 
-		std::cout << "required extensions:" << std::endl;
-		auto requiredExtensions = getRequiredExtensions();
+		std::cout << "required instance instance_extensions:" << std::endl;
+		auto requiredExtensions { getRequiredInstanceExtensions() };
 		for ( const char* required : requiredExtensions )
 		{
 			if ( std::find_if(
-					 extensions.begin(),
-					 extensions.end(),
+					 instance_extensions.begin(),
+					 instance_extensions.end(),
 					 [ required ]( const vk::ExtensionProperties& prop )
 					 { return std::strcmp( prop.extensionName, required ); } )
-			     == extensions.end() )
+			     == instance_extensions.end() )
 				throw std::runtime_error( "Missing required glfw extension" );
+			else
+				std::cout << required << std::endl;
 		}
 	}
 

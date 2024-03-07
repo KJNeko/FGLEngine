@@ -462,6 +462,8 @@ namespace fgl::engine
 				m_renderer.endFrame();
 
 				FrameMark;
+				using namespace std::chrono_literals;
+				std::this_thread::sleep_until( new_time + 16ms );
 			}
 		}
 
@@ -502,7 +504,7 @@ namespace fgl::engine
 
 		model->syncBuffers( command_buffer );
 
-		int val { 16 };
+		int val { 64 };
 
 		for ( int x = 0; x < val; ++x )
 		{
@@ -511,7 +513,9 @@ namespace fgl::engine
 				auto sponza = GameObject::createGameObject();
 				sponza.m_model = model;
 				sponza.m_transform.translation = WorldCoordinate(
-					0.0f + ( static_cast< float >( y ) * 30.0f ), 0.0f + ( static_cast< float >( x ) * 20.0f ), 0.0f );
+					-900.0f + ( static_cast< float >( y ) * 30.0f ),
+					-900.0f + ( static_cast< float >( x ) * 20.0f ),
+					0.0f );
 				sponza.m_transform.scale = { 0.007f, 0.007f, 0.007f };
 				sponza.m_transform.rotation = Rotation( 0.0f, 0.0f, 0.0f );
 

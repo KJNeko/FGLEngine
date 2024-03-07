@@ -30,10 +30,7 @@ namespace fgl::engine
 		HostVector& operator=( HostVector&& ) = delete;
 		HostVector( HostVector&& other ) = delete;
 
-		HostVector( Buffer& buffer, const std::uint32_t count = 1 ) : BufferVector( buffer, count, sizeof( T ) )
-		{
-			assert( count != 0 && "BufferSuballocationVector::BufferSuballocationVector() called with count == 0" );
-		}
+		HostVector( Buffer& buffer, const std::uint32_t count = 1 ) : BufferVector( buffer, count, sizeof( T ) ) {}
 
 		HostVector( Buffer& buffer, const std::vector< T >& vec ) :
 		  HostVector( buffer, static_cast< std::uint32_t >( vec.size() ) )
@@ -52,6 +49,9 @@ namespace fgl::engine
 
 		void flushRange( const std::uint32_t start_idx, const std::uint32_t end_idx )
 		{
+			if ( this->m_count == 0 ) [[unlikely]]
+				return;
+
 			assert(
 				start_idx < this->m_count && "BufferSuballocationVector::flushRange start_idx index out of bounds" );
 			assert( end_idx <= this->m_count && "BufferSuballocationVector::flushRange end_idx index out of bounds" );
@@ -62,7 +62,10 @@ namespace fgl::engine
 				( end_idx - start_idx ) != 0
 				&& "BufferSuballocationVector::flushRange end_idx must be at least +1 from start_idx" );
 
-			BufferSuballocation::flush( start_idx * this->m_stride, ( end_idx - start_idx ) * this->m_stride );
+			const auto count { end_idx - start_idx };
+			assert( count > 0 && "Count must be larger then 0" );
+
+			BufferSuballocation::flush( start_idx * this->m_stride, count * this->m_stride );
 		}
 
 		HostVector& operator=( const std::vector< T >& vec )

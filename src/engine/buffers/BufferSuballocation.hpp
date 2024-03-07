@@ -21,8 +21,8 @@ namespace fgl::engine
 
 		std::shared_ptr< BufferSuballocationHandle > m_handle;
 
-		vk::DeviceSize m_offset { 0 };
-		vk::DeviceSize m_size { 0 };
+		vk::DeviceSize m_offset;
+		vk::DeviceSize m_size;
 
 		void flush( vk::DeviceSize beg, vk::DeviceSize end );
 

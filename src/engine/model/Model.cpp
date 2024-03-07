@@ -98,6 +98,11 @@ namespace fgl::engine
 		{
 			primitive.m_vertex_buffer.stage( cmd_buffer );
 			primitive.m_index_buffer.stage( cmd_buffer );
+
+			if ( primitive.m_texture.has_value() )
+			{
+				primitive.m_texture->stage( cmd_buffer );
+			}
 		}
 	}
 

@@ -223,8 +223,10 @@ namespace fgl::engine
 
 		for ( std::uint64_t i = 0; i < swap_chain_images.size(); i++ )
 		{
-			m_swap_chain_images
-				.emplace_back( extent, surfaceFormat.format, swap_chain_images[ i ], createInfo.imageUsage );
+			auto& itter =
+				m_swap_chain_images
+					.emplace_back( extent, surfaceFormat.format, swap_chain_images[ i ], createInfo.imageUsage );
+			itter.setName( "Swapchain image: " + std::to_string( i ) );
 		}
 
 		m_swap_chain_format = surfaceFormat.format;
@@ -305,11 +307,11 @@ namespace fgl::engine
 				0, depthAttachment, colorAttachment, g_buffer_position, g_buffer_normal, g_buffer_albedo
 			};
 
-		g_buffer_subpass.registerExternalDependency(
+		g_buffer_subpass.registerDependencyFromExternal(
 			vk::AccessFlagBits::eDepthStencilAttachmentWrite,
 			vk::PipelineStageFlagBits::eEarlyFragmentTests | vk::PipelineStageFlagBits::eLateFragmentTests );
 
-		g_buffer_subpass.registerExternalDependency(
+		g_buffer_subpass.registerDependencyFromExternal(
 			vk::AccessFlagBits::eColorAttachmentWrite, vk::PipelineStageFlagBits::eColorAttachmentOutput );
 
 		Subpass<
@@ -323,18 +325,7 @@ namespace fgl::engine
 				1, depthAttachment, colorAttachment, g_buffer_position, g_buffer_normal, g_buffer_albedo
 			};
 
-		/*
-		// This dependency transitions the input attachment from color attachment to input attachment read
-		dependencies[ 2 ].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		dependencies[ 2 ].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-		dependencies[ 2 ].dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
-		dependencies[ 2 ].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-
-		dependencies[ 2 ].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-		*/
-
-		present_subpass.registerDependency(
+		present_subpass.registerDependencyFrom(
 			g_buffer_subpass,
 			vk::AccessFlagBits::eColorAttachmentWrite,
 			vk::PipelineStageFlagBits::eColorAttachmentOutput,
@@ -342,9 +333,7 @@ namespace fgl::engine
 			vk::PipelineStageFlagBits::eFragmentShader,
 			vk::DependencyFlagBits::eByRegion );
 
-		present_subpass.registerDependency(
-			present_subpass.getIndex(),
-			VK_SUBPASS_EXTERNAL,
+		present_subpass.registerDependencyToExternal(
 			vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite,
 			vk::PipelineStageFlagBits::eColorAttachmentOutput,
 			vk::AccessFlagBits::eMemoryRead,

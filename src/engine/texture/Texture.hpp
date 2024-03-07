@@ -19,6 +19,8 @@ namespace fgl::engine
 	class Texture
 	{
 		std::shared_ptr< TextureHandle > m_handle;
+		//! Has this texture been submitted to the GPU?
+		bool submitte_to_gpu { false };
 
 		Texture( std::tuple< std::vector< unsigned char >, int, int, int > );
 		Texture( std::shared_ptr< TextureHandle > handle );

@@ -15,6 +15,7 @@ namespace fgl::engine
 
 	std::vector< NodeLeaf* > OctTreeNode::getAllLeafsInFrustum( const Frustum< CoordinateSpace::World >& frustum )
 	{
+		ZoneScoped;
 		std::vector< NodeLeaf* > leafs {};
 
 		//Check if we are inside of the frustum.
@@ -29,7 +30,7 @@ namespace fgl::engine
 
 						{
 							const auto ret { node_array[ LEFT ][ FORWARD ][ TOP ]->getAllLeafsInFrustum( frustum ) };
-							leafs.insert( leafs.end(), ret.begin(), ret.end() );
+							leafs = std::move( ret );
 						}
 						{
 							const auto ret { node_array[ LEFT ][ FORWARD ][ BOTTOM ]->getAllLeafsInFrustum( frustum ) };
@@ -66,9 +67,10 @@ namespace fgl::engine
 					}
 				case 1: // NodeLeaf
 					{
+						leafs.reserve( 4096 );
 						leafs.emplace_back( &std::get< NodeLeaf >( m_node_data ) );
 
-						debug::world::drawBoundingBox( m_bounds );
+						//						debug::world::drawBoundingBox( m_bounds );
 
 						return leafs;
 					}
@@ -84,12 +86,12 @@ namespace fgl::engine
 	  m_bounds( center, span ),
 	  m_node_data( NodeLeaf() ),
 	  m_parent( parent )
-	{}
+	{
+		std::get< NodeLeaf >( m_node_data ).reserve( MAX_NODES_IN_LEAF );
+	}
 
 	void OctTreeNode::split( int depth )
 	{
-		std::cout << "Splitting node: " << glm::to_string( this->m_bounds.getPosition().vec() ) << std::endl;
-
 		if ( std::holds_alternative< NodeArray >( m_node_data ) ) return;
 		auto& game_objects { std::get< NodeLeaf >( m_node_data ) };
 
@@ -192,6 +194,7 @@ namespace fgl::engine
 
 	OctTreeNode* OctTreeNode::findID( const GameObject::ID id )
 	{
+		ZoneScoped;
 		if ( std::holds_alternative< NodeLeaf >( this->m_node_data ) )
 		{
 			//We are the last node. Check if we have the ID
@@ -264,6 +267,7 @@ namespace fgl::engine
 
 	std::vector< NodeLeaf* > OctTreeNode::getAllLeafs()
 	{
+		ZoneScoped;
 		std::vector< NodeLeaf* > objects {};
 
 		if ( std::holds_alternative< NodeLeaf >( m_node_data ) )

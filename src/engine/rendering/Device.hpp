@@ -45,9 +45,9 @@ namespace fgl::engine
 		vk::Queue graphicsQueue_ { VK_NULL_HANDLE };
 		vk::Queue presentQueue_ { VK_NULL_HANDLE };
 
-		const std::vector< const char* > validationLayers { "VK_LAYER_KHRONOS_validation" };
-		const std::vector< const char* > deviceExtensions { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-			                                                VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME };
+		std::vector< const char* > validationLayers { "VK_LAYER_KHRONOS_validation" };
+		std::vector< const char* > deviceExtensions { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+			                                          VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME };
 
 		void copyBuffer(
 			vk::Buffer dst,
@@ -94,11 +94,11 @@ namespace fgl::engine
 
 		// helper functions
 		bool isDeviceSuitable( vk::PhysicalDevice device );
-		std::vector< const char* > getRequiredExtensions();
+		std::vector< const char* > getRequiredInstanceExtensions();
 		bool checkValidationLayerSupport();
 		QueueFamilyIndices findQueueFamilies( vk::PhysicalDevice device );
 		void populateDebugMessengerCreateInfo( vk::DebugUtilsMessengerCreateInfoEXT& createInfo );
-		void hasGflwRequiredInstanceExtensions();
+		void hasGlfwRequiredInstanceExtensions();
 		bool checkDeviceExtensionSupport( vk::PhysicalDevice device );
 		SwapChainSupportDetails querySwapChainSupport( vk::PhysicalDevice device );
 
@@ -106,10 +106,10 @@ namespace fgl::engine
 
 	  public:
 
-#ifdef NDEBUG
-		const bool enableValidationLayers = false;
+#ifndef NDEBUG
+		const bool enableValidationLayers { true };
 #else
-		const bool enableValidationLayers = true;
+		const bool enableValidationLayers { false };
 #endif
 
 		vk::Result setDebugUtilsObjectName( const vk::DebugUtilsObjectNameInfoEXT& nameInfo );

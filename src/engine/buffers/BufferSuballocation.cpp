@@ -21,33 +21,39 @@ namespace fgl::engine
 		other.m_offset = 0;
 		other.m_size = 0;
 
+		other.m_handle = nullptr;
+
 		return *this;
 	}
 
 	BufferSuballocation::BufferSuballocation( std::shared_ptr< BufferSuballocationHandle > handle ) :
-	  m_handle( std::move( handle ) )
-	{
-		m_offset = m_handle->m_offset;
-		m_size = m_handle->m_size;
-	}
+	  m_handle( std::move( handle ) ),
+	  m_offset( m_handle->m_offset ),
+	  m_size( m_handle->m_size )
+	{}
 
-	BufferSuballocation::BufferSuballocation( BufferSuballocation&& other ) : m_handle( std::move( other.m_handle ) )
+	BufferSuballocation::BufferSuballocation( BufferSuballocation&& other ) :
+	  m_handle( std::move( other.m_handle ) ),
+	  m_offset( m_handle->m_offset ),
+	  m_size( m_handle->m_size )
 	{
-		m_offset = m_handle->m_offset;
-		m_size = m_handle->m_size;
-
 		other.m_offset = 0;
 		other.m_size = 0;
+
+		other.m_handle = nullptr;
 	}
 
 	void* BufferSuballocation::ptr() const
 	{
+		assert( m_handle != nullptr );
 		return m_handle->mapped;
 	}
 
 	void BufferSuballocation::flush( vk::DeviceSize beg, vk::DeviceSize end )
 	{
+		assert( m_handle != nullptr );
 		assert( m_handle->mapped != nullptr && "BufferSuballocationT::flush() called before map()" );
+
 		vk::MappedMemoryRange range {};
 		range.memory = m_handle->buffer.getMemory();
 		range.offset = m_offset + beg;
@@ -65,21 +71,29 @@ namespace fgl::engine
 
 	Buffer& BufferSuballocation::getBuffer() const
 	{
+		assert( m_handle != nullptr );
+
 		return m_handle->buffer;
 	}
 
 	vk::Buffer BufferSuballocation::getVkBuffer() const
 	{
+		assert( m_handle != nullptr );
+
 		return m_handle->buffer.getVkBuffer();
 	}
 
 	vk::DescriptorBufferInfo BufferSuballocation::descriptorInfo() const
 	{
+		assert( !std::isnan( m_offset ) );
+		assert( !std::isnan( m_size ) );
+
 		return vk::DescriptorBufferInfo( getVkBuffer(), m_offset, m_size );
 	}
 
 	SuballocationView BufferSuballocation::view( const vk::DeviceSize offset, const vk::DeviceSize size ) const
 	{
+		assert( m_handle != nullptr );
 		assert( offset + size <= m_size && "BufferSuballocation::view() called with offset + size > m_size" );
 
 		return { m_handle, offset, size };

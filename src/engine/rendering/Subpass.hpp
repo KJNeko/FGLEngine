@@ -136,7 +136,7 @@ namespace fgl::engine
 		}
 
 		template < is_subpass SrcT >
-		void registerDependency(
+		void registerDependencyFrom(
 			SrcT& parent,
 			const vk::AccessFlags src_access_flags,
 			const vk::PipelineStageFlags src_stage_flags,
@@ -154,7 +154,7 @@ namespace fgl::engine
 				dependency_flags );
 		}
 
-		void registerExternalDependency(
+		void registerDependencyFromExternal(
 			const vk::AccessFlags access_flags,
 			const vk::PipelineStageFlags stage_flags,
 			const vk::DependencyFlags dependency_flags = {} )
@@ -164,8 +164,25 @@ namespace fgl::engine
 				this->index,
 				access_flags,
 				stage_flags,
-				vk::AccessFlags( 0 ),
+				access_flags,
 				stage_flags,
+				dependency_flags );
+		}
+
+		void registerDependencyToExternal(
+			const vk::AccessFlags src_access_flags,
+			const vk::PipelineStageFlags src_stage_flags,
+			const vk::AccessFlags dst_access_flags,
+			const vk::PipelineStageFlags dst_stage_flags,
+			const vk::DependencyFlags dependency_flags )
+		{
+			registerDependency(
+				this->getIndex(),
+				VK_SUBPASS_EXTERNAL,
+				src_access_flags,
+				src_stage_flags,
+				dst_access_flags,
+				dst_stage_flags,
 				dependency_flags );
 		}
 	};

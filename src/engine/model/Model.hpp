@@ -6,21 +6,14 @@
 
 #include <glm/glm.hpp>
 
-#include <algorithm>
 #include <filesystem>
 #include <memory>
-#include <optional>
 #include <vector>
 
 #include "Primitive.hpp"
-#include "Vertex.hpp"
 #include "engine/buffers/Buffer.hpp"
-#include "engine/buffers/BufferSuballocation.hpp"
-#include "engine/buffers/vector/DeviceVector.hpp"
-#include "engine/buffers/vector/HostVector.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"
 #include "engine/rendering/Device.hpp"
-#include "engine/utils.hpp"
 
 namespace fgl::engine
 {
@@ -77,7 +70,7 @@ namespace fgl::engine
 			return matrix * m_bounding_box;
 		}
 
-		std::vector< ::fgl::engine::Primitive > m_primitives {};
+		std::vector< Primitive > m_primitives {};
 
 		std::vector< vk::DrawIndexedIndirectCommand > getDrawCommand( const std::uint32_t index ) const;
 

@@ -284,9 +284,39 @@ namespace fgl::engine
 		return;
 	}
 
-	void Buffer::free( fgl::engine::BufferSuballocationHandle& info )
+	void Buffer::free( BufferSuballocationHandle& info )
 	{
 		ZoneScoped;
+
+#ifndef NDEBUG
+		//Overwrite the bytes with 0xDEADBEEF
+
+		if ( info.mapped )
+		{
+			std::memset( info.mapped, 0xDEADBEEF, info.m_size );
+
+			vk::MappedMemoryRange range {};
+			range.memory = info.buffer.getMemory();
+			range.offset = info.m_offset;
+
+			const vk::DeviceSize min_atom_size { Device::getInstance().m_properties.limits.nonCoherentAtomSize };
+			const auto size { info.m_size };
+
+			range.size = align( size, min_atom_size );
+
+			if ( range.size > info.m_size ) range.size = VK_WHOLE_SIZE;
+
+			if ( Device::getInstance().device().flushMappedMemoryRanges( 1, &range ) != vk::Result::eSuccess )
+			{
+				throw std::runtime_error( "Failed to flush memory" );
+			}
+
+			//Flush memory
+		}
+		else
+			throw std::runtime_error( "Unable to give back memory" );
+
+#endif
 
 		//Find the suballocation
 		auto itter = m_suballocations.find( info.m_offset );

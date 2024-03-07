@@ -21,7 +21,7 @@ layout (set = 0, binding = 0) uniform CameraInfo {
 layout (set = 1, binding = 0) uniform sampler2D tex[];
 
 #define NEAR_PLANE 0.01f
-#define FAR_PLANE 10.0f
+#define FAR_PLANE 1000.0f
 
 float linearDepth(float depth)
 {

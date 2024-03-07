@@ -125,17 +125,40 @@ namespace fgl::engine
 	  public:
 
 		//! Returns the vulkan buffer handle for this buffer
-		vk::Buffer getBuffer() const { return m_handle->m_buffer; }
+		vk::Buffer getBuffer() const
+		{
+			assert( m_handle );
+			assert( m_handle->m_buffer != VK_NULL_HANDLE );
+
+			return m_handle->m_buffer;
+		}
 
 		//! Returns the vulkan memory handle for this buffer
-		vk::DeviceMemory getMemory() const { return m_handle->m_alloc_info.deviceMemory; }
+		vk::DeviceMemory getMemory() const
+		{
+			assert( m_handle );
+			assert( m_handle->m_alloc_info.deviceMemory != VK_NULL_HANDLE );
+
+			return m_handle->m_alloc_info.deviceMemory;
+		}
 
 		//! Total memory size of the buffer
-		vk::DeviceSize size() const { return m_handle->m_memory_size; }
+		vk::DeviceSize size() const
+		{
+			assert( m_handle );
+			assert( !std::isnan( m_handle->m_memory_size ) );
+
+			return m_handle->m_memory_size;
+		}
 
 		void* map( BufferSuballocationHandle& info );
 
-		bool isMappable() const { return m_handle->m_alloc_info.pMappedData != nullptr; }
+		bool isMappable() const
+		{
+			assert( m_handle );
+
+			return m_handle->m_alloc_info.pMappedData != nullptr;
+		}
 
 		//! Returns a allocation block from this buffer. Block will be aligned with nonUniformBufferOffsetAlignment
 		//! and nonCoherentAtomSize if required (is_uniform_buffer and is_host_visible respectively)

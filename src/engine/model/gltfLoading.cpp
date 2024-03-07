@@ -114,13 +114,6 @@ namespace fgl::engine
 			{
 				//TODO: Implement modes
 
-				std::cout << "Attributes: \n";
-				for ( const auto& thing : primitive.attributes )
-				{
-					std::cout << "\t" << thing.first << "\n";
-				}
-				std::cout << std::endl;
-
 				//Load indicies
 				auto& indicies_accessor { model.accessors.at( primitive.indices ) };
 

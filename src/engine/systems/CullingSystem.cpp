@@ -39,7 +39,7 @@ namespace fgl::engine
 					if ( obj.m_is_visible )
 					{
 						//Draw the bounding box for debug
-						debug::world::drawBoundingBox( model_bounding_box );
+						//debug::world::drawBoundingBox( model_bounding_box );
 					}
 				}
 			}

@@ -4,6 +4,7 @@
 
 #include "EntityRendererSystem.hpp"
 
+#include <engine/utils.hpp>
 #include <imgui/imgui.h>
 #include <tracy/TracyC.h>
 #include <vulkan/vulkan.hpp>
@@ -13,6 +14,31 @@
 #include "engine/debug/drawers.hpp"
 #include "engine/literals/size.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
+
+namespace fgl::engine
+{
+
+	// <TextureID, MemoryOffset>
+	using DrawKey = std::pair< TextureID, vk::DeviceSize >;
+} // namespace fgl::engine
+
+namespace std
+{
+	template <>
+	struct hash< fgl::engine::DrawKey >
+	{
+		size_t operator()( const fgl::engine::DrawKey& key ) const
+		{
+			const auto id_hash { std::hash< fgl::engine::TextureID >()( key.first ) };
+			const auto offset_hash { std::hash< vk::DeviceSize >()( key.second ) };
+
+			size_t seed { 0 };
+			fgl::engine::hashCombine( seed, id_hash, offset_hash );
+			return seed;
+		}
+	};
+
+} // namespace std
 
 namespace fgl::engine
 {
@@ -81,53 +107,59 @@ namespace fgl::engine
 			m_pipeline->bindDescriptor( command_buffer, 0, info.global_descriptor_set );
 			m_pipeline->bindDescriptor( command_buffer, 1, Texture::getTextureDescriptorSet() );
 
-			std::set< DrawPair > draw_pairs;
+			std::unordered_map< DrawKey, DrawPair > draw_pairs;
 
 			std::uint64_t tri_counter { 0 };
+			std::uint64_t object_counter { 0 };
+			std::uint64_t primitive_counter { 0 };
 
 			for ( auto* node : info.game_objects.getAllLeafsInFrustum( info.camera_frustum ) )
 			{
+				ZoneScopedN( "Process leaf" );
 				for ( const auto& obj : *node )
 				{
+					ZoneScopedN( "Process object" );
 					if ( obj.m_model == nullptr ) continue;
 
 					if ( !obj.m_is_visible ) continue;
 
+					++object_counter;
+
 					for ( const auto& primitive : obj.m_model->m_primitives )
 					{
+						++primitive_counter;
 						tri_counter += ( primitive.m_index_buffer.count() / 3 );
 
 						const ModelMatrixInfo matrix_info { .model_matrix = obj.m_transform.mat4(),
 							                                .texture_idx = primitive.m_texture->getID() };
-						//.normal_matrix = obj.transform.normalMatrix() };
 
-						vk::DrawIndexedIndirectCommand cmd;
+						const auto key {
+							std::make_pair( primitive.m_texture->getID(), primitive.m_index_buffer.getOffset() )
+						};
 
-						cmd.firstIndex = primitive.m_index_buffer.getOffsetCount();
-						cmd.indexCount = primitive.m_index_buffer.count();
-
-						cmd.vertexOffset = primitive.m_vertex_buffer.getOffsetCount();
-
-						cmd.instanceCount = 1;
-
-						auto itter = std::find(
-							draw_pairs.begin(),
-							draw_pairs.end(),
-							std::make_pair( cmd, std::vector< ModelMatrixInfo >() ) );
-
-						if ( itter != draw_pairs.end() )
+						if ( auto itter = draw_pairs.find( key ); itter != draw_pairs.end() )
 						{
 							//Draw command for this mesh already exists. Simply add a count to it
-							auto [ existing_cmd, model_matrix ] = *itter;
+							auto& [ itter_key, pair ] = *itter;
+							auto& [ existing_cmd, model_matrix ] = pair;
 
-							draw_pairs.erase( itter );
 							existing_cmd.instanceCount++;
 							model_matrix.emplace_back( matrix_info );
-							draw_pairs.emplace( existing_cmd, std::move( model_matrix ) );
 						}
 						else
 						{
-							draw_pairs.emplace( cmd, std::vector< ModelMatrixInfo > { matrix_info } );
+							vk::DrawIndexedIndirectCommand cmd {};
+
+							cmd.firstIndex = primitive.m_index_buffer.getOffsetCount();
+							cmd.indexCount = primitive.m_index_buffer.count();
+
+							cmd.vertexOffset = static_cast< int32_t >( primitive.m_vertex_buffer.getOffsetCount() );
+
+							cmd.instanceCount = 1;
+
+							std::vector< ModelMatrixInfo > matrix_infos {};
+							matrix_infos.reserve( 1024 );
+							draw_pairs.emplace( key, std::make_pair( cmd, std::move( matrix_infos ) ) );
 						}
 					}
 				}
@@ -135,6 +167,8 @@ namespace fgl::engine
 
 #if ENABLE_IMGUI
 			ImGui::Text( "Tris: %lu", tri_counter );
+			ImGui::Text( "Models: %lu", object_counter );
+			ImGui::Text( "Primitives: %lu", primitive_counter );
 #endif
 
 			if ( draw_pairs.empty() )
@@ -147,12 +181,15 @@ namespace fgl::engine
 			std::vector< vk::DrawIndexedIndirectCommand > draw_commands;
 			std::vector< ModelMatrixInfo > model_matrices;
 
+			draw_commands.reserve( draw_pairs.size() );
+			model_matrices.reserve( draw_pairs.size() * 2 );
+
 			TracyCZoneN( filter_zone_TRACY, "Reorganize draw commands", true );
-			for ( auto& itter : draw_pairs )
+			for ( auto& [ key, pair ] : draw_pairs )
 			{
-				auto cmd { itter.first };
+				auto cmd { pair.first };
 				cmd.firstInstance = static_cast< std::uint32_t >( model_matrices.size() );
-				auto matricies { std::move( itter.second ) };
+				auto matricies { std::move( pair.second ) };
 
 				draw_commands.emplace_back( cmd );
 				model_matrices.insert( model_matrices.end(), matricies.begin(), matricies.end() );
@@ -183,14 +220,18 @@ namespace fgl::engine
 
 			model_matrix_info_buffer->flush();
 
-			auto& model_matricies_suballoc { model_matrix_info_buffer };
-			auto& draw_params { draw_parameter_buffer };
+			const auto& model_matricies_suballoc { model_matrix_info_buffer };
+			const auto& draw_params { draw_parameter_buffer };
 
-			std::vector< vk::Buffer > vertex_buffers { m_vertex_buffer->getVkBuffer(),
-				                                       model_matricies_suballoc->getVkBuffer() };
+			const std::vector< vk::Buffer > vertex_buffers { m_vertex_buffer->getVkBuffer(),
+				                                             model_matricies_suballoc->getVkBuffer() };
 
 			command_buffer.bindVertexBuffers( 0, vertex_buffers, { 0, model_matricies_suballoc->getOffset() } );
 			command_buffer.bindIndexBuffer( m_index_buffer->getVkBuffer(), 0, vk::IndexType::eUint32 );
+
+#if ENABLE_IMGUI
+			ImGui::Text( "Indirect draws: %lu", static_cast< std::size_t >( draw_params->count() ) );
+#endif
 
 			command_buffer.drawIndexedIndirect(
 				draw_params->getVkBuffer(), draw_params->getOffset(), draw_params->count(), draw_params->stride() );

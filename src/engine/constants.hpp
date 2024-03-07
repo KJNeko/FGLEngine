@@ -29,7 +29,7 @@ namespace fgl::engine::constants
 	constexpr float DEFAULT_FLOAT { std::numeric_limits< float >::max() };
 
 	constexpr float NEAR_PLANE { 0.1f };
-	constexpr float FAR_PLANE { 100.0f };
+	constexpr float FAR_PLANE { 1000.0f };
 	constexpr glm::vec3 CENTER { 0.0f, 0.0f, 0.0f };
 
 	constexpr auto EPSILON { std::numeric_limits< float >::epsilon() * 2 };

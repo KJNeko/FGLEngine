@@ -119,7 +119,7 @@ namespace fgl::engine
 		barrier.srcAccessMask = {};
 		barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
 
-		std::vector< vk::ImageMemoryBarrier > barriers_to { barrier };
+		const std::vector< vk::ImageMemoryBarrier > barriers_to { barrier };
 
 		cmd.pipelineBarrier(
 			vk::PipelineStageFlagBits::eTopOfPipe,
@@ -153,13 +153,13 @@ namespace fgl::engine
 
 		vk::ImageMemoryBarrier barrier_from {};
 		barrier_from.oldLayout = barrier.newLayout;
-		barrier_from.newLayout = vk::ImageLayout::eGeneral;
+		barrier_from.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 		barrier_from.image = m_handle->m_image_view->getVkImage();
 		barrier_from.subresourceRange = range;
 		barrier_from.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
 		barrier_from.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
-		std::vector< vk::ImageMemoryBarrier > barriers_from { barrier_from };
+		const std::vector< vk::ImageMemoryBarrier > barriers_from { barrier_from };
 
 		cmd.pipelineBarrier(
 			vk::PipelineStageFlagBits::eTransfer,
