@@ -113,7 +113,7 @@
 				endif ()
 
 				# Safe for debug
-				set(FGL_SHARED_OPTIMIZATION_FLAGS "-march=native -flto=auto -funit-at-a-time")
+				set(FGL_SHARED_OPTIMIZATION_FLAGS "-march=native -flto=auto -fuse-linker-plugin -funit-at-a-time")
 
 				set(FGL_GENERAL_OPTIMIZATION_FLAGS "-fdevirtualize-at-ltrans -fdevirtualize-speculatively -funroll-loops -funit-at-a-time -floop-nest-optimize -floop-parallelize-all -fsimd-cost-model=unlimited -fsplit-paths -fstrict-aliasing")
 
