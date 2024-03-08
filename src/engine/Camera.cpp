@@ -28,18 +28,6 @@ namespace fgl::engine
 		base_frustum = createFrustum( aspect, fovy, near, far );
 	}
 
-	void Camera::setViewDirection( glm::vec3 position, const Vector direction, glm::vec3 up )
-	{
-		glm::lookAt( position, position + direction.vec(), up );
-		//frustum = view_matrix * base_frustum;
-		return;
-	}
-
-	void Camera::setViewTarget( glm::vec3 position, glm::vec3 target, glm::vec3 up )
-	{
-		setViewDirection( position, Vector( glm::normalize( target - position ) ), up );
-	}
-
 	void FGL_FLATTEN_HOT Camera::setView( WorldCoordinate pos, const Rotation rotation, const ViewMode mode )
 	{
 		switch ( mode )
