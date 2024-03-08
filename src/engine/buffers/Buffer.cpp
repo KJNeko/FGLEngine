@@ -236,6 +236,22 @@ namespace fgl::engine
 		if ( size - memory_size > 0 )
 			m_free_blocks.emplace_back( std::make_pair( offset + memory_size, size - memory_size ) );
 
+#ifndef NDEBUG
+		//Check that we haven't lost any memory
+		std::size_t sum { 0 };
+		for ( const auto& free_blocks : this->m_free_blocks )
+		{
+			sum += free_blocks.second;
+		}
+
+		for ( const auto& allocated : this->m_suballocations )
+		{
+			sum += allocated.second;
+		}
+
+		assert( sum == this->size() );
+#endif
+
 		return std::make_shared< BufferSuballocationHandle >( *this, offset, memory_size );
 	}
 
@@ -288,36 +304,6 @@ namespace fgl::engine
 	{
 		ZoneScoped;
 
-#ifndef NDEBUG
-		//Overwrite the bytes with 0xDEADBEEF
-
-		if ( info.mapped )
-		{
-			std::memset( info.mapped, 0xDEADBEEF, info.m_size );
-
-			vk::MappedMemoryRange range {};
-			range.memory = info.buffer.getMemory();
-			range.offset = info.m_offset;
-
-			const vk::DeviceSize min_atom_size { Device::getInstance().m_properties.limits.nonCoherentAtomSize };
-			const auto size { info.m_size };
-
-			range.size = align( size, min_atom_size );
-
-			if ( range.size > info.m_size ) range.size = VK_WHOLE_SIZE;
-
-			if ( Device::getInstance().device().flushMappedMemoryRanges( 1, &range ) != vk::Result::eSuccess )
-			{
-				throw std::runtime_error( "Failed to flush memory" );
-			}
-
-			//Flush memory
-		}
-		else
-			throw std::runtime_error( "Unable to give back memory" );
-
-#endif
-
 		//Find the suballocation
 		auto itter = m_suballocations.find( info.m_offset );
 
@@ -330,6 +316,22 @@ namespace fgl::engine
 		m_free_blocks.emplace_back( std::make_pair( info.m_offset, info.m_size ) );
 
 		mergeFreeBlocks();
+
+#ifndef NDEBUG
+		//Check that we haven't lost any memory
+		std::size_t sum { 0 };
+		for ( const auto& free_blocks : this->m_free_blocks )
+		{
+			sum += free_blocks.second;
+		}
+
+		for ( const auto& allocated : this->m_suballocations )
+		{
+			sum += allocated.second;
+		}
+
+		assert( sum == this->size() );
+#endif
 	}
 
 	void* Buffer::map( BufferSuballocationHandle& handle )
@@ -338,9 +340,6 @@ namespace fgl::engine
 
 		return static_cast< std::byte* >( m_handle->m_alloc_info.pMappedData ) + handle.m_offset;
 	}
-
-	Buffer::~Buffer()
-	{}
 
 	Buffer::
 		Buffer( vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties ) :

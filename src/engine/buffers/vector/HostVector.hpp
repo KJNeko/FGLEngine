@@ -20,6 +20,8 @@ namespace fgl::engine
 	template < typename T >
 	class HostVector final : public BufferVector
 	{
+		std::uint32_t m_used { 0 };
+
 	  public:
 
 		using value_type = T;
@@ -30,14 +32,22 @@ namespace fgl::engine
 		HostVector& operator=( HostVector&& ) = delete;
 		HostVector( HostVector&& other ) = delete;
 
-		HostVector( Buffer& buffer, const std::uint32_t count = 1 ) : BufferVector( buffer, count, sizeof( T ) ) {}
+		HostVector( Buffer& buffer, const std::uint32_t count = 1 ) :
+		  BufferVector( buffer, count, sizeof( T ) ),
+		  m_used( count )
+		{}
+
+		std::uint32_t capacity() const { return BufferVector::size(); }
+
+		//! Returns the number of T currently used
+		std::uint32_t size() const { return m_used; }
 
 		HostVector( Buffer& buffer, const std::vector< T >& vec ) :
 		  HostVector( buffer, static_cast< std::uint32_t >( vec.size() ) )
 		{
 			if ( this->m_stride == sizeof( T ) )
 			{
-				std::memcpy( this->ptr(), vec.data(), this->count() * sizeof( T ) );
+				std::memcpy( this->ptr(), vec.data(), vec.size() * sizeof( T ) );
 			}
 			else
 				assert( "Stride must be equal to sizeof(T)" );
@@ -45,7 +55,7 @@ namespace fgl::engine
 			this->flush();
 		}
 
-		void flush() { this->flushRange( 0, this->count() ); }
+		void flush() { this->flushRange( 0, m_used ); }
 
 		void flushRange( const std::uint32_t start_idx, const std::uint32_t end_idx )
 		{
@@ -70,11 +80,10 @@ namespace fgl::engine
 
 		HostVector& operator=( const std::vector< T >& vec )
 		{
-			assert( this->m_count == vec.size() && "HostVector::operator=() called with vector of different size" );
-
+			m_used = static_cast< decltype( m_used ) >( vec.size() );
 			if ( this->m_stride == sizeof( T ) )
 			{
-				std::memcpy( this->ptr(), vec.data(), this->count() * sizeof( T ) );
+				std::memcpy( this->ptr(), vec.data(), vec.size() * sizeof( T ) );
 			}
 			else
 				assert( "Stride must be equal to sizeof(T)" );
@@ -86,11 +95,11 @@ namespace fgl::engine
 
 		void push_back( const T& t )
 		{
-			resize( this->m_count + 1 );
+			if ( capacity <= m_used + 1 ) resize( m_used + 1 );
 
-			*this[ this->m_count++ ] = t;
+			assert( capacity >= m_used + 1 );
 
-			//--this->m_spare_count;
+			*this[ m_used++ ] = t;
 		}
 
 		~HostVector() {}

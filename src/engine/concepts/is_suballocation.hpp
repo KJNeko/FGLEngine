@@ -20,9 +20,11 @@ namespace fgl::engine
 		{
 			t.getOffset()
 		} -> std::same_as< vk::DeviceSize >;
+		/*
 		{
 			t.size()
 		} -> std::same_as< vk::DeviceSize >;
+		*/
 		{
 			t.descriptorInfo()
 		} -> std::same_as< vk::DescriptorBufferInfo >;

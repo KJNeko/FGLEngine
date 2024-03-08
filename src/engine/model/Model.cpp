@@ -29,7 +29,7 @@ namespace fgl::engine
 		for ( const auto& primitive : primitives )
 		{
 			vk::DrawIndexedIndirectCommand cmd;
-			cmd.indexCount = primitive.m_index_buffer.count();
+			cmd.indexCount = primitive.m_index_buffer.size();
 			cmd.firstIndex = primitive.m_index_buffer.getOffsetCount();
 
 			cmd.vertexOffset = static_cast< std::int32_t >( primitive.m_vertex_buffer.getOffsetCount() );

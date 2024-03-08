@@ -200,9 +200,6 @@ namespace fgl::engine
 		deviceFeatures.samplerAnisotropy = VK_TRUE;
 		deviceFeatures.multiDrawIndirect = VK_TRUE;
 		deviceFeatures.drawIndirectFirstInstance = VK_TRUE;
-#ifndef NDEBUG
-		//deviceFeatures.robustBufferAccess = VK_TRUE;
-#endif
 
 		vk::PhysicalDeviceDescriptorIndexingFeatures indexing_features {};
 		indexing_features.setRuntimeDescriptorArray( true );

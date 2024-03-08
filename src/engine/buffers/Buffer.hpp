@@ -90,26 +90,27 @@ namespace fgl::engine
 
 	  public:
 
-		static std::vector< std::weak_ptr< BufferHandle > > getActiveBufferHandles();
-
-		vk::Buffer& getVkBuffer() { return m_handle->m_buffer; }
-
 		vk::BufferUsageFlags m_usage;
 
 		vk::MemoryPropertyFlags m_memory_properties;
 
-		//! Returns the required alignment for this buffer.
-		vk::DeviceSize alignment();
-
-		~Buffer();
 		Buffer() = delete;
 		Buffer( vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties );
+
+		~Buffer() = default;
 
 		Buffer( const Buffer& other ) = delete;
 		Buffer& operator=( const Buffer& other ) = delete;
 
 		Buffer( Buffer&& other ) = default;
 		Buffer& operator=( Buffer&& other ) = default;
+
+		static std::vector< std::weak_ptr< BufferHandle > > getActiveBufferHandles();
+
+		inline vk::Buffer& getVkBuffer() noexcept { return m_handle->m_buffer; }
+
+		//! Returns the required alignment for this buffer.
+		vk::DeviceSize alignment();
 
 	  private:
 
@@ -164,7 +165,6 @@ namespace fgl::engine
 		//! and nonCoherentAtomSize if required (is_uniform_buffer and is_host_visible respectively)
 		/**
 		 * @param memory_size Size of each N
-		 * @param number of blocks to allocate. (Returns as 1 block with each N being an aligned offset)
 		 * @param alignment The alignment to use.
 		 * @return
 		 *
@@ -176,7 +176,7 @@ namespace fgl::engine
 		 * @note Alignment for atom_size is 0 if buffer is not host visible
 		 */
 		std::shared_ptr< BufferSuballocationHandle >
-			suballocate( vk::DeviceSize memory_size, std::uint32_t allignment = 1 );
+			suballocate( vk::DeviceSize memory_size, std::uint32_t alignment = 1 );
 
 		void free( BufferSuballocationHandle& info );
 

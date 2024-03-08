@@ -17,42 +17,41 @@ namespace fgl::engine
 
 	class BufferSuballocation
 	{
-	  protected:
-
 		std::shared_ptr< BufferSuballocationHandle > m_handle;
 
+	  protected:
+
 		vk::DeviceSize m_offset;
-		vk::DeviceSize m_size;
+		vk::DeviceSize m_byte_size;
 
 		void flush( vk::DeviceSize beg, vk::DeviceSize end );
-
-		BufferSuballocation& operator=( BufferSuballocation&& other );
 
 	  public:
 
 		using value_type = void;
 
 		BufferSuballocation() = delete;
-		BufferSuballocation( const BufferSuballocation& ) = delete;
-		BufferSuballocation& operator=( const BufferSuballocation& ) = delete;
 
 		BufferSuballocation( std::shared_ptr< BufferSuballocationHandle > handle );
 		BufferSuballocation( Buffer& buffer, const vk::DeviceSize size );
+
+		BufferSuballocation( const BufferSuballocation& ) = delete;
+		BufferSuballocation& operator=( const BufferSuballocation& ) = delete;
+
 		BufferSuballocation( BufferSuballocation&& other );
+		BufferSuballocation& operator=( BufferSuballocation&& other );
 
 		SuballocationView view( const vk::DeviceSize offset, const vk::DeviceSize size ) const;
 
 		void* ptr() const;
 
-		vk::DeviceSize size() const { return m_size; }
+		vk::DeviceSize bytesize() const noexcept { return m_byte_size; }
 
 		Buffer& getBuffer() const;
 
 		vk::Buffer getVkBuffer() const;
 
-		vk::DeviceSize getOffset() const { return m_offset; }
-
-		[[deprecated]] vk::DeviceSize offset() const { return m_offset; }
+		vk::DeviceSize getOffset() const noexcept { return m_offset; }
 
 		vk::DescriptorBufferInfo descriptorInfo() const;
 
@@ -81,7 +80,7 @@ namespace fgl::engine
 			return *this;
 		}
 
-		void flush() { BufferSuballocation::flush( 0, this->m_size ); }
+		void flush() { BufferSuballocation::flush( 0, this->m_byte_size ); }
 	};
 
 	template < typename T >

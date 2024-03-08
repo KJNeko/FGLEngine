@@ -128,7 +128,7 @@ namespace fgl::engine
 					for ( const auto& primitive : obj.m_model->m_primitives )
 					{
 						++primitive_counter;
-						tri_counter += ( primitive.m_index_buffer.count() / 3 );
+						tri_counter += ( primitive.m_index_buffer.size() / 3 );
 
 						const ModelMatrixInfo matrix_info { .model_matrix = obj.m_transform.mat4(),
 							                                .texture_idx = primitive.m_texture->getID() };
@@ -151,7 +151,7 @@ namespace fgl::engine
 							vk::DrawIndexedIndirectCommand cmd {};
 
 							cmd.firstIndex = primitive.m_index_buffer.getOffsetCount();
-							cmd.indexCount = primitive.m_index_buffer.count();
+							cmd.indexCount = primitive.m_index_buffer.size();
 
 							cmd.vertexOffset = static_cast< int32_t >( primitive.m_vertex_buffer.getOffsetCount() );
 
@@ -199,7 +199,7 @@ namespace fgl::engine
 			TracyCZoneN( draw_zone_TRACY, "Submit draw data", true );
 			auto& draw_parameter_buffer { m_draw_parameter_buffers[ info.frame_idx ] };
 
-			if ( draw_parameter_buffer == nullptr || draw_parameter_buffer->count() != draw_commands.size() )
+			if ( draw_parameter_buffer == nullptr || draw_parameter_buffer->capacity() < draw_commands.size() )
 			{
 				draw_parameter_buffer =
 					std::make_unique< DrawParameterBufferSuballocation >( info.draw_parameter_buffer, draw_commands );
@@ -209,19 +209,30 @@ namespace fgl::engine
 				//Simply set and flush
 				*draw_parameter_buffer = draw_commands;
 			}
+			const auto& draw_params { draw_parameter_buffer };
+			assert( draw_params->size() == draw_commands.size() );
+
 			TracyCZoneEnd( draw_zone_TRACY );
 
 			draw_parameter_buffer->flush();
 
 			auto& model_matrix_info_buffer { m_model_matrix_info_buffers[ info.frame_idx ] };
 
-			model_matrix_info_buffer =
-				std::make_unique< ModelMatrixInfoBufferSuballocation >( info.model_matrix_info_buffer, model_matrices );
+			if ( model_matrix_info_buffer == nullptr || model_matrix_info_buffer->capacity() < model_matrices.size() )
+			{
+				model_matrix_info_buffer = std::make_unique<
+					ModelMatrixInfoBufferSuballocation >( info.model_matrix_info_buffer, model_matrices );
+			}
+			else
+			{
+				//We can re-use this buffer since it's of a proper size.
+				*model_matrix_info_buffer = model_matrices;
+			}
+			assert( model_matrix_info_buffer->size() == model_matrices.size() );
 
 			model_matrix_info_buffer->flush();
 
 			const auto& model_matricies_suballoc { model_matrix_info_buffer };
-			const auto& draw_params { draw_parameter_buffer };
 
 			const std::vector< vk::Buffer > vertex_buffers { m_vertex_buffer->getVkBuffer(),
 				                                             model_matricies_suballoc->getVkBuffer() };
@@ -230,11 +241,11 @@ namespace fgl::engine
 			command_buffer.bindIndexBuffer( m_index_buffer->getVkBuffer(), 0, vk::IndexType::eUint32 );
 
 #if ENABLE_IMGUI
-			ImGui::Text( "Indirect draws: %lu", static_cast< std::size_t >( draw_params->count() ) );
+			ImGui::Text( "Indirect draws: %lu", static_cast< std::size_t >( draw_params->size() ) );
 #endif
 
 			command_buffer.drawIndexedIndirect(
-				draw_params->getVkBuffer(), draw_params->getOffset(), draw_params->count(), draw_params->stride() );
+				draw_params->getVkBuffer(), draw_params->getOffset(), draw_params->size(), draw_params->stride() );
 
 			command_buffer.nextSubpass( vk::SubpassContents::eInline );
 		}

@@ -16,10 +16,10 @@ namespace fgl::engine
 		m_handle = std::move( other.m_handle );
 
 		m_offset = m_handle->m_offset;
-		m_size = m_handle->m_size;
+		m_byte_size = m_handle->m_size;
 
 		other.m_offset = 0;
-		other.m_size = 0;
+		other.m_byte_size = 0;
 
 		other.m_handle = nullptr;
 
@@ -29,16 +29,16 @@ namespace fgl::engine
 	BufferSuballocation::BufferSuballocation( std::shared_ptr< BufferSuballocationHandle > handle ) :
 	  m_handle( std::move( handle ) ),
 	  m_offset( m_handle->m_offset ),
-	  m_size( m_handle->m_size )
+	  m_byte_size( m_handle->m_size )
 	{}
 
 	BufferSuballocation::BufferSuballocation( BufferSuballocation&& other ) :
 	  m_handle( std::move( other.m_handle ) ),
 	  m_offset( m_handle->m_offset ),
-	  m_size( m_handle->m_size )
+	  m_byte_size( m_handle->m_size )
 	{
 		other.m_offset = 0;
-		other.m_size = 0;
+		other.m_byte_size = 0;
 
 		other.m_handle = nullptr;
 	}
@@ -63,7 +63,7 @@ namespace fgl::engine
 
 		range.size = align( size, min_atom_size );
 
-		if ( range.size > m_size ) range.size = VK_WHOLE_SIZE;
+		if ( range.size > m_byte_size ) range.size = VK_WHOLE_SIZE;
 
 		if ( Device::getInstance().device().flushMappedMemoryRanges( 1, &range ) != vk::Result::eSuccess )
 			throw std::runtime_error( "Failed to flush memory" );
@@ -86,15 +86,15 @@ namespace fgl::engine
 	vk::DescriptorBufferInfo BufferSuballocation::descriptorInfo() const
 	{
 		assert( !std::isnan( m_offset ) );
-		assert( !std::isnan( m_size ) );
+		assert( !std::isnan( m_byte_size ) );
 
-		return vk::DescriptorBufferInfo( getVkBuffer(), m_offset, m_size );
+		return vk::DescriptorBufferInfo( getVkBuffer(), m_offset, m_byte_size );
 	}
 
 	SuballocationView BufferSuballocation::view( const vk::DeviceSize offset, const vk::DeviceSize size ) const
 	{
 		assert( m_handle != nullptr );
-		assert( offset + size <= m_size && "BufferSuballocation::view() called with offset + size > m_size" );
+		assert( offset + size <= m_byte_size && "BufferSuballocation::view() called with offset + size > m_size" );
 
 		return { m_handle, offset, size };
 	}
