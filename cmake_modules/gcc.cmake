@@ -123,7 +123,7 @@
 				# Optimization flags
 				set(FGL_OPTIMIZATION_FLAGS_RELEASE "-O2 -s ${FGL_GENERAL_OPTIMIZATION_FLAGS} ${FGL_SHARED_OPTIMIZATION_FLAGS}") # System agonistc flags
 				set(FGL_OPTIMIZATION_FLAGS_RELWITHDEBINFO "-O2 ${FLG_GENERAL_OPTIMIZATION_FLAGS} ${FGL_SHARED_OPTIMIZATION_FLAGS} ${FGL_SHARED_DEBUG}")
-				set(FGL_OPTIMIZATION_FLAGS_DEBUG "-O0 -g -fstrict-aliasing -fno-omit-frame-pointer -ftrapv -fverbose-asm -femit-class-debug-always ${FGL_SHARED_OPTIMIZATION_FLAGS} ${FGL_SHARED_DEBUG}") # Debug flags
+				set(FGL_OPTIMIZATION_FLAGS_DEBUG "-O0 -g -fstrict-aliasing -fno-omit-frame-pointer -ftrapv -fverbose-asm -femit-class-debug-always ${FGL_SHARED_DEBUG}") # Debug flags
 				set(FGL_OPTIMIZATION_FLAGS_SYSTEM "-O2 -fdeclone-ctor-dtor -fgcse -fgcse-las -fgcse-sm -ftree-loop-im -fivopts -ftree-loop-ivcanon -fira-hoist-pressure -fsched-pressure -fsched-spec-load -fipa-pta -s -ffat-lto-objects -fno-enforce-eh-specs -fstrict-enums ${FGL_SHARED_OPTIMIZATION_FLAGS}") # System specific flags. Probably not portable
 
 				# Final sets
