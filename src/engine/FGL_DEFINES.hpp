@@ -4,6 +4,7 @@
 
 #pragma once
 
+#define FGL_FORCE_NOTHING
 #ifndef FGL_FORCE_NOTHING
 
 #ifdef __GNUC__
