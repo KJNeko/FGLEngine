@@ -298,7 +298,6 @@ namespace fgl::engine
 
 		for ( const tinygltf::Scene& scene : model.scenes )
 		{
-			std::cout << "Loading scene " << scene.name << std::endl;
 			std::cout << "Scene has " << scene.nodes.size() << " nodes" << std::endl;
 
 			for ( auto child : scene.nodes )
@@ -311,6 +310,6 @@ namespace fgl::engine
 
 		std::cout << "Meshes: " << model.meshes.size() << std::endl;
 
-		std::cout << "Finished loading model" << filepath << std::endl;
+		std::cout << "Finished loading model: " << filepath << std::endl;
 	}
 } // namespace fgl::engine
