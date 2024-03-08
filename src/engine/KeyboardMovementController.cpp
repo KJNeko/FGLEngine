@@ -43,8 +43,8 @@ namespace fgl::engine
 			pitch_change -= rotation_rate * pitch_modifier;
 
 		static bool cursor_enabled { true };
-		static bool cursor_restored { false };
-		static glm::vec2 stored_cursor_pos;
+		static bool cursor_restored { true };
+		static glm::vec2 stored_cursor_pos {};
 		static std::chrono::time_point last_pressed { std::chrono::steady_clock::now() };
 
 		if ( glfwGetKey( window, GLFW_KEY_ESCAPE ) == GLFW_PRESS )
