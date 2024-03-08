@@ -95,6 +95,7 @@ namespace fgl::engine
 	  m_node_data( NodeLeaf() ),
 	  m_parent( parent )
 	{
+		assert( std::holds_alternative< NodeLeaf >( m_node_data ) );
 		std::get< NodeLeaf >( m_node_data ).reserve( MAX_NODES_IN_LEAF );
 	}
 
