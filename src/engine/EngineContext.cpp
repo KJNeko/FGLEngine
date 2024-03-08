@@ -113,9 +113,9 @@ namespace fgl::engine
 
 		const auto old_aspect_ratio { m_renderer.getAspectRatio() };
 
-		std::cout << "Entering main loop" << std::endl;
 		while ( !m_window.shouldClose() )
 		{
+			std::cout << "Entering main loop" << std::endl;
 			ZoneScopedN( "Poll" );
 			glfwPollEvents();
 
