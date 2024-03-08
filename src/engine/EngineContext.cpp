@@ -139,9 +139,11 @@ namespace fgl::engine
 
 #if ENABLE_IMGUI
 			{
+				std::cout << "Starting ImGui frame" << std::endl;
 				ImGui_ImplVulkan_NewFrame();
 				ImGui_ImplGlfw_NewFrame();
 				ImGui::NewFrame();
+				std::cout << "Started ImGui frame" << std::endl;
 			}
 #endif
 

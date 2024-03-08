@@ -118,61 +118,80 @@ namespace fgl::engine::debug
 
 namespace fgl::engine::debug
 {
-	inline void setDebugDrawingCamera( Camera& cam )
+	inline void setDebugDrawingCamera( [[maybe_unused]] Camera& cam )
 	{}
 
 	namespace world
 	{
 
 		//Dummy functions
-		inline void drawBoundingBox( const OrientedBoundingBox< CoordinateSpace::World >&, const glm::vec3 )
+		inline void drawBoundingBox(
+			[[maybe_unused]] const OrientedBoundingBox< CoordinateSpace::World >&, [[maybe_unused]] const glm::vec3 )
 		{}
 
-		inline void drawBoundingBox( const OrientedBoundingBox< CoordinateSpace::World >& )
+		inline void drawBoundingBox( [[maybe_unused]] const OrientedBoundingBox< CoordinateSpace::World >& )
 		{}
 
 		inline void drawLine(
-			const Coordinate< CoordinateSpace::World >,
-			const Coordinate< CoordinateSpace::World >,
-			const glm::vec3,
-			const float )
+			[[maybe_unused]] const Coordinate< CoordinateSpace::World >,
+			[[maybe_unused]] const Coordinate< CoordinateSpace::World >,
+			[[maybe_unused]] const glm::vec3,
+			[[maybe_unused]] const float )
 		{}
 
-		inline void drawPointLabel( const Coordinate< CoordinateSpace::World >, const std::string )
+		inline void drawPointLabel(
+			[[maybe_unused]] const Coordinate< CoordinateSpace::World >, [[maybe_unused]] const std::string )
 		{}
 
-		inline void drawLine( const Line< CoordinateSpace::World >, const glm::vec3, const float )
+		inline void drawLine(
+			[[maybe_unused]] const Line< CoordinateSpace::World >,
+			[[maybe_unused]] const glm::vec3,
+			[[maybe_unused]] const float )
 		{}
 
-		inline void drawPointText( const Coordinate< CoordinateSpace::World >, const glm::vec3 )
+		inline void drawPointText(
+			[[maybe_unused]] const Coordinate< CoordinateSpace::World >, [[maybe_unused]] const glm::vec3 )
 		{}
 
-		inline void
-			drawBoolAlpha( const Coordinate< CoordinateSpace::World >, const Camera&, const bool, const glm::vec2 )
+		inline void drawBoolAlpha(
+			[[maybe_unused]] const Coordinate< CoordinateSpace::World >,
+			[[maybe_unused]] const Camera&,
+			[[maybe_unused]] const bool,
+			[[maybe_unused]] const glm::vec2 )
 		{}
 
-		inline void drawPoint( const Coordinate< CoordinateSpace::World >, const std::string, const glm::vec3 )
+		inline void drawPoint(
+			[[maybe_unused]] const Coordinate< CoordinateSpace::World >,
+			[[maybe_unused]] const std::string,
+			[[maybe_unused]] const glm::vec3 )
 		{}
 
-		inline void drawVector( const Coordinate< CoordinateSpace::World >, Vector, const std::string, const glm::vec3 )
+		inline void drawVector(
+			[[maybe_unused]] const Coordinate< CoordinateSpace::World >,
+			[[maybe_unused]] Vector,
+			[[maybe_unused]] const std::string,
+			[[maybe_unused]] const glm::vec3 )
 		{}
 
-		inline void
-			drawVector( const Coordinate< CoordinateSpace::World >, NormalVector, const std::string, const glm::vec3 )
+		inline void drawVector(
+			[[maybe_unused]] const Coordinate< CoordinateSpace::World >,
+			[[maybe_unused]] NormalVector,
+			[[maybe_unused]] const std::string,
+			[[maybe_unused]] const glm::vec3 )
 		{}
 
-		inline void drawFrustum( const Frustum< CoordinateSpace::World >&, const WorldCoordinate )
+		inline void drawFrustum(
+			[[maybe_unused]] const Frustum< CoordinateSpace::World >&, [[maybe_unused]] const WorldCoordinate )
 		{}
 
 		inline void drawFrustum()
 		{}
 
 		inline void drawPlane(
-			const Plane< CoordinateSpace::World >&,
-			const WorldCoordinate,
-
-			const std::string,
-			const glm::vec3 )
+			[[maybe_unused]] const Plane< CoordinateSpace::World >&,
+			[[maybe_unused]] const WorldCoordinate,
+			[[maybe_unused]] const std::string,
+			[[maybe_unused]] const glm::vec3 )
 		{}
 
 	} // namespace world
