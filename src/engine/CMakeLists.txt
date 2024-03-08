@@ -49,7 +49,7 @@ if (FORCE_DISABLE_IMGUI EQUAL 0)
 	endif ()
 endif ()
 
-#target_compile_definitions(FGLEngine PRIVATE GLM_FORCE_INLINE=1)
+target_compile_definitions(FGLEngine PRIVATE GLM_FORCE_INLINE=1)
 
 #GLM settings
 # GLM_FORCE_NO_CTOR_INIT
