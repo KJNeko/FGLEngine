@@ -83,13 +83,17 @@ namespace fgl::engine
 	std::unique_ptr< Model > Model::
 		createModel( Device& device, const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer )
 	{
+		std::cout << "Creating model: " << path << std::endl;
 		ModelBuilder builder { vertex_buffer, index_buffer };
 		builder.loadModel( path );
 
 		//Calculate bounding box
 		OrientedBoundingBox bounding_box { buildBoundingBox( builder.m_primitives ) };
 
-		return std::make_unique< Model >( device, builder, bounding_box );
+		auto model_ptr { std::make_unique< Model >( device, builder, bounding_box ) };
+
+		std::cout << "Finished making model: " << path << std::endl;
+		return model_ptr;
 	}
 
 	void Model::syncBuffers( vk::CommandBuffer& cmd_buffer )

@@ -472,6 +472,7 @@ namespace fgl::engine
 
 	void EngineContext::loadGameObjects()
 	{
+		std::cout << "Loading game objects" << std::endl;
 		auto command_buffer { Device::getInstance().beginSingleTimeCommands() };
 
 		/*
@@ -501,6 +502,8 @@ namespace fgl::engine
 			"models/khronos-sponza/Sponza.gltf",
 			m_entity_renderer.getVertexBuffer(),
 			m_entity_renderer.getIndexBuffer() ) };
+
+		assert( model );
 
 		model->syncBuffers( command_buffer );
 
@@ -582,6 +585,7 @@ namespace fgl::engine
 		 */
 
 		Device::getInstance().endSingleTimeCommands( command_buffer );
+		std::cout << "Finished loading game objects" << std::endl;
 	}
 
 	void EngineContext::initImGui()
