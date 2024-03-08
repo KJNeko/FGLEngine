@@ -9,6 +9,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include <cassert>
+#include <cmath>
 #include <concepts>
 #include <cstdint>
 #include <cstring>
@@ -17,7 +18,6 @@
 #include <memory>
 #include <stdexcept>
 #include <unordered_map>
-#include <cmath>
 
 #include "align.hpp"
 #include "engine/literals/size.hpp"
