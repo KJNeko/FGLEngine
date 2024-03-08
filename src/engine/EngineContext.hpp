@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "GameObject.hpp"
 #include "Window.hpp"
 #include "engine/rendering/Renderer.hpp"
 #include "engine/systems/CullingSystem.hpp"
