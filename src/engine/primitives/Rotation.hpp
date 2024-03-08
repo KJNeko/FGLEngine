@@ -4,8 +4,11 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#pragma GCC diagnostic pop
 
 #include <utility>
 
