@@ -311,6 +311,6 @@ namespace fgl::engine
 
 		std::cout << "Meshes: " << model.meshes.size() << std::endl;
 
-		std::cout << "Finished loading model" << filepath << std::endl;
+		std::cout << "Finished loading model: " << filepath << std::endl;
 	}
 } // namespace fgl::engine
