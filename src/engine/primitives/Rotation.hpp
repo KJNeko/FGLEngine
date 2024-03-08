@@ -9,8 +9,6 @@
 
 #include <utility>
 
-#include "engine/math/taitBryanMatrix.hpp"
-#include "engine/primitives/matricies/Matrix.hpp"
 #include "engine/primitives/matricies/RotationMatrix.hpp"
 #include "engine/primitives/vectors/NormalVector.hpp"
 #include "engine/primitives/vectors/Vector.hpp"
