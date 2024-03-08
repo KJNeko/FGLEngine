@@ -52,8 +52,10 @@ namespace fgl::engine
 
 					const glm::vec3 camera_up { rotation_matrix * glm::vec4( constants::WORLD_UP, 0.0f ) };
 
-					view_matrix = Matrix<
-						MatrixType::WorldToCamera >( glm::lookAtLH( pos.vec(), ( pos + forward ).vec(), -camera_up ) );
+					const auto center_pos { pos + forward };
+
+					view_matrix =
+						Matrix< MatrixType::WorldToCamera >( glm::lookAtLH( pos.vec(), center_pos.vec(), -camera_up ) );
 					inverse_view_matrix = glm::inverse( view_matrix );
 
 					break;
@@ -136,13 +138,13 @@ namespace fgl::engine
 			     Coordinate< CoordinateSpace::Model >( constants::WORLD_CENTER ) };
 	}
 
-	const Matrix< MatrixType::ModelToWorld > Camera::frustumTranslationMatrix() const
+	Matrix< MatrixType::ModelToWorld > Camera::frustumTranslationMatrix() const
 	{
 		if ( update_using_alt )
 			return frustum_alt_transform.mat();
 		else [[likely]]
 		{
-			TransformComponent comp;
+			TransformComponent comp {};
 			comp.translation = getPosition();
 			comp.rotation = current_rotation;
 

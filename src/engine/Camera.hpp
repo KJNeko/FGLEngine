@@ -42,7 +42,7 @@ namespace fgl::engine
 
 		Rotation current_rotation {};
 
-		const Matrix< MatrixType::ModelToWorld > frustumTranslationMatrix() const;
+		Matrix< MatrixType::ModelToWorld > frustumTranslationMatrix() const;
 
 		void updateFrustum();
 
