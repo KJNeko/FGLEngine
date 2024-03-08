@@ -114,7 +114,7 @@
 
 				# Safe for debug
 				# TODO: Figure out LTO with Alaestor's retarded compiler
-				set(FGL_SHARED_OPTIMIZATION_FLAGS "-march=native -funit-at-a-time")
+				set(FGL_SHARED_OPTIMIZATION_FLAGS "")
 
 				set(FGL_GENERAL_OPTIMIZATION_FLAGS "-fdevirtualize-at-ltrans -fdevirtualize-speculatively -funroll-loops -funit-at-a-time -floop-nest-optimize -floop-parallelize-all -fsimd-cost-model=unlimited -fsplit-paths -fstrict-aliasing")
 
@@ -127,7 +127,8 @@
 				set(FGL_OPTIMIZATION_FLAGS_SYSTEM "-O2 -fdeclone-ctor-dtor -fgcse -fgcse-las -fgcse-sm -ftree-loop-im -fivopts -ftree-loop-ivcanon -fira-hoist-pressure -fsched-pressure -fsched-spec-load -fipa-pta -s -ffat-lto-objects -fno-enforce-eh-specs -fstrict-enums ${FGL_SHARED_OPTIMIZATION_FLAGS}") # System specific flags. Probably not portable
 
 				# Final sets
-				set(FGL_FLAGS "${FGL_CONFIG} ${FGL_OPTIMIZATION_FLAGS_${UPPER_BUILD_TYPE}} ${FGL_WARNINGS}" PARENT_SCOPE) # Flags for our shit
+				#set(FGL_FLAGS "${FGL_CONFIG} ${FGL_OPTIMIZATION_FLAGS_${UPPER_BUILD_TYPE}} ${FGL_WARNINGS}" PARENT_SCOPE) # Flags for our shit
+				set(FGL_FLAGS "-std=c++23" PARENT_SCOPE) # Flags for our shit
 				#set(FGL_FLAGS "${FGL_OPTIMIZATION_FLAGS_${UPPER_BUILD_TYPE}}" PARENT_SCOPE)
 				set(FGL_CHILD_FLAGS "${FGL_OPTIMIZATION_FLAGS_RELEASE}" PARENT_SCOPE) # Child flags for adding optimization to anything we build ourselves but doesn't follow our standard
 				# We use release flags since we really don't need to be using debug flags for anything not ours
