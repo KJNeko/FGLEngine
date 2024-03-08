@@ -17,6 +17,7 @@
 #include <memory>
 #include <stdexcept>
 #include <unordered_map>
+#include <cmath>
 
 #include "align.hpp"
 #include "engine/literals/size.hpp"
