@@ -143,7 +143,7 @@ namespace fgl::engine
 	}
 
 	template < CoordinateSpace CType, MatrixType MType >
-	Frustum< EvolvedType< MType >() > operator*( const Matrix< MType >& matrix, const Frustum< CType >& frustum )
+	Frustum< EvolvedType< MType >() > operator*( const Matrix< MType > matrix, const Frustum< CType > frustum )
 	{
 		Frustum< EvolvedType< MType >() > result { matrix * frustum.near,      matrix * frustum.far,
 			                                       matrix * frustum.top,       matrix * frustum.bottom,

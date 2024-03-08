@@ -34,16 +34,17 @@ namespace fgl::engine
 		{
 			case ViewMode::TaitBryan:
 				{
-					const auto rotation_matrix { rotation.mat() };
+					const RotationMatrix rotation_matrix { rotation.mat() };
 
 					const glm::vec3 forward { rotation_matrix * glm::vec4( constants::WORLD_FORWARD, 0.0f ) };
 
 					const glm::vec3 camera_up { rotation_matrix * glm::vec4( constants::WORLD_UP, 0.0f ) };
 
-					const auto center_pos { pos + forward };
+					const WorldCoordinate center_pos { pos + forward };
 
 					view_matrix =
 						Matrix< MatrixType::WorldToCamera >( glm::lookAtLH( pos.vec(), center_pos.vec(), -camera_up ) );
+
 					inverse_view_matrix = glm::inverse( view_matrix );
 
 					break;
@@ -69,7 +70,7 @@ namespace fgl::engine
 		{
 			last_frustum_pos = getPosition();
 
-			const auto translation_matrix { frustumTranslationMatrix() };
+			const Matrix< MatrixType::ModelToWorld > translation_matrix { frustumTranslationMatrix() };
 
 			frustum = translation_matrix * base_frustum;
 			return;
