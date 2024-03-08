@@ -61,12 +61,9 @@ namespace fgl::engine
 		if ( cursor_enabled && !cursor_restored )
 		{
 			glfwSetInputMode( window, GLFW_CURSOR, GLFW_CURSOR_NORMAL );
-			if ( !cursor_restored )
-			{
-				setCursorPos( window, stored_cursor_pos );
-				std::cout << "Restored cursor pos: " << stored_cursor_pos.x << "x" << stored_cursor_pos.y << std::endl;
-				cursor_restored = true;
-			}
+			setCursorPos( window, stored_cursor_pos );
+			std::cout << "Restored cursor pos: " << stored_cursor_pos.x << "x" << stored_cursor_pos.y << std::endl;
+			cursor_restored = true;
 		}
 		else if ( !cursor_enabled && cursor_restored )
 		{
