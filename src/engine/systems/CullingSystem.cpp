@@ -21,6 +21,7 @@ namespace fgl::engine
 
 		for ( auto* leaf : info.game_objects.getAllLeafsInFrustum( frustum ) )
 		{
+			assert( leaf );
 			for ( auto& obj : *leaf )
 			{
 				//Has model?

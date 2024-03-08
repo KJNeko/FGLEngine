@@ -446,9 +446,7 @@ namespace fgl::engine
 
 #if ENABLE_IMGUI
 				{
-#if TRACY_ENABLE
 					TracyVkZone( tracy_ctx, command_buffer, "ImGui Rendering" );
-#endif
 
 					debug::world::
 						drawPointText( Coordinate< CoordinateSpace::World >( 0.0f, 0.0f, 0.0f ), { 1.0f, 0.0f, 0.0f } );

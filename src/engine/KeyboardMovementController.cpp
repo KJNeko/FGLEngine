@@ -29,6 +29,7 @@ namespace fgl::engine
 
 	void KeyboardMovementController::moveInPlaneXZ( GLFWwindow* window, float dt, fgl::engine::GameObject& target )
 	{
+		assert( window );
 		constexpr float rotation_rate { 1.0f };
 		constexpr float pitch_modifier { 1.0f };
 		constexpr float yaw_modifier { 1.0f };

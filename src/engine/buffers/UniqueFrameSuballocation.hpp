@@ -30,7 +30,13 @@ namespace fgl::engine
 
 		void setMaxFramesInFlight( std::uint16_t max ) { m_suballocations.resize( max ); }
 
-		Suballocation& operator[]( std::uint16_t index ) { return *m_suballocations[ index ]; }
+		Suballocation& operator[]( std::uint16_t index )
+		{
+			assert( m_suballocations.size() >= index );
+			assert( m_suballocations[ index ] );
+
+			return *m_suballocations[ index ];
+		}
 
 		void bindForFrame( vk::CommandBuffer& cmd_buffer, std::uint16_t frame_idx )
 		{

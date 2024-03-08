@@ -25,8 +25,15 @@ namespace fgl::engine
 			{
 				case 0: // NodeArray
 					{
+						assert( std::holds_alternative< NodeArray >( m_node_data ) );
 						NodeArray& node_array { std::get< NodeArray >( m_node_data ) };
 						//Search deeper
+
+#ifndef NDEBUG
+						for ( int x = 0; x < 2; ++x )
+							for ( int y = 0; y < 2; ++y )
+								for ( int z = 0; z < 2; ++z ) assert( node_array[ x ][ y ][ z ] );
+#endif
 
 						{
 							const auto ret { node_array[ LEFT ][ FORWARD ][ TOP ]->getAllLeafsInFrustum( frustum ) };
@@ -67,10 +74,11 @@ namespace fgl::engine
 					}
 				case 1: // NodeLeaf
 					{
+						assert( std::holds_alternative< NodeLeaf >( m_node_data ) );
 						leafs.reserve( 4096 );
 						leafs.emplace_back( &std::get< NodeLeaf >( m_node_data ) );
 
-						//						debug::world::drawBoundingBox( m_bounds );
+						//debug::world::drawBoundingBox( m_bounds );
 
 						return leafs;
 					}
