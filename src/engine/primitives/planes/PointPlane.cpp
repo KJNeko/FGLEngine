@@ -49,6 +49,6 @@ namespace fgl::engine
 
 	template class PointPlane< CoordinateSpace::World >;
 	template class PointPlane< CoordinateSpace::Model >;
-	template class PointPlane< CoordinateSpace::Camera >;
+	template class PointPlane< CoordinateSpace::Screen >;
 
 } // namespace fgl::engine
