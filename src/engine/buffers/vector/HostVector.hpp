@@ -66,6 +66,9 @@ namespace fgl::engine
 				start_idx < this->m_count && "BufferSuballocationVector::flushRange start_idx index out of bounds" );
 			assert( end_idx <= this->m_count && "BufferSuballocationVector::flushRange end_idx index out of bounds" );
 			assert(
+				end_idx - start_idx > 0
+				&& "BufferSuballocationVector::flushRange: end_idx - start_idx must be higher then 0" );
+			assert(
 				start_idx < end_idx
 				&& "BufferSuballocationVector::flushRange start_idx index must be less than end_idx index" );
 			assert(
