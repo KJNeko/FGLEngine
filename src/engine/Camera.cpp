@@ -69,7 +69,9 @@ namespace fgl::engine
 		{
 			last_frustum_pos = getPosition();
 
-			frustum = frustumTranslationMatrix() * base_frustum;
+			const auto translation_matrix { frustumTranslationMatrix() };
+
+			frustum = translation_matrix * base_frustum;
 			return;
 		}
 		else
