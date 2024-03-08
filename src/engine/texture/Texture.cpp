@@ -39,7 +39,7 @@ namespace fgl::engine
 
 		const auto data_c { stbi_load( path_str.data(), &x, &y, &channels, 4 ) };
 
-		std::cout << "Loaded image with " << x << "x" << y << " Image had " << channels << " channels" << std::endl;
+		std::cout << "Loaded image with " << x << "x" << y << "\n\tImage had " << channels << " channels" << std::endl;
 
 		std::vector< unsigned char > data {};
 

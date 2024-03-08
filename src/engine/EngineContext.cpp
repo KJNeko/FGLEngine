@@ -50,6 +50,7 @@ namespace fgl::engine
 
 	void EngineContext::run()
 	{
+		std::cout << "Starting main loop run" << std::endl;
 		using namespace fgl::literals::size_literals;
 		Buffer global_ubo_buffer { 512_KiB,
 			                       vk::BufferUsageFlagBits::eUniformBuffer,
@@ -112,6 +113,7 @@ namespace fgl::engine
 
 		const auto old_aspect_ratio { m_renderer.getAspectRatio() };
 
+		std::cout << "Entering main loop" << std::endl;
 		while ( !m_window.shouldClose() )
 		{
 			ZoneScopedN( "Poll" );
