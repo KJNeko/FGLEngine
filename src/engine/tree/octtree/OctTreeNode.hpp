@@ -11,7 +11,7 @@
 
 namespace fgl::engine
 {
-	constexpr std::size_t MAX_NODES_IN_LEAF { 8 };
+	constexpr std::size_t MAX_NODES_IN_LEAF { 32 };
 	constexpr std::size_t STARTING_DEPTH { 4 };
 	constexpr float ROOT_SPAN { 1000.0f };
 
@@ -30,6 +30,9 @@ namespace fgl::engine
 
 	using NodeArray = std::array< std::array< std::array< std::unique_ptr< OctTreeNode >, 2 >, 2 >, 2 >;
 	using NodeLeaf = std::vector< GameObject >;
+
+	static_assert( sizeof( NodeArray ) == sizeof( OctTreeNode* ) * 2 * 2 * 2 );
+	static_assert( sizeof( OctTreeNode* ) == sizeof( std::uint64_t ) );
 
 	class OctTreeNode
 	{

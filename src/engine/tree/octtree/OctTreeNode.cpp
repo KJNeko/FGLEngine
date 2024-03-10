@@ -252,7 +252,7 @@ namespace fgl::engine
 			game_objects.begin(), game_objects.end(), [ id ]( const GameObject& obj ) { return id == obj.getId(); } );
 	}
 
-	bool OctTreeNode::canContain( const fgl::engine::GameObject& obj )
+	bool OctTreeNode::canContain( const GameObject& obj )
 	{
 		return m_bounds.contains( obj.m_transform.translation );
 	}
