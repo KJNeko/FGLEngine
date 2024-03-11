@@ -462,8 +462,6 @@ namespace fgl::engine
 				m_renderer.endFrame();
 
 				FrameMark;
-				using namespace std::chrono_literals;
-				std::this_thread::sleep_until( new_time + 16ms );
 			}
 		}
 
