@@ -29,9 +29,7 @@ namespace fgl::engine
 				{
 					//Test if the object is in the frustum
 
-					const OrientedBoundingBox model_bounding_box {
-						obj.m_model->getBoundingBox( Matrix< MatrixType::ModelToWorld >( obj.m_transform.mat4() ) )
-					};
+					const OrientedBoundingBox model_bounding_box { obj.getBoundingBox() };
 
 					obj.m_is_visible = frustum.intersects( model_bounding_box );
 

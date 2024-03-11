@@ -11,6 +11,8 @@
 
 namespace fgl::engine
 {
+	template < CoordinateSpace CType >
+	struct OrientedBoundingBox;
 
 	class Model;
 
@@ -50,6 +52,8 @@ namespace fgl::engine
 		inline const WorldCoordinate& getPosition() const { return m_transform.translation; }
 
 		inline const Rotation& getRotation() const { return m_transform.rotation; }
+
+		OrientedBoundingBox< CoordinateSpace::World > getBoundingBox() const;
 
 		static GameObject createGameObject();
 

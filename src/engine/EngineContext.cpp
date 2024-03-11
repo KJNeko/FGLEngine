@@ -525,6 +525,7 @@ namespace fgl::engine
 				sponza.m_transform.rotation = Rotation( 0.0f, 0.0f, 0.0f );
 
 				m_game_objects_root.addGameObject( std::move( sponza ) );
+				m_game_objects_root.recalculateBoundingBoxes();
 			}
 		}
 

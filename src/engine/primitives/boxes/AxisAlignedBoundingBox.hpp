@@ -11,6 +11,9 @@
 
 namespace fgl::engine
 {
+	template < CoordinateSpace CType >
+	struct OrientedBoundingBox;
+
 	//! Bounding box alligned with the world axis
 	template < CoordinateSpace CType >
 	class AxisAlignedBoundingBox : public interface::BoundingBox
@@ -22,11 +25,6 @@ namespace fgl::engine
 
 		constexpr static auto SpaceType { CType };
 
-		AxisAlignedBoundingBox() :
-		  m_top_right_forward( constants::WORLD_CENTER ),
-		  m_bottom_left_back( constants::WORLD_CENTER )
-		{}
-
 		explicit AxisAlignedBoundingBox(
 			const Coordinate< CType > top_right_forward, const Coordinate< CType > bottom_left_back ) :
 		  m_top_right_forward( top_right_forward ),
@@ -36,6 +34,16 @@ namespace fgl::engine
 		explicit AxisAlignedBoundingBox( const Coordinate< CType > midpoint, const Scale scale ) :
 		  AxisAlignedBoundingBox( midpoint + scale, midpoint - scale )
 		{}
+
+		explicit AxisAlignedBoundingBox( const OrientedBoundingBox< CType >& oobb );
+
+		AxisAlignedBoundingBox& combine( const AxisAlignedBoundingBox& other );
+		AxisAlignedBoundingBox& combine( const OrientedBoundingBox< CType >& other );
+
+		bool operator==( const AxisAlignedBoundingBox< CType >& other ) const
+		{
+			return m_top_right_forward == other.m_top_right_forward && m_bottom_left_back == other.m_bottom_left_back;
+		}
 
 		virtual Coordinate< CType > getPosition() const
 		{

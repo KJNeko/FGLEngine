@@ -81,6 +81,9 @@ namespace fgl::engine
 		template < typename T >
 		bool intersects( const T& t ) const;
 
+		template < typename T >
+		Coordinate< CType > intersection( const T& t ) const;
+
 		std::array< Coordinate< CType >, 4 * 2 > points() const
 		{
 			const Vector pv0 { glm::cross( top.getDirection().vec(), left.getDirection().vec() ) };

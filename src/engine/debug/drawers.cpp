@@ -137,10 +137,24 @@ namespace fgl::engine::debug
 			const Coordinate< CoordinateSpace::Screen > end_screen { toScreenSpace( line.getEnd() ) };
 
 			if ( !inView( start_screen.vec() ) && !inView( end_screen.vec() ) ) return;
-			if ( isBehind( start_screen.vec() ) || isBehind( end_screen.vec() ) ) return;
 
-			ImGui::GetForegroundDrawList()->AddLine(
-				glmToImgui( start_screen ), glmToImgui( end_screen ), ImColor( color.x, color.y, color.z ), thickness );
+			if ( isBehind( start_screen.vec() ) )
+			{
+				const auto frustum { getDebugDrawingCamera().getFrustumBounds() };
+				const auto new_line { line.flip() };
+
+				const auto new_point { frustum.intersection( new_line ) };
+			}
+			else if ( isBehind( end_screen.vec() ) )
+			{}
+			else
+			{
+				ImGui::GetForegroundDrawList()->AddLine(
+					glmToImgui( start_screen ),
+					glmToImgui( end_screen ),
+					ImColor( color.x, color.y, color.z ),
+					thickness );
+			}
 		}
 
 		void drawLine(

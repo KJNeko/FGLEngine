@@ -76,6 +76,8 @@ namespace fgl::engine
 
 		Coordinate& operator=( const Coordinate& other ) = default;
 		Coordinate& operator=( Coordinate&& other ) = default;
+
+		bool operator==( const Coordinate& other ) const = default;
 	};
 
 	using ModelCoordinate = Coordinate< CoordinateSpace::Model >;

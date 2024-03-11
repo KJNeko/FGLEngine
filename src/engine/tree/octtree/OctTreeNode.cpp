@@ -8,6 +8,7 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include "engine/debug/drawers.hpp"
+#include "engine/model/Model.hpp"
 #include "engine/primitives/Frustum.hpp"
 
 namespace fgl::engine
@@ -19,78 +20,76 @@ namespace fgl::engine
 		std::vector< NodeLeaf* > leafs {};
 
 		//Check if we are inside of the frustum.
-		if ( isInFrustum( frustum ) )
+		if ( !isInFrustum( frustum ) ) return leafs;
+
+		switch ( m_node_data.index() )
 		{
-			switch ( m_node_data.index() )
-			{
-				case 0: // NodeArray
-					{
-						assert( std::holds_alternative< NodeArray >( m_node_data ) );
-						NodeArray& node_array { std::get< NodeArray >( m_node_data ) };
-						//Search deeper
+			case 0: // NodeArray
+				{
+					assert( std::holds_alternative< NodeArray >( m_node_data ) );
+					NodeArray& node_array { std::get< NodeArray >( m_node_data ) };
+					//Search deeper
 
 #ifndef NDEBUG
-						for ( int x = 0; x < 2; ++x )
-							for ( int y = 0; y < 2; ++y )
-								for ( int z = 0; z < 2; ++z ) assert( node_array[ x ][ y ][ z ] );
+					for ( int x = 0; x < 2; ++x )
+						for ( int y = 0; y < 2; ++y )
+							for ( int z = 0; z < 2; ++z ) assert( node_array[ x ][ y ][ z ] );
 #endif
 
-						{
-							const auto ret { node_array[ LEFT ][ FORWARD ][ TOP ]->getAllLeafsInFrustum( frustum ) };
-							leafs = std::move( ret );
-						}
-						{
-							const auto ret { node_array[ LEFT ][ FORWARD ][ BOTTOM ]->getAllLeafsInFrustum( frustum ) };
-							leafs.insert( leafs.end(), ret.begin(), ret.end() );
-						}
-						{
-							const auto ret { node_array[ LEFT ][ BACK ][ TOP ]->getAllLeafsInFrustum( frustum ) };
-							leafs.insert( leafs.end(), ret.begin(), ret.end() );
-						}
-						{
-							const auto ret { node_array[ LEFT ][ BACK ][ BOTTOM ]->getAllLeafsInFrustum( frustum ) };
-							leafs.insert( leafs.end(), ret.begin(), ret.end() );
-						}
-
-						{
-							const auto ret { node_array[ RIGHT ][ FORWARD ][ TOP ]->getAllLeafsInFrustum( frustum ) };
-							leafs.insert( leafs.end(), ret.begin(), ret.end() );
-						}
-						{
-							const auto ret {
-								node_array[ RIGHT ][ FORWARD ][ BOTTOM ]->getAllLeafsInFrustum( frustum )
-							};
-							leafs.insert( leafs.end(), ret.begin(), ret.end() );
-						}
-						{
-							const auto ret { node_array[ RIGHT ][ BACK ][ TOP ]->getAllLeafsInFrustum( frustum ) };
-							leafs.insert( leafs.end(), ret.begin(), ret.end() );
-						}
-						{
-							const auto ret { node_array[ RIGHT ][ BACK ][ BOTTOM ]->getAllLeafsInFrustum( frustum ) };
-							leafs.insert( leafs.end(), ret.begin(), ret.end() );
-						}
-						return leafs;
-					}
-				case 1: // NodeLeaf
 					{
-						assert( std::holds_alternative< NodeLeaf >( m_node_data ) );
-						leafs.reserve( 4096 );
-						leafs.emplace_back( &std::get< NodeLeaf >( m_node_data ) );
-
-						//debug::world::drawBoundingBox( m_bounds );
-
-						return leafs;
+						const auto ret { node_array[ LEFT ][ FORWARD ][ TOP ]->getAllLeafsInFrustum( frustum ) };
+						leafs = std::move( ret );
 					}
-				default:
-					throw std::runtime_error( "OctTreeNode::Index out of bounds" );
-			}
+					{
+						const auto ret { node_array[ LEFT ][ FORWARD ][ BOTTOM ]->getAllLeafsInFrustum( frustum ) };
+						leafs.insert( leafs.end(), ret.begin(), ret.end() );
+					}
+					{
+						const auto ret { node_array[ LEFT ][ BACK ][ TOP ]->getAllLeafsInFrustum( frustum ) };
+						leafs.insert( leafs.end(), ret.begin(), ret.end() );
+					}
+					{
+						const auto ret { node_array[ LEFT ][ BACK ][ BOTTOM ]->getAllLeafsInFrustum( frustum ) };
+						leafs.insert( leafs.end(), ret.begin(), ret.end() );
+					}
+
+					{
+						const auto ret { node_array[ RIGHT ][ FORWARD ][ TOP ]->getAllLeafsInFrustum( frustum ) };
+						leafs.insert( leafs.end(), ret.begin(), ret.end() );
+					}
+					{
+						const auto ret { node_array[ RIGHT ][ FORWARD ][ BOTTOM ]->getAllLeafsInFrustum( frustum ) };
+						leafs.insert( leafs.end(), ret.begin(), ret.end() );
+					}
+					{
+						const auto ret { node_array[ RIGHT ][ BACK ][ TOP ]->getAllLeafsInFrustum( frustum ) };
+						leafs.insert( leafs.end(), ret.begin(), ret.end() );
+					}
+					{
+						const auto ret { node_array[ RIGHT ][ BACK ][ BOTTOM ]->getAllLeafsInFrustum( frustum ) };
+						leafs.insert( leafs.end(), ret.begin(), ret.end() );
+					}
+					return leafs;
+				}
+			case 1: // NodeLeaf
+				{
+					assert( std::holds_alternative< NodeLeaf >( m_node_data ) );
+					leafs.reserve( 4096 );
+					leafs.emplace_back( &std::get< NodeLeaf >( m_node_data ) );
+
+					//debug::world::drawBoundingBox( m_bounds );
+
+					return leafs;
+				}
+			default:
+				throw std::runtime_error( "OctTreeNode::Index out of bounds" );
 		}
 
 		return leafs;
 	}
 
 	OctTreeNode::OctTreeNode( const WorldCoordinate center, float span, OctTreeNode* parent ) :
+	  m_fit_bounding_box( center, glm::vec3( span, span, span ) ),
 	  m_bounds( center, span ),
 	  m_node_data( NodeLeaf() ),
 	  m_parent( parent )
@@ -198,7 +197,19 @@ namespace fgl::engine
 
 	bool OctTreeNode::isInFrustum( const Frustum< CoordinateSpace::World >& frustum )
 	{
-		return !isEmpty() && frustum.intersects( m_bounds );
+#if ENABLE_IMGUI
+		if ( isEmpty() ) return false;
+		if ( frustum.intersects( m_fit_bounding_box ) )
+		{
+			debug::world::drawBoundingBox( m_fit_bounding_box );
+			return true;
+		}
+		else
+			return false;
+
+#else
+		return !isEmpty() && frustum.intersects( m_fit_bounding_box );
+#endif
 	}
 
 	OctTreeNode* OctTreeNode::findID( const GameObject::ID id )
@@ -303,6 +314,87 @@ namespace fgl::engine
 		}
 
 		return objects;
+	}
+
+	bool OctTreeNode::recalculateBoundingBoxes()
+	{
+		ZoneScoped;
+		const auto old_bounds { m_fit_bounding_box };
+		if ( std::holds_alternative< NodeArray >( m_node_data ) )
+		{
+			ZoneScopedN( "Process Array" );
+			bool bounding_box_changed { false };
+			auto& nodes { std::get< NodeArray >( m_node_data ) };
+			for ( std::size_t x = 0; x < 2; ++x )
+			{
+				for ( std::size_t y = 0; y < 2; ++y )
+				{
+					for ( std::size_t z = 0; z < 2; ++z )
+					{
+						auto& node { nodes[ x ][ y ][ z ] };
+						bounding_box_changed |= node->recalculateBoundingBoxes();
+					}
+				}
+			}
+
+			if ( bounding_box_changed )
+			{
+				//We need to update our bounding box now.
+				auto new_bounds { nodes[ 0 ][ 0 ][ 0 ]->m_fit_bounding_box };
+
+				for ( std::size_t x = 0; x < 2; ++x )
+				{
+					for ( std::size_t y = 0; y < 2; ++y )
+					{
+						for ( std::size_t z = 0; z < 2; ++z )
+						{
+							auto& node { nodes[ x ][ y ][ z ] };
+							new_bounds.combine( node->m_fit_bounding_box );
+						}
+					}
+				}
+
+				if ( new_bounds == old_bounds )
+				{
+					return false;
+				}
+				else
+				{
+					this->m_fit_bounding_box = new_bounds;
+					return true;
+				}
+			}
+
+			return false;
+		}
+		else if ( std::holds_alternative< NodeLeaf >( m_node_data ) )
+		{
+			ZoneScopedN( "Process Leaf" );
+			auto& game_objects { std::get< NodeLeaf >( m_node_data ) };
+
+			if ( game_objects.size() == 0 ) return false;
+
+			AxisAlignedBoundingBox< CoordinateSpace::World > new_bounds { game_objects[ 0 ].getBoundingBox() };
+
+			[[assume( game_objects.size() <= MAX_NODES_IN_LEAF )]];
+
+			for ( const GameObject& obj : game_objects )
+			{
+				new_bounds.combine( obj.getBoundingBox() );
+			}
+
+			if ( new_bounds == old_bounds )
+			{
+				return false;
+			}
+			else
+			{
+				this->m_fit_bounding_box = new_bounds;
+				return true;
+			}
+		}
+
+		std::unreachable();
 	}
 
 } // namespace fgl::engine

@@ -43,6 +43,15 @@ file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/bin/models")
 
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/models" DESTINATION "${CMAKE_BINARY_DIR}/bin")
 
+
+string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_UPPER_BUILD_TYPE)
+
+if (CMAKE_UPPER_BUILD_TYPE STREQUAL "DEBUG" OR CMAKE_UPPER_BUILD_TYPE STREQUAL "RELWITHDEBINFO")
+	set(SHADER_DEBUG_FLAGS "-g")
+else ()
+	set(SHADER_DEBUG_FLAGS "")
+endif ()
+
 foreach (MODEL IN LISTS MODELS)
 	get_filename_component(FILENAME ${MODEL} NAME)
 	add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/bin/models/${FILENAME}
@@ -54,7 +63,7 @@ endforeach ()
 foreach (SHADER IN LISTS FRAG_SHADERS)
 	get_filename_component(FILENAME ${SHADER} NAME)
 	add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/bin/shaders/${FILENAME}.spv
-			COMMAND ${Vulkan_GLSLC_EXECUTABLE} ${SHADER} -o ${CMAKE_BINARY_DIR}/bin/shaders/${FILENAME}.spv DEPENDS ${SHADER}
+			COMMAND ${Vulkan_GLSLC_EXECUTABLE} ${SHADER_DEBUG_FLAGS} ${SHADER} -o ${CMAKE_BINARY_DIR}/bin/shaders/${FILENAME}.spv DEPENDS ${SHADER}
 			COMMENT " Compiling ${SHADER} ")
 	list(APPEND SPV_SHADERS ${CMAKE_BINARY_DIR}/bin/shaders/${FILENAME}.spv)
 endforeach ()
@@ -62,7 +71,7 @@ endforeach ()
 foreach (SHADER IN LISTS VERT_SHADERS)
 	get_filename_component(FILENAME ${SHADER} NAME)
 	add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/bin/shaders/${FILENAME}.spv
-			COMMAND ${Vulkan_GLSLC_EXECUTABLE} ${SHADER} -o ${CMAKE_BINARY_DIR}/bin/shaders/${FILENAME}.spv DEPENDS ${SHADER}
+			COMMAND ${Vulkan_GLSLC_EXECUTABLE} ${SHADER_DEBUG_FLAGS} ${SHADER} -o ${CMAKE_BINARY_DIR}/bin/shaders/${FILENAME}.spv DEPENDS ${SHADER}
 			COMMENT " Compiling ${SHADER} ")
 	list(APPEND SPV_SHADERS ${CMAKE_BINARY_DIR}/bin/shaders/${FILENAME}.spv)
 endforeach ()

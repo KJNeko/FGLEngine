@@ -114,6 +114,8 @@ namespace fgl::engine
 		RotationMatrix mat() const;
 
 		Rotation operator*( const Rotation other ) const;
+
+		bool operator==( const Rotation& other ) const = default;
 	};
 
 	template < RotationModifierType ModifierType >

@@ -16,31 +16,17 @@ namespace fgl::engine
 	template < CoordinateSpace CType >
 	class AxisAlignedBoundingCube final : public AxisAlignedBoundingBox< CType >
 	{
-		Coordinate< CType > m_middle;
-		float m_span;
-
 	  public:
 
 		constexpr static auto SpaceType { CType };
 
-		AxisAlignedBoundingCube() : m_middle( constants::WORLD_CENTER ), m_span( 1.0f ) {}
-
 		explicit AxisAlignedBoundingCube( const Coordinate< CType > middle, const float span ) :
-		  m_middle( middle ),
-		  m_span( span )
+		  AxisAlignedBoundingBox< CType >( middle, Scale( span, span, span ) )
 		{}
 
 		bool contains( const Coordinate< CType >& coordinate ) const;
 
-		float span() const { return m_span; }
-
-		Scale scale() const override { return Scale( m_span, m_span, m_span ); }
-
-		inline Coordinate< CType > topLeftForward() const override { return m_middle + scale(); }
-
-		inline Coordinate< CType > bottomLeftBack() const override { return m_middle - scale(); }
-
-		Coordinate< CType > getPosition() const override { return m_middle; }
+		float span() const { return this->scale().x; }
 
 		constexpr NormalVector right() const { return NormalVector::bypass( constants::WORLD_RIGHT ); }
 

@@ -319,4 +319,32 @@ namespace fgl::engine
 		return true;
 	}
 
+	template <>
+	template <>
+	Coordinate< CoordinateSpace::World > Frustum<
+		CoordinateSpace::World >::intersection( const Line< CoordinateSpace::World >& line ) const
+	{
+		Coordinate< CoordinateSpace::World > coordinate { line.getEnd() };
+
+		//Test each. Whatever the line enters exists first is the point to return
+		auto testPlane = [ & ]( const Plane< CoordinateSpace::World >& plane )
+		{
+			const auto old_distance { signedDistance( line.getDirection(), coordinate, line.getPosition() ) };
+			const auto intersection { line.intersection( plane ) };
+			const auto intersection_distance {
+				signedDistance( line.getDirection(), intersection, line.getPosition() )
+			};
+			if ( old_distance < intersection_distance ) coordinate = intersection;
+		};
+
+		testPlane( this->right );
+		testPlane( this->left );
+		testPlane( this->near );
+		testPlane( this->far );
+		testPlane( this->top );
+		testPlane( this->bottom );
+
+		return coordinate;
+	}
+
 } // namespace fgl::engine

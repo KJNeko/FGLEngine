@@ -4,7 +4,6 @@
 
 #pragma once
 
-#define FGL_FORCE_NOTHING
 #ifndef FGL_FORCE_NOTHING
 
 #ifdef __GNUC__
@@ -15,6 +14,8 @@
 #define FGL_COLD __attribute__( ( cold ) )
 #define FGL_FORCE_INLINE __attribute__( ( always_inline ) )
 #define FGL_FORCE_INLINE_FLATTEN __attribute__( ( always_inline, flatten ) )
+#define FGL_ASSUME( ... ) __attribute__( ( assume( __VA_ARGS__ ) ) )
+
 #endif
 
 #else

@@ -4,6 +4,7 @@
 
 #include "AxisAlignedBoundingBox.hpp"
 
+#include "OrientedBoundingBox.hpp"
 #include "engine/primitives/lines/LineSegment.hpp"
 
 namespace fgl::engine
@@ -86,6 +87,67 @@ namespace fgl::engine
 		lines.emplace_back( points[ 3 ], points[ 7 ] );
 
 		return lines;
+	}
+
+	template < CoordinateSpace CType >
+	AxisAlignedBoundingBox< CType >& AxisAlignedBoundingBox< CType >::combine( const AxisAlignedBoundingBox& other )
+	{
+		const Coordinate< CType > new_top_right_forward {
+			std::max( this->m_top_right_forward.x, other.m_top_right_forward.x ),
+			std::max( this->m_top_right_forward.y, other.m_top_right_forward.y ),
+			std::max( this->m_top_right_forward.z, other.m_top_right_forward.z ),
+		};
+
+		const Coordinate< CType > new_bottom_left_back {
+			std::min( this->m_bottom_left_back.x, other.m_bottom_left_back.x ),
+			std::min( this->m_bottom_left_back.y, other.m_bottom_left_back.y ),
+			std::min( this->m_bottom_left_back.z, other.m_bottom_left_back.z ),
+		};
+
+		this->m_top_right_forward = new_top_right_forward;
+		this->m_bottom_left_back = new_bottom_left_back;
+
+		return *this;
+	}
+
+	template < CoordinateSpace CType >
+	AxisAlignedBoundingBox< CType >::AxisAlignedBoundingBox( const OrientedBoundingBox< CType >& oobb ) :
+	  m_top_right_forward( -constants::DEFAULT_VEC3 ),
+	  m_bottom_left_back( constants::DEFAULT_VEC3 )
+	{
+		if ( oobb.rotation == Rotation() ) // If default rotation then we can simply just take it as the box is
+		{
+			m_top_right_forward = oobb.middle + oobb.scale;
+			m_bottom_left_back = oobb.middle - oobb.scale;
+		}
+		else
+		{
+			//Rotation has been done. Need to use the points to figure it out
+			for ( const auto& point : oobb.points() )
+			{
+				m_top_right_forward.x = std::max( m_top_right_forward.x, point.x );
+				m_top_right_forward.y = std::max( m_top_right_forward.y, point.y );
+				m_top_right_forward.z = std::max( m_top_right_forward.z, point.z );
+
+				m_bottom_left_back.x = std::min( m_bottom_left_back.x, point.x );
+				m_bottom_left_back.y = std::min( m_bottom_left_back.y, point.y );
+				m_bottom_left_back.z = std::min( m_bottom_left_back.z, point.z );
+			}
+		}
+	}
+
+	template < CoordinateSpace CType >
+	AxisAlignedBoundingBox< CType >& AxisAlignedBoundingBox< CType >::combine( const OrientedBoundingBox< CType >&
+	                                                                               other )
+	{
+		AxisAlignedBoundingBox< CType > aabb { other };
+		if ( this->m_top_right_forward == Coordinate< CType >( constants::DEFAULT_VEC3 )
+		     || this->m_bottom_left_back == Coordinate< CType >( constants::DEFAULT_VEC3 ) )
+			return *this = aabb;
+		else
+		{
+			return this->combine( aabb );
+		}
 	}
 
 	template class AxisAlignedBoundingBox< CoordinateSpace::Model >;

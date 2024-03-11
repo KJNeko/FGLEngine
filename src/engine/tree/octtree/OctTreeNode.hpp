@@ -36,7 +36,12 @@ namespace fgl::engine
 
 	class OctTreeNode
 	{
+		//! Fit to each model
+		AxisAlignedBoundingBox< CoordinateSpace::World > m_fit_bounding_box;
+
+		//! Real bounds of the node
 		AxisAlignedBoundingCube< CoordinateSpace::World > m_bounds;
+
 		std::variant< NodeArray, NodeLeaf > m_node_data;
 
 		OctTreeNode* m_parent;
@@ -80,6 +85,8 @@ namespace fgl::engine
 		auto getGameObjectItter( const GameObject::ID id );
 
 	  public:
+
+		bool recalculateBoundingBoxes();
 
 		std::vector< NodeLeaf* > getAllLeafs();
 
