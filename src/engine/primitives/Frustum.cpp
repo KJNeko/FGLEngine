@@ -352,10 +352,6 @@ namespace fgl::engine
 		testPlane( this->top );
 		testPlane( this->bottom );
 
-		const auto distance { signedDistance( line.getDirection(), coordinate, line.getPosition() ) };
-
-		assert( distance > 0.0f );
-
 		return coordinate;
 	}
 

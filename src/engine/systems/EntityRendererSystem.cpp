@@ -213,11 +213,6 @@ namespace fgl::engine
 
 			const auto& model_matricies_suballoc { model_matrix_info_buffer };
 
-			for ( const auto& model_matrix : model_matrices )
-			{
-				assert( model_matrix.texture_idx <= 100 );
-			}
-
 			assert( model_matrix_info_buffer->size() == model_matrices.size() );
 
 			// Setup draw parameter buffer

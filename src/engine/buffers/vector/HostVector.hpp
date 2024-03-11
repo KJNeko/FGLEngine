@@ -62,7 +62,7 @@ namespace fgl::engine
 				( end_idx - start_idx ) != 0
 				&& "BufferSuballocationVector::flushRange end_idx must be at least +1 from start_idx" );
 
-			const auto count { end_idx - start_idx };
+			[[maybe_unused]] const auto count { end_idx - start_idx };
 			assert( count > 0 && "Count must be larger then 0" );
 			assert( count <= m_count );
 
