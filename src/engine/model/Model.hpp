@@ -64,12 +64,6 @@ namespace fgl::engine
 		//! Returns the bounding box in model space
 		const OrientedBoundingBox< CoordinateSpace::Model >& getBoundingBox() const { return m_bounding_box; }
 
-		OrientedBoundingBox< CoordinateSpace::World > getBoundingBox( const Matrix< MatrixType::ModelToWorld > matrix )
-			const
-		{
-			return matrix * m_bounding_box;
-		}
-
 		std::vector< Primitive > m_primitives {};
 
 		std::vector< vk::DrawIndexedIndirectCommand > getDrawCommand( const std::uint32_t index ) const;

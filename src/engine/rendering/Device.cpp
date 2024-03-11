@@ -19,7 +19,9 @@ static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
 	const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 	[[maybe_unused]] void* pUserData )
 {
-	if ( pCallbackData->flags & VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT )
+	if ( pCallbackData->flags
+	     & ( VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT
+	         | VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT ) )
 		throw std::runtime_error( pCallbackData->pMessage );
 	else
 		std::cout << pCallbackData->pMessage << std::endl;
@@ -124,7 +126,7 @@ namespace fgl::engine
 		appInfo.applicationVersion = VK_MAKE_VERSION( 1, 0, 0 );
 		appInfo.pEngineName = "titor";
 		appInfo.engineVersion = VK_MAKE_VERSION( 1, 0, 0 );
-		appInfo.apiVersion = VK_API_VERSION_1_2;
+		appInfo.apiVersion = VK_API_VERSION_1_3;
 
 		vk::InstanceCreateInfo createInfo {};
 		createInfo.pApplicationInfo = &appInfo;

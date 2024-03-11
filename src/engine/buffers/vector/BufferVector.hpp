@@ -42,14 +42,12 @@ namespace fgl::engine
 
 	  public:
 
-		//! Returns the total byte capacity of the buffer
-		[[nodiscard]] std::size_t byteCapacity() const noexcept { return m_count * m_stride; }
-
 		//! Returns the offset count from the start of the buffer to the first element
 		[[nodiscard]] std::uint32_t getOffsetCount() const
 		{
 			assert( !std::isnan( m_count ) );
 			assert( !std::isnan( m_stride ) );
+			assert( m_count * m_stride == this->bytesize() );
 			assert( m_offset % m_stride == 0 && "Offset must be aligned from the stride" );
 
 			return static_cast< std::uint32_t >( this->m_offset / m_stride );
@@ -58,10 +56,16 @@ namespace fgl::engine
 		[[nodiscard]] std::uint32_t stride() const noexcept
 		{
 			assert( !std::isnan( m_stride ) );
+			assert( m_count * m_stride <= this->bytesize() );
 			return m_stride;
 		}
 
-		[[nodiscard]] std::uint32_t size() const noexcept { return m_count; }
+		[[nodiscard]] std::uint32_t size() const noexcept
+		{
+			assert( !std::isnan( m_count ) );
+			assert( m_count * m_stride <= this->bytesize() );
+			return m_count;
+		}
 
 		void resize( const std::uint32_t count )
 		{

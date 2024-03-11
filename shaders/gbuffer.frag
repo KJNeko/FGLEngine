@@ -1,11 +1,12 @@
 #version 450
 #extension GL_EXT_nonuniform_qualifier: enable
+#extension GL_EXT_debug_printf: enable
 
 layout (location = 0) in vec3 in_normal;
 layout (location = 1) in vec3 in_color;
 layout (location = 2) in vec3 in_world_pos;
 layout (location = 3) in vec2 in_tex_coord;
-layout (location = 4) in flat int in_tex_idx;
+layout (location = 4) in flat uint in_tex_idx;
 
 layout (location = 0) out vec4 out_color;
 layout (location = 1) out vec4 out_position;

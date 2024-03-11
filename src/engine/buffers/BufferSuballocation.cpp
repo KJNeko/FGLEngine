@@ -51,17 +51,23 @@ namespace fgl::engine
 
 	void BufferSuballocation::flush( vk::DeviceSize beg, vk::DeviceSize end )
 	{
+		assert( beg < end );
 		assert( m_handle != nullptr );
 		assert( m_handle->mapped != nullptr && "BufferSuballocationT::flush() called before map()" );
+		assert( end <= this->m_byte_size );
 
 		vk::MappedMemoryRange range {};
 		range.memory = m_handle->buffer.getMemory();
 		range.offset = m_offset + beg;
 
 		const vk::DeviceSize min_atom_size { Device::getInstance().m_properties.limits.nonCoherentAtomSize };
-		const auto size { end - beg };
+		const vk::DeviceSize size { end - beg };
+
+		assert( size > 0 );
 
 		range.size = align( size, min_atom_size );
+
+		assert( range.size > 0 );
 
 		if ( range.size > m_byte_size ) range.size = VK_WHOLE_SIZE;
 

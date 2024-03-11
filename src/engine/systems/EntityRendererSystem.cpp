@@ -143,8 +143,9 @@ namespace fgl::engine
 							auto& [ itter_key, pair ] = *itter;
 							auto& [ existing_cmd, model_matrix ] = pair;
 
-							existing_cmd.instanceCount++;
+							existing_cmd.instanceCount += 1;
 							model_matrix.emplace_back( matrix_info );
+							assert( model_matrix.size() == existing_cmd.instanceCount );
 						}
 						else
 						{
@@ -159,6 +160,7 @@ namespace fgl::engine
 
 							std::vector< ModelMatrixInfo > matrix_infos {};
 							matrix_infos.reserve( 1024 );
+							matrix_infos.emplace_back( matrix_info );
 							draw_pairs.emplace( key, std::make_pair( cmd, std::move( matrix_infos ) ) );
 						}
 					}
@@ -178,8 +180,8 @@ namespace fgl::engine
 				return;
 			}
 
-			std::vector< vk::DrawIndexedIndirectCommand > draw_commands;
-			std::vector< ModelMatrixInfo > model_matrices;
+			std::vector< vk::DrawIndexedIndirectCommand > draw_commands {};
+			std::vector< ModelMatrixInfo > model_matrices {};
 
 			draw_commands.reserve( draw_pairs.size() );
 			model_matrices.reserve( draw_pairs.size() * 2 );
@@ -188,52 +190,50 @@ namespace fgl::engine
 			for ( auto& [ key, pair ] : draw_pairs )
 			{
 				auto cmd { pair.first };
+				assert( cmd != vk::DrawIndexedIndirectCommand() );
 				cmd.firstInstance = static_cast< std::uint32_t >( model_matrices.size() );
-				auto matricies { std::move( pair.second ) };
+
+				assert( cmd.instanceCount == pair.second.size() );
+
+				assert( pair.second.size() > 0 );
 
 				draw_commands.emplace_back( cmd );
-				model_matrices.insert( model_matrices.end(), matricies.begin(), matricies.end() );
+				model_matrices.insert( model_matrices.end(), pair.second.begin(), pair.second.end() );
 			}
+
 			TracyCZoneEnd( filter_zone_TRACY );
 
-			TracyCZoneN( draw_zone_TRACY, "Submit draw data", true );
-			auto& draw_parameter_buffer { m_draw_parameter_buffers[ info.frame_idx ] };
-
-			if ( draw_parameter_buffer == nullptr || draw_parameter_buffer->capacity() < draw_commands.size() )
-			{
-				draw_parameter_buffer =
-					std::make_unique< DrawParameterBufferSuballocation >( info.draw_parameter_buffer, draw_commands );
-			}
-			else
-			{
-				//Simply set and flush
-				*draw_parameter_buffer = draw_commands;
-			}
-			const auto& draw_params { draw_parameter_buffer };
-			assert( draw_params->size() == draw_commands.size() );
-
-			TracyCZoneEnd( draw_zone_TRACY );
-
-			draw_parameter_buffer->flush();
-
+			//Setup model matrix info buffers
 			auto& model_matrix_info_buffer { m_model_matrix_info_buffers[ info.frame_idx ] };
 
-			if ( model_matrix_info_buffer == nullptr || model_matrix_info_buffer->capacity() < model_matrices.size() )
-			{
-				model_matrix_info_buffer = std::make_unique<
-					ModelMatrixInfoBufferSuballocation >( info.model_matrix_info_buffer, model_matrices );
-			}
-			else
-			{
-				//We can re-use this buffer since it's of a proper size.
-				*model_matrix_info_buffer = model_matrices;
-			}
-			assert( model_matrix_info_buffer->size() == model_matrices.size() );
+			model_matrix_info_buffer =
+				std::make_unique< ModelMatrixInfoBufferSuballocation >( info.model_matrix_info_buffer, model_matrices );
 
 			model_matrix_info_buffer->flush();
 
 			const auto& model_matricies_suballoc { model_matrix_info_buffer };
 
+			for ( const auto& model_matrix : model_matrices )
+			{
+				assert( model_matrix.texture_idx <= 100 );
+			}
+
+			assert( model_matrix_info_buffer->size() == model_matrices.size() );
+
+			// Setup draw parameter buffer
+			TracyCZoneN( draw_zone_TRACY, "Submit draw data", true );
+			auto& draw_parameter_buffer { m_draw_parameter_buffers[ info.frame_idx ] };
+
+			draw_parameter_buffer =
+				std::make_unique< DrawParameterBufferSuballocation >( info.draw_parameter_buffer, draw_commands );
+
+			const auto& draw_params { draw_parameter_buffer };
+			assert( draw_params->size() == draw_commands.size() );
+			assert( draw_params->stride() == sizeof( vk::DrawIndexedIndirectCommand ) );
+
+			TracyCZoneEnd( draw_zone_TRACY );
+
+			draw_parameter_buffer->flush();
 			const std::vector< vk::Buffer > vertex_buffers { m_vertex_buffer->getVkBuffer(),
 				                                             model_matricies_suballoc->getVkBuffer() };
 
