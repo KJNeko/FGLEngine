@@ -160,7 +160,7 @@ namespace fgl::engine
 
 		if ( depth - 1 >= 1 )
 		{
-			//TODO: Split all nodes again
+			split( depth );
 		}
 	}
 
