@@ -85,4 +85,10 @@ namespace fgl::engine
 
 	static_assert( sizeof( glm::vec3 ) == sizeof( ModelCoordinate ) );
 
+	template < fgl::engine::CoordinateSpace CType >
+	::std::ostream& operator<<( ::std::ostream& os, const fgl::engine::Coordinate< CType > coordinate )
+	{
+		return os << "(" << coordinate.x << ", " << coordinate.y << ", " << coordinate.z << ")";
+	}
+
 } // namespace fgl::engine

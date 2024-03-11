@@ -48,6 +48,9 @@ namespace fgl::engine
 		}
 
 		template < typename T >
+		bool intersets( const T t ) const;
+
+		template < typename T >
 			requires is_plane< T >
 		Coordinate< CType > FGL_FLATTEN intersection( const T plane ) const
 		{

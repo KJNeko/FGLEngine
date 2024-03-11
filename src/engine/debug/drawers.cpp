@@ -133,28 +133,33 @@ namespace fgl::engine::debug
 		inline void
 			drawLine( const LineSegment< CoordinateSpace::World > line, const glm::vec3 color, const float thickness )
 		{
-			const Coordinate< CoordinateSpace::Screen > start_screen { toScreenSpace( line.getPosition() ) };
-			const Coordinate< CoordinateSpace::Screen > end_screen { toScreenSpace( line.getEnd() ) };
+			Coordinate< CoordinateSpace::Screen > start_screen { toScreenSpace( line.getPosition() ) };
+			Coordinate< CoordinateSpace::Screen > end_screen { toScreenSpace( line.getEnd() ) };
 
-			if ( !inView( start_screen.vec() ) && !inView( end_screen.vec() ) ) return;
+			if ( isBehind( start_screen.vec() ) && isBehind( end_screen.vec() ) ) return;
 
+			const auto frustum { getDebugDrawingCamera().getFrustumBounds() };
+
+			if ( !frustum.intersects( line ) ) return;
+
+			//Check if either point is behind the camera
 			if ( isBehind( start_screen.vec() ) )
 			{
-				const auto frustum { getDebugDrawingCamera().getFrustumBounds() };
 				const auto new_line { line.flip() };
 
 				const auto new_point { frustum.intersection( new_line ) };
+
+				start_screen = toScreenSpace( new_point );
 			}
 			else if ( isBehind( end_screen.vec() ) )
-			{}
-			else
 			{
-				ImGui::GetBackgroundDrawList()->AddLine(
-					glmToImgui( start_screen ),
-					glmToImgui( end_screen ),
-					ImColor( color.x, color.y, color.z ),
-					thickness );
+				const auto new_point { frustum.intersection( line ) };
+
+				end_screen = toScreenSpace( new_point );
 			}
+
+			ImGui::GetBackgroundDrawList()->AddLine(
+				glmToImgui( start_screen ), glmToImgui( end_screen ), ImColor( color.x, color.y, color.z ), thickness );
 		}
 
 		void drawLine(

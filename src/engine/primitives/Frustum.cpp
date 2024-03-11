@@ -325,16 +325,24 @@ namespace fgl::engine
 		CoordinateSpace::World >::intersection( const Line< CoordinateSpace::World >& line ) const
 	{
 		Coordinate< CoordinateSpace::World > coordinate { line.getEnd() };
+		const float max_dist { signedDistance( line.getDirection(), coordinate, line.getPosition() ) };
 
 		//Test each. Whatever the line enters exists first is the point to return
 		auto testPlane = [ & ]( const Plane< CoordinateSpace::World >& plane )
 		{
-			const auto old_distance { signedDistance( line.getDirection(), coordinate, line.getPosition() ) };
+			const float old_distance { signedDistance( line.getDirection(), coordinate, line.getPosition() ) };
 			const auto intersection { line.intersection( plane ) };
+
+			if ( std::isnan( intersection.x ) || std::isnan( intersection.y ) || std::isnan( intersection.z ) ) return;
+
 			const auto intersection_distance {
 				signedDistance( line.getDirection(), intersection, line.getPosition() )
 			};
-			if ( old_distance < intersection_distance ) coordinate = intersection;
+
+			if ( intersection_distance < 0.0f ) return;
+			if ( intersection_distance > max_dist ) return;
+
+			if ( old_distance > intersection_distance ) coordinate = intersection;
 		};
 
 		testPlane( this->right );
@@ -343,6 +351,10 @@ namespace fgl::engine
 		testPlane( this->far );
 		testPlane( this->top );
 		testPlane( this->bottom );
+
+		const auto distance { signedDistance( line.getDirection(), coordinate, line.getPosition() ) };
+
+		assert( distance > 0.0f );
 
 		return coordinate;
 	}
