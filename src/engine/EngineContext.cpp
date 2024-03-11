@@ -308,6 +308,7 @@ namespace fgl::engine
 					}
 
 					imGuiFrustumSettings();
+					imGuiOctTreeSettings();
 
 					if ( ImGui::CollapsingHeader( "Game Objects" ) )
 					{

@@ -14,6 +14,22 @@
 namespace fgl::engine
 {
 
+	static bool draw_leaf_fit_bounds { false };
+	static bool draw_leaf_real_bounds { false };
+	static bool draw_inview_bounds { false };
+
+	void imGuiOctTreeSettings()
+	{
+#if ENABLE_IMGUI
+		if ( ImGui::CollapsingHeader( "OctTree debug settings" ) )
+		{
+			ImGui::Checkbox( "Draw leaf fitted bounding boxes", &draw_leaf_fit_bounds );
+			ImGui::Checkbox( "Draw leaf real bounding boxes", &draw_leaf_real_bounds );
+			ImGui::Checkbox( "Draw ALL in view bounding boxes", &draw_inview_bounds );
+		}
+#endif
+	}
+
 	std::vector< NodeLeaf* > OctTreeNode::getAllLeafsInFrustum( const Frustum< CoordinateSpace::World >& frustum )
 	{
 		ZoneScoped;
@@ -199,9 +215,15 @@ namespace fgl::engine
 	{
 #if ENABLE_IMGUI
 		if ( isEmpty() ) return false;
+
 		if ( frustum.intersects( m_fit_bounding_box ) )
 		{
-			debug::world::drawBoundingBox( m_fit_bounding_box );
+			if ( draw_inview_bounds || std::holds_alternative< NodeLeaf >( this->m_node_data ) )
+			{
+				if ( draw_leaf_fit_bounds ) debug::world::drawBoundingBox( m_fit_bounding_box );
+				if ( draw_leaf_real_bounds ) debug::world::drawBoundingBox( m_bounds );
+			}
+
 			return true;
 		}
 		else

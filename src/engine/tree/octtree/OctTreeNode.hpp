@@ -34,6 +34,8 @@ namespace fgl::engine
 	static_assert( sizeof( NodeArray ) == sizeof( OctTreeNode* ) * 2 * 2 * 2 );
 	static_assert( sizeof( OctTreeNode* ) == sizeof( std::uint64_t ) );
 
+	void imGuiOctTreeSettings();
+
 	class OctTreeNode
 	{
 		//! Fit to each model

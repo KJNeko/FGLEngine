@@ -149,7 +149,7 @@ namespace fgl::engine::debug
 			{}
 			else
 			{
-				ImGui::GetForegroundDrawList()->AddLine(
+				ImGui::GetBackgroundDrawList()->AddLine(
 					glmToImgui( start_screen ),
 					glmToImgui( end_screen ),
 					ImColor( color.x, color.y, color.z ),
@@ -209,7 +209,7 @@ namespace fgl::engine::debug
 
 			const float div { screen_point.z };
 
-			ImGui::GetForegroundDrawList()
+			ImGui::GetBackgroundDrawList()
 				->AddCircleFilled( glmToImgui( screen_point ), div * 5.0f, ImColor( color.x, color.y, color.z ) );
 
 			drawPointLabel( point, label );
@@ -303,7 +303,7 @@ namespace fgl::engine::debug
 		void
 			drawText( const glm::vec2 position, const std::string& text, const glm::vec3 color, const glm::vec2 offset )
 		{
-			ImGui::GetForegroundDrawList()
+			ImGui::GetBackgroundDrawList()
 				->AddText( glmToImgui( position + offset ), ImColor( color.x, color.y, color.z ), text.c_str() );
 		}
 
