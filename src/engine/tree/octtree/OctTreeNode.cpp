@@ -32,7 +32,6 @@ namespace fgl::engine
 
 	std::vector< NodeLeaf* > OctTreeNode::getAllLeafsInFrustum( const Frustum< CoordinateSpace::World >& frustum )
 	{
-		ZoneScoped;
 		std::vector< NodeLeaf* > leafs {};
 
 		//Check if we are inside of the frustum.
@@ -158,6 +157,8 @@ namespace fgl::engine
 
 		new_nodes[ RIGHT ][ BACK ][ BOTTOM ] =
 			std::make_unique< OctTreeNode >( WorldCoordinate( right_x, backward_y, bottom_z ), half_span, this );
+
+		[[assume( game_objects.size() <= MAX_NODES_IN_LEAF )]];
 
 		for ( GameObject& obj : game_objects )
 		{

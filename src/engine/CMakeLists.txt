@@ -49,8 +49,6 @@ if (FORCE_DISABLE_IMGUI EQUAL 0)
 	endif ()
 endif ()
 
-target_compile_definitions(FGLEngine PRIVATE GLM_FORCE_INLINE=1)
-
 #GLM settings
 # GLM_FORCE_NO_CTOR_INIT
 target_compile_definitions(FGLEngine PUBLIC GLM_FORCE_RADIANS GLM_FORCE_DEPTH_ZERO_TO_ONE GLM_FORCE_LEFT_HANDED)

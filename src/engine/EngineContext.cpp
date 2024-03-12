@@ -505,7 +505,7 @@ namespace fgl::engine
 
 		model->syncBuffers( command_buffer );
 
-		constexpr int val { 16 };
+		constexpr int val { 4 };
 
 		constexpr float x_offset { -( static_cast< float >( val ) * 30.0f ) / 2.0f };
 		constexpr float y_offset { -( static_cast< float >( val ) * 20.0f ) / 2.0f };
@@ -519,14 +519,15 @@ namespace fgl::engine
 				sponza.m_transform.translation = WorldCoordinate(
 					x_offset + ( static_cast< float >( y ) * 30.0f ),
 					y_offset + ( static_cast< float >( x ) * 20.0f ),
-					0.0f );
+					float( rand() % 120 ) - 60.0f );
 				sponza.m_transform.scale = { 0.007f, 0.007f, 0.007f };
 				sponza.m_transform.rotation = Rotation( 0.0f, 0.0f, 0.0f );
 
 				m_game_objects_root.addGameObject( std::move( sponza ) );
-				m_game_objects_root.recalculateBoundingBoxes();
+				std::cout << "(" << x << "," << y << ")" << std::endl;
 			}
 		}
+		m_game_objects_root.recalculateBoundingBoxes();
 
 		/*
 		{

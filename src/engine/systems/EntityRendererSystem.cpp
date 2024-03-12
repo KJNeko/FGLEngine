@@ -113,7 +113,9 @@ namespace fgl::engine
 			std::uint64_t object_counter { 0 };
 			std::uint64_t primitive_counter { 0 };
 
-			for ( auto* node : info.game_objects.getAllLeafsInFrustum( info.camera_frustum ) )
+			const auto in_view_leafs { info.game_objects.getAllLeafsInFrustum( info.camera_frustum ) };
+
+			for ( auto* node : in_view_leafs )
 			{
 				ZoneScopedN( "Process leaf" );
 				for ( const auto& obj : *node )
@@ -159,7 +161,7 @@ namespace fgl::engine
 							cmd.instanceCount = 1;
 
 							std::vector< ModelMatrixInfo > matrix_infos {};
-							matrix_infos.reserve( 1024 );
+							matrix_infos.reserve( 128 );
 							matrix_infos.emplace_back( matrix_info );
 							draw_pairs.emplace( key, std::make_pair( cmd, std::move( matrix_infos ) ) );
 						}

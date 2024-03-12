@@ -13,7 +13,7 @@ namespace fgl::engine
 {
 	constexpr std::size_t MAX_NODES_IN_LEAF { 32 };
 	constexpr std::size_t STARTING_DEPTH { 4 };
-	constexpr float ROOT_SPAN { 1000.0f };
+	constexpr float ROOT_SPAN { std::numeric_limits< float >::max() };
 
 	template < CoordinateSpace CType >
 	struct Frustum;
