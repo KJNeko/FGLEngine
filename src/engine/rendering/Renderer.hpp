@@ -29,7 +29,7 @@ namespace fgl::engine
 
 		std::vector< vk::CommandBuffer > m_command_buffer {};
 
-		std::vector< TracyVkCtx > m_tracy_ctx {};
+		std::optional< TracyVkCtx > m_tracy_ctx { std::nullopt };
 
 		void createCommandBuffers();
 		void freeCommandBuffers();
@@ -63,7 +63,8 @@ namespace fgl::engine
 		TracyVkCtx getCurrentTracyCTX() const
 		{
 #if TRACY_ENABLE
-			return m_tracy_ctx[ current_frame_idx ];
+			assert( m_tracy_ctx.has_value() );
+			return m_tracy_ctx.value();
 #else
 			return nullptr;
 #endif

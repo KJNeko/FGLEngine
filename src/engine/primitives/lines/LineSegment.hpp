@@ -16,8 +16,8 @@ namespace fgl::engine
 	template < CoordinateSpace CType >
 	class LineSegment final : public LineBase
 	{
-		Coordinate< CType > start;
-		Coordinate< CType > end;
+		Coordinate< CType > start { -constants::DEFAULT_VEC3 };
+		Coordinate< CType > end { constants::DEFAULT_VEC3 };
 
 		glm::vec3 getVec3Position() const override { return getPosition().vec(); }
 
@@ -25,11 +25,7 @@ namespace fgl::engine
 
 	  public:
 
-		NormalVector getDirection() const { return NormalVector( end - start ); }
-
-		Coordinate< CType > getPosition() const { return start; }
-
-		Coordinate< CType > getEnd() const { return end; }
+		LineSegment() = default;
 
 		explicit LineSegment( const Coordinate< CType > i_start, const Coordinate< CType > i_end ) noexcept :
 		  start( i_start ),
@@ -37,6 +33,12 @@ namespace fgl::engine
 		{}
 
 		explicit LineSegment( const glm::vec3 i_start, glm::vec3 i_end ) : start( i_start ), end( i_end ) {}
+
+		NormalVector getDirection() const { return NormalVector( end - start ); }
+
+		Coordinate< CType > getPosition() const { return start; }
+
+		Coordinate< CType > getEnd() const { return end; }
 
 		inline LineSegment flip() const { return LineSegment( end, start ); }
 

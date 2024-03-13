@@ -28,21 +28,18 @@ message("-- FGL_FLAGS: ${FGL_FLAGS}")
 add_subdirectory(dependencies/vma)
 include(dependencies/glfw)
 include(dependencies/glm)
-include(dependencies/tracy)
+include(cmake_modules/dependencies/tracy.cmake)
 include(dependencies/vulkan)
 include(dependencies/catch2)
 
 add_subdirectory(src)
 add_subdirectory(tests)
 
-file(GLOB FRAG_SHADERS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.frag")
-file(GLOB VERT_SHADERS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.vert")
 
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/bin/shaders")
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/bin/models")
 
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/models" DESTINATION "${CMAKE_BINARY_DIR}/bin")
-
 
 string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_UPPER_BUILD_TYPE)
 
@@ -59,6 +56,9 @@ foreach (MODEL IN LISTS MODELS)
 			COMMENT " Copying ${MODEL} ")
 	list(APPEND OBJ_MODELS ${CMAKE_BINARY_DIR}/bin/models/${FILENAME})
 endforeach ()
+
+file(GLOB FRAG_SHADERS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.frag")
+file(GLOB VERT_SHADERS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.vert")
 
 foreach (SHADER IN LISTS FRAG_SHADERS)
 	get_filename_component(FILENAME ${SHADER} NAME)

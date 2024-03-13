@@ -13,15 +13,27 @@
 namespace fgl::engine
 {
 
+	static bool enable_culling { true };
+
 	void CullingSystem::pass( FrameInfo& info )
 	{
 		ZoneScopedN( "Culling pass" );
 
 		const auto frustum { info.camera_frustum };
 
-		for ( auto* leaf : info.game_objects.getAllLeafsInFrustum( frustum ) )
+		ImGui::Checkbox( "Enable culling", &enable_culling );
+
+		if ( !enable_culling )
+		{
+			return;
+		}
+
+		auto leafs { info.game_objects.getAllLeafsInFrustum( frustum ) };
+
+		for ( auto* leaf : leafs )
 		{
 			assert( leaf );
+
 			for ( auto& obj : *leaf )
 			{
 				//Has model?
@@ -43,6 +55,8 @@ namespace fgl::engine
 				}
 			}
 		}
+
+		info.in_view_leafs = std::move( leafs );
 	}
 
 	void CullingSystem::runner()

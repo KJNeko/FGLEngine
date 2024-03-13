@@ -81,6 +81,15 @@ namespace fgl::engine
 		template < typename T >
 		bool intersects( const T& t ) const;
 
+		template < typename T, std::size_t TSize >
+		inline bool intersects( const std::array< T, TSize >& t ) const
+		{
+			for ( std::size_t i = 0; i < TSize; ++i )
+				if ( intersects( t[ i ] ) ) return true;
+
+			return false;
+		}
+
 		template < typename T >
 		Coordinate< CType > intersection( const T& t ) const;
 

@@ -6,6 +6,8 @@
 
 #include <thread>
 
+#include "concepts.hpp"
+
 namespace fgl::engine
 {
 	struct FrameInfo;
@@ -33,5 +35,8 @@ namespace fgl::engine
 
 		void wait();
 	};
+
+	static_assert( is_system< CullingSystem > );
+	static_assert( is_threaded_system< CullingSystem > );
 
 } // namespace fgl::engine

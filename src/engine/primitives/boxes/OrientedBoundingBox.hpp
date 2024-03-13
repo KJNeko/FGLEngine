@@ -56,8 +56,8 @@ namespace fgl::engine
 
 		consteval static std::array< std::uint32_t, indicies_count > triangleIndicies();
 
-		std::vector< Coordinate< CType > > points() const;
-		std::vector< LineSegment< CType > > lines() const;
+		std::array< Coordinate< CType >, POINT_COUNT > points() const;
+		std::array< LineSegment< CType >, LINE_COUNT > lines() const;
 
 		NormalVector forward() const { return rotation.forward(); }
 

@@ -7,6 +7,7 @@ message("-- Cmake upper: ${CMAKE_UPPER_BUILD_TYPE}")
 if (CMAKE_UPPER_BUILD_TYPE STREQUAL "DEBUG" OR CMAKE_UPPER_BUILD_TYPE STREQUAL "RELWITHDEBINFO")
 	set(TRACY_ENABLE ON)
 	set(TRACY_ON_DEMAND ON)
+	set(TRACY_NO_EXIT ON)
 endif ()
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/dependencies/tracy)

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <bitset>
+#include <functional>
 
 #include "engine/GameObject.hpp"
 #include "engine/primitives/boxes/AxisAlignedBoundingCube.hpp"
@@ -28,6 +29,34 @@ namespace fgl::engine
 	class OctTreeNode;
 	class GameObject;
 
+	template < typename T >
+	class OctTreeAllocator : public std::allocator< T >
+	{
+		std::vector< std::vector< std::byte > > blocks;
+		using BlockIDX = int;
+
+		//! Map for each pointer to their respective blocks
+		std::unordered_map< T*, BlockIDX > m_block_map;
+	};
+
+	template < typename T >
+	using unique_alloc_ptr = std::unique_ptr< T, std::function< void( T* ) > >;
+
+	template < typename T, typename... Ts >
+	unique_alloc_ptr< T > make_unique_from_allocator( OctTreeAllocator< T >& allocator, Ts... args )
+	{
+		T* ptr = allocator.allocate( 1 );
+		allocator.construct( ptr, args... );
+
+		auto deleter = [ &allocator ]( const auto* ptr_i ) -> void
+		{
+			allocator.destroy( ptr_i );
+			allocator.deallocate( ptr_i, 1 );
+		};
+
+		return std::unique_ptr< T, decltype( deleter ) >( ptr, deleter );
+	}
+
 	using NodeArray = std::array< std::array< std::array< std::unique_ptr< OctTreeNode >, 2 >, 2 >, 2 >;
 	using NodeLeaf = std::vector< GameObject >;
 
@@ -44,7 +73,10 @@ namespace fgl::engine
 		//! Real bounds of the node
 		AxisAlignedBoundingCube< CoordinateSpace::World > m_bounds;
 
-		std::variant< NodeArray, NodeLeaf > m_node_data;
+		using NodeDataT = NodeArray;
+		using LeafDataT = NodeLeaf;
+
+		std::variant< NodeDataT, LeafDataT > m_node_data;
 
 		OctTreeNode* m_parent;
 
@@ -77,7 +109,7 @@ namespace fgl::engine
 
 		GameObject extract( const GameObject::ID id );
 
-		bool isInFrustum( const Frustum< CoordinateSpace::World >& frustum );
+		bool isInFrustum( const Frustum< CoordinateSpace::World >& frustum ) const;
 
 		bool isEmpty() const
 		{
@@ -86,13 +118,34 @@ namespace fgl::engine
 
 		auto getGameObjectItter( const GameObject::ID id );
 
+		void getAllLeafs( std::vector< NodeLeaf* >& out_leafs );
+		void getAllLeafsInFrustum(
+			const Frustum< CoordinateSpace::World >& frustum, std::vector< NodeLeaf* >& out_leafs );
+
 	  public:
 
 		bool recalculateBoundingBoxes();
 
-		std::vector< NodeLeaf* > getAllLeafs();
+		constexpr static std::size_t LEAF_RESERVE_SIZE { 1024 };
 
-		std::vector< NodeLeaf* > getAllLeafsInFrustum( const Frustum< CoordinateSpace::World >& frustum );
+		[[nodiscard]] inline std::vector< NodeLeaf* > getAllLeafs()
+		{
+			ZoneScoped;
+			std::vector< NodeLeaf* > leafs;
+			leafs.reserve( LEAF_RESERVE_SIZE );
+			this->getAllLeafs( leafs );
+			return leafs;
+		}
+
+		[[nodiscard]] inline std::vector< NodeLeaf* > getAllLeafsInFrustum( const Frustum< CoordinateSpace::World >&
+		                                                                        frustum )
+		{
+			ZoneScoped;
+			std::vector< NodeLeaf* > leafs;
+			leafs.reserve( LEAF_RESERVE_SIZE );
+			this->getAllLeafsInFrustum( frustum, leafs );
+			return leafs;
+		}
 
 		//! Adds a game object, Will split the node if the auto split threshold is reached
 		OctTreeNode* addGameObject( GameObject&& obj );

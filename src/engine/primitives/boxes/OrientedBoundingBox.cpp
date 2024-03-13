@@ -84,11 +84,11 @@ namespace fgl::engine
 	}
 
 	template < CoordinateSpace CType >
-	std::vector< Coordinate< CType > > OrientedBoundingBox< CType >::points() const
+	std::array< Coordinate< CType >, interface::BoundingBox::POINT_COUNT > OrientedBoundingBox< CType >::points() const
 	{
 		assert( middle.vec() != constants::DEFAULT_VEC3 );
 		assert( scale != glm::vec3( 0.0f ) );
-		std::vector< Coordinate< CType > > points;
+		std::array< Coordinate< CType >, POINT_COUNT > points {};
 
 		// xp == x positive (Highest x point)
 		// xn == x negative (Lowest x point)
@@ -129,7 +129,6 @@ namespace fgl::engine
 		 * 6 =========== 7
 		 */
 
-		points.resize( 8 );
 		points[ 0 ] = Coordinate< CType >( xp_yp_zp );
 		points[ 1 ] = Coordinate< CType >( xn_yp_zp );
 		points[ 2 ] = Coordinate< CType >( xn_yp_zn );
@@ -170,39 +169,70 @@ namespace fgl::engine
 
 		ZoneScoped;
 		const auto& other_points { other.points() };
-		std::vector< Coordinate< CType > > points { this->points() };
-		points.insert( points.end(), other_points.begin(), other_points.end() );
+		const auto points { this->points() };
+		std::array< Coordinate< CType >, interface::BoundingBox::POINT_COUNT * 2 > combined_points {};
+		std::copy( other_points.begin(), other_points.end(), combined_points.begin() );
+		std::copy( points.begin(), points.end(), combined_points.begin() + POINT_COUNT );
 
 		//TODO: There might be a way to do this without needing to do yet another point calculation.
 		return generateBoundingFromPoints< CType >( points );
 	}
 
 	template < CoordinateSpace CType >
-	std::vector< LineSegment< CType > > OrientedBoundingBox< CType >::lines() const
+	std::array< LineSegment< CType >, interface::BoundingBox::LINE_COUNT > OrientedBoundingBox< CType >::lines() const
 	{
 		const auto points { this->points() };
 
-		std::vector< LineSegment< CType > > lines;
+		std::array< LineSegment< CType >, LINE_COUNT > lines;
 
 		//Top
-		lines.emplace_back( points[ 0 ], points[ 1 ] );
-		lines.emplace_back( points[ 1 ], points[ 2 ] );
-		lines.emplace_back( points[ 2 ], points[ 3 ] );
-		lines.emplace_back( points[ 3 ], points[ 0 ] );
+		lines[ 0 ] = LineSegment< CType >( points[ 0 ], points[ 1 ] );
+		lines[ 1 ] = LineSegment< CType >( points[ 1 ], points[ 2 ] );
+		lines[ 2 ] = LineSegment< CType >( points[ 2 ], points[ 3 ] );
+		lines[ 3 ] = LineSegment< CType >( points[ 3 ], points[ 0 ] );
 
 		//Bottom
-		lines.emplace_back( points[ 4 ], points[ 5 ] );
-		lines.emplace_back( points[ 5 ], points[ 6 ] );
-		lines.emplace_back( points[ 6 ], points[ 7 ] );
-		lines.emplace_back( points[ 7 ], points[ 4 ] );
+		lines[ 4 ] = LineSegment< CType >( points[ 4 ], points[ 5 ] );
+		lines[ 5 ] = LineSegment< CType >( points[ 5 ], points[ 6 ] );
+		lines[ 6 ] = LineSegment< CType >( points[ 6 ], points[ 7 ] );
+		lines[ 7 ] = LineSegment< CType >( points[ 7 ], points[ 4 ] );
 
 		//Sides
-		lines.emplace_back( points[ 0 ], points[ 4 ] );
-		lines.emplace_back( points[ 1 ], points[ 5 ] );
-		lines.emplace_back( points[ 2 ], points[ 6 ] );
-		lines.emplace_back( points[ 3 ], points[ 7 ] );
+		lines[ 8 ] = LineSegment< CType >( points[ 0 ], points[ 4 ] );
+		lines[ 9 ] = LineSegment< CType >( points[ 1 ], points[ 5 ] );
+		lines[ 10 ] = LineSegment< CType >( points[ 2 ], points[ 6 ] );
+		lines[ 11 ] = LineSegment< CType >( points[ 3 ], points[ 7 ] );
 
 		return lines;
+	}
+
+	template < CoordinateSpace CType, std::size_t TCount >
+	OrientedBoundingBox< CType > generateBoundingFromPoints( const std::array< Coordinate< CType >, TCount >& points )
+	{
+		ZoneScoped;
+		assert( points.size() > 0 );
+
+		// neg (min)
+		glm::vec3 top_left_front { points[ 0 ].vec() };
+		// pos (max)
+		glm::vec3 bottom_right_back { points[ 0 ].vec() };
+
+		for ( const auto& pos : points )
+		{
+			top_left_front.x = std::min( pos.vec().x, top_left_front.x );
+			top_left_front.y = std::min( pos.vec().y, top_left_front.y );
+			top_left_front.z = std::min( pos.vec().z, top_left_front.z );
+
+			bottom_right_back.x = std::max( pos.vec().x, bottom_right_back.x );
+			bottom_right_back.y = std::max( pos.vec().y, bottom_right_back.y );
+			bottom_right_back.z = std::max( pos.vec().z, bottom_right_back.z );
+		}
+
+		//Calculate midpoint
+		const glm::vec3 midpoint { ( top_left_front + bottom_right_back ) / glm::vec3( 2.0f ) };
+		const glm::vec3 scale { bottom_right_back - midpoint };
+
+		return { Coordinate< CType >( midpoint ), scale };
 	}
 
 	template < CoordinateSpace CType >
@@ -233,6 +263,10 @@ namespace fgl::engine
 
 		return { Coordinate< CType >( midpoint ), scale };
 	}
+
+	template OrientedBoundingBox< CoordinateSpace::Model > generateBoundingFromPoints( const std::vector< Coordinate<
+																						   CoordinateSpace::Model > >&
+	                                                                                       points );
 
 	OrientedBoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< Vertex >& verts )
 	{

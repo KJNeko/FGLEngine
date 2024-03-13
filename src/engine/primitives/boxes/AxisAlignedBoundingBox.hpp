@@ -56,8 +56,8 @@ namespace fgl::engine
 
 		virtual Scale scale() const;
 
-		std::vector< Coordinate< CType > > points() const;
-		std::vector< LineSegment< CType > > lines() const;
+		std::array< Coordinate< CType >, POINT_COUNT > points() const;
+		std::array< LineSegment< CType >, LINE_COUNT > lines() const;
 
 		constexpr NormalVector right() const { return NormalVector::bypass( constants::WORLD_RIGHT ); }
 

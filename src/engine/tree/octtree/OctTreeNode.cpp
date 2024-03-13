@@ -30,12 +30,13 @@ namespace fgl::engine
 #endif
 	}
 
-	std::vector< NodeLeaf* > OctTreeNode::getAllLeafsInFrustum( const Frustum< CoordinateSpace::World >& frustum )
+	void OctTreeNode::
+		getAllLeafsInFrustum( const Frustum< CoordinateSpace::World >& frustum, std::vector< NodeLeaf* >& out_leafs )
 	{
-		std::vector< NodeLeaf* > leafs {};
-
 		//Check if we are inside of the frustum.
-		if ( !isInFrustum( frustum ) ) return leafs;
+		if ( !isInFrustum( frustum ) ) return;
+
+		auto& leafs { out_leafs };
 
 		switch ( m_node_data.index() )
 		{
@@ -45,62 +46,35 @@ namespace fgl::engine
 					NodeArray& node_array { std::get< NodeArray >( m_node_data ) };
 					//Search deeper
 
-#ifndef NDEBUG
-					for ( int x = 0; x < 2; ++x )
-						for ( int y = 0; y < 2; ++y )
-							for ( int z = 0; z < 2; ++z ) assert( node_array[ x ][ y ][ z ] );
-#endif
+					node_array[ LEFT ][ FORWARD ][ TOP ]->getAllLeafsInFrustum( frustum, out_leafs );
+					node_array[ LEFT ][ FORWARD ][ BOTTOM ]->getAllLeafsInFrustum( frustum, out_leafs );
 
-					{
-						const auto ret { node_array[ LEFT ][ FORWARD ][ TOP ]->getAllLeafsInFrustum( frustum ) };
-						leafs = std::move( ret );
-					}
-					{
-						const auto ret { node_array[ LEFT ][ FORWARD ][ BOTTOM ]->getAllLeafsInFrustum( frustum ) };
-						leafs.insert( leafs.end(), ret.begin(), ret.end() );
-					}
-					{
-						const auto ret { node_array[ LEFT ][ BACK ][ TOP ]->getAllLeafsInFrustum( frustum ) };
-						leafs.insert( leafs.end(), ret.begin(), ret.end() );
-					}
-					{
-						const auto ret { node_array[ LEFT ][ BACK ][ BOTTOM ]->getAllLeafsInFrustum( frustum ) };
-						leafs.insert( leafs.end(), ret.begin(), ret.end() );
-					}
+					node_array[ LEFT ][ BACK ][ TOP ]->getAllLeafsInFrustum( frustum, out_leafs );
+					node_array[ LEFT ][ BACK ][ BOTTOM ]->getAllLeafsInFrustum( frustum, out_leafs );
 
-					{
-						const auto ret { node_array[ RIGHT ][ FORWARD ][ TOP ]->getAllLeafsInFrustum( frustum ) };
-						leafs.insert( leafs.end(), ret.begin(), ret.end() );
-					}
-					{
-						const auto ret { node_array[ RIGHT ][ FORWARD ][ BOTTOM ]->getAllLeafsInFrustum( frustum ) };
-						leafs.insert( leafs.end(), ret.begin(), ret.end() );
-					}
-					{
-						const auto ret { node_array[ RIGHT ][ BACK ][ TOP ]->getAllLeafsInFrustum( frustum ) };
-						leafs.insert( leafs.end(), ret.begin(), ret.end() );
-					}
-					{
-						const auto ret { node_array[ RIGHT ][ BACK ][ BOTTOM ]->getAllLeafsInFrustum( frustum ) };
-						leafs.insert( leafs.end(), ret.begin(), ret.end() );
-					}
-					return leafs;
+					node_array[ RIGHT ][ FORWARD ][ TOP ]->getAllLeafsInFrustum( frustum, out_leafs );
+					node_array[ RIGHT ][ FORWARD ][ BOTTOM ]->getAllLeafsInFrustum( frustum, out_leafs );
+
+					node_array[ RIGHT ][ BACK ][ TOP ]->getAllLeafsInFrustum( frustum, out_leafs );
+					node_array[ RIGHT ][ BACK ][ BOTTOM ]->getAllLeafsInFrustum( frustum, out_leafs );
+					return;
 				}
 			case 1: // NodeLeaf
 				{
 					assert( std::holds_alternative< NodeLeaf >( m_node_data ) );
-					leafs.reserve( 4096 );
-					leafs.emplace_back( &std::get< NodeLeaf >( m_node_data ) );
+					NodeLeaf& leaf { std::get< NodeLeaf >( m_node_data ) };
+					leafs.reserve( LEAF_RESERVE_SIZE );
+					leafs.emplace_back( &leaf );
 
 					//debug::world::drawBoundingBox( m_bounds );
 
-					return leafs;
+					return;
 				}
 			default:
-				throw std::runtime_error( "OctTreeNode::Index out of bounds" );
+				std::unreachable();
 		}
 
-		return leafs;
+		std::unreachable();
 	}
 
 	OctTreeNode::OctTreeNode( const WorldCoordinate center, float span, OctTreeNode* parent ) :
@@ -115,6 +89,7 @@ namespace fgl::engine
 
 	void OctTreeNode::split( int depth )
 	{
+		ZoneScoped;
 		if ( std::holds_alternative< NodeArray >( m_node_data ) ) return;
 		auto& game_objects { std::get< NodeLeaf >( m_node_data ) };
 
@@ -212,7 +187,7 @@ namespace fgl::engine
 		}
 	}
 
-	bool OctTreeNode::isInFrustum( const Frustum< CoordinateSpace::World >& frustum )
+	bool OctTreeNode::isInFrustum( const Frustum< CoordinateSpace::World >& frustum ) const
 	{
 #if ENABLE_IMGUI
 		if ( isEmpty() ) return false;
@@ -308,11 +283,9 @@ namespace fgl::engine
 			return m_parent->getRoot();
 	}
 
-	std::vector< NodeLeaf* > OctTreeNode::getAllLeafs()
+	void OctTreeNode::getAllLeafs( std::vector< NodeLeaf* >& objects )
 	{
 		ZoneScoped;
-		std::vector< NodeLeaf* > objects {};
-
 		if ( std::holds_alternative< NodeLeaf >( m_node_data ) )
 		{
 			auto& leaf { std::get< NodeLeaf >( m_node_data ) };
@@ -335,8 +308,6 @@ namespace fgl::engine
 				}
 			}
 		}
-
-		return objects;
 	}
 
 	bool OctTreeNode::recalculateBoundingBoxes()

@@ -505,7 +505,7 @@ namespace fgl::engine
 
 		model->syncBuffers( command_buffer );
 
-		constexpr int val { 4 };
+		constexpr int val { 32 };
 
 		constexpr float x_offset { -( static_cast< float >( val ) * 30.0f ) / 2.0f };
 		constexpr float y_offset { -( static_cast< float >( val ) * 20.0f ) / 2.0f };

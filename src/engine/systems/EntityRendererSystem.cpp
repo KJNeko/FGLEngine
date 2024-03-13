@@ -113,9 +113,7 @@ namespace fgl::engine
 			std::uint64_t object_counter { 0 };
 			std::uint64_t primitive_counter { 0 };
 
-			const auto in_view_leafs { info.game_objects.getAllLeafsInFrustum( info.camera_frustum ) };
-
-			for ( auto* node : in_view_leafs )
+			for ( auto* node : info.in_view_leafs )
 			{
 				ZoneScopedN( "Process leaf" );
 				for ( const auto& obj : *node )

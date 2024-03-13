@@ -51,16 +51,20 @@ namespace fgl::engine
 			throw std::runtime_error( "Failed to allocate command buffers" );
 
 #if TRACY_ENABLE
-		m_tracy_ctx.resize( SwapChain::MAX_FRAMES_IN_FLIGHT );
+		VkPhysicalDevice phy_dev { Device::getInstance().phyDevice() };
+		VkDevice dev { Device::getInstance().device() };
 
-		for ( int i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
-		{
-			VkPhysicalDevice phy_dev { Device::getInstance().phyDevice() };
-			VkDevice dev { Device::getInstance().device() };
+		m_tracy_ctx = TracyVkContext( phy_dev, dev, Device::getInstance().graphicsQueue(), m_command_buffer[ 0 ] );
 
-			m_tracy_ctx[ i ] =
-				TracyVkContext( phy_dev, dev, Device::getInstance().graphicsQueue(), m_command_buffer[ i ] );
-		}
+		/*
+		m_tracy_ctx = TracyVkContextCalibrated(
+			phy_dev,
+			dev,
+			Device::getInstance().graphicsQueue(),
+			m_command_buffer[ 0 ],
+			VULKAN_HPP_DEFAULT_DISPATCHER.vkGetPhysicalDeviceCalibrateableTimeDomainsEXT,
+			VULKAN_HPP_DEFAULT_DISPATCHER.vkGetCalibratedTimestampsEXT );
+		*/
 #endif
 	}
 

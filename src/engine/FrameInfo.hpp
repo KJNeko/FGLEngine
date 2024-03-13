@@ -83,6 +83,8 @@ namespace fgl::engine
 		DescriptorSet& gbuffer_descriptor_set;
 
 		const Frustum< CoordinateSpace::World >& camera_frustum;
+
+		std::vector< std::vector< GameObject >* > in_view_leafs {};
 	};
 
 } // namespace fgl::engine

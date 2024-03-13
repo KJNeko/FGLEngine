@@ -17,9 +17,10 @@ namespace fgl::engine
 	}
 
 	template < CoordinateSpace CType >
-	std::vector< Coordinate< CType > > AxisAlignedBoundingBox< CType >::points() const
+	std::array< Coordinate< CType >, interface::BoundingBox::POINT_COUNT > AxisAlignedBoundingBox< CType >::points()
+		const
 	{
-		std::vector< Coordinate< CType > > points;
+		std::array< Coordinate< CType >, POINT_COUNT > points {};
 
 		// xp == x positive (Highest x point)
 		// xn == x negative (Lowest x point)
@@ -40,7 +41,6 @@ namespace fgl::engine
 		const glm::vec3 xn_yp_zn { xn, yp, zn }; // (- + -)
 		const glm::vec3 xp_yp_zn { xp, yp, zn }; // (+ + -)
 
-		points.resize( 8 );
 		points[ 0 ] = Coordinate< CType >( xp_yp_zp );
 		points[ 1 ] = Coordinate< CType >( xn_yp_zp );
 		points[ 2 ] = Coordinate< CType >( xn_yp_zn );
@@ -62,29 +62,30 @@ namespace fgl::engine
 	}
 
 	template < CoordinateSpace CType >
-	std::vector< LineSegment< CType > > AxisAlignedBoundingBox< CType >::lines() const
+	std::array< LineSegment< CType >, interface::BoundingBox::LINE_COUNT > AxisAlignedBoundingBox< CType >::lines()
+		const
 	{
 		const auto points { this->points() };
 
-		std::vector< LineSegment< CType > > lines;
+		std::array< LineSegment< CType >, LINE_COUNT > lines {};
 
 		//Top
-		lines.emplace_back( points[ 0 ], points[ 1 ] );
-		lines.emplace_back( points[ 1 ], points[ 2 ] );
-		lines.emplace_back( points[ 2 ], points[ 3 ] );
-		lines.emplace_back( points[ 3 ], points[ 0 ] );
+		lines[ 0 ] = LineSegment< CType >( points[ 0 ], points[ 1 ] );
+		lines[ 1 ] = LineSegment< CType >( points[ 1 ], points[ 2 ] );
+		lines[ 2 ] = LineSegment< CType >( points[ 2 ], points[ 3 ] );
+		lines[ 3 ] = LineSegment< CType >( points[ 3 ], points[ 0 ] );
 
 		//Bottom
-		lines.emplace_back( points[ 4 ], points[ 5 ] );
-		lines.emplace_back( points[ 5 ], points[ 6 ] );
-		lines.emplace_back( points[ 6 ], points[ 7 ] );
-		lines.emplace_back( points[ 7 ], points[ 4 ] );
+		lines[ 4 ] = LineSegment< CType >( points[ 4 ], points[ 5 ] );
+		lines[ 5 ] = LineSegment< CType >( points[ 5 ], points[ 6 ] );
+		lines[ 6 ] = LineSegment< CType >( points[ 6 ], points[ 7 ] );
+		lines[ 7 ] = LineSegment< CType >( points[ 7 ], points[ 4 ] );
 
 		//Sides
-		lines.emplace_back( points[ 0 ], points[ 4 ] );
-		lines.emplace_back( points[ 1 ], points[ 5 ] );
-		lines.emplace_back( points[ 2 ], points[ 6 ] );
-		lines.emplace_back( points[ 3 ], points[ 7 ] );
+		lines[ 8 ] = LineSegment< CType >( points[ 0 ], points[ 4 ] );
+		lines[ 9 ] = LineSegment< CType >( points[ 1 ], points[ 5 ] );
+		lines[ 10 ] = LineSegment< CType >( points[ 2 ], points[ 6 ] );
+		lines[ 11 ] = LineSegment< CType >( points[ 3 ], points[ 7 ] );
 
 		return lines;
 	}
