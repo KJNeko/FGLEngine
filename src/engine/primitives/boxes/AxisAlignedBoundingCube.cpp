@@ -14,12 +14,18 @@ namespace fgl::engine
 	{
 		const Coordinate< CType > centered_coordinate { coordinate - this->getPosition() };
 
-		return ( ( centered_coordinate.template x ) < this->span()
-		         && ( centered_coordinate.template x ) > -this->span() )
-		    && ( ( centered_coordinate.template y ) < this->span()
-		         && ( centered_coordinate.template y ) > -this->span() )
-		    && ( ( centered_coordinate.template z ) < this->span()
-		         && ( centered_coordinate.template z ) > -this->span() );
+		const bool is_high_x { centered_coordinate.x > this->span() };
+		const bool is_high_y { centered_coordinate.x > this->span() };
+		const bool is_high_z { centered_coordinate.x > this->span() };
+
+		const bool is_low_x { centered_coordinate.x < -this->span() };
+		const bool is_low_y { centered_coordinate.x < -this->span() };
+		const bool is_low_z { centered_coordinate.x < -this->span() };
+
+		const bool is_high { is_high_x || is_high_y || is_high_z };
+		const bool is_low { is_low_x || is_low_y || is_low_z };
+
+		return !is_high && !is_low;
 	}
 
 	//template class AxisAlignedBoundingCube< CoordinateSpace::Model >;

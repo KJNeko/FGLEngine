@@ -5,6 +5,7 @@
 #include "OctTreeNode.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL
+#include <engine/FrameInfo.hpp>
 #include <glm/gtx/string_cast.hpp>
 
 #include "engine/debug/drawers.hpp"
@@ -13,12 +14,15 @@
 
 namespace fgl::engine
 {
+	struct FrameInfo;
 
 	static bool draw_leaf_fit_bounds { false };
 	static bool draw_leaf_real_bounds { false };
 	static bool draw_inview_bounds { false };
+	static std::size_t number_moved { 0 };
+	static std::optional< std::chrono::microseconds > time { std::nullopt };
 
-	void imGuiOctTreeSettings()
+	void imGuiOctTreeSettings( FrameInfo& info )
 	{
 #if ENABLE_IMGUI
 		if ( ImGui::CollapsingHeader( "OctTree debug settings" ) )
@@ -26,6 +30,21 @@ namespace fgl::engine
 			ImGui::Checkbox( "Draw leaf fitted bounding boxes", &draw_leaf_fit_bounds );
 			ImGui::Checkbox( "Draw leaf real bounding boxes", &draw_leaf_real_bounds );
 			ImGui::Checkbox( "Draw ALL in view bounding boxes", &draw_inview_bounds );
+
+			if ( ImGui::Button( "Reorganize Octtree" ) )
+			{
+				const auto start { std::chrono::high_resolution_clock::now() };
+				number_moved = info.game_objects.reorganize();
+				const auto end { std::chrono::high_resolution_clock::now() };
+				const auto time_diff { end - start };
+				time = std::chrono::duration_cast< std::chrono::microseconds >( time_diff );
+			}
+
+			if ( time.has_value() )
+			{
+				ImGui::Text( "Time spent reorganizing: %.2ldus", time.value().count() );
+				ImGui::Text( "Moved %ld objects", number_moved );
+			}
 		}
 #endif
 	}
@@ -158,6 +177,7 @@ namespace fgl::engine
 
 	OctTreeNode* OctTreeNode::addGameObject( GameObject&& obj )
 	{
+		assert( this->canContain( obj ) );
 		if ( std::holds_alternative< NodeLeaf >( m_node_data ) )
 		{
 			auto& objects { std::get< NodeLeaf >( m_node_data ) };
@@ -177,9 +197,9 @@ namespace fgl::engine
 		{
 			const auto& center { m_bounds.getPosition() };
 			const auto& obj_coordinate { obj.m_transform.translation };
-			const bool is_right { obj_coordinate.x > center.x };
-			const bool is_forward { obj_coordinate.y > center.y };
-			const bool is_up { obj_coordinate.z > center.z };
+			const bool is_right { obj_coordinate.x >= center.x };
+			const bool is_forward { obj_coordinate.y >= center.y };
+			const bool is_up { obj_coordinate.z >= center.z };
 
 			auto& nodes { std::get< NodeArray >( m_node_data ) };
 
@@ -190,11 +210,9 @@ namespace fgl::engine
 	bool OctTreeNode::isInFrustum( const Frustum< CoordinateSpace::World >& frustum ) const
 	{
 #if ENABLE_IMGUI
-		if ( isEmpty() ) return false;
-
-		if ( frustum.intersects( m_fit_bounding_box ) )
+		if ( !isEmpty() && frustum.intersects( m_fit_bounding_box ) )
 		{
-			if ( draw_inview_bounds || std::holds_alternative< NodeLeaf >( this->m_node_data ) )
+			if ( ( draw_inview_bounds || std::holds_alternative< NodeLeaf >( this->m_node_data ) ) && m_parent )
 			{
 				if ( draw_leaf_fit_bounds ) debug::world::drawBoundingBox( m_fit_bounding_box );
 				if ( draw_leaf_real_bounds ) debug::world::drawBoundingBox( m_bounds );
@@ -388,6 +406,52 @@ namespace fgl::engine
 				this->m_fit_bounding_box = new_bounds;
 				return true;
 			}
+		}
+
+		std::unreachable();
+	}
+
+	std::size_t OctTreeNode::reorganize()
+	{
+		std::size_t counter { 0 };
+		if ( std::holds_alternative< LeafDataT >( m_node_data ) )
+		{
+			//Check if any of the nodes in this group need to be moved.
+			auto& game_objects { std::get< LeafDataT >( m_node_data ) };
+
+			for ( const auto& game_object : game_objects )
+			{
+				if ( !this->canContain( game_object ) )
+				{
+					++counter;
+					//Need to move this game object.
+					auto moved_game_object { this->extract( game_object ) };
+
+					//Insert at root
+					//TODO: See if we can optimize this by traveling UP the tree.
+					getRoot()->addGameObject( std::move( moved_game_object ) );
+				}
+			}
+			return counter;
+		}
+		else if ( std::holds_alternative< NodeDataT >( m_node_data ) )
+		{
+			auto& nodes { std::get< NodeDataT >( m_node_data ) };
+
+			for ( std::size_t x = 0; x < 2; ++x )
+			{
+				for ( std::size_t y = 0; y < 2; ++y )
+				{
+					for ( std::size_t z = 0; z < 2; ++z )
+					{
+						if ( x == 0 && y == 0 && z == 0 ) continue;
+						auto& node { nodes[ x ][ y ][ z ] };
+						counter += node->reorganize();
+					}
+				}
+			}
+
+			return counter;
 		}
 
 		std::unreachable();

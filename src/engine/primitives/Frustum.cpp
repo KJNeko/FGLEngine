@@ -210,7 +210,7 @@ namespace fgl::engine
 		float min { glm::dot( points[ 0 ].vec(), axis.vec() ) };
 		float max { glm::dot( points[ 0 ].vec(), axis.vec() ) };
 
-		for ( std::size_t i = 1; i < points.size(); ++i )
+		for ( std::size_t i = 0; i < points.size(); ++i )
 		{
 			const auto value { glm::dot( points[ i ].vec(), axis.vec() ) };
 			if ( value < min )
@@ -241,10 +241,26 @@ namespace fgl::engine
 	// We can also make this more optimal by discarding overlapping points. For example, Testing the right axis vector on the Frustum means we can discard the 'low' points. Since the 'high' points would be identical.
 	// Though this will likely be a micro-optimizaton in the long run anyways. But less tests means we might be able to almost half the points being tested.
 
+	//! Can plot line between frustum and a given set of points
+	template < CoordinateSpace CType, std::uint64_t FrustumPointCount, std::uint64_t BoundingBoxPointCount >
+	FGL_FLATTEN_HOT bool canPlotLine(
+		const Frustum< CType >& frustum,
+		const std::array< Coordinate< CType >, FrustumPointCount >& frustum_points,
+		const std::array< Coordinate< CType >, BoundingBoxPointCount >& bounding_points )
+	{
+		return (
+			testAxis( frustum.right.getDirection(), frustum_points, bounding_points )
+			|| testAxis( frustum.left.getDirection(), frustum_points, bounding_points )
+			|| testAxis( frustum.near.getDirection(), frustum_points, bounding_points )
+			|| testAxis( frustum.far.getDirection(), frustum_points, bounding_points )
+			|| testAxis( frustum.top.getDirection(), frustum_points, bounding_points )
+			|| testAxis( frustum.bottom.getDirection(), frustum_points, bounding_points ) );
+	}
+
 	template <>
 	template <>
-	bool Frustum< CoordinateSpace::World >::intersects( const OrientedBoundingBox< CoordinateSpace::World >&
-	                                                        bounding_box ) const
+	FGL_FLATTEN bool Frustum< CoordinateSpace::World >::intersects( const OrientedBoundingBox< CoordinateSpace::World >&
+	                                                                    bounding_box ) const
 	{
 		const auto box_points { bounding_box.points() };
 
@@ -252,12 +268,7 @@ namespace fgl::engine
 
 		const auto frustum_points { this->points() };
 
-		if ( testAxis( this->right.getDirection(), frustum_points, box_points ) ) return false;
-		if ( testAxis( this->left.getDirection(), frustum_points, box_points ) ) return false;
-		if ( testAxis( this->near.getDirection(), frustum_points, box_points ) ) return false;
-		if ( testAxis( this->far.getDirection(), frustum_points, box_points ) ) return false;
-		if ( testAxis( this->top.getDirection(), frustum_points, box_points ) ) return false;
-		if ( testAxis( this->bottom.getDirection(), frustum_points, box_points ) ) return false;
+		if ( canPlotLine( *this, frustum_points, box_points ) ) return false;
 
 		// Now to test every axis from the bounding box
 		if ( testAxis( bounding_box.right(), frustum_points, box_points ) ) return false;
@@ -269,8 +280,8 @@ namespace fgl::engine
 
 	template <>
 	template <>
-	bool Frustum< CoordinateSpace::World >::intersects( const AxisAlignedBoundingBox< CoordinateSpace::World >&
-	                                                        bounding_box ) const
+	FGL_FLATTEN bool Frustum< CoordinateSpace::World >::intersects( const AxisAlignedBoundingBox<
+																	CoordinateSpace::World >& bounding_box ) const
 	{
 		const auto box_points { bounding_box.points() };
 
@@ -278,12 +289,7 @@ namespace fgl::engine
 
 		const auto frustum_points { this->points() };
 
-		if ( testAxis( this->right.getDirection(), frustum_points, box_points ) ) return false;
-		if ( testAxis( this->left.getDirection(), frustum_points, box_points ) ) return false;
-		if ( testAxis( this->near.getDirection(), frustum_points, box_points ) ) return false;
-		if ( testAxis( this->far.getDirection(), frustum_points, box_points ) ) return false;
-		if ( testAxis( this->top.getDirection(), frustum_points, box_points ) ) return false;
-		if ( testAxis( this->bottom.getDirection(), frustum_points, box_points ) ) return false;
+		if ( canPlotLine( *this, frustum_points, box_points ) ) return false;
 
 		// Now to test every axis from the bounding box
 		if ( testAxis( bounding_box.right(), frustum_points, box_points ) ) return false;
@@ -295,8 +301,8 @@ namespace fgl::engine
 
 	template <>
 	template <>
-	bool Frustum< CoordinateSpace::World >::intersects( const AxisAlignedBoundingCube< CoordinateSpace::World >&
-	                                                        bounding_box ) const
+	FGL_FLATTEN bool Frustum< CoordinateSpace::World >::intersects( const AxisAlignedBoundingCube<
+																	CoordinateSpace::World >& bounding_box ) const
 	{
 		const auto box_points { bounding_box.points() };
 
@@ -304,12 +310,7 @@ namespace fgl::engine
 
 		const auto frustum_points { this->points() };
 
-		if ( testAxis( this->right.getDirection(), frustum_points, box_points ) ) return false;
-		if ( testAxis( this->left.getDirection(), frustum_points, box_points ) ) return false;
-		if ( testAxis( this->near.getDirection(), frustum_points, box_points ) ) return false;
-		if ( testAxis( this->far.getDirection(), frustum_points, box_points ) ) return false;
-		if ( testAxis( this->top.getDirection(), frustum_points, box_points ) ) return false;
-		if ( testAxis( this->bottom.getDirection(), frustum_points, box_points ) ) return false;
+		if ( canPlotLine( *this, frustum_points, box_points ) ) return false;
 
 		// Now to test every axis from the bounding box
 		if ( testAxis( bounding_box.right(), frustum_points, box_points ) ) return false;

@@ -63,7 +63,9 @@ namespace fgl::engine
 	static_assert( sizeof( NodeArray ) == sizeof( OctTreeNode* ) * 2 * 2 * 2 );
 	static_assert( sizeof( OctTreeNode* ) == sizeof( std::uint64_t ) );
 
-	void imGuiOctTreeSettings();
+	struct FrameInfo;
+
+	void imGuiOctTreeSettings( FrameInfo& info );
 
 	class OctTreeNode
 	{
@@ -109,6 +111,8 @@ namespace fgl::engine
 
 		GameObject extract( const GameObject::ID id );
 
+		inline GameObject extract( const GameObject& obj ) { return this->extract( obj.getId() ); }
+
 		bool isInFrustum( const Frustum< CoordinateSpace::World >& frustum ) const;
 
 		bool isEmpty() const
@@ -123,6 +127,9 @@ namespace fgl::engine
 			const Frustum< CoordinateSpace::World >& frustum, std::vector< NodeLeaf* >& out_leafs );
 
 	  public:
+
+		//! Rebuilds the tree checking if nodes have moved.
+		std::size_t reorganize();
 
 		bool recalculateBoundingBoxes();
 

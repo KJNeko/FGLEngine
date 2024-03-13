@@ -158,6 +158,8 @@ namespace fgl::engine::debug
 				end_screen = toScreenSpace( new_point );
 			}
 
+			if ( glm::any( glm::isnan( end_screen.vec() ) ) || glm::any( glm::isnan( start_screen.vec() ) ) ) return;
+
 			ImGui::GetBackgroundDrawList()->AddLine(
 				glmToImgui( start_screen ), glmToImgui( end_screen ), ImColor( color.x, color.y, color.z ), thickness );
 		}

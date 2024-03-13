@@ -106,7 +106,7 @@
 				AppendFlag("-fdiagnostics-show-template-tree") # Shows the template diagnostic info as a tree instead.
 				AppendFlag("-fdiagnostics-path-format=inline-events")
 
-				set(FGL_CONFIG "-std=c++23 -fmax-errors=3 -fconcepts-diagnostics-depth=8")
+				set(FGL_CONFIG "-std=c++23 -fmax-errors=3 -fconcepts-diagnostics-depth=8 -march=native -flto -ftree-vectorize")
 
 				if (DEFINED USE_WERROR)
 					set(FGL_CONFIG "${FGL_CONFIG} -Werror")
@@ -116,15 +116,15 @@
 				# TODO: Figure out LTO with Alaestor's retarded compiler
 				set(FGL_SHARED_OPTIMIZATION_FLAGS "")
 
-				set(FGL_GENERAL_OPTIMIZATION_FLAGS "-fdevirtualize-at-ltrans -fdevirtualize-speculatively -funroll-loops -funit-at-a-time -floop-nest-optimize -floop-parallelize-all -fsimd-cost-model=unlimited -fsplit-paths -fstrict-aliasing")
+				set(FGL_GENERAL_OPTIMIZATION_FLAGS "-fdevirtualize-at-ltrans -fdevirtualize-speculatively -funroll-loops -floop-nest-optimize -floop-parallelize-all -fsplit-paths -fstrict-aliasing -ftree-vectorize -fopt-info-vec-missed")
 
 				set(FGL_SHARED_DEBUG "-gdwarf-4 -fvar-tracking-assignments")
 
 				# Optimization flags
 				set(FGL_OPTIMIZATION_FLAGS_RELEASE "-O2 -s ${FGL_GENERAL_OPTIMIZATION_FLAGS} ${FGL_SHARED_OPTIMIZATION_FLAGS}") # System agonistc flags
-				set(FGL_OPTIMIZATION_FLAGS_RELWITHDEBINFO "-O2 ${FLG_GENERAL_OPTIMIZATION_FLAGS} ${FGL_SHARED_OPTIMIZATION_FLAGS} ${FGL_SHARED_DEBUG}")
+				set(FGL_OPTIMIZATION_FLAGS_RELWITHDEBINFO "-O2 ${FGL_GENERAL_OPTIMIZATION_FLAGS} ${FGL_SHARED_OPTIMIZATION_FLAGS} ${FGL_SHARED_DEBUG}")
 				set(FGL_OPTIMIZATION_FLAGS_DEBUG "-O0 -g -fstrict-aliasing -fno-omit-frame-pointer -ftrapv -fverbose-asm -femit-class-debug-always ${FGL_SHARED_DEBUG}") # Debug flags
-				set(FGL_OPTIMIZATION_FLAGS_SYSTEM "-O2 -fdeclone-ctor-dtor -fgcse -fgcse-las -fgcse-sm -ftree-loop-im -fivopts -ftree-loop-ivcanon -fira-hoist-pressure -fsched-pressure -fsched-spec-load -fipa-pta -s -ffat-lto-objects -fno-enforce-eh-specs -fstrict-enums ${FGL_SHARED_OPTIMIZATION_FLAGS}") # System specific flags. Probably not portable
+				set(FGL_OPTIMIZATION_FLAGS_SYSTEM "-O2 -march=native -fdeclone-ctor-dtor -fgcse -fgcse-las -fgcse-sm -ftree-loop-im -fivopts -ftree-loop-ivcanon -fira-hoist-pressure -fsched-pressure -fsched-spec-load -fipa-pta -s -ffat-lto-objects -fno-enforce-eh-specs -fstrict-enums ${FGL_SHARED_OPTIMIZATION_FLAGS}") # System specific flags. Probably not portable
 
 				# Final sets
 				set(FGL_FLAGS "${FGL_CONFIG} ${FGL_OPTIMIZATION_FLAGS_${UPPER_BUILD_TYPE}} ${FGL_WARNINGS}" PARENT_SCOPE) # Flags for our shit
