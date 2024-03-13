@@ -71,7 +71,13 @@ namespace fgl::engine
 		std::uint16_t frame_idx;
 		float frame_time;
 		vk::CommandBuffer command_buffer;
-		Camera& camera;
+
+		struct
+		{
+			Camera& camera;
+			TransformComponent& camera_transform;
+		} camera_data;
+
 		DescriptorSet& global_descriptor_set;
 		OctTreeNode& game_objects;
 		TracyVkCtx tracy_ctx;

@@ -8,7 +8,6 @@
 
 #include "engine/model/Vertex.hpp"
 #include "engine/primitives/lines/LineSegment.hpp"
-#include "engine/primitives/matricies/Matrix.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 
 namespace fgl::engine
@@ -175,7 +174,7 @@ namespace fgl::engine
 		std::copy( points.begin(), points.end(), combined_points.begin() + POINT_COUNT );
 
 		//TODO: There might be a way to do this without needing to do yet another point calculation.
-		return generateBoundingFromPoints< CType >( points );
+		return generateBoundingFromPoints< CType >( combined_points );
 	}
 
 	template < CoordinateSpace CType >
@@ -210,86 +209,52 @@ namespace fgl::engine
 	OrientedBoundingBox< CType > generateBoundingFromPoints( const std::array< Coordinate< CType >, TCount >& points )
 	{
 		ZoneScoped;
-		assert( points.size() > 0 );
 
 		// neg (min)
-		glm::vec3 top_left_front { points[ 0 ].vec() };
+		glm::vec3 top_right_forward { points[ 0 ].vec() };
 		// pos (max)
-		glm::vec3 bottom_right_back { points[ 0 ].vec() };
+		glm::vec3 bottom_left_back { points[ 0 ].vec() };
 
 		for ( const auto& pos : points )
 		{
-			top_left_front.x = std::min( pos.vec().x, top_left_front.x );
-			top_left_front.y = std::min( pos.vec().y, top_left_front.y );
-			top_left_front.z = std::min( pos.vec().z, top_left_front.z );
+			top_right_forward.x = std::max( pos.vec().x, top_right_forward.x );
+			top_right_forward.y = std::max( pos.vec().y, top_right_forward.y );
+			top_right_forward.z = std::max( pos.vec().z, top_right_forward.z );
 
-			bottom_right_back.x = std::max( pos.vec().x, bottom_right_back.x );
-			bottom_right_back.y = std::max( pos.vec().y, bottom_right_back.y );
-			bottom_right_back.z = std::max( pos.vec().z, bottom_right_back.z );
+			bottom_left_back.x = std::min( pos.vec().x, bottom_left_back.x );
+			bottom_left_back.y = std::min( pos.vec().y, bottom_left_back.y );
+			bottom_left_back.z = std::min( pos.vec().z, bottom_left_back.z );
 		}
 
 		//Calculate midpoint
-		const glm::vec3 midpoint { ( top_left_front + bottom_right_back ) / glm::vec3( 2.0f ) };
-		const glm::vec3 scale { bottom_right_back - midpoint };
+		const glm::vec3 midpoint { ( top_right_forward + bottom_left_back ) / glm::vec3( 2.0f ) };
+		const glm::vec3 scale { bottom_left_back - midpoint };
 
 		return { Coordinate< CType >( midpoint ), scale };
 	}
-
-	template < CoordinateSpace CType >
-	OrientedBoundingBox< CType > generateBoundingFromPoints( const std::vector< Coordinate< CType > >& points )
-	{
-		ZoneScoped;
-		assert( points.size() > 0 );
-
-		// neg (min)
-		glm::vec3 top_left_front { points[ 0 ].vec() };
-		// pos (max)
-		glm::vec3 bottom_right_back { points[ 0 ].vec() };
-
-		for ( const auto& pos : points )
-		{
-			top_left_front.x = std::min( pos.vec().x, top_left_front.x );
-			top_left_front.y = std::min( pos.vec().y, top_left_front.y );
-			top_left_front.z = std::min( pos.vec().z, top_left_front.z );
-
-			bottom_right_back.x = std::max( pos.vec().x, bottom_right_back.x );
-			bottom_right_back.y = std::max( pos.vec().y, bottom_right_back.y );
-			bottom_right_back.z = std::max( pos.vec().z, bottom_right_back.z );
-		}
-
-		//Calculate midpoint
-		const glm::vec3 midpoint { ( top_left_front + bottom_right_back ) / glm::vec3( 2.0f ) };
-		const glm::vec3 scale { bottom_right_back - midpoint };
-
-		return { Coordinate< CType >( midpoint ), scale };
-	}
-
-	template OrientedBoundingBox< CoordinateSpace::Model > generateBoundingFromPoints( const std::vector< Coordinate<
-																						   CoordinateSpace::Model > >&
-	                                                                                       points );
 
 	OrientedBoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< Vertex >& verts )
 	{
 		// neg (min)
-		glm::vec3 top_left_front { verts[ 0 ].m_position };
+		glm::vec3 top_right_forward { verts[ 0 ].m_position };
 		// pos (max)
-		glm::vec3 bottom_right_back { verts[ 0 ].m_position };
+		glm::vec3 bottom_left_back { verts[ 0 ].m_position };
 
 		for ( const auto& vert : verts )
 		{
 			const auto& pos { vert.m_position };
-			top_left_front.x = std::min( static_cast< glm::vec3 >( pos ).x, top_left_front.x );
-			top_left_front.y = std::min( static_cast< glm::vec3 >( pos ).y, top_left_front.y );
-			top_left_front.z = std::min( static_cast< glm::vec3 >( pos ).z, top_left_front.z );
+			top_right_forward.x = std::max( pos.x, top_right_forward.x );
+			top_right_forward.y = std::max( pos.y, top_right_forward.y );
+			top_right_forward.z = std::max( pos.z, top_right_forward.z );
 
-			bottom_right_back.x = std::max( static_cast< glm::vec3 >( pos ).x, bottom_right_back.x );
-			bottom_right_back.y = std::max( static_cast< glm::vec3 >( pos ).y, bottom_right_back.y );
-			bottom_right_back.z = std::max( static_cast< glm::vec3 >( pos ).z, bottom_right_back.z );
+			bottom_left_back.x = std::min( pos.x, bottom_left_back.x );
+			bottom_left_back.y = std::min( pos.y, bottom_left_back.y );
+			bottom_left_back.z = std::min( pos.z, bottom_left_back.z );
 		}
 
 		//Calculate midpoint
-		const glm::vec3 midpoint { ( top_left_front + bottom_right_back ) / glm::vec3( 2.0f ) };
-		const glm::vec3 scale { bottom_right_back - midpoint };
+		const glm::vec3 midpoint { ( top_right_forward + bottom_left_back ) / glm::vec3( 2.0f ) };
+		const glm::vec3 scale { bottom_left_back - midpoint };
 
 		return { Coordinate< CoordinateSpace::Model >( midpoint ), scale };
 	}

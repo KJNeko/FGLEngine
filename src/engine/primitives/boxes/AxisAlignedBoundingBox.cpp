@@ -113,13 +113,13 @@ namespace fgl::engine
 
 	template < CoordinateSpace CType >
 	AxisAlignedBoundingBox< CType >::AxisAlignedBoundingBox( const OrientedBoundingBox< CType >& oobb ) :
-	  m_top_right_forward( -constants::DEFAULT_VEC3 ),
-	  m_bottom_left_back( constants::DEFAULT_VEC3 )
+	  m_top_right_forward( constants::DEFAULT_VEC3 ),
+	  m_bottom_left_back( -constants::DEFAULT_VEC3 )
 	{
 		if ( oobb.rotation == Rotation() ) // If default rotation then we can simply just take it as the box is
 		{
-			m_top_right_forward = oobb.middle + oobb.scale;
-			m_bottom_left_back = oobb.middle - oobb.scale;
+			m_top_right_forward = oobb.topRightForward();
+			m_bottom_left_back = oobb.bottomLeftBack();
 		}
 		else
 		{
@@ -135,13 +135,15 @@ namespace fgl::engine
 				m_bottom_left_back.z = std::min( m_bottom_left_back.z, point.z );
 			}
 		}
+		assert( m_top_right_forward.vec() != constants::DEFAULT_VEC3 );
+		assert( m_bottom_left_back.vec() != -constants::DEFAULT_VEC3 );
 	}
 
 	template < CoordinateSpace CType >
 	AxisAlignedBoundingBox< CType >& AxisAlignedBoundingBox< CType >::combine( const OrientedBoundingBox< CType >&
 	                                                                               other )
 	{
-		AxisAlignedBoundingBox< CType > aabb { other };
+		const AxisAlignedBoundingBox< CType > aabb { other };
 		if ( this->m_top_right_forward == Coordinate< CType >( constants::DEFAULT_VEC3 )
 		     || this->m_bottom_left_back == Coordinate< CType >( constants::DEFAULT_VEC3 ) )
 			return *this = aabb;

@@ -342,6 +342,7 @@ namespace fgl::engine
 					{
 						for ( std::size_t z = 0; z < 2; ++z )
 						{
+							if ( x == 0 && y == 0 && z == 0 ) continue;
 							auto& node { nodes[ x ][ y ][ z ] };
 							new_bounds.combine( node->m_fit_bounding_box );
 						}
@@ -372,9 +373,10 @@ namespace fgl::engine
 
 			[[assume( game_objects.size() <= MAX_NODES_IN_LEAF )]];
 
-			for ( const GameObject& obj : game_objects )
+			for ( std::size_t i = 1; i < game_objects.size(); ++i )
 			{
-				new_bounds.combine( obj.getBoundingBox() );
+				[[assume( i <= MAX_NODES_IN_LEAF )]];
+				new_bounds.combine( game_objects[ i ].getBoundingBox() );
 			}
 
 			if ( new_bounds == old_bounds )

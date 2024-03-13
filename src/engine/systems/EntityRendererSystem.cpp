@@ -123,6 +123,8 @@ namespace fgl::engine
 
 					if ( !obj.m_is_visible ) continue;
 
+					// debug::world::drawBoundingBox( obj.getBoundingBox() );
+
 					++object_counter;
 
 					for ( const auto& primitive : obj.m_model->m_primitives )

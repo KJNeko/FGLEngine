@@ -29,11 +29,19 @@ namespace fgl::engine
 			const Coordinate< CType > top_right_forward, const Coordinate< CType > bottom_left_back ) :
 		  m_top_right_forward( top_right_forward ),
 		  m_bottom_left_back( bottom_left_back )
-		{}
+		{
+			assert( m_top_right_forward.x > m_bottom_left_back.x );
+			assert( m_top_right_forward.y > m_bottom_left_back.y );
+			assert( m_top_right_forward.z > m_bottom_left_back.z );
+		}
 
 		explicit AxisAlignedBoundingBox( const Coordinate< CType > midpoint, const Scale scale ) :
 		  AxisAlignedBoundingBox( midpoint + scale, midpoint - scale )
-		{}
+		{
+			assert( m_top_right_forward.x > m_bottom_left_back.x );
+			assert( m_top_right_forward.y > m_bottom_left_back.y );
+			assert( m_top_right_forward.z > m_bottom_left_back.z );
+		}
 
 		explicit AxisAlignedBoundingBox( const OrientedBoundingBox< CType >& oobb );
 

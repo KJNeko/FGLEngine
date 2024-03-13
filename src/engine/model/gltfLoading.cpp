@@ -185,7 +185,7 @@ namespace fgl::engine
 					verts[ i ].m_normal = normals[ i ];
 				}
 
-				ModelBoundingBox bounding_box { generateBoundingFromVerts( verts ) };
+				const ModelBoundingBox bounding_box { generateBoundingFromVerts( verts ) };
 
 				if ( texcoords.size() > 0 && texcoords.size() != verts.size() )
 				{

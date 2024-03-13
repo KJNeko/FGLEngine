@@ -41,15 +41,13 @@ namespace fgl::engine
 		  rotation( inital_rotation )
 		{}
 
-	  private:
+	  public:
 
 		//! Returns the top left (-x, -y, -z) coordinate
-		inline glm::vec3 bottomLeftBack() const { return middle.vec() - scale; }
+		inline Coordinate< CType > bottomLeftBack() const { return middle - Scale( glm::abs( scale ) ); }
 
 		//! Returns the bottom right (x, y, z) coordinate
-		inline glm::vec3 topRightForward() const { return middle.vec() + scale; }
-
-	  public:
+		inline Coordinate< CType > topRightForward() const { return middle + Scale( glm::abs( scale ) ); }
 
 		// 6 sides, 2 triangles each, 3 verts per triangle
 		constexpr static std::uint32_t indicies_count { 6 * 2 * 3 };
@@ -79,10 +77,7 @@ namespace fgl::engine
 		return OrientedBoundingBox< EvolvedType< MType >() >( new_middle, new_scale, new_rot );
 	}
 
-	template < CoordinateSpace CType >
-	OrientedBoundingBox< CType > generateBoundingFromPoints( const std::vector< Coordinate< CType > >& points );
-
-	OrientedBoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< Vertex >& points );
+	OrientedBoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< Vertex >& verts );
 
 	using ModelBoundingBox = OrientedBoundingBox< CoordinateSpace::Model >;
 

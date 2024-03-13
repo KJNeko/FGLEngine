@@ -29,7 +29,7 @@ namespace fgl::engine
 		Primitive(
 			VertexBufferSuballocation&& vertex_buffer,
 			IndexBufferSuballocation&& index_buffer,
-			OrientedBoundingBox< CoordinateSpace::Model >& bounding_box ) :
+			const OrientedBoundingBox< CoordinateSpace::Model >& bounding_box ) :
 		  m_vertex_buffer( std::move( vertex_buffer ) ),
 		  m_index_buffer( std::move( index_buffer ) ),
 		  m_bounding_box( bounding_box )
@@ -38,7 +38,7 @@ namespace fgl::engine
 		Primitive(
 			VertexBufferSuballocation&& vertex_buffer,
 			IndexBufferSuballocation&& index_buffer,
-			OrientedBoundingBox< CoordinateSpace::Model >& bounding_box,
+			const OrientedBoundingBox< CoordinateSpace::Model >& bounding_box,
 			Texture&& texture ) :
 		  m_vertex_buffer( std::move( vertex_buffer ) ),
 		  m_index_buffer( std::move( index_buffer ) ),

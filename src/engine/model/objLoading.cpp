@@ -89,13 +89,7 @@ namespace fgl::engine
 			}
 		}
 
-		std::vector< Coordinate< CoordinateSpace::Model > > vert_pos;
-		for ( const auto& vert : verts )
-		{
-			vert_pos.emplace_back( vert.m_position );
-		}
-
-		OrientedBoundingBox bounding_box { generateBoundingFromPoints( vert_pos ) };
+		const OrientedBoundingBox bounding_box { generateBoundingFromVerts( verts ) };
 
 		m_primitives.emplace_back(
 			VertexBufferSuballocation( m_vertex_buffer, std::move( verts ) ),
