@@ -185,17 +185,17 @@ namespace fgl::engine
 
 				camera_info[ frame_index ] = current_camera_info;
 
-#if TRACY_ENABLE
 				m_culling_system.startPass( frame_info );
 				TracyVkCollect( frame_info.tracy_ctx, command_buffer );
 				m_culling_system.wait();
-#else
-				m_culling_system.pass( frame_info );
-#endif
 
 				m_renderer.beginSwapchainRendererPass( command_buffer );
 
+				// m_terrain_system.pass( frame_info );
+
 				m_entity_renderer.pass( frame_info );
+
+				m_composition_system.pass( frame_info );
 
 #if ENABLE_IMGUI
 				{

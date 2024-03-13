@@ -5,6 +5,11 @@
 #ifndef GAME_CONCEPTS_HPP
 #define GAME_CONCEPTS_HPP
 
+namespace vk
+{
+	class CommandBuffer;
+}
+
 namespace fgl::engine
 {
 
@@ -26,6 +31,9 @@ namespace fgl::engine
 		{
 			t.wait()
 		};
+		{
+			t.setupSystem( info )
+		} -> std::same_as< vk::CommandBuffer& >;
 	};
 
 } // namespace fgl::engine

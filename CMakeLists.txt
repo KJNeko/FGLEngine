@@ -57,24 +57,28 @@ foreach (MODEL IN LISTS MODELS)
 	list(APPEND OBJ_MODELS ${CMAKE_BINARY_DIR}/bin/models/${FILENAME})
 endforeach ()
 
-file(GLOB FRAG_SHADERS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.frag")
-file(GLOB VERT_SHADERS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.vert")
+file(GLOB_RECURSE SHADERS
+		"${CMAKE_CURRENT_SOURCE_DIR}/shaders/**.frag"
+		"${CMAKE_CURRENT_SOURCE_DIR}/shaders/**.vert"
+		"${CMAKE_CURRENT_SOURCE_DIR}/shaders/**.tesc"
+		"${CMAKE_CURRENT_SOURCE_DIR}/shaders/**.tese"
+)
 
-foreach (SHADER IN LISTS FRAG_SHADERS)
+foreach (SHADER IN LISTS SHADERS)
 	get_filename_component(FILENAME ${SHADER} NAME)
+	get_filename_component(FILE_DIRECTORY ${SHADER} DIRECTORY)
+	file(RELATIVE_PATH REL_PATH ${CMAKE_CURRENT_SOURCE_DIR}/shaders ${FILE_DIRECTORY})
+
+	if (NOT REL_PATH STREQUAL "")
+		set(REL_PATH ${REL_PATH}/)
+		file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/shaders/${REL_PATH})
+	endif ()
 	add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/bin/shaders/${FILENAME}.spv
-			COMMAND ${Vulkan_GLSLC_EXECUTABLE} ${SHADER_DEBUG_FLAGS} ${SHADER} -o ${CMAKE_BINARY_DIR}/bin/shaders/${FILENAME}.spv DEPENDS ${SHADER}
+			COMMAND ${Vulkan_GLSLC_EXECUTABLE} ${SHADER_DEBUG_FLAGS} ${SHADER} -o ${CMAKE_BINARY_DIR}/bin/shaders/${REL_PATH}${FILENAME}.spv DEPENDS ${SHADER}
 			COMMENT " Compiling ${SHADER} ")
 	list(APPEND SPV_SHADERS ${CMAKE_BINARY_DIR}/bin/shaders/${FILENAME}.spv)
 endforeach ()
 
-foreach (SHADER IN LISTS VERT_SHADERS)
-	get_filename_component(FILENAME ${SHADER} NAME)
-	add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/bin/shaders/${FILENAME}.spv
-			COMMAND ${Vulkan_GLSLC_EXECUTABLE} ${SHADER_DEBUG_FLAGS} ${SHADER} -o ${CMAKE_BINARY_DIR}/bin/shaders/${FILENAME}.spv DEPENDS ${SHADER}
-			COMMENT " Compiling ${SHADER} ")
-	list(APPEND SPV_SHADERS ${CMAKE_BINARY_DIR}/bin/shaders/${FILENAME}.spv)
-endforeach ()
 
 add_custom_target(shaders ALL DEPENDS ${SPV_SHADERS})
 add_custom_target(models ALL DEPENDS ${OBJ_MODELS})

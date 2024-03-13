@@ -9,6 +9,21 @@
 namespace fgl::engine
 {
 
+	void PipelineConfigInfo::setTriangleListTopo( PipelineConfigInfo& info )
+	{
+		info.assembly_info.topology = vk::PrimitiveTopology::eTriangleList;
+	}
+
+	void PipelineConfigInfo::setTriangleStripTopo( PipelineConfigInfo& info )
+	{
+		info.assembly_info.topology = vk::PrimitiveTopology::eTriangleStrip;
+	}
+
+	void PipelineConfigInfo::setPointPatch( PipelineConfigInfo& info )
+	{
+		info.assembly_info.topology = vk::PrimitiveTopology::ePatchList;
+	}
+
 	void PipelineConfigInfo::defaultConfig( PipelineConfigInfo& info )
 	{
 		info.viewport_info.viewportCount = 1;

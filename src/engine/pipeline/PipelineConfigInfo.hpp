@@ -16,6 +16,8 @@ namespace fgl::engine
 	{
 		vk::PipelineViewportStateCreateInfo viewport_info {};
 		vk::PipelineInputAssemblyStateCreateInfo assembly_info {};
+		vk::PipelineTessellationStateCreateInfo tesselation_state_info {};
+		vk::PipelineTessellationDomainOriginStateCreateInfo tesselation_domain_info {};
 		vk::PipelineRasterizationStateCreateInfo rasterization_info {};
 		vk::PipelineMultisampleStateCreateInfo multisample_info {};
 		std::vector< vk::PipelineColorBlendAttachmentState > color_blend_attachment {};
@@ -37,6 +39,9 @@ namespace fgl::engine
 		PipelineConfigInfo& operator=( const PipelineConfigInfo& ) = delete;
 
 		static void disableVertexInput( PipelineConfigInfo& info );
+		static void setTriangleListTopo( PipelineConfigInfo& info );
+		static void setTriangleStripTopo( PipelineConfigInfo& info );
+		static void setPointPatch( PipelineConfigInfo& info );
 		static void defaultConfig( PipelineConfigInfo& info );
 		static void enableAlphaBlending( PipelineConfigInfo& config );
 		static void addColorAttachmentConfig( PipelineConfigInfo& info );

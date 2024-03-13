@@ -22,11 +22,15 @@ namespace fgl::engine
 	{
 		Device& m_device;
 
-		using Pipeline = PipelineT< GlobalDescriptorSet, TextureDescriptorSet >;
-		using CompositionPipeline = PipelineT< GBufferDescriptorSet >;
+		using VertexShader = VertexShaderT< "shaders/gbuffer.vert.spv" >;
+		using FragmentShader = FragmentShaderT< "shaders/gbuffer.frag.spv" >;
+		using Shaders = ShaderCollection< VertexShader, FragmentShader >;
+
+		using DescriptorSets = DescriptorSetCollection< GlobalDescriptorSet, TextureDescriptorSet >;
+
+		using Pipeline = PipelineT< Shaders, DescriptorSets >;
 
 		std::unique_ptr< Pipeline > m_pipeline {};
-		std::unique_ptr< CompositionPipeline > m_composition_pipeline {};
 
 		std::unique_ptr< Buffer > m_vertex_buffer { nullptr };
 		std::unique_ptr< Buffer > m_index_buffer { nullptr };
@@ -57,6 +61,8 @@ namespace fgl::engine
 				vk::MemoryPropertyFlagBits::eDeviceLocal );
 		}
 
+		vk::CommandBuffer& setupSystem( FrameInfo& );
+
 	  public:
 
 		Buffer& getVertexBuffer() { return *m_vertex_buffer; }
@@ -66,7 +72,7 @@ namespace fgl::engine
 		void pass( FrameInfo& info );
 
 		EntityRendererSystem( Device& device, VkRenderPass render_pass );
-		~EntityRendererSystem();
+		~EntityRendererSystem() = default;
 		EntityRendererSystem( EntityRendererSystem&& other ) = delete;
 		EntityRendererSystem( const EntityRendererSystem& other ) = delete;
 		EntityRendererSystem& operator=( const EntityRendererSystem& other ) = delete;

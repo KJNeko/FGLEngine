@@ -12,6 +12,11 @@
 
 namespace fgl::engine
 {
+	struct ShaderHandle;
+}
+
+namespace fgl::engine::internal
+{
 
 	class Pipeline
 	{
@@ -23,20 +28,10 @@ namespace fgl::engine
 		vk::ShaderModule m_vert_shader { VK_NULL_HANDLE };
 		vk::ShaderModule m_frag_shader { VK_NULL_HANDLE };
 
-		static std::vector< std::byte > readFile( const std::filesystem::path& path );
-
 		void createGraphicsPipeline(
-			const std::filesystem::path& vert, const std::filesystem::path& frag, const PipelineConfigInfo& info );
-
-		void createShaderModule( const std::vector< std::byte >& code, vk::ShaderModule* module );
+			std::vector< std::unique_ptr< ShaderHandle > >& shaders, const PipelineConfigInfo& info );
 
 	  public:
-
-		Pipeline(
-			Device& device,
-			const std::filesystem::path& vert,
-			const std::filesystem::path& frag,
-			const PipelineConfigInfo& info );
 
 		Pipeline( Device& device ) : m_device( device ) {}
 
@@ -47,4 +42,4 @@ namespace fgl::engine
 
 		void bind( vk::CommandBuffer command_buffer );
 	};
-} // namespace fgl::engine
+} // namespace fgl::engine::internal

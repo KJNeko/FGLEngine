@@ -27,11 +27,6 @@ namespace fgl::engine
 		}
 	};
 
-	template < typename T >
-	concept is_constant_range = requires( T t ) {
-		{
-			t.m_range
-		} -> std::same_as< const vk::PushConstantRange& >;
-	};
+
 
 } // namespace fgl::engine

@@ -28,6 +28,8 @@ namespace fgl::engine
 
 	  public:
 
+		[[maybe_unused]] vk::CommandBuffer& setupSystem( FrameInfo& info );
+
 		CullingSystem() : m_thread( &CullingSystem::runner, this ) {}
 
 		void pass( FrameInfo& info );

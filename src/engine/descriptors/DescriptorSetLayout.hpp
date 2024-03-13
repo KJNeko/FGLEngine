@@ -4,8 +4,11 @@
 
 #pragma once
 
+#include "Descriptor.hpp"
 #include "DescriptorPool.hpp"
+#include "concepts.hpp"
 #include "engine/concepts/is_bindable.hpp"
+#include "engine/concepts/is_descriptor.hpp"
 
 namespace fgl::engine
 {
@@ -183,19 +186,7 @@ namespace fgl::engine
 		static_assert( TestSet::descriptor_count == 7 );
 	} // namespace internal
 
-	template < typename T >
-	concept is_descriptor_set = requires( std::remove_reference_t< T > t ) {
-		{
-			t.descriptor_count
-		} -> std::same_as< const std::uint16_t& >;
-		{
-			T::createLayout()
-		} -> std::same_as< vk::DescriptorSetLayout >;
-	};
 
-	template < typename T >
-	concept is_empty_descriptor_set = is_descriptor_set< T > && ( T::descriptor_count == 1 )
-	                               && is_empty_descriptor< typename T::template Binding< 0 > >;
 
 	static_assert( is_descriptor_set< EmptyDescriptorSet< 0 > > && is_empty_descriptor_set< EmptyDescriptorSet< 0 > > );
 	static_assert( is_descriptor_set< internal::TestSet > && !is_empty_descriptor_set< internal::TestSet > );

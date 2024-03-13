@@ -7,53 +7,24 @@
 #include <array>
 #include <fstream>
 
+#include "Shader.hpp"
 #include "engine/model/Model.hpp"
 
-namespace fgl::engine
+namespace fgl::engine::internal
 {
 
-	std::vector< std::byte > Pipeline::readFile( const std::filesystem::path& path )
-	{
-		if ( std::ifstream ifs( path, std::ios::binary | std::ios::ate ); ifs )
-		{
-			std::vector< std::byte > data;
-
-			data.resize( static_cast< std::size_t >( ifs.tellg() ) );
-			ifs.seekg( 0, std::ios::beg );
-
-			ifs.read( reinterpret_cast< char* >( data.data() ), static_cast< long >( data.size() ) );
-
-			return data;
-		}
-		else
-			throw std::runtime_error( "Failed to load file: " + path.string() );
-	}
-
 	void Pipeline::createGraphicsPipeline(
-		const std::filesystem::path& vert, const std::filesystem::path& frag, const PipelineConfigInfo& info )
+		std::vector< std::unique_ptr< ShaderHandle > >& shaders, const PipelineConfigInfo& info )
 	{
 		assert( info.render_pass != VK_NULL_HANDLE && "Cannot create graphics pipeline: no render pass provided" );
 
-		const std::vector< std::byte > vert_data { readFile( vert ) };
-		const std::vector< std::byte > frag_data { readFile( frag ) };
+		std::vector< vk::PipelineShaderStageCreateInfo > stages {};
 
-		createShaderModule( vert_data, &m_vert_shader );
-		createShaderModule( frag_data, &m_frag_shader );
-
-		vk::PipelineShaderStageCreateInfo shaderStages[ 2 ] {};
-		shaderStages[ 0 ].pNext = nullptr;
-		shaderStages[ 0 ].flags = {};
-		shaderStages[ 0 ].stage = vk::ShaderStageFlagBits::eVertex;
-		shaderStages[ 0 ].module = m_vert_shader;
-		shaderStages[ 0 ].pName = "main";
-		shaderStages[ 0 ].pSpecializationInfo = nullptr;
-
-		shaderStages[ 1 ].pNext = nullptr;
-		shaderStages[ 1 ].flags = {};
-		shaderStages[ 1 ].stage = vk::ShaderStageFlagBits::eFragment;
-		shaderStages[ 1 ].module = m_frag_shader;
-		shaderStages[ 1 ].pName = "main";
-		shaderStages[ 1 ].pSpecializationInfo = nullptr;
+		for ( const auto& shader : shaders )
+		{
+			stages.emplace_back( shader->stage_info );
+		}
+		assert( stages.size() >= 2 );
 
 		auto& binding_descriptions { info.binding_descriptions };
 		auto& attribute_descriptions { info.attribute_descriptions };
@@ -70,8 +41,8 @@ namespace fgl::engine
 		vk::GraphicsPipelineCreateInfo pipeline_info {};
 		pipeline_info.pNext = VK_NULL_HANDLE;
 		pipeline_info.flags = {};
-		pipeline_info.stageCount = 2;
-		pipeline_info.pStages = shaderStages;
+		pipeline_info.stageCount = static_cast< std::uint32_t >( stages.size() );
+		pipeline_info.pStages = stages.data();
 		pipeline_info.pVertexInputState = &vertex_input_info;
 		pipeline_info.pInputAssemblyState = &info.assembly_info;
 		pipeline_info.pTessellationState = VK_NULL_HANDLE;
@@ -94,33 +65,8 @@ namespace fgl::engine
 			m_vk_pipeline = temp.value;
 	}
 
-	void Pipeline::createShaderModule( const std::vector< std::byte >& code, vk::ShaderModule* module )
-	{
-		vk::ShaderModuleCreateInfo create_info {};
-		create_info.pNext = VK_NULL_HANDLE;
-		create_info.flags = {};
-		create_info.codeSize = code.size();
-		create_info.pCode = reinterpret_cast< const std::uint32_t* >( code.data() );
-
-		if ( m_device.device().createShaderModule( &create_info, nullptr, module ) != vk::Result::eSuccess )
-			throw std::runtime_error( "Failed to create shader module" );
-	}
-
-	Pipeline::Pipeline(
-		Device& device,
-		const std::filesystem::path& vert,
-		const std::filesystem::path& frag,
-		const PipelineConfigInfo& info ) :
-	  m_device( device )
-	{
-		createGraphicsPipeline( vert, frag, info );
-	}
-
 	Pipeline::~Pipeline()
 	{
-		m_device.device().destroyShaderModule( m_vert_shader, nullptr );
-		m_device.device().destroyShaderModule( m_frag_shader, nullptr );
-
 		m_device.device().destroyPipelineLayout( m_layout, nullptr );
 		m_device.device().destroyPipeline( m_vk_pipeline, nullptr );
 	}
@@ -130,4 +76,4 @@ namespace fgl::engine
 		command_buffer.bindPipeline( vk::PipelineBindPoint::eGraphics, m_vk_pipeline );
 	}
 
-} // namespace fgl::engine
+} // namespace fgl::engine::internal
