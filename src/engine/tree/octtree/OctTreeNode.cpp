@@ -417,9 +417,8 @@ namespace fgl::engine
 		if ( std::holds_alternative< LeafDataT >( m_node_data ) )
 		{
 			//Check if any of the nodes in this group need to be moved.
-			auto& game_objects { std::get< LeafDataT >( m_node_data ) };
 
-			for ( const auto& game_object : game_objects )
+			for ( auto& game_objects = std::get< LeafDataT >( m_node_data ); const auto& game_object : game_objects )
 			{
 				if ( !this->canContain( game_object ) )
 				{
@@ -436,7 +435,7 @@ namespace fgl::engine
 		}
 		else if ( std::holds_alternative< NodeDataT >( m_node_data ) )
 		{
-			auto& nodes { std::get< NodeDataT >( m_node_data ) };
+			const auto& nodes { std::get< NodeDataT >( m_node_data ) };
 
 			for ( std::size_t x = 0; x < 2; ++x )
 			{
@@ -445,7 +444,7 @@ namespace fgl::engine
 					for ( std::size_t z = 0; z < 2; ++z )
 					{
 						if ( x == 0 && y == 0 && z == 0 ) continue;
-						auto& node { nodes[ x ][ y ][ z ] };
+						const auto& node { nodes[ x ][ y ][ z ] };
 						counter += node->reorganize();
 					}
 				}
