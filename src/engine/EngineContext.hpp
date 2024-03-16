@@ -27,7 +27,7 @@ namespace fgl::engine
 		OctTreeNode m_game_objects_root { WorldCoordinate( constants::WORLD_CENTER ) };
 
 		CullingSystem m_culling_system {};
-		//TerrainSystem m_terrain_system { Device::getInstance(), m_renderer.getSwapChainRenderPass() };
+		TerrainSystem m_terrain_system { Device::getInstance(), m_renderer.getSwapChainRenderPass() };
 		EntityRendererSystem m_entity_renderer { Device::getInstance(), m_renderer.getSwapChainRenderPass() };
 		CompositionSystem m_composition_system { Device::getInstance(), m_renderer.getSwapChainRenderPass() };
 

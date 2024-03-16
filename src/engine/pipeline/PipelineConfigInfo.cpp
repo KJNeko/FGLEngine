@@ -128,4 +128,9 @@ namespace fgl::engine
 		defaultConfig( *this );
 	}
 
+	void PipelineConfigInfo::setQuadTesselation( PipelineConfigInfo& info )
+	{
+		info.tesselation_state_info.patchControlPoints = 4;
+	}
+
 } // namespace fgl::engine

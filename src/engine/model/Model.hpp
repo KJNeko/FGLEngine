@@ -41,6 +41,7 @@ namespace fgl::engine
 		void loadModel( const std::filesystem::path& filepath );
 		void loadObj( const std::filesystem::path& filepath );
 		void loadGltf( const std::filesystem::path& filepath );
+		void loadVerts( std::vector< Vertex > verts, std::vector< std::uint32_t > indicies );
 	};
 
 	class Model
@@ -70,6 +71,13 @@ namespace fgl::engine
 
 		static std::unique_ptr< Model > createModel(
 			Device& device, const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer );
+
+		static std::unique_ptr< Model > createModelFromVerts(
+			Device& device,
+			std::vector< Vertex > verts,
+			std::vector< std::uint32_t > indicies,
+			Buffer& vertex_buffer,
+			Buffer& index_buffer );
 
 		void syncBuffers( vk::CommandBuffer& cmd_buffer );
 

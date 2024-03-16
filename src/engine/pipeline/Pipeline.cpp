@@ -45,7 +45,7 @@ namespace fgl::engine::internal
 		pipeline_info.pStages = stages.data();
 		pipeline_info.pVertexInputState = &vertex_input_info;
 		pipeline_info.pInputAssemblyState = &info.assembly_info;
-		pipeline_info.pTessellationState = VK_NULL_HANDLE;
+		pipeline_info.pTessellationState = &info.tesselation_state_info;
 		pipeline_info.pViewportState = &info.viewport_info;
 		pipeline_info.pRasterizationState = &info.rasterization_info;
 		pipeline_info.pMultisampleState = &info.multisample_info;
@@ -71,9 +71,18 @@ namespace fgl::engine::internal
 		m_device.device().destroyPipeline( m_vk_pipeline, nullptr );
 	}
 
-	void Pipeline::bind( vk::CommandBuffer command_buffer )
+	void Pipeline::bind( vk::CommandBuffer& command_buffer )
 	{
 		command_buffer.bindPipeline( vk::PipelineBindPoint::eGraphics, m_vk_pipeline );
+	}
+
+	void Pipeline::setDebugName( const std::string str )
+	{
+		vk::DebugUtilsObjectNameInfoEXT info {};
+		info.objectType = vk::ObjectType::ePipeline;
+		info.pObjectName = str.c_str();
+		info.objectHandle = reinterpret_cast< std::uint64_t >( static_cast< VkPipeline >( this->m_vk_pipeline ) );
+		Device::getInstance().setDebugUtilsObjectName( info );
 	}
 
 } // namespace fgl::engine::internal

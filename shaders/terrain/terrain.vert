@@ -11,24 +11,8 @@ layout (location = 8) in uint in_texture_id;
 
 layout (location = 0) out vec3 out_normal;
 layout (location = 1) out vec3 out_color;
-layout (location = 2) out vec3 out_world_pos;
-layout (location = 3) out vec2 out_tex_coord;
-layout (location = 4) out uint out_texture_idx;
-
-
-struct FrustumPlane
-{
-    vec3 pos;
-    float dist;
-};
-
-
-layout (set = 0, binding = 0) uniform CameraInfo {
-    mat4 projection;
-    mat4 view;
-    mat4 inverse_view;
-    FrustumPlane frustum_planes[6];
-} ubo;
+layout (location = 2) out vec2 out_tex_coord;
+layout (location = 3) out uint out_texture_idx;
 
 void main() {
 

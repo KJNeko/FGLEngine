@@ -81,6 +81,8 @@ namespace fgl::engine
 		auto address() const { return m_alloc_info.deviceMemory; }
 
 		auto size() const { return m_alloc_info.size; }
+
+		void* map( BufferSuballocationHandle& handle );
 	};
 
 	class Buffer
@@ -98,7 +100,7 @@ namespace fgl::engine
 		Buffer() = delete;
 		Buffer( vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties );
 
-		~Buffer() = default;
+		~Buffer();
 
 		Buffer( const Buffer& other ) = delete;
 		Buffer& operator=( const Buffer& other ) = delete;
@@ -112,6 +114,8 @@ namespace fgl::engine
 
 		//! Returns the required alignment for this buffer.
 		vk::DeviceSize alignment();
+
+		std::shared_ptr< BufferHandle >& getHandle() { return m_handle; }
 
 	  private:
 
@@ -182,6 +186,8 @@ namespace fgl::engine
 		void free( BufferSuballocationHandle& info );
 
 		void mergeFreeBlocks();
+
+		void setDebugName( const std::string str );
 	};
 
 	void initGlobalStagingBuffer( std::uint64_t size );

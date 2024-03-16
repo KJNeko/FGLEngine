@@ -1,0 +1,110 @@
+//
+// Created by kj16609 on 3/14/24.
+//
+
+#include "DrawPair.hpp"
+
+#include <tracy/TracyC.h>
+
+#include <unordered_map>
+
+#include "engine/GameObject.hpp"
+#include "engine/model/Model.hpp"
+#include "engine/tree/octtree/OctTreeNode.hpp"
+
+namespace fgl::engine
+{
+
+	std::pair< std::vector< vk::DrawIndexedIndirectCommand >, std::vector< ModelMatrixInfo > > getDrawCallsFromTree(
+		OctTreeNode& root, const Frustum< CoordinateSpace::World >& frustum, const GameObjectFlagType flags )
+	{
+		ZoneScoped;
+		std::unordered_map< DrawKey, DrawPair > draw_pairs {};
+
+		for ( auto* node : root.getAllLeafsInFrustum( frustum ) )
+		{
+			ZoneScopedN( "Process leaf" );
+			for ( const auto& obj : *node )
+			{
+				ZoneScopedN( "Process object" );
+
+				if ( !( ( obj.object_flags & flags ) == flags ) ) continue;
+
+				assert( obj.m_model );
+
+				// debug::world::drawBoundingBox( obj.getBoundingBox() );
+
+				for ( const auto& primitive : obj.m_model->m_primitives )
+				{
+					assert( primitive.m_texture );
+					const ModelMatrixInfo matrix_info { .model_matrix = obj.m_transform.mat4(),
+						                                .texture_idx = primitive.m_texture->getID() };
+
+					const auto key {
+						std::make_pair( primitive.m_texture->getID(), primitive.m_index_buffer.getOffset() )
+					};
+
+					assert( primitive.m_index_buffer.size() > 0 );
+
+					if ( auto itter = draw_pairs.find( key ); itter != draw_pairs.end() )
+					{
+						//Draw command for this mesh already exists. Simply add a count to it
+						auto& [ itter_key, pair ] = *itter;
+						auto& [ existing_cmd, model_matrix ] = pair;
+
+						existing_cmd.instanceCount += 1;
+						model_matrix.emplace_back( matrix_info );
+						assert( model_matrix.size() == existing_cmd.instanceCount );
+					}
+					else
+					{
+						vk::DrawIndexedIndirectCommand cmd {};
+
+						cmd.firstIndex = primitive.m_index_buffer.getOffsetCount();
+						cmd.indexCount = primitive.m_index_buffer.size();
+
+						cmd.vertexOffset = static_cast< int32_t >( primitive.m_vertex_buffer.getOffsetCount() );
+
+						cmd.instanceCount = 1;
+
+						std::vector< ModelMatrixInfo > matrix_infos {};
+						matrix_infos.reserve( 128 );
+						matrix_infos.emplace_back( matrix_info );
+						draw_pairs.emplace( key, std::make_pair( cmd, std::move( matrix_infos ) ) );
+					}
+				}
+			}
+		}
+
+		if ( draw_pairs.empty() )
+		{
+			return {};
+		}
+
+		std::vector< vk::DrawIndexedIndirectCommand > draw_commands {};
+		std::vector< ModelMatrixInfo > model_matrices {};
+
+		draw_commands.reserve( draw_pairs.size() );
+		model_matrices.reserve( draw_pairs.size() * 2 );
+
+		TracyCZoneN( filter_zone_TRACY, "Reorganize draw commands", true );
+		for ( auto& [ key, pair ] : draw_pairs )
+		{
+			auto cmd { pair.first };
+			assert( cmd != vk::DrawIndexedIndirectCommand() );
+			cmd.firstInstance = static_cast< std::uint32_t >( model_matrices.size() );
+
+			assert( cmd.instanceCount == pair.second.size() );
+
+			assert( pair.second.size() > 0 );
+
+			draw_commands.emplace_back( cmd );
+			model_matrices.insert( model_matrices.end(), pair.second.begin(), pair.second.end() );
+		}
+
+		TracyCZoneEnd( filter_zone_TRACY );
+
+		return { std::move( draw_commands ), std::move( model_matrices ) };
+	}
+
+} // namespace fgl::engine

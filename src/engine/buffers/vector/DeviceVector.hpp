@@ -14,6 +14,7 @@ namespace fgl::engine
 	class DeviceVector final : public BufferVector
 	{
 		std::unique_ptr< HostVector< T > > m_staging_buffer {};
+		bool staged { false };
 
 	  public:
 
@@ -39,9 +40,14 @@ namespace fgl::engine
 			vk::BufferCopy copy_region { m_staging_buffer->getOffset(), this->m_offset, this->m_byte_size };
 
 			command_buffer.copyBuffer( m_staging_buffer->getVkBuffer(), this->getVkBuffer(), copy_region );
+			staged = true;
 		}
 
-		void dropStaging() { m_staging_buffer.reset(); }
+		void dropStaging()
+		{
+			assert( staged );
+			m_staging_buffer.reset();
+		}
 
 		/**
 		 * @brief Constructs a new DeviceVector from a vector, Requires a command buffer to copy the data to the device

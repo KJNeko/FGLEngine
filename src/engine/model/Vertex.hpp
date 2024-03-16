@@ -18,6 +18,13 @@ namespace fgl::engine
 		glm::vec3 m_normal { 0.0f, 0.0f, 0.0f };
 		glm::vec2 m_uv { 0.0f, 0.0f };
 
+		Vertex( const glm::vec3 pos, const glm::vec3 color, const glm::vec3 norm, const glm::vec2 uv ) noexcept :
+		  m_position( pos ),
+		  m_color( color ),
+		  m_normal( norm ),
+		  m_uv( uv )
+		{}
+
 		static std::vector< vk::VertexInputBindingDescription > getBindingDescriptions();
 		static std::vector< vk::VertexInputAttributeDescription > getAttributeDescriptions();
 

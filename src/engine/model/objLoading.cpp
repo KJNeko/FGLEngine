@@ -89,12 +89,20 @@ namespace fgl::engine
 			}
 		}
 
+		for ( const auto idx : indicies )
+		{
+			assert( idx < verts.size() );
+		}
+
 		const OrientedBoundingBox bounding_box { generateBoundingFromVerts( verts ) };
 
-		m_primitives.emplace_back(
+		auto& itter = m_primitives.emplace_back(
 			VertexBufferSuballocation( m_vertex_buffer, std::move( verts ) ),
 			IndexBufferSuballocation( m_index_buffer, std::move( indicies ) ),
 			bounding_box );
+
+		itter.m_index_buffer.dropStaging();
+		itter.m_vertex_buffer.dropStaging();
 
 		std::cout << unique_verts.size() << " unique verts" << std::endl;
 	}

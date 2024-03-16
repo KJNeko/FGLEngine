@@ -40,6 +40,8 @@ namespace fgl::engine::internal
 		Pipeline( const Pipeline& other ) = delete;
 		Pipeline& operator=( const Pipeline& ) = delete;
 
-		void bind( vk::CommandBuffer command_buffer );
+		void bind( vk::CommandBuffer& command_buffer );
+
+		void setDebugName( const std::string str );
 	};
 } // namespace fgl::engine::internal

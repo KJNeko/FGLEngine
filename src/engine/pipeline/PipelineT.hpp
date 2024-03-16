@@ -6,114 +6,14 @@
 
 #include "Pipeline.hpp"
 #include "Shader.hpp"
+#include "engine/concepts/is_descriptor_set_collection.hpp"
+#include "engine/concepts/is_empty_descriptor_set.hpp"
+#include "engine/concepts/is_valid_pipeline_input.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
+#include "engine/descriptors/createDescriptorSets.hpp"
 
 namespace fgl::engine
 {
-
-	template <
-		std::uint16_t size,
-		std::uint16_t current_idx,
-		is_valid_pipeline_input CurrentSet,
-		is_valid_pipeline_input... Sets >
-	void createDescriptorSetsT( std::array< vk::DescriptorSetLayout, size >& out )
-	{
-		if constexpr ( size == 0 )
-			return;
-		else
-		{
-			static_assert( size > 0, "Size must be greater than 0" );
-			static_assert( current_idx < size, "Current index must be less than size" );
-
-			if constexpr ( is_descriptor_set< CurrentSet > )
-			{
-				out[ current_idx ] = CurrentSet::createDescriptorSetLayout();
-				assert( out[ current_idx ] != VK_NULL_HANDLE && "createDescriptorSetLayout returned VK_NULL_HANDLE" );
-				std::cout << "Created descriptor set layout for binding set " << current_idx << std::endl;
-				if constexpr ( sizeof...( Sets ) > 0 ) createDescriptorSetsT< size, current_idx + 1, Sets... >( out );
-			}
-			else if constexpr ( is_constant_range< CurrentSet > )
-			{
-				if constexpr ( sizeof...( Sets ) > 0 ) // We don't want to increase the size
-					createDescriptorSetsT< size, current_idx, Sets... >( out );
-				else
-					return;
-			}
-			else
-			{
-				static_assert( false, "Invalid input" );
-			}
-		}
-	}
-
-	template < is_descriptor_set Current, is_valid_pipeline_input... Sets >
-	consteval std::uint16_t getMaxBindingSetIDX()
-	{
-		if constexpr ( sizeof...( Sets ) == 0 )
-			return Current::m_set_idx;
-		else
-		{
-			constexpr auto current_idx { Current::m_set_idx };
-			constexpr auto next_idx { getMaxBindingSetIDX< Sets... >() };
-			return std::max( current_idx, next_idx );
-		}
-	}
-
-	template < is_constant_range Current, is_valid_pipeline_input... Sets >
-	consteval std::uint16_t getMaxBindingSetIDX()
-	{
-		if constexpr ( sizeof...( Sets ) == 0 )
-			return 0;
-		else
-			return getMaxBindingSetIDX< Sets... >();
-	}
-
-	template < is_valid_pipeline_input... DescriptorSets >
-	struct DescriptorSetCollection
-	{
-		using DescriptorSetTuple = std::tuple< DescriptorSets... >;
-
-		constexpr static std::uint64_t DescriptorSetCount { sizeof...( DescriptorSets ) };
-
-		//If the first descriptor set is a constant range, then the pipeline has a constant range
-		constexpr static bool has_constant_range {
-			is_constant_range< std::tuple_element_t< 0, std::tuple< DescriptorSets... > > >
-		};
-
-		constexpr static std::uint16_t binding_sets { ( is_descriptor_set< DescriptorSets > + ... ) };
-
-		constexpr static std::uint16_t max_binding_set { getMaxBindingSetIDX< DescriptorSets... >() };
-
-		constexpr static std::uint16_t set_count { ( is_descriptor_set< DescriptorSets > + ... ) };
-
-		constexpr static std::uint16_t empty_sets { ( is_empty_descriptor_set< DescriptorSets > + ... ) };
-
-		using LayoutArray = std::array< vk::DescriptorSetLayout, DescriptorSetCount - has_constant_range >;
-
-		static LayoutArray createDescriptorSets()
-		{
-			LayoutArray layouts;
-			createDescriptorSetsT< layouts.size(), 0, DescriptorSets... >( layouts );
-			return layouts;
-		}
-
-		template < std::uint64_t IDX >
-			requires( IDX < DescriptorSetCount )
-		using DescriptorSet = std::tuple_element_t< IDX, DescriptorSetTuple >;
-
-		template < std::uint64_t BindingIDX >
-		using BindingSet = DescriptorSet< BindingIDX + ( has_constant_range ? 1 : 0 ) >;
-
-		using PushConstantT = BindingSet< 0 >;
-	};
-
-	template < typename T >
-	concept is_descriptor_set_collection = requires( T t ) {
-		typename T::DescriptorSetTuple;
-		{
-			t.DescriptorSetCount
-		} -> std::same_as< const std::uint64_t& >;
-	};
 
 	template < is_shader_collection ShaderCollection, is_descriptor_set_collection DescriptorSetCollection >
 	class PipelineT : public internal::Pipeline
@@ -205,6 +105,7 @@ namespace fgl::engine
 		PipelineConfigInfo& populate( PipelineConfigInfo& info, Device& device )
 		{
 			info.layout = createLayout( device );
+
 			return info;
 		}
 

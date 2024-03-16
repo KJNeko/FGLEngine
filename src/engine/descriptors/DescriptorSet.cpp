@@ -105,6 +105,8 @@ namespace fgl::engine
 		write.descriptorType = vk::DescriptorType::eCombinedImageSampler;
 		write.pImageInfo = &( std::get< vk::DescriptorImageInfo >( m_infos.data()[ binding_idx ] ) );
 
+		std::cout << "Bound texture: " << tex.getID() << std::endl;
+
 		descriptor_writes.push_back( write );
 	}
 

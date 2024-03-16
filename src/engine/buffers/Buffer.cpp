@@ -40,6 +40,13 @@ namespace fgl::engine
 		dealloc();
 	}
 
+	void* BufferHandle::map( BufferSuballocationHandle& handle )
+	{
+		if ( m_alloc_info.pMappedData == nullptr ) return nullptr;
+
+		return static_cast< std::byte* >( m_alloc_info.pMappedData ) + handle.m_offset;
+	}
+
 	void BufferHandle::dealloc()
 	{
 		vmaDestroyBuffer( Device::getInstance().allocator(), m_buffer, m_allocation );
@@ -300,6 +307,16 @@ namespace fgl::engine
 		return;
 	}
 
+	void Buffer::setDebugName( const std::string str )
+	{
+		vk::DebugUtilsObjectNameInfoEXT info {};
+		info.objectType = vk::ObjectType::eBuffer;
+		info.pObjectName = str.c_str();
+		info.objectHandle = reinterpret_cast< std::uint64_t >( static_cast< VkBuffer >( this->m_handle->m_buffer ) );
+
+		Device::getInstance().setDebugUtilsObjectName( info );
+	}
+
 	void Buffer::free( BufferSuballocationHandle& info )
 	{
 		ZoneScoped;
@@ -336,9 +353,7 @@ namespace fgl::engine
 
 	void* Buffer::map( BufferSuballocationHandle& handle )
 	{
-		if ( m_handle->m_alloc_info.pMappedData == nullptr ) return nullptr;
-
-		return static_cast< std::byte* >( m_handle->m_alloc_info.pMappedData ) + handle.m_offset;
+		return this->m_handle->map( handle );
 	}
 
 	Buffer::
@@ -349,6 +364,11 @@ namespace fgl::engine
 	{
 		m_free_blocks.insert( m_free_blocks.begin(), { 0, memory_size } );
 		m_buffer_handles.emplace_back( m_handle );
+	}
+
+	Buffer::~Buffer()
+	{
+		assert( m_suballocations.size() == 0 && "Buffer destructed while allocations still present" );
 	}
 
 } // namespace fgl::engine

@@ -73,7 +73,7 @@ namespace fgl::engine
 
 		texture_map.emplace( path.string(), tex.m_handle );
 
-		return tex;
+		return std::move( tex );
 	}
 
 	Texture::Texture( std::shared_ptr< TextureHandle > handle ) : m_handle( handle )
@@ -200,7 +200,8 @@ namespace fgl::engine
 		VkImageView vk_view { view->getVkView() };
 		VkSampler vk_sampler { view->getSampler()->getVkSampler() };
 
-		m_handle->m_imgui_set = ImGui_ImplVulkan_AddTexture( vk_sampler, vk_view, VK_IMAGE_LAYOUT_GENERAL );
+		m_handle->m_imgui_set =
+			ImGui_ImplVulkan_AddTexture( vk_sampler, vk_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 #endif
 	}
 

@@ -6,9 +6,9 @@
 
 #include "Descriptor.hpp"
 #include "DescriptorPool.hpp"
-#include "concepts.hpp"
-#include "engine/concepts/is_bindable.hpp"
 #include "engine/concepts/is_descriptor.hpp"
+#include "engine/concepts/is_descriptor_set.hpp"
+#include "engine/concepts/is_empty_descriptor_set.hpp"
 
 namespace fgl::engine
 {
@@ -185,8 +185,6 @@ namespace fgl::engine
 
 		static_assert( TestSet::descriptor_count == 7 );
 	} // namespace internal
-
-
 
 	static_assert( is_descriptor_set< EmptyDescriptorSet< 0 > > && is_empty_descriptor_set< EmptyDescriptorSet< 0 > > );
 	static_assert( is_descriptor_set< internal::TestSet > && !is_empty_descriptor_set< internal::TestSet > );

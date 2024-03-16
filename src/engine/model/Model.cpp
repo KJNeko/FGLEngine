@@ -24,7 +24,8 @@ namespace fgl::engine
 
 	std::vector< vk::DrawIndexedIndirectCommand > Model::buildParameters( const std::vector< Primitive >& primitives )
 	{
-		std::vector< vk::DrawIndexedIndirectCommand > draw_parameters;
+		std::vector< vk::DrawIndexedIndirectCommand > draw_parameters {};
+		draw_parameters.reserve( primitives.size() );
 
 		for ( const auto& primitive : primitives )
 		{
@@ -57,7 +58,7 @@ namespace fgl::engine
 
 	std::vector< vk::DrawIndexedIndirectCommand > Model::getDrawCommand( const std::uint32_t index ) const
 	{
-		std::vector< vk::DrawIndexedIndirectCommand > draw_commands;
+		std::vector< vk::DrawIndexedIndirectCommand > draw_commands {};
 		draw_commands.reserve( m_primitives.size() );
 		for ( const auto& cmd : m_draw_parameters )
 		{
@@ -96,6 +97,23 @@ namespace fgl::engine
 		return model_ptr;
 	}
 
+	std::unique_ptr< Model > Model::createModelFromVerts(
+		Device& device,
+		std::vector< Vertex > verts,
+		std::vector< std::uint32_t > indicies,
+		Buffer& vertex_buffer,
+		Buffer& index_buffer )
+	{
+		ModelBuilder builder { vertex_buffer, index_buffer };
+		builder.loadVerts( std::move( verts ), std::move( indicies ) );
+
+		OrientedBoundingBox bounding_box { buildBoundingBox( builder.m_primitives ) };
+
+		auto model_ptr { std::make_unique< Model >( device, builder, bounding_box ) };
+
+		return model_ptr;
+	}
+
 	void Model::syncBuffers( vk::CommandBuffer& cmd_buffer )
 	{
 		for ( auto& primitive : m_primitives )
@@ -122,6 +140,15 @@ namespace fgl::engine
 		}
 		else
 			throw std::runtime_error( "Unknown model file extension" );
+	}
+
+	void ModelBuilder::loadVerts( std::vector< Vertex > verts, std::vector< std::uint32_t > indicies )
+	{
+		VertexBufferSuballocation vertex_suballoc { this->m_vertex_buffer, verts };
+		IndexBufferSuballocation index_suballoc { this->m_index_buffer, std::move( indicies ) };
+
+		this->m_primitives.emplace_back(
+			std::move( vertex_suballoc ), std::move( index_suballoc ), generateBoundingFromVerts( verts ) );
 	}
 
 } // namespace fgl::engine

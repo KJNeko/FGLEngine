@@ -63,6 +63,13 @@ namespace fgl::engine
 		PerFrameSuballocation< HostSingleT< PointLight > > point_lights { global_ubo_buffer,
 			                                                              SwapChain::MAX_FRAMES_IN_FLIGHT };
 
+		Texture debug_tex { Texture::loadFromFile( "models/textures/DebugTexture.png" ) };
+		Sampler sampler { vk::Filter::eLinear,
+			              vk::Filter::eLinear,
+			              vk::SamplerMipmapMode::eLinear,
+			              vk::SamplerAddressMode::eClampToEdge };
+		debug_tex.getImageView().getSampler() = std::move( sampler );
+
 		constexpr std::uint32_t matrix_default_size { 64_MiB };
 		constexpr std::uint32_t draw_parameter_default_size { 64_MiB };
 
@@ -100,7 +107,7 @@ namespace fgl::engine
 
 		auto viewer { GameObject::createGameObject() };
 
-		viewer.m_transform.translation = WorldCoordinate( constants::WORLD_CENTER + glm::vec3( 0.0f, 0.0f, -2.5f ) );
+		viewer.m_transform.translation = WorldCoordinate( constants::WORLD_CENTER + glm::vec3( 0.0f, 0.0f, 2.5f ) );
 
 		KeyboardMovementController camera_controller {};
 
@@ -181,7 +188,8 @@ namespace fgl::engine
 #endif
 
 				CameraInfo current_camera_info { .projection = camera.getProjectionMatrix(),
-					                             .view = camera.getViewMatrix() };
+					                             .view = camera.getViewMatrix(),
+					                             .inverse_view = camera.getInverseViewMatrix() };
 
 				camera_info[ frame_index ] = current_camera_info;
 
@@ -191,7 +199,7 @@ namespace fgl::engine
 
 				m_renderer.beginSwapchainRendererPass( command_buffer );
 
-				// m_terrain_system.pass( frame_info );
+				m_terrain_system.pass( frame_info );
 
 				m_entity_renderer.pass( frame_info );
 
@@ -250,41 +258,82 @@ namespace fgl::engine
 			}
 		}*/
 
-		std::shared_ptr< Model > model { Model::createModel(
-			Device::getInstance(),
-			"models/khronos-sponza/Sponza.gltf",
-			m_entity_renderer.getVertexBuffer(),
-			m_entity_renderer.getIndexBuffer() ) };
-
-		assert( model );
-
-		model->syncBuffers( command_buffer );
-
-		constexpr int x_val { 32 };
-		constexpr int y_val { x_val };
-
-		constexpr float x_offset { -( static_cast< float >( x_val ) * 30.0f ) / 2.0f };
-		constexpr float y_offset { -( static_cast< float >( y_val ) * 20.0f ) / 2.0f };
-
-		for ( int x = 0; x < x_val; ++x )
+		/*
 		{
-			for ( int y = 0; y < y_val; ++y )
-			{
-				auto sponza = GameObject::createGameObject();
-				sponza.m_model = model;
-				sponza.m_transform.translation = WorldCoordinate(
-					x_offset + ( static_cast< float >( y ) * 30.0f ),
-					y_offset + ( static_cast< float >( x ) * 20.0f ),
-					float( rand() % 120 ) - 60.0f );
-				// 0.0f );
-				sponza.m_transform.scale = { 0.007f, 0.007f, 0.007f };
-				sponza.m_transform.rotation = Rotation( 0.0f, 0.0f, 0.0f );
+			std::shared_ptr< Model > model { Model::createModel(
+				Device::getInstance(),
+				"models/khronos-sponza/Sponza.gltf",
+				m_entity_renderer.getVertexBuffer(),
+				m_entity_renderer.getIndexBuffer() ) };
 
-				m_game_objects_root.addGameObject( std::move( sponza ) );
-				std::cout << "(" << x << "," << y << ")" << std::endl;
+			assert( model );
+
+			model->syncBuffers( command_buffer );
+
+			constexpr int x_val { 1 };
+			constexpr int y_val { x_val };
+
+			for ( int x = 0; x < x_val; ++x )
+			{
+				for ( int y = 0; y < y_val; ++y )
+				{
+					auto sponza = GameObject::createGameObject();
+					sponza.object_flags |= IS_ENTITY | IS_VISIBLE;
+					sponza.m_model = model;
+					sponza.m_transform.translation = WorldCoordinate( constants::WORLD_CENTER );
+					// 0.0f );
+					sponza.m_transform.scale = { 0.007f, 0.007f, 0.007f };
+					sponza.m_transform.rotation = Rotation( 0.0f, 0.0f, 0.0f );
+
+					m_game_objects_root.addGameObject( std::move( sponza ) );
+				}
 			}
+		}*/
+
+		{
+			std::vector< Vertex > verts {};
+
+			verts.emplace_back(
+				glm::vec3( -1.0f, -1.0f, 0.0f ), glm::vec3( 1.0f ), constants::WORLD_UP, glm::vec2( 0.0f, 0.5f ) );
+			verts.emplace_back(
+				glm::vec3( -1.0f, 1.0f, 0.0f ), glm::vec3( 1.0f ), constants::WORLD_UP, glm::vec2( 0.5f, .5f ) );
+			verts.emplace_back(
+				glm::vec3( 1.0f, 1.0f, 0.0f ), glm::vec3( 1.0f ), constants::WORLD_UP, glm::vec2( 0.5f, 0.0f ) );
+			verts.emplace_back(
+				glm::vec3( 1.0f, -1.0f, 0.0f ), glm::vec3( 1.0f ), constants::WORLD_UP, glm::vec2( 0.0f, 0.0f ) );
+
+			std::vector< std::uint32_t > indicies { 0, 1, 2, 3 };
+
+			std::shared_ptr< Model > model { Model::createModelFromVerts(
+				Device::getInstance(),
+				std::move( verts ),
+				std::move( indicies ),
+				m_terrain_system.getVertexBuffer(),
+				m_terrain_system.getIndexBuffer() ) };
+
+			Texture texture { Texture::loadFromFile( "models/textures/heightmap.png" ) };
+			Sampler sampler { vk::Filter::eLinear,
+				              vk::Filter::eLinear,
+				              vk::SamplerMipmapMode::eLinear,
+				              vk::SamplerAddressMode::eClampToEdge };
+			texture.getImageView().getSampler() = std::move( sampler );
+			texture.createImGuiSet();
+			Texture::getTextureDescriptorSet().bindTexture( 0, texture );
+			Texture::getTextureDescriptorSet().update();
+
+			model->m_primitives[ 0 ].m_texture = std::move( texture );
+
+			model->syncBuffers( command_buffer );
+
+			auto floor { GameObject::createGameObject() };
+			floor.object_flags |= IS_TERRAIN | IS_VISIBLE;
+			floor.m_model = model;
+			assert( floor.m_model->m_primitives.size() == 1 );
+
+			floor.m_transform.translation = WorldCoordinate( constants::WORLD_CENTER );
+
+			m_game_objects_root.addGameObject( std::move( floor ) );
 		}
-		m_game_objects_root.recalculateBoundingBoxes();
 
 		/*
 		{
@@ -343,6 +392,8 @@ namespace fgl::engine
 
 		Device::getInstance().endSingleTimeCommands( command_buffer );
 		std::cout << "Finished loading game objects" << std::endl;
+
+		m_game_objects_root.recalculateBoundingBoxes();
 	}
 
 	void EngineContext::initImGui()

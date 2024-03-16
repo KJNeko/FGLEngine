@@ -38,20 +38,5 @@ void main()
 
     vec3 frag_color = (ambient + diffuse) * albedo;
 
-/*
-    for (int i = 0; i < 4; i++)
-    {
-        vec3 L = lights[i].position.xyz - fragPos;
-        float distance = length(L);
-        L = normalize(L);
-        float atten = lights[i].radius / (pow(dist, 3.0) + 1.0);
-
-        vec3 N = normalize(normal);
-        float NdotL = max(0.0, dot(N, L));
-        vec3 diff = lights[i].color * albedo.rgb * NdotL * atten;
-
-        frag_color += diff;
-    }*/
-
     out_color = vec4(frag_color, 1.0);
 }

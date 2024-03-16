@@ -1,13 +1,13 @@
 //
-// Created by kj16609 on 11/28/23.
+// Created by kj16609 on 3/11/24.
 //
 
-#pragma once
+#ifndef GAME_TERRAINSYSTEM_HPP
+#define GAME_TERRAINSYSTEM_HPP
 
-#include <memory>
-#include <vector>
-
-#include "engine/GameObject.hpp"
+#include "concepts.hpp"
+#include "engine/FrameInfo.hpp"
+#include "engine/buffers/vector/HostVector.hpp"
 #include "engine/descriptors/DescriptorSetCollection.hpp"
 #include "engine/model/Model.hpp"
 #include "engine/pipeline/PipelineT.hpp"
@@ -15,23 +15,19 @@
 
 namespace fgl::engine
 {
-	class Device;
-	class Buffer;
-	struct FrameInfo;
-
-	class EntityRendererSystem
+	class TerrainSystem
 	{
-		Device& m_device;
+		using VertexShader = VertexShaderT< "shaders/terrain/terrain.vert.spv" >;
+		using FragmentShader = FragmentShaderT< "shaders/terrain/terrain.frag.spv" >;
+		using TessCShader = TesselationControlShaderT< "shaders/terrain/terrain.tesc.spv" >;
+		using TessEShader = TesselationEvaluationShaderT< "shaders/terrain/terrain.tese.spv" >;
 
-		using VertexShader = VertexShaderT< "shaders/gbuffer.vert.spv" >;
-		using FragmentShader = FragmentShaderT< "shaders/gbuffer.frag.spv" >;
-		using Shaders = ShaderCollection< VertexShader, FragmentShader >;
-
+		using Shaders = ShaderCollection< VertexShader, FragmentShader, TessCShader, TessEShader >;
 		using DescriptorSets = DescriptorSetCollection< GlobalDescriptorSet, TextureDescriptorSet >;
 
 		using Pipeline = PipelineT< Shaders, DescriptorSets >;
 
-		std::unique_ptr< Pipeline > m_pipeline {};
+		std::unique_ptr< Pipeline > m_pipeline { nullptr };
 
 		std::unique_ptr< Buffer > m_vertex_buffer { nullptr };
 		std::unique_ptr< Buffer > m_index_buffer { nullptr };
@@ -45,6 +41,8 @@ namespace fgl::engine
 
 		std::array< std::unique_ptr< ModelMatrixInfoBufferSuballocation >, SwapChain::MAX_FRAMES_IN_FLIGHT >
 			m_model_matrix_info_buffers {};
+
+		vk::CommandBuffer& setupSystem( FrameInfo& info );
 
 		void initVertexBuffer( std::uint32_t size )
 		{
@@ -62,21 +60,19 @@ namespace fgl::engine
 				vk::MemoryPropertyFlagBits::eDeviceLocal );
 		}
 
-		vk::CommandBuffer& setupSystem( FrameInfo& );
-
 	  public:
 
-		Buffer& getVertexBuffer() { return *m_vertex_buffer; }
+		inline Buffer& getVertexBuffer() { return *m_vertex_buffer; }
 
-		Buffer& getIndexBuffer() { return *m_index_buffer; }
+		inline Buffer& getIndexBuffer() { return *m_index_buffer; }
+
+		TerrainSystem( Device& device, VkRenderPass render_pass );
+		~TerrainSystem() = default;
 
 		void pass( FrameInfo& info );
-
-		EntityRendererSystem( Device& device, VkRenderPass render_pass );
-		~EntityRendererSystem() = default;
-		EntityRendererSystem( EntityRendererSystem&& other ) = delete;
-		EntityRendererSystem( const EntityRendererSystem& other ) = delete;
-		EntityRendererSystem& operator=( const EntityRendererSystem& other ) = delete;
 	};
 
+	static_assert( is_system< TerrainSystem > );
 } // namespace fgl::engine
+
+#endif //GAME_TERRAINSYSTEM_HPP

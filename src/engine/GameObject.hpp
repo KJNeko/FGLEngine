@@ -16,6 +16,19 @@ namespace fgl::engine
 
 	class Model;
 
+	using GameObjectFlagType = std::uint16_t;
+
+	enum GameObjectFlagMask : GameObjectFlagType
+	{
+		NONE_FLAG = 0,
+		IS_STATIC = 1 << 0, //! Object can not move
+		IS_VISIBLE = 1 << 1, //! Object is visible
+		IS_TERRAIN = 1 << 2, //! Object is a part of the terrain
+		HAS_MODEL = 1 << 3,
+		IS_ENTITY = 1 << 4,
+		MASK_DEFAULT = IS_VISIBLE,
+	};
+
 	class GameObject
 	{
 	  public:
@@ -26,12 +39,8 @@ namespace fgl::engine
 		static constexpr ID INVALID_ID { std::numeric_limits< ID >::max() };
 
 		ID m_id { INVALID_ID };
-		bool m_is_static { false };
-		bool m_is_visible { true };
+		GameObjectFlagType object_flags { GameObjectFlagMask::MASK_DEFAULT };
 		TransformComponent m_transform {};
-
-		//Dummy data to figure out what is above the cache limit
-		//bool hot_limter { false };
 
 		std::shared_ptr< Model > m_model { nullptr };
 

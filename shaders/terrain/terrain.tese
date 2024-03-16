@@ -1,29 +1,25 @@
 #version 450
-
+#extension GL_EXT_nonuniform_qualifier: enable
 
 layout(quads, equal_spacing, cw) in;
 
-layout(location = 2) in vec3 in_normal[];
-layout(location = 3) in vec2 in_uv[];
-
-layout(location = 8) in uint in_tex_id[];
+layout(location = 0) in vec3 in_normal[];
+layout(location = 1) in vec2 in_uv[];
+layout(location = 2) in uint in_tex_idx[];
 
 layout(location = 0) out vec3 out_normal;
-layout(location = 3) out vec2 out_uv;
-
-struct FrustumPlane
-{
-    vec3 pos;
-    float dist;
-};
+layout(location = 1) out vec2 out_uv;
+layout(location = 2) out vec3 out_world_pos;
+layout(location = 3) out uint out_tex_idx;
 
 layout(set = 0, binding = 0) uniform CameraInfo
 {
     mat4 projection;
     mat4 view;
     mat4 inverse_view;
-    FrustumPlane frustum_planes[6];
 } ubo;
+
+layout (set = 1, binding = 0) uniform sampler2D tex[];
 
 void main()
 {
@@ -39,5 +35,12 @@ void main()
     vec4 pos2 = mix(gl_in[3].gl_Position, gl_in[2].gl_Position, gl_TessCoord.x);
     vec4 pos = mix(pos1, pos2, gl_TessCoord.y);
 
-    gl_Position = ubo.projection * ubo.view * pos;
+    out_tex_idx = in_tex_idx[0];
+
+    vec4 world_pos = ubo.projection * ubo.view * pos;
+
+    world_pos.y -= (texture(tex[out_tex_idx], out_uv).r - 0.5);
+
+    out_world_pos = vec3(world_pos);
+    gl_Position = world_pos;
 }

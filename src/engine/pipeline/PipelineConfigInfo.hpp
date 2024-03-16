@@ -41,6 +41,7 @@ namespace fgl::engine
 		static void disableVertexInput( PipelineConfigInfo& info );
 		static void setTriangleListTopo( PipelineConfigInfo& info );
 		static void setTriangleStripTopo( PipelineConfigInfo& info );
+		static void setQuadTesselation( PipelineConfigInfo& info );
 		static void setPointPatch( PipelineConfigInfo& info );
 		static void defaultConfig( PipelineConfigInfo& info );
 		static void enableAlphaBlending( PipelineConfigInfo& config );

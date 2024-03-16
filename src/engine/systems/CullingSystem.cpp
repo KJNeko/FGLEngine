@@ -30,32 +30,6 @@ namespace fgl::engine
 
 		auto leafs { info.game_objects.getAllLeafsInFrustum( frustum ) };
 
-		for ( auto* leaf : leafs )
-		{
-			assert( leaf );
-
-			for ( auto& obj : *leaf )
-			{
-				//Has model?
-				if ( obj.m_model )
-				{
-					//Test if the object is in the frustum
-
-					const OrientedBoundingBox model_bounding_box { obj.getBoundingBox() };
-
-					obj.m_is_visible = frustum.intersects( model_bounding_box );
-
-					//TODO: Drawing this fucking bounding box takes so much of the culling time. Literaly making it slower the more objects are in view.
-					// I need to make this either to be async or to get fucked.
-					if ( obj.m_is_visible )
-					{
-						//Draw the bounding box for debug
-						//debug::world::drawBoundingBox( model_bounding_box );
-					}
-				}
-			}
-		}
-
 		info.in_view_leafs = std::move( leafs );
 	}
 

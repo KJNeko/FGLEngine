@@ -7,8 +7,6 @@
 
 #include <fstream>
 
-#include "engine/descriptors/concepts.hpp"
-
 namespace fgl::engine
 {
 
@@ -108,6 +106,12 @@ namespace fgl::engine
 
 	template < TString filepath >
 	using FragmentShaderT = Shader< filepath, vk::ShaderStageFlagBits::eFragment >;
+
+	template < TString filepath >
+	using TesselationControlShaderT = Shader< filepath, vk::ShaderStageFlagBits::eTessellationControl >;
+
+	template < TString filepath >
+	using TesselationEvaluationShaderT = Shader< filepath, vk::ShaderStageFlagBits::eTessellationEvaluation >;
 
 	template < typename T >
 	concept is_shader = requires( T t ) {

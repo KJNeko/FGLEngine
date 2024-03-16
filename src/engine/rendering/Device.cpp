@@ -201,6 +201,7 @@ namespace fgl::engine
 		vk::PhysicalDeviceFeatures deviceFeatures = {};
 		deviceFeatures.samplerAnisotropy = VK_TRUE;
 		deviceFeatures.multiDrawIndirect = VK_TRUE;
+		deviceFeatures.tessellationShader = VK_TRUE;
 		deviceFeatures.drawIndirectFirstInstance = VK_TRUE;
 
 		vk::PhysicalDeviceDescriptorIndexingFeatures indexing_features {};
