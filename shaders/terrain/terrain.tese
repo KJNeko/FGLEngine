@@ -38,10 +38,10 @@ void main()
 
     out_tex_idx = in_tex_idx[0];
 
-    vec4 world_pos = ubo.projection * ubo.view * pos;
-
     // Doesn't matter which in_scale_z we take since it'll be the same for the entire model.
-    world_pos.y -= (texture(tex[out_tex_idx], out_uv).r - 0.5) * in_scale_z[0];
+    pos.z += (texture(tex[out_tex_idx], out_uv).r - 0.5) * in_scale_z[0];
+
+    vec4 world_pos = ubo.projection * ubo.view * pos;
 
     out_world_pos = vec3(world_pos);
     gl_Position = world_pos;

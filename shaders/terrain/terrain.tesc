@@ -30,7 +30,7 @@ float tesselationLevel(vec4 point1, vec4 point2)
 
     vec3 camera_pos = ubo.inverse_view[3].xyz;
 
-    float max_tess = 64.0f;
+    float max_tess = 32.0f;
     float dist_multip = 8.0f;
 
     float dist = max_tess - (distance(camera_pos, mid) / dist_multip);
