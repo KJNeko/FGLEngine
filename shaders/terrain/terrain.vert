@@ -12,11 +12,14 @@ layout (location = 8) in uint in_texture_id;
 layout (location = 0) out vec3 out_normal;
 layout (location = 1) out vec3 out_color;
 layout (location = 2) out vec2 out_tex_coord;
-layout (location = 3) out uint out_texture_idx;
+layout (location = 3) out flat uint out_texture_idx;
+layout (location = 4) out flat float out_scale_z;
 
 void main() {
 
     gl_Position = instance_model_matrix * vec4(position, 1.0f);
+    //We want to grab the scale value
+    out_scale_z = length(instance_model_matrix[2]);
 
     mat3 normal_matrix = transpose(inverse(mat3(instance_model_matrix)));
 

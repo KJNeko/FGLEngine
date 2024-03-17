@@ -5,7 +5,8 @@ layout(quads, equal_spacing, cw) in;
 
 layout(location = 0) in vec3 in_normal[];
 layout(location = 1) in vec2 in_uv[];
-layout(location = 2) in uint in_tex_idx[];
+layout(location = 2) in flat uint in_tex_idx[];
+layout(location = 3) in flat float in_scale_z[];
 
 layout(location = 0) out vec3 out_normal;
 layout(location = 1) out vec2 out_uv;
@@ -39,7 +40,8 @@ void main()
 
     vec4 world_pos = ubo.projection * ubo.view * pos;
 
-    world_pos.y -= (texture(tex[out_tex_idx], out_uv).r - 0.5);
+    // Doesn't matter which in_scale_z we take since it'll be the same for the entire model.
+    world_pos.y -= (texture(tex[out_tex_idx], out_uv).r - 0.5) * in_scale_z[0];
 
     out_world_pos = vec3(world_pos);
     gl_Position = world_pos;

@@ -3,13 +3,15 @@
 layout(location = 0) in vec3 in_normal[];
 layout(location = 1) in vec3 in_color[];
 layout(location = 2) in vec2 in_uv[];
-layout(location = 3) in uint in_tex_idx[];
+layout(location = 3) in flat uint in_tex_idx[];
+layout(location = 4) in flat float in_scale_z[];
 
 layout(vertices = 4) out;
 
 layout(location = 0) out vec3 out_normal[4];
 layout(location = 1) out vec2 out_uv[4];
-layout(location = 2) out uint out_tex_idx[4];
+layout(location = 2) out flat uint out_tex_idx[4];
+layout(location = 3) out flat float out_scale_z[4];
 
 layout (set = 0, binding = 0) uniform CameraInfo {
     mat4 projection;
@@ -50,4 +52,5 @@ void main()
     out_normal[gl_InvocationID] = in_normal[gl_InvocationID];
     out_uv[gl_InvocationID] = in_uv[gl_InvocationID];
     out_tex_idx[gl_InvocationID] = in_tex_idx[gl_InvocationID];
+    out_scale_z[gl_InvocationID] = in_scale_z[gl_InvocationID];
 }

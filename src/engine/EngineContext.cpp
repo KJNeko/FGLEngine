@@ -8,6 +8,7 @@
 #include <glm/gtc/constants.hpp>
 #include <tracy/TracyVulkan.hpp>
 
+#include "engine/model/prebuilt/terrainModel.hpp"
 #include <array>
 #include <chrono>
 #include <thread>
@@ -291,25 +292,9 @@ namespace fgl::engine
 		}*/
 
 		{
-			std::vector< Vertex > verts {};
-
-			verts.emplace_back(
-				glm::vec3( -1.0f, -1.0f, 0.0f ), glm::vec3( 1.0f ), constants::WORLD_UP, glm::vec2( 0.0f, 0.5f ) );
-			verts.emplace_back(
-				glm::vec3( -1.0f, 1.0f, 0.0f ), glm::vec3( 1.0f ), constants::WORLD_UP, glm::vec2( 0.5f, .5f ) );
-			verts.emplace_back(
-				glm::vec3( 1.0f, 1.0f, 0.0f ), glm::vec3( 1.0f ), constants::WORLD_UP, glm::vec2( 0.5f, 0.0f ) );
-			verts.emplace_back(
-				glm::vec3( 1.0f, -1.0f, 0.0f ), glm::vec3( 1.0f ), constants::WORLD_UP, glm::vec2( 0.0f, 0.0f ) );
-
-			std::vector< std::uint32_t > indicies { 0, 1, 2, 3 };
-
-			std::shared_ptr< Model > model { Model::createModelFromVerts(
-				Device::getInstance(),
-				std::move( verts ),
-				std::move( indicies ),
-				m_terrain_system.getVertexBuffer(),
-				m_terrain_system.getIndexBuffer() ) };
+			auto model {
+				generateTerrainModel( m_terrain_system.getVertexBuffer(), m_terrain_system.getIndexBuffer() )
+			};
 
 			Texture texture { Texture::loadFromFile( "models/textures/heightmap.png" ) };
 			Sampler sampler { vk::Filter::eLinear,
