@@ -5,7 +5,6 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include <glm/gtc/epsilon.hpp>
 
 #include <ostream>
 
@@ -13,11 +12,9 @@
 #include "engine/primitives/CoordinateSpace.hpp"
 #include "engine/primitives/Scale.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
-#include "engine/primitives/matricies/MatrixEvolvedTypes.hpp"
 
 namespace fgl::engine
 {
-
 	class Vector;
 	class NormalVector;
 

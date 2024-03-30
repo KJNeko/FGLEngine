@@ -41,8 +41,8 @@ namespace fgl::engine
 
 		using namespace fgl::literals::size_literals;
 
-		initVertexBuffer( 128_MiB );
-		initIndexBuffer( 64_MiB );
+		initVertexBuffer( 512_MiB );
+		initIndexBuffer( 128_MiB );
 		initDrawParameterBuffer( 1_KiB );
 	}
 

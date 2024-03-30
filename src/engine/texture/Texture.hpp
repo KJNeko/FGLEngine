@@ -22,13 +22,13 @@ namespace fgl::engine
 		//! Has this texture been submitted to the GPU?
 		bool submitte_to_gpu { false };
 
-		Texture( std::tuple< std::vector< unsigned char >, int, int, int > );
-		Texture( std::shared_ptr< TextureHandle > handle );
+		[[nodiscard]] Texture( const std::tuple< std::vector< std::byte >, int, int, int >& );
+		[[nodiscard]] Texture( std::shared_ptr< TextureHandle > handle );
 
 	  public:
 
-		Texture( std::vector< unsigned char >& data, const int x, const int y, const int channels );
-		Texture( std::vector< unsigned char >& data, const vk::Extent2D extent, const int channels );
+		[[nodiscard]] Texture( const std::vector< std::byte >& data, const int x, const int y, const int channels );
+		[[nodiscard]] Texture( const std::vector< std::byte >& data, const vk::Extent2D extent, const int channels );
 
 		Texture( const Texture& ) = delete;
 		Texture& operator=( const Texture& ) = delete;
@@ -50,7 +50,8 @@ namespace fgl::engine
 
 		void createImGuiSet();
 
-		static Texture loadFromFile( const std::filesystem::path& path );
+		[[nodiscard]] static Texture generateFromPerlinNoise( int x_size, int y_size );
+		[[nodiscard]] static Texture loadFromFile( const std::filesystem::path& path );
 
 		static DescriptorSet& getTextureDescriptorSet();
 	};

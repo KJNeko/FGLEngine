@@ -31,7 +31,7 @@ namespace fgl::engine
 		using namespace fgl::literals::size_literals;
 
 		initVertexBuffer( 16_MiB );
-		initIndexBuffer( 512_B );
+		initIndexBuffer( 2_MiB );
 
 		this->m_index_buffer->setDebugName( "Terrain index buffer" );
 		this->m_vertex_buffer->setDebugName( "Terrain vertex buffer" );

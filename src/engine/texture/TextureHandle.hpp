@@ -33,7 +33,7 @@ namespace fgl::engine
 
 	  public:
 
-		TextureHandle( const std::vector< unsigned char >& data, const vk::Extent2D extent, const int channels );
+		TextureHandle( const std::vector< std::byte >& data, const vk::Extent2D extent, const int channels );
 		~TextureHandle();
 	};
 

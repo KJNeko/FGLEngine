@@ -29,38 +29,10 @@ namespace fgl::engine
 	class OctTreeNode;
 	class GameObject;
 
-	template < typename T >
-	class OctTreeAllocator : public std::allocator< T >
-	{
-		std::vector< std::vector< std::byte > > blocks;
-		using BlockIDX = int;
+	using OctTreeNodeArray = std::array< std::array< std::array< std::unique_ptr< OctTreeNode >, 2 >, 2 >, 2 >;
+	using OctTreeNodeLeaf = std::vector< GameObject >;
 
-		//! Map for each pointer to their respective blocks
-		std::unordered_map< T*, BlockIDX > m_block_map;
-	};
-
-	template < typename T >
-	using unique_alloc_ptr = std::unique_ptr< T, std::function< void( T* ) > >;
-
-	template < typename T, typename... Ts >
-	unique_alloc_ptr< T > make_unique_from_allocator( OctTreeAllocator< T >& allocator, Ts... args )
-	{
-		T* ptr = allocator.allocate( 1 );
-		allocator.construct( ptr, args... );
-
-		auto deleter = [ &allocator ]( const auto* ptr_i ) -> void
-		{
-			allocator.destroy( ptr_i );
-			allocator.deallocate( ptr_i, 1 );
-		};
-
-		return std::unique_ptr< T, decltype( deleter ) >( ptr, deleter );
-	}
-
-	using NodeArray = std::array< std::array< std::array< std::unique_ptr< OctTreeNode >, 2 >, 2 >, 2 >;
-	using NodeLeaf = std::vector< GameObject >;
-
-	static_assert( sizeof( NodeArray ) == sizeof( OctTreeNode* ) * 2 * 2 * 2 );
+	static_assert( sizeof( OctTreeNodeArray ) == sizeof( OctTreeNode* ) * 2 * 2 * 2 );
 	static_assert( sizeof( OctTreeNode* ) == sizeof( std::uint64_t ) );
 
 	struct FrameInfo;
@@ -75,8 +47,8 @@ namespace fgl::engine
 		//! Real bounds of the node
 		AxisAlignedBoundingCube< CoordinateSpace::World > m_bounds;
 
-		using NodeDataT = NodeArray;
-		using LeafDataT = NodeLeaf;
+		using NodeDataT = OctTreeNodeArray;
+		using LeafDataT = OctTreeNodeLeaf;
 
 		std::variant< NodeDataT, LeafDataT > m_node_data;
 
@@ -117,14 +89,19 @@ namespace fgl::engine
 
 		bool isEmpty() const
 		{
-			return std::holds_alternative< NodeLeaf >( m_node_data ) && std::get< NodeLeaf >( m_node_data ).empty();
+			return std::holds_alternative< OctTreeNodeLeaf >( m_node_data )
+			    && std::get< OctTreeNodeLeaf >( m_node_data ).empty();
 		}
 
 		auto getGameObjectItter( const GameObject::ID id );
 
-		void getAllLeafs( std::vector< NodeLeaf* >& out_leafs );
+		void getAllLeafs( std::vector< OctTreeNodeLeaf* >& out_leafs );
 		void getAllLeafsInFrustum(
-			const Frustum< CoordinateSpace::World >& frustum, std::vector< NodeLeaf* >& out_leafs );
+			const Frustum< CoordinateSpace::World >& frustum, std::vector< OctTreeNodeLeaf* >& out_leafs );
+
+		bool contains( const WorldCoordinate coord ) const;
+
+		OctTreeNode& operator[]( const WorldCoordinate coord );
 
 	  public:
 
@@ -135,20 +112,20 @@ namespace fgl::engine
 
 		constexpr static std::size_t LEAF_RESERVE_SIZE { 1024 };
 
-		[[nodiscard]] inline std::vector< NodeLeaf* > getAllLeafs()
+		[[nodiscard]] inline std::vector< OctTreeNodeLeaf* > getAllLeafs()
 		{
 			ZoneScoped;
-			std::vector< NodeLeaf* > leafs;
+			std::vector< OctTreeNodeLeaf* > leafs;
 			leafs.reserve( LEAF_RESERVE_SIZE );
 			this->getAllLeafs( leafs );
 			return leafs;
 		}
 
-		[[nodiscard]] inline std::vector< NodeLeaf* > getAllLeafsInFrustum( const Frustum< CoordinateSpace::World >&
-		                                                                        frustum )
+		[[nodiscard]] inline std::vector< OctTreeNodeLeaf* > getAllLeafsInFrustum( const Frustum<
+																				   CoordinateSpace::World >& frustum )
 		{
 			ZoneScoped;
-			std::vector< NodeLeaf* > leafs;
+			std::vector< OctTreeNodeLeaf* > leafs;
 			leafs.reserve( LEAF_RESERVE_SIZE );
 			this->getAllLeafsInFrustum( frustum, leafs );
 			return leafs;

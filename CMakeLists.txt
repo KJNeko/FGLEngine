@@ -6,6 +6,7 @@ project(Game LANGUAGES CXX C)
 enable_testing()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -85,6 +86,13 @@ add_custom_target(models ALL DEPENDS ${OBJ_MODELS})
 
 add_dependencies(${PROJECT_NAME} shaders)
 add_dependencies(${PROJECT_NAME} models)
+
+
+add_custom_command(
+		OUTPUT ${CMAKE_SOURCE_DIR}/compile_commands.json
+		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/compile_commands.json ${CMAKE_SOURCE_DIR}/compile_commands.json
+		COMMENT "Copying build commands to src dir")
+
 
 SetVersionInfo()
 CompilerPostSetup()

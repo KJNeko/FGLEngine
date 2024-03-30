@@ -11,6 +11,7 @@
 #include "engine/debug/drawers.hpp"
 #include "engine/model/Model.hpp"
 #include "engine/primitives/Frustum.hpp"
+#include "engine/tree/quadtree/QuadTree.hpp"
 
 namespace fgl::engine
 {
@@ -49,8 +50,8 @@ namespace fgl::engine
 #endif
 	}
 
-	void OctTreeNode::
-		getAllLeafsInFrustum( const Frustum< CoordinateSpace::World >& frustum, std::vector< NodeLeaf* >& out_leafs )
+	void OctTreeNode::getAllLeafsInFrustum(
+		const Frustum< CoordinateSpace::World >& frustum, std::vector< OctTreeNodeLeaf* >& out_leafs )
 	{
 		//Check if we are inside of the frustum.
 		if ( !isInFrustum( frustum ) ) return;
@@ -61,8 +62,8 @@ namespace fgl::engine
 		{
 			case 0: // NodeArray
 				{
-					assert( std::holds_alternative< NodeArray >( m_node_data ) );
-					NodeArray& node_array { std::get< NodeArray >( m_node_data ) };
+					assert( std::holds_alternative< OctTreeNodeArray >( m_node_data ) );
+					OctTreeNodeArray& node_array { std::get< OctTreeNodeArray >( m_node_data ) };
 					//Search deeper
 
 					node_array[ LEFT ][ FORWARD ][ TOP ]->getAllLeafsInFrustum( frustum, out_leafs );
@@ -80,8 +81,8 @@ namespace fgl::engine
 				}
 			case 1: // NodeLeaf
 				{
-					assert( std::holds_alternative< NodeLeaf >( m_node_data ) );
-					NodeLeaf& leaf { std::get< NodeLeaf >( m_node_data ) };
+					assert( std::holds_alternative< OctTreeNodeLeaf >( m_node_data ) );
+					OctTreeNodeLeaf& leaf { std::get< OctTreeNodeLeaf >( m_node_data ) };
 					leafs.reserve( LEAF_RESERVE_SIZE );
 					leafs.emplace_back( &leaf );
 
@@ -96,28 +97,45 @@ namespace fgl::engine
 		std::unreachable();
 	}
 
+	bool OctTreeNode::contains( const WorldCoordinate coord ) const
+	{
+		return this->m_bounds.contains( coord );
+	}
+
+	OctTreeNode& OctTreeNode::operator[]( const WorldCoordinate coord )
+	{
+		assert( std::holds_alternative< OctTreeNodeArray >( m_node_data ) );
+		const auto test_dim { glm::greaterThanEqual( coord.vec(), this->m_bounds.getPosition().vec() ) };
+
+		auto& node_array { std::get< OctTreeNodeArray >( m_node_data ) };
+		const auto& node { node_array[ test_dim.x ][ test_dim.y ][ test_dim.z ] };
+		assert( node );
+
+		return *node.get();
+	}
+
 	OctTreeNode::OctTreeNode( const WorldCoordinate center, float span, OctTreeNode* parent ) :
 	  m_fit_bounding_box( center, glm::vec3( span, span, span ) ),
 	  m_bounds( center, span ),
-	  m_node_data( NodeLeaf() ),
+	  m_node_data( OctTreeNodeLeaf() ),
 	  m_parent( parent )
 	{
-		assert( std::holds_alternative< NodeLeaf >( m_node_data ) );
-		std::get< NodeLeaf >( m_node_data ).reserve( MAX_NODES_IN_LEAF );
+		assert( std::holds_alternative< OctTreeNodeLeaf >( m_node_data ) );
+		std::get< OctTreeNodeLeaf >( m_node_data ).reserve( MAX_NODES_IN_LEAF );
 	}
 
 	void OctTreeNode::split( int depth )
 	{
 		ZoneScoped;
-		if ( std::holds_alternative< NodeArray >( m_node_data ) ) return;
-		auto& game_objects { std::get< NodeLeaf >( m_node_data ) };
+		if ( std::holds_alternative< OctTreeNodeArray >( m_node_data ) ) return;
+		auto& game_objects { std::get< OctTreeNodeLeaf >( m_node_data ) };
 
 		//Figure out the half span
 		const float half_span { m_bounds.span() / 2.0f };
 
 		const Coordinate< CoordinateSpace::World > center { m_bounds.getPosition() };
 
-		NodeArray new_nodes {};
+		OctTreeNodeArray new_nodes {};
 
 		const float left_x { center.x - half_span };
 		const float right_x { center.x + half_span };
@@ -162,9 +180,9 @@ namespace fgl::engine
 			const bool is_up { obj_coordinate.z > center.z };
 
 			std::unique_ptr< OctTreeNode >& node { new_nodes[ is_right ][ is_forward ][ is_up ] };
-			assert( std::holds_alternative< NodeLeaf >( node->m_node_data ) );
+			assert( std::holds_alternative< OctTreeNodeLeaf >( node->m_node_data ) );
 
-			std::get< NodeLeaf >( node->m_node_data ).emplace_back( std::move( obj ) );
+			std::get< OctTreeNodeLeaf >( node->m_node_data ).emplace_back( std::move( obj ) );
 		}
 
 		this->m_node_data = std::move( new_nodes );
@@ -178,9 +196,9 @@ namespace fgl::engine
 	OctTreeNode* OctTreeNode::addGameObject( GameObject&& obj )
 	{
 		assert( this->canContain( obj ) );
-		if ( std::holds_alternative< NodeLeaf >( m_node_data ) )
+		if ( std::holds_alternative< OctTreeNodeLeaf >( m_node_data ) )
 		{
-			auto& objects { std::get< NodeLeaf >( m_node_data ) };
+			auto& objects { std::get< OctTreeNodeLeaf >( m_node_data ) };
 			assert( objects.capacity() == MAX_NODES_IN_LEAF );
 			if ( objects.size() + 1 >= MAX_NODES_IN_LEAF )
 			{
@@ -195,15 +213,7 @@ namespace fgl::engine
 		}
 		else
 		{
-			const auto& center { m_bounds.getPosition() };
-			const auto& obj_coordinate { obj.m_transform.translation };
-			const bool is_right { obj_coordinate.x >= center.x };
-			const bool is_forward { obj_coordinate.y >= center.y };
-			const bool is_up { obj_coordinate.z >= center.z };
-
-			auto& nodes { std::get< NodeArray >( m_node_data ) };
-
-			return nodes[ is_right ][ is_forward ][ is_up ]->addGameObject( std::move( obj ) );
+			return ( *this )[ obj.getPosition() ].addGameObject( std::forward< GameObject >( obj ) );
 		}
 	}
 
@@ -212,7 +222,7 @@ namespace fgl::engine
 #if ENABLE_IMGUI
 		if ( !isEmpty() && frustum.intersects( m_fit_bounding_box ) )
 		{
-			if ( ( draw_inview_bounds || std::holds_alternative< NodeLeaf >( this->m_node_data ) ) && m_parent )
+			if ( ( draw_inview_bounds || std::holds_alternative< OctTreeNodeLeaf >( this->m_node_data ) ) && m_parent )
 			{
 				if ( draw_leaf_fit_bounds ) debug::world::drawBoundingBox( m_fit_bounding_box );
 				if ( draw_leaf_real_bounds ) debug::world::drawBoundingBox( m_bounds );
@@ -231,10 +241,10 @@ namespace fgl::engine
 	OctTreeNode* OctTreeNode::findID( const GameObject::ID id )
 	{
 		ZoneScoped;
-		if ( std::holds_alternative< NodeLeaf >( this->m_node_data ) )
+		if ( std::holds_alternative< OctTreeNodeLeaf >( this->m_node_data ) )
 		{
 			//We are the last node. Check if we have the ID
-			const auto& game_objects { std::get< NodeLeaf >( m_node_data ) };
+			const auto& game_objects { std::get< OctTreeNodeLeaf >( m_node_data ) };
 
 			if ( std::find_if(
 					 game_objects.begin(),
@@ -249,9 +259,9 @@ namespace fgl::engine
 				return nullptr;
 			}
 		}
-		else if ( std::holds_alternative< NodeArray >( this->m_node_data ) )
+		else if ( std::holds_alternative< OctTreeNodeArray >( this->m_node_data ) )
 		{
-			const auto& node_array { std::get< NodeArray >( this->m_node_data ) };
+			const auto& node_array { std::get< OctTreeNodeArray >( this->m_node_data ) };
 
 			for ( std::size_t x = 0; x < 2; ++x )
 			{
@@ -273,8 +283,8 @@ namespace fgl::engine
 
 	auto OctTreeNode::getGameObjectItter( const GameObject::ID id )
 	{
-		assert( std::holds_alternative< NodeLeaf >( this->m_node_data ) );
-		auto& game_objects { std::get< NodeLeaf >( this->m_node_data ) };
+		assert( std::holds_alternative< OctTreeNodeLeaf >( this->m_node_data ) );
+		auto& game_objects { std::get< OctTreeNodeLeaf >( this->m_node_data ) };
 		return std::find_if(
 			game_objects.begin(), game_objects.end(), [ id ]( const GameObject& obj ) { return id == obj.getId(); } );
 	}
@@ -288,7 +298,7 @@ namespace fgl::engine
 	{
 		auto itter { getGameObjectItter( id ) };
 		auto game_object { std::move( *itter ) };
-		auto& game_objects { std::get< NodeLeaf >( this->m_node_data ) };
+		auto& game_objects { std::get< OctTreeNodeLeaf >( this->m_node_data ) };
 		game_objects.erase( itter );
 		return game_object;
 	}
@@ -301,18 +311,18 @@ namespace fgl::engine
 			return m_parent->getRoot();
 	}
 
-	void OctTreeNode::getAllLeafs( std::vector< NodeLeaf* >& objects )
+	void OctTreeNode::getAllLeafs( std::vector< OctTreeNodeLeaf* >& objects )
 	{
 		ZoneScoped;
-		if ( std::holds_alternative< NodeLeaf >( m_node_data ) )
+		if ( std::holds_alternative< OctTreeNodeLeaf >( m_node_data ) )
 		{
-			auto& leaf { std::get< NodeLeaf >( m_node_data ) };
+			auto& leaf { std::get< OctTreeNodeLeaf >( m_node_data ) };
 			//No point in us giving back an empy leaf
 			if ( leaf.size() > 0 ) objects.emplace_back( &leaf );
 		}
 		else
 		{
-			auto& nodes { std::get< NodeArray >( m_node_data ) };
+			auto& nodes { std::get< OctTreeNodeArray >( m_node_data ) };
 
 			for ( std::size_t x = 0; x < 2; ++x )
 			{
@@ -332,11 +342,11 @@ namespace fgl::engine
 	{
 		ZoneScoped;
 		const auto old_bounds { m_fit_bounding_box };
-		if ( std::holds_alternative< NodeArray >( m_node_data ) )
+		if ( std::holds_alternative< OctTreeNodeArray >( m_node_data ) )
 		{
 			ZoneScopedN( "Process Array" );
 			bool bounding_box_changed { false };
-			auto& nodes { std::get< NodeArray >( m_node_data ) };
+			auto& nodes { std::get< OctTreeNodeArray >( m_node_data ) };
 			for ( std::size_t x = 0; x < 2; ++x )
 			{
 				for ( std::size_t y = 0; y < 2; ++y )
@@ -380,10 +390,10 @@ namespace fgl::engine
 
 			return false;
 		}
-		else if ( std::holds_alternative< NodeLeaf >( m_node_data ) )
+		else if ( std::holds_alternative< OctTreeNodeLeaf >( m_node_data ) )
 		{
 			ZoneScopedN( "Process Leaf" );
-			auto& game_objects { std::get< NodeLeaf >( m_node_data ) };
+			auto& game_objects { std::get< OctTreeNodeLeaf >( m_node_data ) };
 
 			if ( game_objects.size() == 0 ) return false;
 

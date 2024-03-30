@@ -19,7 +19,7 @@ namespace fgl::engine
 {
 
 	TextureHandle::TextureHandle(
-		const std::vector< unsigned char >& data, const vk::Extent2D extent, [[maybe_unused]] const int channels ) :
+		const std::vector< std::byte >& data, const vk::Extent2D extent, [[maybe_unused]] const int channels ) :
 	  m_extent( extent )
 	{
 		ZoneScoped;

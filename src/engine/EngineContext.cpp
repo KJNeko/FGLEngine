@@ -9,6 +9,7 @@
 
 #include <array>
 #include <chrono>
+#include <iostream>
 
 #include "KeyboardMovementController.hpp"
 #include "engine/Average.hpp"
@@ -38,7 +39,7 @@ namespace fgl::engine
 	EngineContext::EngineContext()
 	{
 		using namespace fgl::literals::size_literals;
-		initGlobalStagingBuffer( 256_MiB );
+		initGlobalStagingBuffer( 512_MiB );
 #if ENABLE_IMGUI
 		initImGui();
 #endif
@@ -293,7 +294,9 @@ namespace fgl::engine
 				generateTerrainModel( m_terrain_system.getVertexBuffer(), m_terrain_system.getIndexBuffer() )
 			};
 
-			Texture texture { Texture::loadFromFile( "models/textures/heightmap.png" ) };
+			//Texture texture { Texture::loadFromFile( "models/Vally/textures/heightmap.png" ) };
+			Texture texture { Texture::generateFromPerlinNoise( 1024, 1024 ) };
+
 			Sampler sampler { vk::Filter::eLinear,
 				              vk::Filter::eLinear,
 				              vk::SamplerMipmapMode::eLinear,

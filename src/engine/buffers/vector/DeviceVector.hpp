@@ -45,7 +45,7 @@ namespace fgl::engine
 
 		void dropStaging()
 		{
-			assert( staged );
+			assert( staged && "Staging buffer has not been commanded to write yet!" );
 			m_staging_buffer.reset();
 		}
 

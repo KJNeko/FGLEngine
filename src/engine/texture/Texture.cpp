@@ -18,6 +18,7 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #pragma GCC diagnostic ignored "-Wconversion"
+#include "engine/math/noise/perlin/generator.hpp"
 #include "imgui/imgui_impl_vulkan.h"
 #pragma GCC diagnostic pop
 
@@ -26,7 +27,7 @@ namespace fgl::engine
 
 	inline static std::unordered_map< std::string, std::weak_ptr< TextureHandle > > texture_map;
 
-	std::tuple< std::vector< unsigned char >, int, int, int > loadTexture( const std::filesystem::path& path )
+	std::tuple< std::vector< std::byte >, int, int, int > loadTexture( const std::filesystem::path& path )
 	{
 		ZoneScoped;
 		if ( !std::filesystem::exists( path ) ) throw std::runtime_error( "Failed to open file: " + path.string() );
@@ -39,7 +40,7 @@ namespace fgl::engine
 
 		const auto data_c { stbi_load( path_str.data(), &x, &y, &channels, 4 ) };
 
-		std::vector< unsigned char > data {};
+		std::vector< std::byte > data {};
 
 		data.resize( x * y * 4 );
 		std::memcpy( data.data(), data_c, x * y * 4 );
@@ -67,7 +68,7 @@ namespace fgl::engine
 			}
 		}
 
-		auto data { loadTexture( path ) };
+		const auto data { loadTexture( path ) };
 		Texture tex { data };
 		tex.m_handle->m_image_view->setName( path.string() );
 
@@ -76,18 +77,27 @@ namespace fgl::engine
 		return std::move( tex );
 	}
 
-	Texture::Texture( std::shared_ptr< TextureHandle > handle ) : m_handle( handle )
+	Texture Texture::generateFromPerlinNoise( int x_size, int y_size )
+	{
+		const std::vector< std::byte > data { generatePerlinImage( { x_size, y_size }, 15 ) };
+
+		Texture tex { data, x_size, y_size, 4 };
+
+		return std::move( tex );
+	}
+
+	Texture::Texture( std::shared_ptr< TextureHandle > handle ) : m_handle( std::move( handle ) )
 	{}
 
-	Texture::Texture( std::tuple< std::vector< unsigned char >, int, int, int > tuple ) :
+	Texture::Texture( const std::tuple< std::vector< std::byte >, int, int, int >& tuple ) :
 	  Texture( std::get< 0 >( tuple ), std::get< 1 >( tuple ), std::get< 2 >( tuple ), std::get< 3 >( tuple ) )
 	{}
 
-	Texture::Texture( std::vector< unsigned char >& data, const int x, const int y, const int channels ) :
+	Texture::Texture( const std::vector< std::byte >& data, const int x, const int y, const int channels ) :
 	  Texture( data, vk::Extent2D( x, y ), channels )
 	{}
 
-	Texture::Texture( std::vector< unsigned char >& data, const vk::Extent2D extent, const int channels ) :
+	Texture::Texture( const std::vector< std::byte >& data, const vk::Extent2D extent, const int channels ) :
 	  m_handle( std::make_shared< TextureHandle >( data, extent, channels ) )
 	{}
 
