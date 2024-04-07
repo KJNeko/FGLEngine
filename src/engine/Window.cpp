@@ -35,6 +35,9 @@ namespace fgl::engine
 		glfwWindowHint( GLFW_RESIZABLE, GLFW_TRUE );
 
 		m_window = glfwCreateWindow( m_width, m_height, m_name.data(), nullptr, nullptr );
+
+		if ( !m_window ) throw std::runtime_error( "Failed to create glfw window!" );
+
 		//ImGui_ImplGlfw_InitForVulkan( m_window, true );
 		glfwSetWindowUserPointer( m_window, this );
 		glfwSetFramebufferSizeCallback( m_window, framebufferResizeCallback );
