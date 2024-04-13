@@ -108,7 +108,7 @@ namespace fgl::engine
 		}
 
 		const Vector forward_dir { target.m_transform.rotation.forward() };
-		const Vector up_dir { constants::WORLD_UP };
+		const Vector up_dir { target.m_transform.rotation.up() };
 		const Vector right_dir { target.m_transform.rotation.right() };
 
 		Vector move_dir { 0.0f };

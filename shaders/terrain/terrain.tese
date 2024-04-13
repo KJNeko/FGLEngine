@@ -24,19 +24,25 @@ layout (set = 1, binding = 0) uniform sampler2D tex[];
 
 void main()
 {
+    // Mix new UV
     vec2 uv1 = mix(in_uv[0], in_uv[1], gl_TessCoord.x);
     vec2 uv2 = mix(in_uv[3], in_uv[2], gl_TessCoord.x);
     out_uv = mix(uv1, uv2, gl_TessCoord.y);
 
+    // Mix new normal
     vec3 n1 = mix(in_normal[0], in_normal[1], gl_TessCoord.x);
     vec3 n2 = mix(in_normal[3], in_normal[2], gl_TessCoord.x);
     out_normal = mix(n1, n2, gl_TessCoord.y);
 
+    // Mix new position
     vec4 pos1 = mix(gl_in[0].gl_Position, gl_in[1].gl_Position, gl_TessCoord.x);
     vec4 pos2 = mix(gl_in[3].gl_Position, gl_in[2].gl_Position, gl_TessCoord.x);
     vec4 pos = mix(pos1, pos2, gl_TessCoord.y);
 
+    // Passthrough Tex ID to fragment shader
     out_tex_idx = in_tex_idx[0];
+
+    vec4 texel = texture(tex[out_tex_idx], out_uv);
 
     // Doesn't matter which in_scale_z we take since it'll be the same for the entire model.
     pos.z += (texture(tex[out_tex_idx], out_uv).r - 0.5) * in_scale_z[0];

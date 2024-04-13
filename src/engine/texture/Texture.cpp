@@ -77,9 +77,9 @@ namespace fgl::engine
 		return std::move( tex );
 	}
 
-	Texture Texture::generateFromPerlinNoise( int x_size, int y_size )
+	Texture Texture::generateFromPerlinNoise( int x_size, int y_size, std::size_t seed )
 	{
-		const std::vector< std::byte > data { generatePerlinImage( { x_size, y_size }, 15 ) };
+		const std::vector< std::byte > data { generatePerlinImage( { x_size, y_size }, 15, seed ) };
 
 		Texture tex { data, x_size, y_size, 4 };
 

@@ -50,7 +50,7 @@ namespace fgl::engine
 
 		void createImGuiSet();
 
-		[[nodiscard]] static Texture generateFromPerlinNoise( int x_size, int y_size );
+		[[nodiscard]] static Texture generateFromPerlinNoise( int x_size, int y_size, std::size_t seed = 0 );
 		[[nodiscard]] static Texture loadFromFile( const std::filesystem::path& path );
 
 		static DescriptorSet& getTextureDescriptorSet();

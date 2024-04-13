@@ -8,6 +8,7 @@
 
 namespace fgl::engine
 {
+	//TODO: Figure out how this magic works.
 	glm::vec2 randomGradient( int ix, int iy )
 	{
 		constexpr unsigned w { 8 * sizeof( unsigned ) };

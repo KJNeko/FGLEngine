@@ -295,7 +295,7 @@ namespace fgl::engine
 			};
 
 			//Texture texture { Texture::loadFromFile( "models/Vally/textures/heightmap.png" ) };
-			Texture texture { Texture::generateFromPerlinNoise( 1024, 1024 ) };
+			Texture texture { Texture::generateFromPerlinNoise( 1024, 1024, 120 ) };
 
 			Sampler sampler { vk::Filter::eLinear,
 				              vk::Filter::eLinear,

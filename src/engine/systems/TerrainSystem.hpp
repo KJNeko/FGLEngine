@@ -18,7 +18,7 @@ namespace fgl::engine
 	class TerrainSystem
 	{
 		using VertexShader = VertexShaderT< "shaders/terrain/terrain.vert.spv" >;
-		using FragmentShader = FragmentShaderT< "shaders/gbuffer.frag.spv" >;
+		using FragmentShader = FragmentShaderT< "shaders/terrain/terrain.frag.spv" >;
 		using TessCShader = TesselationControlShaderT< "shaders/terrain/terrain.tesc.spv" >;
 		using TessEShader = TesselationEvaluationShaderT< "shaders/terrain/terrain.tese.spv" >;
 
