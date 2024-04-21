@@ -16,6 +16,16 @@
 #define FGL_FORCE_INLINE_FLATTEN __attribute__( ( always_inline, flatten ) )
 #define FGL_ASSUME( ... ) __attribute__( ( assume( __VA_ARGS__ ) ) )
 
+#define FGL_ALIGN( bytesize ) __attribute__( ( alligned( bitsize ) ) )
+
+#define FGL_FUNC_CLEANUP( func ) __attribute__( ( cleanup( func ) ) )
+
+//! Warns if the variable is used as a string (strlen)
+#define FGL_NONSTRING_DATA __attribute__( ( nonstring ) )
+
+//! Warns if the structure field is not alligned with a set number of bytes
+#define FGL_STRICT_ALIGNMENT( bytesize ) __attribute__( ( warn_if_not_aligned( bytesize ) ) )
+
 #endif
 
 #else

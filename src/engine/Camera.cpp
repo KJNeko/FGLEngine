@@ -75,7 +75,7 @@ namespace fgl::engine
 			frustum = translation_matrix * base_frustum;
 			return;
 		}
-		else
+		else [[unlikely]]
 			return;
 	}
 

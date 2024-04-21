@@ -65,43 +65,43 @@ namespace fgl::engine
 
 		WorldCoordinate getFrustumPosition() const;
 
-		const Frustum< CoordinateSpace::Model >& getBaseFrustum() const { return base_frustum; }
+		inline const Frustum< CoordinateSpace::Model >& getBaseFrustum() const { return base_frustum; }
 
 		//! Returns the frustum of the camera in world space
-		const Frustum< CoordinateSpace::World >& getFrustumBounds() const { return frustum; }
+		inline const Frustum< CoordinateSpace::World >& getFrustumBounds() const { return frustum; }
 
-		const Matrix< MatrixType::CameraToScreen >& getProjectionMatrix() const { return projection_matrix; }
+		inline const Matrix< MatrixType::CameraToScreen >& getProjectionMatrix() const { return projection_matrix; }
 
-		const Matrix< MatrixType::WorldToCamera > getViewMatrix() const { return view_matrix; }
+		inline const Matrix< MatrixType::WorldToCamera >& getViewMatrix() const { return view_matrix; }
 
-		const Matrix< MatrixType::WorldToScreen > getProjectionViewMatrix() const
+		inline Matrix< MatrixType::WorldToScreen > getProjectionViewMatrix() const
 		{
 			assert( projection_matrix != constants::MAT4_IDENTITY );
 			return projection_matrix * view_matrix;
 		}
 
-		const glm::mat4 getInverseViewMatrix() const { return glm::inverse( view_matrix ); }
+		inline glm::mat4 getInverseViewMatrix() const { return glm::inverse( view_matrix ); }
 
 		void setOrthographicProjection( float left, float right, float top, float bottom, float near, float far );
 		void setPerspectiveProjection( float fovy, float aspect, float near, float far );
 
-		const Coordinate< CoordinateSpace::World > getPosition() const
+		inline Coordinate< CoordinateSpace::World > getPosition() const
 		{
 			//Should maybe store the inverse view matrix
 			return WorldCoordinate( inverse_view_matrix[ 3 ] );
 		}
 
-		const Vector getUp() const { return -getDown(); }
+		inline Vector getUp() const { return -getDown(); }
 
-		const Vector getRight() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 0 ] ) ) ); }
+		inline Vector getRight() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 0 ] ) ) ); }
 
-		const Vector getForward() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 2 ] ) ) ); }
+		inline Vector getForward() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 2 ] ) ) ); }
 
-		const Vector getLeft() const { return -getRight(); }
+		inline Vector getLeft() const { return -getRight(); }
 
-		const Vector getBackward() const { return -getForward(); }
+		inline Vector getBackward() const { return -getForward(); }
 
-		const Vector getDown() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 1 ] ) ) ); }
+		inline Vector getDown() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 1 ] ) ) ); }
 
 		enum ViewMode
 		{

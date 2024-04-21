@@ -9,7 +9,7 @@
 namespace fgl::engine::uconstants
 {
 
-	//! How fast an object falls with zero air resistance per second
+	//! How fast an increases speed with zero air resistance per second (ms/s/s)
 	constexpr float EARTH_GRAVITY { 9.80665f };
 
 } // namespace fgl::engine::uconstants
