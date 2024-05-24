@@ -4,3 +4,4 @@ models/night_heron8.obj filter=lfs diff=lfs merge=lfs -text
 *.jpg filter=lfs diff=lfs merge=lfs -text
 models/smooth_vase.obj filter=lfs diff=lfs merge=lfs -text
 models/*.obj filter=lfs diff=lfs merge=lfs -text
+*.glb filter=lfs diff=lfs merge=lfs -text
