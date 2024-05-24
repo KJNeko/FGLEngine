@@ -2,10 +2,11 @@
 // Created by kj16609 on 3/13/24.
 //
 
-#ifndef SHADER_HPP
-#define SHADER_HPP
+#pragma once
 
 #include <fstream>
+
+#include "engine/logging.hpp"
 
 namespace fgl::engine
 {
@@ -60,7 +61,10 @@ namespace fgl::engine
 				stage_info.module = shader_module;
 			}
 			else
+			{
+				spdlog::critical( "Failed to load shader module {}. Path not found", path.string() );
 				throw std::runtime_error( "Failed to load shader module. Path not found" );
+			}
 		}
 
 		ShaderHandle( const ShaderHandle& other ) = delete;
@@ -152,5 +156,3 @@ namespace fgl::engine
 	};
 
 } // namespace fgl::engine
-
-#endif //SHADER_HPP

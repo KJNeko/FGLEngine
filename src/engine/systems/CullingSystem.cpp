@@ -4,6 +4,7 @@
 
 #include "CullingSystem.hpp"
 
+#include <imgui/imgui.h>
 #include <tracy/TracyC.h>
 
 #include "engine/FrameInfo.hpp"

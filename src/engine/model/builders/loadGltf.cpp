@@ -1,89 +1,87 @@
 //
-// Created by kj16609 on 2/5/24.
+// Created by kj16609 on 5/18/24.
 //
-
-#include "Model.hpp"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #pragma GCC diagnostic ignored "-Weffc++"
-#include "engine/image/Sampler.hpp"
 #include "objectloaders/tiny_gltf.h"
 #pragma GCC diagnostic pop
 
+#include "ModelBuilder.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/image/ImageView.hpp"
+#include "engine/image/Sampler.hpp"
+#include "engine/model/Primitive.hpp"
+#include "engine/primitives/boxes/OrientedBoundingBox.hpp"
+#include "engine/primitives/points/Coordinate.hpp"
 
 namespace fgl::engine
 {
-
 	template < typename T >
 	std::vector< T > extractData( const tinygltf::Model& model, const tinygltf::Accessor& accessor )
 	{
 		if ( accessor.sparse.isSparse )
 		{
 			//Sparse loading required
-
 			throw std::runtime_error( "Sparse loading not implemeneted" );
 		}
-		else
+
+		const auto& buffer_view { model.bufferViews.at( accessor.bufferView ) };
+		const auto& buffer { model.buffers.at( buffer_view.buffer ) };
+
+		std::vector< T > data {};
+		data.reserve( accessor.count );
+
+		std::uint16_t copy_size { 0 };
+		switch ( accessor.componentType )
 		{
-			const auto& buffer_view { model.bufferViews.at( accessor.bufferView ) };
-			const auto& buffer { model.buffers.at( buffer_view.buffer ) };
-
-			std::vector< T > data {};
-			data.reserve( accessor.count );
-
-			std::uint16_t copy_size { 0 };
-			switch ( accessor.componentType )
-			{
-				default:
-					throw std::runtime_error( "Unhandled access size" );
-				case TINYGLTF_COMPONENT_TYPE_FLOAT:
-					copy_size = 32 / 8;
-					break;
-				case TINYGLTF_COMPONENT_TYPE_BYTE:
-					copy_size = 8 / 8;
-					break;
-				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
-					copy_size = 32 / 8;
-					break;
-				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
-					copy_size = 16 / 8;
-					break;
-			}
-
-			switch ( accessor.type )
-			{
-				default:
-					throw std::runtime_error( "Unhandled access type" );
-				case TINYGLTF_TYPE_VEC3:
-					copy_size *= 3;
-					break;
-				case TINYGLTF_TYPE_VEC2:
-					copy_size *= 2;
-					break;
-				case TINYGLTF_TYPE_SCALAR:
-					copy_size *= 1;
-					break;
-			}
-
-			constexpr auto T_SIZE { sizeof( T ) };
-
-			if ( T_SIZE != copy_size )
-				throw std::runtime_error(
-					std::string( "Accessor copy values not matching sizeof(T): sizeof(" )
-					+ std::string( typeid( T ).name() ) + ") == " + std::to_string( T_SIZE )
-					+ " vs copy_size = " + std::to_string( copy_size ) );
-
-			const auto real_size { copy_size * accessor.count };
-
-			data.resize( accessor.count );
-
-			std::memcpy( data.data(), buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset, real_size );
-
-			return data;
+			default:
+				throw std::runtime_error( "Unhandled access size" );
+			case TINYGLTF_COMPONENT_TYPE_FLOAT:
+				copy_size = 32 / 8;
+				break;
+			case TINYGLTF_COMPONENT_TYPE_BYTE:
+				copy_size = 8 / 8;
+				break;
+			case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
+				copy_size = 32 / 8;
+				break;
+			case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
+				copy_size = 16 / 8;
+				break;
 		}
+
+		switch ( accessor.type )
+		{
+			default:
+				throw std::runtime_error( "Unhandled access type" );
+			case TINYGLTF_TYPE_VEC3:
+				copy_size *= 3;
+				break;
+			case TINYGLTF_TYPE_VEC2:
+				copy_size *= 2;
+				break;
+			case TINYGLTF_TYPE_SCALAR:
+				copy_size *= 1;
+				break;
+		}
+
+		constexpr auto T_SIZE { sizeof( T ) };
+
+		if ( T_SIZE != copy_size )
+			throw std::runtime_error(
+				std::string( "Accessor copy values not matching sizeof(T): sizeof(" )
+				+ std::string( typeid( T ).name() ) + ") == " + std::to_string( T_SIZE )
+				+ " vs copy_size = " + std::to_string( copy_size ) );
+
+		const auto real_size { copy_size * accessor.count };
+
+		data.resize( accessor.count );
+
+		std::memcpy( data.data(), buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset, real_size );
+
+		return data;
 	}
 
 	void ModelBuilder::loadGltf( const std::filesystem::path& filepath )
@@ -125,14 +123,11 @@ namespace fgl::engine
 				}
 				else if ( indicies_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT )
 				{
-					auto tmp { extractData< std::uint16_t >( model, model.accessors.at( primitive.indices ) ) };
+					const auto tmp { extractData< std::uint16_t >( model, model.accessors.at( primitive.indices ) ) };
 
 					indicies_data.reserve( tmp.size() );
 
-					for ( auto& val : tmp )
-					{
-						indicies_data.emplace_back( val );
-					}
+					for ( auto& val : tmp ) indicies_data.emplace_back( val );
 				}
 
 				//Load positions
@@ -276,9 +271,11 @@ namespace fgl::engine
 						Device::getInstance().endSingleTimeCommands( cmd );
 						tex.dropStaging();
 
-						Primitive prim {
-							std::move( vertex_buffer ), std::move( index_buffer ), bounding_box, std::move( tex )
-						};
+						Primitive prim { std::move( vertex_buffer ),
+							             std::move( index_buffer ),
+							             bounding_box,
+							             std::move( tex ),
+							             PrimitiveMode::TRIS };
 
 						m_primitives.emplace_back( std::move( prim ) );
 
@@ -288,7 +285,9 @@ namespace fgl::engine
 				else
 					std::cout << "No material" << std::endl;
 
-				Primitive prim { std::move( vertex_buffer ), std::move( index_buffer ), bounding_box };
+				Primitive prim {
+					std::move( vertex_buffer ), std::move( index_buffer ), bounding_box, PrimitiveMode::TRIS
+				};
 
 				m_primitives.emplace_back( std::move( prim ) );
 			}
@@ -312,6 +311,5 @@ namespace fgl::engine
 
 		std::cout << "Finished loading model: " << filepath << std::endl;
 	}
-
 
 } // namespace fgl::engine

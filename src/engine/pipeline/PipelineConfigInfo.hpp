@@ -46,6 +46,7 @@ namespace fgl::engine
 		static void defaultConfig( PipelineConfigInfo& info );
 		static void enableAlphaBlending( PipelineConfigInfo& config );
 		static void addColorAttachmentConfig( PipelineConfigInfo& info );
+		static void disableCulling( PipelineConfigInfo& info );
 	};
 
 } // namespace fgl::engine

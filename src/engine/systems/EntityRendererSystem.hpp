@@ -5,13 +5,13 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 
-#include "engine/GameObject.hpp"
 #include "engine/descriptors/DescriptorSetCollection.hpp"
 #include "engine/model/Model.hpp"
 #include "engine/pipeline/PipelineT.hpp"
 #include "engine/rendering/SwapChain.hpp"
+#include "engine/systems/modelRendering/StandardPipeline.hpp"
+#include "engine/systems/modelRendering/TexturedPipeline.hpp"
 
 namespace fgl::engine
 {
@@ -23,6 +23,7 @@ namespace fgl::engine
 	{
 		Device& m_device;
 
+		/*
 		using VertexShader = VertexShaderT< "shaders/gbuffer.vert.spv" >;
 		using FragmentShader = FragmentShaderT< "shaders/gbuffer.frag.spv" >;
 		using Shaders = ShaderCollection< VertexShader, FragmentShader >;
@@ -32,6 +33,13 @@ namespace fgl::engine
 		using Pipeline = PipelineT< Shaders, DescriptorSets >;
 
 		std::unique_ptr< Pipeline > m_pipeline {};
+		*/
+
+		//! Standard pipeline for textureless models
+		std::unique_ptr< StandardPipeline > m_standard_pipeline {};
+
+		//! Pipeline for basic textured models (Single texture)
+		std::unique_ptr< TexturedPipeline > m_textured_pipeline {};
 
 		std::unique_ptr< Buffer > m_vertex_buffer { nullptr };
 		std::unique_ptr< Buffer > m_index_buffer { nullptr };
@@ -40,11 +48,16 @@ namespace fgl::engine
 
 		using ModelMatrixInfoBufferSuballocation = HostVector< ModelMatrixInfo >;
 
-		std::array< std::unique_ptr< DrawParameterBufferSuballocation >, SwapChain::MAX_FRAMES_IN_FLIGHT >
-			m_draw_parameter_buffers {};
+		template < typename T >
+		using PerFrameArray = std::array< T, SwapChain::MAX_FRAMES_IN_FLIGHT >;
 
-		std::array< std::unique_ptr< ModelMatrixInfoBufferSuballocation >, SwapChain::MAX_FRAMES_IN_FLIGHT >
-			m_model_matrix_info_buffers {};
+		// Simple parameter buffers
+		PerFrameArray< std::unique_ptr< DrawParameterBufferSuballocation > > m_draw_simple_parameter_buffers {};
+		PerFrameArray< std::unique_ptr< ModelMatrixInfoBufferSuballocation > > m_simple_model_matrix_info_buffers {};
+
+		// Textured parameter buffers
+		PerFrameArray< std::unique_ptr< DrawParameterBufferSuballocation > > m_draw_textured_parameter_buffers {};
+		PerFrameArray< std::unique_ptr< ModelMatrixInfoBufferSuballocation > > m_textured_model_matrix_info_buffers {};
 
 		void initVertexBuffer( std::uint32_t size )
 		{
@@ -71,6 +84,8 @@ namespace fgl::engine
 		Buffer& getIndexBuffer() { return *m_index_buffer; }
 
 		void pass( FrameInfo& info );
+		void texturelessPass( FrameInfo& info );
+		void texturedPass( FrameInfo& info );
 
 		EntityRendererSystem( Device& device, VkRenderPass render_pass );
 		~EntityRendererSystem() = default;

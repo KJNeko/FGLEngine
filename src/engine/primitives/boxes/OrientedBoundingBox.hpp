@@ -39,7 +39,10 @@ namespace fgl::engine
 		  middle( pos ),
 		  scale( inital_scale ),
 		  rotation( inital_rotation )
-		{}
+		{
+			assert( pos.vec() != constants::DEFAULT_VEC3 );
+			assert( inital_scale != constants::DEFAULT_VEC3 );
+		}
 
 	  public:
 
@@ -70,10 +73,14 @@ namespace fgl::engine
 	OrientedBoundingBox< EvolvedType< MType >() >
 		operator*( const Matrix< MType > matrix, const OrientedBoundingBox< CType > bounding_box )
 	{
+		assert( bounding_box.middle.vec() != constants::DEFAULT_VEC3 );
+		assert( bounding_box.scale != glm::vec3( 0.0f ) );
+
 		const Coordinate< EvolvedType< MType >() > new_middle { matrix * bounding_box.middle };
 		const glm::vec3 new_scale { matrix * glm::vec4( bounding_box.scale, 0.0f ) };
 		//TODO: Fix this stupid rot shit
 		const Rotation new_rot { bounding_box.rotation };
+
 		return OrientedBoundingBox< EvolvedType< MType >() >( new_middle, new_scale, new_rot );
 	}
 

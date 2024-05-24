@@ -5,19 +5,13 @@
 #include "Model.hpp"
 
 #include <cassert>
-#include <cstring>
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/hash.hpp>
-
 #include <iostream>
-#include <unordered_map>
 
+#include "builders/ModelBuilder.hpp"
+#include "builders/SceneBuilder.hpp"
 #include "engine/buffers/Buffer.hpp"
 #include "engine/buffers/SuballocationView.hpp"
-#include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/image/ImageView.hpp"
-#include "engine/image/Sampler.hpp"
 
 namespace fgl::engine
 {
@@ -73,15 +67,22 @@ namespace fgl::engine
 
 	Model::Model(
 		Device& device, ModelBuilder& builder, const OrientedBoundingBox< CoordinateSpace::Model > bounding_box ) :
+	  Model( device, std::move( builder.m_primitives ), bounding_box )
+	{}
+
+	Model::Model(
+		Device& device,
+		std::vector< Primitive >&& primitives,
+		const OrientedBoundingBox< CoordinateSpace::Model > bounding_box ) :
 	  m_device( device ),
-	  m_draw_parameters( buildParameters( builder.m_primitives ) ),
+	  m_draw_parameters( buildParameters( primitives ) ),
 	  m_bounding_box( bounding_box )
 	{
 		assert( bounding_box.middle.vec() != constants::DEFAULT_VEC3 );
-		m_primitives = std::move( builder.m_primitives );
+		m_primitives = std::move( primitives );
 	}
 
-	std::unique_ptr< Model > Model::
+	std::shared_ptr< Model > Model::
 		createModel( Device& device, const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer )
 	{
 		std::cout << "Creating model: " << path << std::endl;
@@ -91,13 +92,25 @@ namespace fgl::engine
 		//Calculate bounding box
 		OrientedBoundingBox bounding_box { buildBoundingBox( builder.m_primitives ) };
 
-		auto model_ptr { std::make_unique< Model >( device, builder, bounding_box ) };
+		auto model_ptr { std::make_shared< Model >( device, builder, bounding_box ) };
 
 		std::cout << "Finished making model: " << path << std::endl;
 		return model_ptr;
 	}
 
-	std::unique_ptr< Model > Model::createModelFromVerts(
+	std::vector< std::shared_ptr< Model > > Model::createModelsFromScene(
+		Device& device, const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer )
+	{
+		std::cout << "Loading scene: " << path << std::endl;
+		SceneBuilder builder { vertex_buffer, index_buffer };
+		builder.loadScene( path );
+
+		std::cout << "Finished loading scene: " << path << std::endl;
+
+		return builder.getModels();
+	}
+
+	std::shared_ptr< Model > Model::createModelFromVerts(
 		Device& device,
 		std::vector< Vertex > verts,
 		std::vector< std::uint32_t > indicies,
@@ -109,13 +122,14 @@ namespace fgl::engine
 
 		OrientedBoundingBox bounding_box { buildBoundingBox( builder.m_primitives ) };
 
-		auto model_ptr { std::make_unique< Model >( device, builder, bounding_box ) };
+		auto model_ptr { std::make_shared< Model >( device, builder, bounding_box ) };
 
 		return model_ptr;
 	}
 
 	void Model::syncBuffers( vk::CommandBuffer& cmd_buffer )
 	{
+		assert( !m_primitives.empty() );
 		for ( auto& primitive : m_primitives )
 		{
 			primitive.m_vertex_buffer.stage( cmd_buffer );
@@ -126,29 +140,6 @@ namespace fgl::engine
 				primitive.m_texture->stage( cmd_buffer );
 			}
 		}
-	}
-
-	void ModelBuilder::loadModel( const std::filesystem::path& filepath )
-	{
-		if ( filepath.extension() == ".obj" )
-		{
-			loadObj( filepath );
-		}
-		else if ( filepath.extension() == ".gltf" )
-		{
-			loadGltf( filepath );
-		}
-		else
-			throw std::runtime_error( "Unknown model file extension" );
-	}
-
-	void ModelBuilder::loadVerts( std::vector< Vertex > verts, std::vector< std::uint32_t > indicies )
-	{
-		VertexBufferSuballocation vertex_suballoc { this->m_vertex_buffer, verts };
-		IndexBufferSuballocation index_suballoc { this->m_index_buffer, std::move( indicies ) };
-
-		this->m_primitives.emplace_back(
-			std::move( vertex_suballoc ), std::move( index_suballoc ), generateBoundingFromVerts( verts ) );
 	}
 
 } // namespace fgl::engine

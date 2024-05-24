@@ -30,7 +30,7 @@ namespace fgl::engine
 		[[nodiscard]] Texture( const std::vector< std::byte >& data, const int x, const int y, const int channels );
 		[[nodiscard]] Texture( const std::vector< std::byte >& data, const vk::Extent2D extent, const int channels );
 
-		Texture( const Texture& ) = delete;
+		Texture( const Texture& ) = default;
 		Texture& operator=( const Texture& ) = delete;
 
 		Texture( Texture&& other ) = default;

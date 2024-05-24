@@ -1,5 +1,4 @@
 
-
 add_executable(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
 set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "${FGL_FLAGS}")
 target_link_libraries(${PROJECT_NAME} PRIVATE Tracy::TracyClient FGLEngine)

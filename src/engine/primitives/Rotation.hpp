@@ -10,6 +10,7 @@
 #include <glm/gtc/quaternion.hpp>
 #pragma GCC diagnostic pop
 
+#include <numbers>
 #include <utility>
 
 #include "engine/primitives/matricies/RotationMatrix.hpp"

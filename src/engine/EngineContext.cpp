@@ -7,19 +7,8 @@
 #include <glm/glm.hpp>
 #include <tracy/TracyVulkan.hpp>
 
-#include <array>
 #include <chrono>
 #include <iostream>
-
-#include "KeyboardMovementController.hpp"
-#include "engine/Average.hpp"
-#include "engine/buffers/UniqueFrameSuballocation.hpp"
-#include "engine/debug/drawers.hpp"
-#include "engine/descriptors/DescriptorPool.hpp"
-#include "engine/literals/size.hpp"
-#include "engine/model/prebuilt/terrainModel.hpp"
-#include "engine/pipeline/PipelineT.hpp"
-#include "engine/systems/EntityRendererSystem.hpp"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
@@ -31,6 +20,17 @@
 #include "imgui/imgui_impl_vulkan.h"
 #include "imgui/imgui_internal.h"
 #pragma GCC diagnostic pop
+
+#include "KeyboardMovementController.hpp"
+#include "engine/Average.hpp"
+#include "engine/buffers/UniqueFrameSuballocation.hpp"
+#include "engine/debug/drawers.hpp"
+#include "engine/descriptors/DescriptorPool.hpp"
+#include "engine/literals/size.hpp"
+#include "engine/model/prebuilt/terrainModel.hpp"
+#include "engine/pipeline/PipelineT.hpp"
+#include "engine/systems/EntityRendererSystem.hpp"
+#include "model/builders/SceneBuilder.hpp"
 
 namespace fgl::engine
 {
@@ -288,6 +288,27 @@ namespace fgl::engine
 				}
 			}
 		}*/
+
+		{
+			std::vector< std::shared_ptr< Model > > models { Model::createModelsFromScene(
+				Device::getInstance(),
+				"models/PhysicsTest.glb",
+				m_entity_renderer.getVertexBuffer(),
+				m_entity_renderer.getIndexBuffer() ) };
+
+			for ( auto& model : models )
+			{
+				GameObject object { GameObject::createGameObject() };
+				object.m_model = std::move( model );
+				object.m_transform.translation = WorldCoordinate( 0.0f );
+				object.object_flags |= IS_VISIBLE | IS_ENTITY;
+
+				assert( object.m_model );
+				object.m_model->syncBuffers( command_buffer );
+
+				m_game_objects_root.addGameObject( std::move( object ) );
+			}
+		}
 
 		{
 			auto model {

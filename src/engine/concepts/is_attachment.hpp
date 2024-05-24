@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <memory>
+
 namespace fgl::engine
 {
 	class ImageView;

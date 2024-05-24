@@ -6,6 +6,7 @@
 
 #include "BufferVector.hpp"
 #include "HostVector.hpp"
+#include "engine/logging.hpp"
 
 namespace fgl::engine
 {
@@ -20,6 +21,7 @@ namespace fgl::engine
 
 		DeviceVector( Buffer& buffer, const std::uint32_t count = 1 ) : BufferVector( buffer, count, sizeof( T ) )
 		{
+			spdlog::debug( "Creating DeviceVector of size {}", count );
 			assert( count != 0 && "BufferSuballocationVector::BufferSuballocationVector() called with count == 0" );
 		}
 

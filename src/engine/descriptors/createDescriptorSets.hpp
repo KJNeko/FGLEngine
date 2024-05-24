@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdint>
+#include <iostream>
 
 #include "engine/concepts/is_valid_pipeline_input.hpp"
 

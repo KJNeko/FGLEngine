@@ -8,7 +8,15 @@
 #include "engine/primitives/boxes/AxisAlignedBoundingBox.hpp"
 #include "engine/primitives/boxes/AxisAlignedBoundingCube.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
 #include "imgui/imgui.h"
+#pragma GCC diagnostic pop
+
+#include <tracy/Tracy.hpp>
+
 #include "tracy_colors.hpp"
 
 #if ENABLE_IMGUI_DRAWERS

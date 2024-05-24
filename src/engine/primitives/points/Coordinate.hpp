@@ -41,21 +41,21 @@ namespace fgl::engine
 
 		explicit Coordinate( const Vector vector );
 
-		float& up() { return z; }
+		inline float& up() { return z; }
 
-		float up() const { return z; }
+		inline float up() const { return z; }
 
-		float& right() { return x; }
+		inline float& right() { return x; }
 
-		float right() const { return x; }
+		inline float right() const { return x; }
 
-		float& forward() { return y; }
+		inline float& forward() { return y; }
 
-		float forward() const { return y; }
+		inline float forward() const { return y; }
 
-		glm::vec3& vec() { return static_cast< glm::vec3& >( *this ); }
+		inline glm::vec3& vec() { return static_cast< glm::vec3& >( *this ); }
 
-		const glm::vec3& vec() const { return static_cast< const glm::vec3& >( *this ); }
+		inline const glm::vec3& vec() const { return static_cast< const glm::vec3& >( *this ); }
 
 		Coordinate operator+( const Vector other ) const;
 		Coordinate operator-( const Vector other ) const;
@@ -82,10 +82,16 @@ namespace fgl::engine
 
 	static_assert( sizeof( glm::vec3 ) == sizeof( ModelCoordinate ) );
 
-	template < fgl::engine::CoordinateSpace CType >
-	::std::ostream& operator<<( ::std::ostream& os, const fgl::engine::Coordinate< CType > coordinate )
+	template < CoordinateSpace CType >
+	inline ::std::ostream& operator<<( ::std::ostream& os, const Coordinate< CType > coordinate )
 	{
 		return os << "(" << coordinate.x << ", " << coordinate.y << ", " << coordinate.z << ")";
+	}
+
+	template < CoordinateSpace CType >
+	inline double distance( const Coordinate< CType >& p1, const Coordinate< CType >& p2 )
+	{
+		return length( p1.vec() - p2.vec() );
 	}
 
 } // namespace fgl::engine

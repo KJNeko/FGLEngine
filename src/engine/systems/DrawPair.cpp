@@ -16,7 +16,10 @@ namespace fgl::engine
 {
 
 	std::pair< std::vector< vk::DrawIndexedIndirectCommand >, std::vector< ModelMatrixInfo > > getDrawCallsFromTree(
-		OctTreeNode& root, const Frustum< CoordinateSpace::World >& frustum, const GameObjectFlagType flags )
+		OctTreeNode& root,
+		const Frustum< CoordinateSpace::World >& frustum,
+		const GameObjectFlagType flags,
+		const GameObjectFilterOptions options )
 	{
 		ZoneScoped;
 		std::unordered_map< DrawKey, DrawPair > draw_pairs {};
@@ -34,15 +37,24 @@ namespace fgl::engine
 
 				// debug::world::drawBoundingBox( obj.getBoundingBox() );
 
-				for ( const auto& primitive : obj.m_model->m_primitives )
+				for ( const Primitive& primitive : obj.m_model->m_primitives )
 				{
-					assert( primitive.m_texture );
+					//assert( primitive.m_texture );
 					const ModelMatrixInfo matrix_info { .model_matrix = obj.m_transform.mat4(),
-						                                .texture_idx = primitive.m_texture->getID() };
+						                                .texture_idx = primitive.getTextureID() };
 
-					const auto key {
-						std::make_pair( primitive.m_texture->getID(), primitive.m_index_buffer.getOffset() )
-					};
+					// If the textureless flag is on and we have a texture then skip the primitive.c
+					if ( options & TEXTURELESS )
+					{
+						if ( primitive.m_texture.has_value() ) continue;
+					}
+					else
+					{
+						// Flag is not present
+						if ( !primitive.m_texture.has_value() ) continue;
+					}
+
+					const auto key { std::make_pair( matrix_info.texture_idx, primitive.m_index_buffer.getOffset() ) };
 
 					assert( primitive.m_index_buffer.size() > 0 );
 

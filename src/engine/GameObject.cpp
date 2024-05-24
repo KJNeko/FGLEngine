@@ -17,6 +17,8 @@ namespace fgl::engine
 
 	OrientedBoundingBox< CoordinateSpace::World > GameObject::getBoundingBox() const
 	{
+		assert( this->m_transform.translation.vec() != constants::DEFAULT_VEC3 );
+		assert( this->m_transform.scale != constants::DEFAULT_VEC3 );
 		return this->m_transform.mat() * this->m_model->getBoundingBox();
 	}
 

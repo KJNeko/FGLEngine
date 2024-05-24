@@ -28,7 +28,10 @@ namespace fgl::engine
 	}
 
 	std::pair< std::vector< vk::DrawIndexedIndirectCommand >, std::vector< ModelMatrixInfo > > getDrawCallsFromTree(
-		OctTreeNode& root, const Frustum< CoordinateSpace::World >& frustum, const GameObjectFlagType flags );
+		OctTreeNode& root,
+		const Frustum< CoordinateSpace::World >& frustum,
+		const GameObjectFlagType flags,
+		const GameObjectFilterOptions options = NONE );
 
 } // namespace fgl::engine
 

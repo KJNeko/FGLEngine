@@ -29,6 +29,13 @@ namespace fgl::engine
 		MASK_DEFAULT = IS_VISIBLE,
 	};
 
+	enum GameObjectFilterOptions
+	{
+		NONE = 0,
+		//! Only find objects with no texture
+		TEXTURELESS = 1 << 0,
+	};
+
 	class GameObject
 	{
 	  public:
@@ -48,9 +55,9 @@ namespace fgl::engine
 
 		GameObject( ID obj_id ) : m_id( obj_id ) {}
 
-	  public:
+		GameObject() = delete;
 
-		GameObject() {}
+	  public:
 
 		GameObject( const GameObject& other ) = delete;
 		GameObject& operator=( const GameObject& other ) = delete;

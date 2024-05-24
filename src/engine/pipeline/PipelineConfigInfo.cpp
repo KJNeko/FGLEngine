@@ -38,7 +38,7 @@ namespace fgl::engine
 		info.rasterization_info.rasterizerDiscardEnable = VK_FALSE;
 		info.rasterization_info.polygonMode = vk::PolygonMode::eFill;
 		info.rasterization_info.cullMode = vk::CullModeFlagBits::eBack;
-		info.rasterization_info.frontFace = vk::FrontFace::eClockwise;
+		info.rasterization_info.frontFace = vk::FrontFace::eCounterClockwise;
 		info.rasterization_info.depthBiasEnable = VK_FALSE;
 		info.rasterization_info.depthBiasConstantFactor = 0.0f;
 		info.rasterization_info.depthBiasClamp = 0.0f;
@@ -120,6 +120,11 @@ namespace fgl::engine
 
 		info.color_blend_info.pAttachments = info.color_blend_attachment.data();
 		info.color_blend_info.attachmentCount = static_cast< std::uint32_t >( info.color_blend_attachment.size() );
+	}
+
+	void PipelineConfigInfo::disableCulling( PipelineConfigInfo& info )
+	{
+		info.rasterization_info.cullMode = vk::CullModeFlagBits::eNone;
 	}
 
 	PipelineConfigInfo::PipelineConfigInfo( vk::RenderPass pass )

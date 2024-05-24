@@ -2,6 +2,10 @@
 // Created by kj16609 on 3/11/24.
 //
 
+#include <tracy/Tracy.hpp>
+
+#include <cstddef>
+#include <cstdlib>
 #if TRACY_ENABLE
 
 void* operator new( std::size_t count )

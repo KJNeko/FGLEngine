@@ -8,6 +8,8 @@
 #include <set>
 #include <unordered_set>
 
+#include "engine/logging.hpp"
+
 PFN_vkCreateDebugUtilsMessengerEXT pfnVkCreateDebugUtilsMessengerEXT { nullptr };
 PFN_vkDestroyDebugUtilsMessengerEXT pfnVkDestroyDebugUtilsMessengerEXT { nullptr };
 PFN_vkSetDebugUtilsObjectNameEXT pfnVkSetDebugUtilsObjectNameEXT { nullptr };
@@ -19,6 +21,22 @@ static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
 	const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 	[[maybe_unused]] void* pUserData )
 {
+	using Bits = VkDebugUtilsMessageSeverityFlagBitsEXT;
+
+	if ( pCallbackData->flags & Bits::VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT )
+	{
+		spdlog::info( pCallbackData->pMessage );
+	}
+	if ( pCallbackData->flags & Bits::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT )
+	{
+		spdlog::warn( pCallbackData->pMessage );
+	}
+	if ( pCallbackData->flags & Bits::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT )
+	{
+		spdlog::error( pCallbackData->pMessage );
+		std::abort();
+	}
+
 	if ( pCallbackData->flags
 	     & ( VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT
 	         | VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT ) )

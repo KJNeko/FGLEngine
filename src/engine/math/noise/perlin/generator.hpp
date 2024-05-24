@@ -3,7 +3,10 @@
 //
 
 #pragma once
-#include <bits/stdint-uintn.h>
+
+#include <glm/vec2.hpp>
+
+#include <vector>
 
 namespace fgl::engine
 {

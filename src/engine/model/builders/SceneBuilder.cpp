@@ -1,0 +1,386 @@
+//
+// Created by kj16609 on 5/18/24.
+//
+
+#include "SceneBuilder.hpp"
+
+#include "engine/model/Model.hpp"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#include "objectloaders/tiny_gltf.h"
+#pragma GCC diagnostic pop
+
+#include <engine/logging.hpp>
+
+namespace fgl::engine
+{
+
+	SceneBuilder::SceneBuilder( Buffer& vertex_buffer, Buffer& index_buffer ) :
+	  m_vertex_buffer( vertex_buffer ),
+	  m_index_buffer( index_buffer )
+	{}
+
+	int SceneBuilder::getTexcoordCount( const tinygltf::Primitive& prim ) const
+	{
+		int counter { 0 };
+		for ( const auto& [ key, value ] : prim.attributes )
+		{
+			if ( key.starts_with( "TEXCOORD" ) ) ++counter;
+		}
+		return counter;
+	}
+
+	template < typename T >
+	std::vector< T > extractData( const tinygltf::Model& model, const tinygltf::Accessor& accessor )
+	{
+		if ( accessor.sparse.isSparse )
+		{
+			//Sparse loading required
+			throw std::runtime_error( "Sparse loading not implemeneted" );
+		}
+
+		const auto& buffer_view { model.bufferViews.at( accessor.bufferView ) };
+		const auto& buffer { model.buffers.at( buffer_view.buffer ) };
+
+		std::vector< T > data {};
+		data.reserve( accessor.count );
+
+		std::uint16_t copy_size { 0 };
+		switch ( accessor.componentType )
+		{
+			default:
+				throw std::runtime_error( "Unhandled access size" );
+			case TINYGLTF_COMPONENT_TYPE_FLOAT:
+				copy_size = 32 / 8;
+				break;
+			case TINYGLTF_COMPONENT_TYPE_BYTE:
+				copy_size = 8 / 8;
+				break;
+			case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
+				copy_size = 32 / 8;
+				break;
+			case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
+				copy_size = 16 / 8;
+				break;
+		}
+
+		switch ( accessor.type )
+		{
+			default:
+				throw std::runtime_error( "Unhandled access type" );
+			case TINYGLTF_TYPE_VEC3:
+				copy_size *= 3;
+				break;
+			case TINYGLTF_TYPE_VEC2:
+				copy_size *= 2;
+				break;
+			case TINYGLTF_TYPE_SCALAR:
+				copy_size *= 1;
+				break;
+		}
+
+		constexpr auto T_SIZE { sizeof( T ) };
+
+		if ( T_SIZE != copy_size )
+			throw std::runtime_error(
+				std::string( "Accessor copy values not matching sizeof(T): sizeof(" )
+				+ std::string( typeid( T ).name() ) + ") == " + std::to_string( T_SIZE )
+				+ " vs copy_size = " + std::to_string( copy_size ) );
+
+		const auto real_size { copy_size * accessor.count };
+
+		data.resize( accessor.count );
+
+		std::memcpy( data.data(), buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset, real_size );
+
+		return data;
+	}
+
+	std::vector< std::uint32_t > SceneBuilder::
+		extractIndicies( const tinygltf::Primitive& prim, const tinygltf::Model& model )
+	{
+		const auto& indicies_accessor { model.accessors.at( prim.indices ) };
+
+		if ( indicies_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT )
+		{
+			return extractData< std::uint32_t >( model, indicies_accessor );
+		}
+		else
+		{
+			//TODO: Figure out any time we can use a smaller indicies value instead of a 32 bit number all the time
+			std::vector< std::uint32_t > indicies {};
+
+			const auto tmp { extractData< std::uint16_t >( model, indicies_accessor ) };
+
+			indicies.reserve( tmp.size() );
+
+			for ( const auto val : tmp ) indicies.emplace_back( val );
+
+			return indicies;
+		}
+	}
+
+	const tinygltf::Accessor& SceneBuilder::getAccessorForAttribute(
+		const tinygltf::Primitive& prim, const tinygltf::Model& root, const std::string attrib ) const
+	{
+		return root.accessors.at( prim.attributes.at( attrib ) );
+	}
+
+	Texture SceneBuilder::loadTexture( const tinygltf::Primitive& prim, const tinygltf::Model& root )
+	{
+		const auto mat_idx { prim.material };
+		if ( mat_idx == -1 )
+		{
+			//There is no matrial for this
+			throw std::runtime_error( "No material for primitive. One was expected" );
+		}
+
+		const auto& material { root.materials[ mat_idx ] };
+
+		for ( const auto& [ key, value ] : material.values )
+		{
+			spdlog::debug( "Parsing texture for key {}", key );
+		}
+
+		//TODO:
+		throw std::runtime_error( "No material loader implemented" );
+	}
+
+	std::vector< std::shared_ptr< Model > > SceneBuilder::getModels()
+	{
+		std::vector< std::shared_ptr< Model > > new_models { std::move( models ) };
+
+		return new_models;
+	}
+
+	std::vector< glm::vec3 > SceneBuilder::
+		extractPositionInfo( const tinygltf::Primitive& prim, const tinygltf::Model& root )
+	{
+		const tinygltf::Accessor& accessor { getAccessorForAttribute( prim, root, "POSITION" ) };
+
+		return extractData< glm::vec3 >( root, accessor );
+	}
+
+	std::vector< glm::vec3 > SceneBuilder::
+		extractNormalInfo( const tinygltf::Primitive& prim, const tinygltf::Model& root )
+	{
+		if ( !hasAttribute( prim, "NORMAL" ) ) return {};
+		const tinygltf::Accessor& accessor { getAccessorForAttribute( prim, root, "NORMAL" ) };
+
+		return extractData< glm::vec3 >( root, accessor );
+	}
+
+	std::vector< glm::vec2 > SceneBuilder::extractUVInfo( const tinygltf::Primitive& prim, const tinygltf::Model& root )
+	{
+		spdlog::debug( "Extracting UV info" );
+
+		//TODO: Figure out how I can use multiple textures for various things.
+		if ( !hasAttribute( prim, "TEXCOORD_0" ) ) return {};
+
+		const tinygltf::Accessor& accessor { getAccessorForAttribute( prim, root, "TEXCOORD_0" ) };
+
+		return extractData< glm::vec2 >( root, accessor );
+	}
+
+	bool SceneBuilder::hasAttribute( const tinygltf::Primitive& prim, const std::string_view str )
+	{
+		return prim.attributes.contains( std::string( str ) );
+	}
+
+	std::vector< Vertex > SceneBuilder::
+		extractVertexInfo( const tinygltf::Primitive& prim, const tinygltf::Model& root )
+	{
+		spdlog::debug( "Extracting vert info" );
+		const auto pos { extractPositionInfo( prim, root ) };
+
+		std::vector< Vertex > verts {};
+
+		verts.reserve( pos.size() );
+
+		const std::vector< glm::vec3 > normals { extractNormalInfo( prim, root ) };
+
+		//TODO: If we don't have normals we likely will need to compute them ourselves.
+		// I have no idea if this is actually going to be needed for us. But I might wanna implement it
+		// anyways, Just in case.
+		const bool has_normals { !normals.empty() };
+
+		const std::vector< glm::vec2 > uvs { extractUVInfo( prim, root ) };
+		const bool has_uv { !uvs.empty() };
+
+		for ( std::size_t i = 0; i < pos.size(); ++i )
+		{
+			Vertex vert {};
+			vert.m_position = pos[ i ];
+			vert.m_normal = has_normals ? normals[ i ] : glm::vec3();
+			vert.m_uv = has_uv ? uvs[ i ] : glm::vec2();
+			vert.m_color = glm::vec3( 0.1f );
+			verts.emplace_back( vert );
+		}
+
+		spdlog::debug(
+			"Found {} verts.\n\t- Has UV info: {}\n\t- Has normals: {}",
+			verts.size(),
+			has_uv ? "Yes" : "No",
+			has_normals ? "Yes" : "No" );
+
+		return verts;
+	}
+
+	Primitive SceneBuilder::loadPrimitive( const tinygltf::Primitive& prim, const tinygltf::Model& root )
+	{
+		std::string att_str;
+		for ( const auto& attrib : prim.attributes )
+		{
+			att_str += "Attribute: " + attrib.first + "\n";
+		}
+		spdlog::debug( "Attributes for primitive:\n{}", att_str );
+
+		const bool has_normal { hasAttribute( prim, "NORMAL" ) };
+		const bool has_position { hasAttribute( prim, "POSITION" ) };
+		const bool has_texcoord { hasAttribute( prim, "TEXCOORD_0" ) };
+		const int texcoord_count { has_texcoord ? getTexcoordCount( prim ) : 0 };
+
+		if ( !has_position ) throw std::runtime_error( "Failed to load model. Missing expected POSITION attribute" );
+
+		switch ( static_cast< PrimitiveMode >( prim.mode ) )
+		{
+			case POINTS:
+				[[fallthrough]];
+			case LINE:
+				[[fallthrough]];
+			case LINE_LOOP:
+				[[fallthrough]];
+			case LINE_STRIP:
+				[[fallthrough]];
+			case TRIS:
+				[[fallthrough]];
+			case TRI_STRIP:
+				[[fallthrough]];
+			case TRI_FAN:
+				{
+					std::vector< Vertex > verts { extractVertexInfo( prim, root ) };
+					std::vector< std::uint32_t > indicies { extractIndicies( prim, root ) };
+
+					Primitive primitive_mesh { Primitive::fromVerts(
+						std::move( verts ),
+						static_cast< PrimitiveMode >( prim.mode ),
+						std::move( indicies ),
+						m_vertex_buffer,
+						m_index_buffer ) };
+
+					if ( !has_texcoord ) return primitive_mesh;
+
+					primitive_mesh.m_texture = loadTexture( prim, root );
+
+					return primitive_mesh;
+				}
+			default:
+				{
+					spdlog::error( "Unsupported mode for primtiive loading: {}", prim.mode );
+					throw std::runtime_error( "Unsupported mode for primitive loading" );
+				}
+		}
+
+		std::unreachable();
+	}
+
+	OrientedBoundingBox< CoordinateSpace::Model > createModelBoundingBox( const std::vector< Primitive >& primitives )
+	{
+		if ( primitives.size() <= 0 ) return {};
+
+		OrientedBoundingBox< CoordinateSpace::Model > box { primitives.at( 0 ).m_bounding_box };
+
+		for ( std::uint64_t i = 1; i < primitives.size(); i++ ) box = box.combine( primitives[ i ].m_bounding_box );
+
+		return box;
+	}
+
+	std::shared_ptr< Model > SceneBuilder::loadModel( const int mesh_idx, const tinygltf::Model& root )
+	{
+		const auto mesh { root.meshes[ mesh_idx ] };
+		const auto& primitives { mesh.primitives };
+
+		spdlog::debug( "Mesh idx {} has {} primitives", mesh_idx, primitives.size() );
+
+		std::vector< Primitive > finished_primitives {};
+
+		for ( const auto& prim : primitives )
+		{
+			Primitive primitive { loadPrimitive( prim, root ) };
+			finished_primitives.emplace_back( std::move( primitive ) );
+		}
+
+		spdlog::debug( "Finished loading model with {} primitives", finished_primitives.size() );
+
+		const auto bounding_box { createModelBoundingBox( finished_primitives ) };
+
+		return std::make_shared< Model >( Device::getInstance(), std::move( finished_primitives ), bounding_box );
+	}
+
+	void SceneBuilder::handleNode( const int node_idx, const tinygltf::Model& root )
+	{
+		const auto& node { root.nodes[ node_idx ] };
+		spdlog::debug( "Handling node: Index:{} Name:\"{}\"", node_idx, node.name );
+
+		const auto mesh_idx { node.mesh };
+		const auto skin_idx { node.skin };
+
+		spdlog::debug( "Mesh IDX: {}", mesh_idx );
+		spdlog::debug( "Skin IDX: {}", skin_idx );
+
+		std::shared_ptr< Model > model { loadModel( mesh_idx, root ) };
+
+		assert( model );
+
+		//TODO: Material.
+		this->models.emplace_back( std::move( model ) );
+	}
+
+	void SceneBuilder::handleScene( const tinygltf::Scene& scene, const tinygltf::Model& root )
+	{
+		spdlog::debug( "Handling scene: ", scene.name );
+
+		spdlog::debug( "Scene has {} nodes", scene.nodes.size() );
+		for ( const auto node_idx : scene.nodes )
+		{
+			handleNode( node_idx, root );
+		}
+	}
+
+	void SceneBuilder::loadScene( const std::filesystem::path path )
+	{
+		if ( !std::filesystem::exists( path ) ) throw std::runtime_error( "Failed to find scene at filepath" );
+
+		tinygltf::TinyGLTF loader {};
+		tinygltf::Model gltf_model {};
+
+		std::string err;
+		std::string warn;
+
+		if ( !loader.LoadBinaryFromFile( &gltf_model, &err, &warn, path ) )
+		{
+			throw std::runtime_error( "Failed to load binary model" );
+		}
+
+		if ( !err.empty() )
+		{
+			spdlog::error( "Error loading model {}: \"{}\"", path.string(), err );
+			throw std::runtime_error( err );
+		}
+
+		if ( !warn.empty() )
+		{
+			spdlog::warn( "Warning loading model {}: \"{}\"", path.string(), warn );
+		}
+
+		const auto scenes { gltf_model.scenes };
+
+		for ( const auto& scene : scenes )
+		{
+			handleScene( scene, gltf_model );
+		}
+	}
+
+} // namespace fgl::engine

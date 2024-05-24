@@ -4,6 +4,9 @@
 
 #include "generator.hpp"
 
+#include <glm/geometric.hpp>
+
+#include <algorithm>
 #include <random>
 
 namespace fgl::engine

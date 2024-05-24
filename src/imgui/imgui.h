@@ -48,6 +48,10 @@ Index of this file:
 */
 
 #pragma once
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wconversion"
 
 // Configuration file with compile-time options
 // (edit imconfig.h or '#define IMGUI_USER_CONFIG "myfilename.h" from your build system)
@@ -5346,3 +5350,5 @@ enum ImGuiModFlags_
 #endif
 
 #endif // #ifndef IMGUI_DISABLE
+
+#pragma GCC diagnostic pop

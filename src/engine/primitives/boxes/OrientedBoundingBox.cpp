@@ -4,8 +4,11 @@
 
 #include "OrientedBoundingBox.hpp"
 
+#include <tracy/Tracy.hpp>
+
 #include <array>
 
+#include "engine/logging.hpp"
 #include "engine/model/Vertex.hpp"
 #include "engine/primitives/lines/LineSegment.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
@@ -235,6 +238,7 @@ namespace fgl::engine
 
 	OrientedBoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< Vertex >& verts )
 	{
+		spdlog::debug( "Generating bounding box for {} verts", verts.size() );
 		// neg (min)
 		glm::vec3 top_right_forward { verts[ 0 ].m_position };
 		// pos (max)

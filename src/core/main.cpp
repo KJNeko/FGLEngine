@@ -5,9 +5,12 @@
 #include <iostream>
 
 #include "engine/EngineContext.hpp"
+#include "engine/logging.hpp"
 
 int main()
 {
+	spdlog::set_level( spdlog::level::debug );
+
 	fgl::engine::EngineContext engine_ctx {};
 
 	engine_ctx.run();

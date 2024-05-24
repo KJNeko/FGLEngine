@@ -15,7 +15,7 @@ namespace fgl::engine
 	//TransformComponent is always in world space
 	struct TransformComponent
 	{
-		WorldCoordinate translation { constants::DEFAULT_VEC3 };
+		WorldCoordinate translation { constants::WORLD_CENTER };
 		glm::vec3 scale { 1.0f, 1.0f, 1.0f };
 
 		Rotation rotation { 0.0f, 0.0f, 0.0f };

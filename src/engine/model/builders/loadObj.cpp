@@ -1,20 +1,22 @@
 //
-// Created by kj16609 on 2/5/24.
+// Created by kj16609 on 5/18/24.
 //
-
-#include "Model.hpp"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #pragma GCC diagnostic ignored "-Weffc++"
-#include "objectloaders/tiny_obj_loader.h"
+#include <objectloaders/tiny_obj_loader.h>
 #pragma GCC diagnostic pop
 
-#include "Vertex.hpp"
+#include <unordered_map>
+
+#include "ModelBuilder.hpp"
+#include "engine/model/Primitive.hpp"
+#include "engine/model/Vertex.hpp"
+#include "engine/primitives/boxes/OrientedBoundingBox.hpp"
 
 namespace fgl::engine
 {
-
 	void ModelBuilder::loadObj( const std::filesystem::path& filepath )
 	{
 		m_primitives.clear();
@@ -99,7 +101,8 @@ namespace fgl::engine
 		[[maybe_unused]] auto& itter = m_primitives.emplace_back(
 			VertexBufferSuballocation( m_vertex_buffer, std::move( verts ) ),
 			IndexBufferSuballocation( m_index_buffer, std::move( indicies ) ),
-			bounding_box );
+			bounding_box,
+			PrimitiveMode::TRIS );
 
 		std::cout << unique_verts.size() << " unique verts" << std::endl;
 	}

@@ -2,8 +2,9 @@
 // Created by kj16609 on 3/11/24.
 //
 
-#ifndef GAME_CONCEPTS_HPP
-#define GAME_CONCEPTS_HPP
+#pragma once
+
+#include <concepts>
 
 namespace vk
 {
@@ -37,5 +38,3 @@ namespace fgl::engine
 	};
 
 } // namespace fgl::engine
-
-#endif //GAME_CONCEPTS_HPP

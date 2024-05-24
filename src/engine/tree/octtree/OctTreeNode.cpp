@@ -7,6 +7,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <engine/FrameInfo.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <imgui/imgui.h>
 
 #include "engine/debug/drawers.hpp"
 #include "engine/model/Model.hpp"
@@ -208,6 +209,7 @@ namespace fgl::engine
 			else
 			{
 				objects.emplace_back( std::move( obj ) );
+				spdlog::info( "Added object" );
 				return this;
 			}
 		}

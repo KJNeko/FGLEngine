@@ -4,6 +4,8 @@
 
 #include "LineBase.hpp"
 
+#include <glm/geometric.hpp>
+
 namespace fgl::engine
 {
 

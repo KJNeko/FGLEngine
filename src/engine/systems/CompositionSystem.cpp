@@ -14,6 +14,7 @@ namespace fgl::engine
 		PipelineConfigInfo composition_info { render_pass };
 		PipelineConfigInfo::addColorAttachmentConfig( composition_info );
 		PipelineConfigInfo::disableVertexInput( composition_info );
+		PipelineConfigInfo::disableCulling( composition_info );
 		composition_info.subpass = 1;
 
 		m_pipeline = std::make_unique< CompositionPipeline >( Device::getInstance(), composition_info );

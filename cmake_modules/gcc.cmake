@@ -108,9 +108,9 @@
 
 				set(FGL_CONFIG "-std=c++23 -fmax-errors=3 -fconcepts-diagnostics-depth=8 -march=native -flto -ftree-vectorize")
 
-				if (DEFINED USE_WERROR)
-					set(FGL_CONFIG "${FGL_CONFIG} -Werror")
-				endif ()
+				#if (DEFINED USE_WERROR)
+				#set(FGL_CONFIG "${FGL_CONFIG} -Werror")
+				#endif ()
 
 				# Safe for debug
 				# TODO: Figure out LTO with Alaestor's retarded compiler

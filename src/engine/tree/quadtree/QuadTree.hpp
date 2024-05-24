@@ -5,6 +5,7 @@
 #pragma once
 
 #include "engine/GameObject.hpp"
+#include <vector>
 
 namespace fgl::engine
 {

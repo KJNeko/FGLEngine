@@ -17,31 +17,12 @@
 
 namespace fgl::engine
 {
+	struct ModelBuilder;
 
 	struct ModelMatrixInfo
 	{
 		glm::mat4 model_matrix;
 		std::uint32_t texture_idx;
-	};
-
-	struct ModelBuilder
-	{
-		Buffer& m_vertex_buffer;
-		Buffer& m_index_buffer;
-
-		std::vector< Primitive > m_primitives {};
-
-		ModelBuilder() = delete;
-
-		ModelBuilder( Buffer& parent_vertex_buffer, Buffer& parent_index_buffer ) :
-		  m_vertex_buffer( parent_vertex_buffer ),
-		  m_index_buffer( parent_index_buffer )
-		{}
-
-		void loadModel( const std::filesystem::path& filepath );
-		void loadObj( const std::filesystem::path& filepath );
-		void loadGltf( const std::filesystem::path& filepath );
-		void loadVerts( std::vector< Vertex > verts, std::vector< std::uint32_t > indicies );
 	};
 
 	class Model
@@ -69,15 +50,19 @@ namespace fgl::engine
 
 		std::vector< vk::DrawIndexedIndirectCommand > getDrawCommand( const std::uint32_t index ) const;
 
-		static std::unique_ptr< Model > createModel(
+		//TODO: Switch to using shared_ptr instead of unique_ptr
+		static std::shared_ptr< Model > createModel(
 			Device& device, const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer );
 
-		static std::unique_ptr< Model > createModelFromVerts(
+		static std::shared_ptr< Model > createModelFromVerts(
 			Device& device,
 			std::vector< Vertex > verts,
 			std::vector< std::uint32_t > indicies,
 			Buffer& vertex_buffer,
 			Buffer& index_buffer );
+
+		static std::vector< std::shared_ptr< Model > > createModelsFromScene(
+			Device& device, const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer );
 
 		void syncBuffers( vk::CommandBuffer& cmd_buffer );
 
@@ -85,6 +70,11 @@ namespace fgl::engine
 
 		Model(
 			Device& device, ModelBuilder& builder, const OrientedBoundingBox< CoordinateSpace::Model > bounding_box );
+
+		Model(
+			Device& device,
+			std::vector< Primitive >&& primitives,
+			const OrientedBoundingBox< CoordinateSpace::Model > bounding_box );
 
 		~Model() = default;
 
