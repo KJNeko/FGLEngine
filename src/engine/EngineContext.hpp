@@ -34,7 +34,6 @@ namespace fgl::engine
 		void loadGameObjects();
 
 		void initImGui();
-		void cleanupImGui();
 
 	  public:
 

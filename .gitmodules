@@ -37,3 +37,6 @@
 [submodule "dependencies/tinygltf"]
 	path = dependencies/tinygltf
 	url = https://github.com/syoyo/tinygltf.git
+[submodule "dependencies/imgui"]
+	path = dependencies/imgui
+	url = https://github.com/ocornut/imgui.git

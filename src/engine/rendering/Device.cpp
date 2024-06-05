@@ -27,22 +27,20 @@ static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
 	{
 		spdlog::info( pCallbackData->pMessage );
 	}
-	if ( pCallbackData->flags & Bits::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT )
+	else if ( pCallbackData->flags & Bits::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT )
 	{
 		spdlog::warn( pCallbackData->pMessage );
 	}
-	if ( pCallbackData->flags & Bits::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT )
+	else if ( pCallbackData->flags & Bits::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT )
 	{
 		spdlog::error( pCallbackData->pMessage );
 		std::abort();
 	}
-
-	if ( pCallbackData->flags
-	     & ( VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT
-	         | VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT ) )
-		throw std::runtime_error( pCallbackData->pMessage );
 	else
-		std::cout << pCallbackData->pMessage << std::endl;
+	{
+		//spdlog::critical( "Unknown severity message: {}", pCallbackData->pMessage );
+		//std::abort();
+	}
 
 	return VK_FALSE;
 }
@@ -103,32 +101,28 @@ namespace fgl::engine
 	}
 
 	// class member functions
-	Device::Device( Window& window ) : m_window { window }
+	Device::Device( Window& window )
 	{
 		createInstance();
 		setupDebugMessenger();
-		createSurface();
+		createSurface( window );
 		pickPhysicalDevice();
 		createLogicalDevice();
 		createVMAAllocator();
 		createCommandPool();
-		initImGui();
 	}
-
-	void Device::initImGui()
-	{}
 
 	Device::~Device()
 	{
-		vkDestroyCommandPool( device_, m_commandPool, nullptr );
-		vkDestroyDevice( device_, nullptr );
+		vkDestroyCommandPool( m_device, m_commandPool, nullptr );
+		vkDestroyDevice( m_device, nullptr );
 
 		if ( enableValidationLayers )
 		{
 			DestroyDebugUtilsMessengerEXT( m_instance, m_debugMessenger, nullptr );
 		}
 
-		vkDestroySurfaceKHR( m_instance, surface_, nullptr );
+		vkDestroySurfaceKHR( m_instance, m_surface_khr, nullptr );
 		vkDestroyInstance( m_instance, nullptr );
 	}
 
@@ -268,13 +262,13 @@ namespace fgl::engine
 			createInfo.enabledLayerCount = 0;
 		}
 
-		if ( auto res = m_physical_device.createDevice( &createInfo, nullptr, &device_ ); res != vk::Result::eSuccess )
+		if ( auto res = m_physical_device.createDevice( &createInfo, nullptr, &m_device ); res != vk::Result::eSuccess )
 		{
 			throw std::runtime_error( "failed to create logical device!" );
 		}
 
-		device_.getQueue( indices.graphicsFamily, 0, &graphicsQueue_ );
-		device_.getQueue( indices.presentFamily, 0, &presentQueue_ );
+		m_device.getQueue( indices.graphicsFamily, 0, &m_graphics_queue );
+		m_device.getQueue( indices.presentFamily, 0, &m_present_queue );
 	}
 
 	void Device::createCommandPool()
@@ -285,15 +279,15 @@ namespace fgl::engine
 		poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;
 		poolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer | vk::CommandPoolCreateFlagBits::eTransient;
 
-		if ( device_.createCommandPool( &poolInfo, nullptr, &m_commandPool ) != vk::Result::eSuccess )
+		if ( m_device.createCommandPool( &poolInfo, nullptr, &m_commandPool ) != vk::Result::eSuccess )
 		{
 			throw std::runtime_error( "failed to create command pool!" );
 		}
 	}
 
-	void Device::createSurface()
+	void Device::createSurface( Window& window )
 	{
-		surface_ = m_window.createWindowSurface( m_instance );
+		m_surface_khr = window.createWindowSurface( m_instance );
 	}
 
 	bool Device::isDeviceSuitable( vk::PhysicalDevice device )
@@ -488,7 +482,7 @@ namespace fgl::engine
 				indices.graphicsFamilyHasValue = true;
 			}
 			vk::Bool32 presentSupport { VK_FALSE };
-			vkGetPhysicalDeviceSurfaceSupportKHR( device, i, surface_, &presentSupport );
+			vkGetPhysicalDeviceSurfaceSupportKHR( device, i, m_surface_khr, &presentSupport );
 			if ( queueFamily.queueCount > 0 && presentSupport )
 			{
 				indices.presentFamily = i;
@@ -509,28 +503,29 @@ namespace fgl::engine
 	{
 		SwapChainSupportDetails details;
 
-		if ( device.getSurfaceCapabilitiesKHR( surface_, &details.capabilities ) != vk::Result::eSuccess )
+		if ( device.getSurfaceCapabilitiesKHR( m_surface_khr, &details.capabilities ) != vk::Result::eSuccess )
 			throw std::runtime_error( "failed to get surface capabilities" );
 
 		uint32_t formatCount { 0 };
-		if ( device.getSurfaceFormatsKHR( surface_, &formatCount, nullptr ) != vk::Result::eSuccess )
+		if ( device.getSurfaceFormatsKHR( m_surface_khr, &formatCount, nullptr ) != vk::Result::eSuccess )
 			throw std::runtime_error( "failed to get surface formats" );
 
 		if ( formatCount != 0 )
 		{
 			details.formats.resize( formatCount );
-			if ( device.getSurfaceFormatsKHR( surface_, &formatCount, details.formats.data() ) != vk::Result::eSuccess )
+			if ( device.getSurfaceFormatsKHR( m_surface_khr, &formatCount, details.formats.data() )
+			     != vk::Result::eSuccess )
 				throw std::runtime_error( "failed to get surface formats" );
 		}
 
 		uint32_t presentModeCount { 0 };
-		if ( device.getSurfacePresentModesKHR( surface_, &presentModeCount, nullptr ) != vk::Result::eSuccess )
+		if ( device.getSurfacePresentModesKHR( m_surface_khr, &presentModeCount, nullptr ) != vk::Result::eSuccess )
 			throw std::runtime_error( "failed to get surface present modes" );
 
 		if ( presentModeCount != 0 )
 		{
 			details.presentModes.resize( presentModeCount );
-			if ( device.getSurfacePresentModesKHR( surface_, &presentModeCount, details.presentModes.data() )
+			if ( device.getSurfacePresentModesKHR( m_surface_khr, &presentModeCount, details.presentModes.data() )
 			     != vk::Result::eSuccess )
 				throw std::runtime_error( "failed to get surface present modes" );
 		}
@@ -581,7 +576,7 @@ namespace fgl::engine
 		allocInfo.commandBufferCount = 1;
 
 		vk::CommandBuffer commandBuffer {};
-		if ( device_.allocateCommandBuffers( &allocInfo, &commandBuffer ) != vk::Result::eSuccess )
+		if ( m_device.allocateCommandBuffers( &allocInfo, &commandBuffer ) != vk::Result::eSuccess )
 			throw std::runtime_error( "failed to allocate command buffers!" );
 
 		vk::CommandBufferBeginInfo beginInfo {};
@@ -600,12 +595,12 @@ namespace fgl::engine
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &commandBuffer;
 
-		if ( graphicsQueue_.submit( 1, &submitInfo, VK_NULL_HANDLE ) != vk::Result::eSuccess )
+		if ( m_graphics_queue.submit( 1, &submitInfo, VK_NULL_HANDLE ) != vk::Result::eSuccess )
 			throw std::runtime_error( "failed to submit single time command buffer!" );
 
-		graphicsQueue_.waitIdle();
+		m_graphics_queue.waitIdle();
 
-		device_.freeCommandBuffers( m_commandPool, 1, &commandBuffer );
+		m_device.freeCommandBuffers( m_commandPool, 1, &commandBuffer );
 	}
 
 	void Device::
@@ -638,7 +633,7 @@ namespace fgl::engine
 
 		VmaAllocatorCreateInfo create_info {};
 		create_info.physicalDevice = m_physical_device;
-		create_info.device = device_;
+		create_info.device = m_device;
 		create_info.pVulkanFunctions = &vk_func;
 		create_info.instance = m_instance;
 		create_info.vulkanApiVersion = VK_API_VERSION_1_0;

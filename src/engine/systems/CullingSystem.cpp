@@ -4,7 +4,6 @@
 
 #include "CullingSystem.hpp"
 
-#include <imgui/imgui.h>
 #include <tracy/TracyC.h>
 
 #include "engine/FrameInfo.hpp"
@@ -13,16 +12,18 @@
 
 namespace fgl::engine
 {
-
 	static bool enable_culling { true };
+
+	static bool& isCullingEnabled()
+	{
+		return enable_culling;
+	}
 
 	void CullingSystem::pass( FrameInfo& info )
 	{
 		ZoneScopedN( "Culling pass" );
 
 		const auto frustum { info.camera_frustum };
-
-		ImGui::Checkbox( "Enable culling", &enable_culling );
 
 		if ( !enable_culling )
 		{

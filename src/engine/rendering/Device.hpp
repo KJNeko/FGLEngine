@@ -35,15 +35,14 @@ namespace fgl::engine
 		vk::Instance m_instance { VK_NULL_HANDLE };
 		vk::DebugUtilsMessengerEXT m_debugMessenger { VK_NULL_HANDLE };
 		vk::PhysicalDevice m_physical_device { VK_NULL_HANDLE };
-		Window& m_window;
 		vk::CommandPool m_commandPool { VK_NULL_HANDLE };
 
 		VmaAllocator m_allocator { VK_NULL_HANDLE };
 
-		vk::Device device_ { VK_NULL_HANDLE };
-		vk::SurfaceKHR surface_ { VK_NULL_HANDLE };
-		vk::Queue graphicsQueue_ { VK_NULL_HANDLE };
-		vk::Queue presentQueue_ { VK_NULL_HANDLE };
+		vk::Device m_device { VK_NULL_HANDLE };
+		vk::SurfaceKHR m_surface_khr { VK_NULL_HANDLE };
+		vk::Queue m_graphics_queue { VK_NULL_HANDLE };
+		vk::Queue m_present_queue { VK_NULL_HANDLE };
 
 		std::vector< const char* > validationLayers { "VK_LAYER_KHRONOS_validation" };
 		std::vector< const char* > deviceExtensions { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
@@ -86,7 +85,7 @@ namespace fgl::engine
 
 		void createInstance();
 		void setupDebugMessenger();
-		void createSurface();
+		void createSurface( Window& window );
 		void pickPhysicalDevice();
 		void createLogicalDevice();
 		void createVMAAllocator();
@@ -101,8 +100,6 @@ namespace fgl::engine
 		void hasGlfwRequiredInstanceExtensions();
 		bool checkDeviceExtensionSupport( vk::PhysicalDevice device );
 		SwapChainSupportDetails querySwapChainSupport( vk::PhysicalDevice device );
-
-		void initImGui();
 
 	  public:
 
@@ -127,17 +124,17 @@ namespace fgl::engine
 
 		vk::CommandPool getCommandPool() { return m_commandPool; }
 
-		vk::Device device() { return device_; }
+		vk::Device device() { return m_device; }
 
 		vk::Instance instance() { return m_instance; }
 
 		vk::PhysicalDevice phyDevice() { return m_physical_device; }
 
-		vk::SurfaceKHR surface() { return surface_; }
+		vk::SurfaceKHR surface() { return m_surface_khr; }
 
-		vk::Queue graphicsQueue() { return graphicsQueue_; }
+		vk::Queue graphicsQueue() { return m_graphics_queue; }
 
-		vk::Queue presentQueue() { return presentQueue_; }
+		vk::Queue presentQueue() { return m_present_queue; }
 
 		VmaAllocator allocator() { return m_allocator; }
 

@@ -12,7 +12,7 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #pragma GCC diagnostic ignored "-Wconversion"
-#include "imgui/imgui_impl_vulkan.h"
+#include "imgui/backends/imgui_impl_vulkan.h"
 #pragma GCC diagnostic pop
 
 namespace fgl::engine

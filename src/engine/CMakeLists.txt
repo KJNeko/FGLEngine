@@ -27,15 +27,14 @@ target_precompile_headers(FGLEngine PRIVATE
 		<glm/vec3.hpp>
 		<glm/vec2.hpp>
 		<glm/mat4x4.hpp>
-
-		<imgui/imgui.h>
 )
 
 target_compile_definitions(FGLEngine PUBLIC VULKAN_HPP_FLAGS_MASK_TYPE_AS_PUBLIC)
 
 include(dependencies/spdlog)
+include(dependencies/imgui)
 
-target_link_libraries(FGLEngine PUBLIC Vulkan::Vulkan glfw glm FGLImGui Tracy::TracyClient VMA FGLLoader spdlog)
+target_link_libraries(FGLEngine PUBLIC Vulkan::Vulkan glfw glm ImGui Tracy::TracyClient VMA FGLLoader spdlog)
 target_include_directories(FGLEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
 set_target_properties(FGLEngine PROPERTIES COMPILE_FLAGS ${FGL_FLAGS})
 target_compile_features(FGLEngine PRIVATE cxx_std_23)

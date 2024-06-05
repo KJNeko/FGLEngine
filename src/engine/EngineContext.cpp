@@ -10,26 +10,15 @@
 #include <chrono>
 #include <iostream>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-Wconversion"
-#include "debug/imguiMenuDraw.hpp"
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_vulkan.h"
-#include "imgui/imgui_internal.h"
-#pragma GCC diagnostic pop
-
 #include "KeyboardMovementController.hpp"
 #include "engine/Average.hpp"
 #include "engine/buffers/UniqueFrameSuballocation.hpp"
 #include "engine/debug/drawers.hpp"
-#include "engine/descriptors/DescriptorPool.hpp"
 #include "engine/literals/size.hpp"
 #include "engine/model/prebuilt/terrainModel.hpp"
 #include "engine/pipeline/PipelineT.hpp"
 #include "engine/systems/EntityRendererSystem.hpp"
+#include "gui/core.hpp"
 #include "model/builders/SceneBuilder.hpp"
 
 namespace fgl::engine
@@ -136,20 +125,10 @@ namespace fgl::engine
 				previous_frame_start = new_time;
 			}
 
-			auto delta_time {
-				std::chrono::duration< float, std::chrono::seconds::period >( new_time - current_time ).count()
-			};
+			auto delta_time { std::chrono::duration< float >( new_time - current_time ).count() };
 
 			current_time = new_time;
 			delta_time = glm::min( delta_time, MAX_DELTA_TIME );
-
-#if ENABLE_IMGUI
-			{
-				ImGui_ImplVulkan_NewFrame();
-				ImGui_ImplGlfw_NewFrame();
-				ImGui::NewFrame();
-			}
-#endif
 
 			if ( old_aspect_ratio != m_renderer.getAspectRatio() )
 			{
@@ -180,10 +159,8 @@ namespace fgl::engine
 					                   m_renderer.getGBufferDescriptor( frame_index ),
 					                   view_frustum };
 
-				debug::imGuiMenuDraw( frame_info );
-
 #if TRACY_ENABLE
-				auto& tracy_ctx { frame_info.tracy_ctx };
+				//auto& tracy_ctx { frame_info.tracy_ctx };
 #endif
 
 				CameraInfo current_camera_info { .projection = camera.getProjectionMatrix(),
@@ -204,20 +181,7 @@ namespace fgl::engine
 
 				m_composition_system.pass( frame_info );
 
-#if ENABLE_IMGUI
-				{
-					TracyVkZone( tracy_ctx, command_buffer, "ImGui Rendering" );
-
-					debug::world::
-						drawPointText( Coordinate< CoordinateSpace::World >( 0.0f, 0.0f, 0.0f ), { 1.0f, 0.0f, 0.0f } );
-
-					ImGui::End();
-					ImGui::Render();
-
-					ImDrawData* data { ImGui::GetDrawData() };
-					ImGui_ImplVulkan_RenderDrawData( data, command_buffer );
-				}
-#endif
+				gui::drawMainGUI( frame_info );
 
 				m_renderer.endSwapchainRendererPass( command_buffer );
 
@@ -404,49 +368,17 @@ namespace fgl::engine
 
 	void EngineContext::initImGui()
 	{
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		[[maybe_unused]] ImGuiIO& io { ImGui::GetIO() };
-		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-
-		ImGui::StyleColorsDark();
-
-		auto& device { Device::getInstance() };
-
-		ImGui_ImplGlfw_InitForVulkan( m_window.window(), true );
-		ImGui_ImplVulkan_InitInfo init_info {
-			.Instance = device.instance(),
-			.PhysicalDevice = device.phyDevice(),
-			.Device = device.device(),
-			.QueueFamily = device.findPhysicalQueueFamilies().graphicsFamily,
-			.Queue = device.graphicsQueue(),
-			.PipelineCache = VK_NULL_HANDLE,
-			.DescriptorPool = DescriptorPool::getInstance().getVkPool(),
-			.Subpass = 1,
-			.MinImageCount = 2,
-			.ImageCount = 2,
-			.MSAASamples = VK_SAMPLE_COUNT_1_BIT,
-			.UseDynamicRendering = VK_FALSE,
-			.ColorAttachmentFormat = {},
-			.Allocator = VK_NULL_HANDLE,
-			.CheckVkResultFn = VK_NULL_HANDLE,
-		};
-
-		ImGui_ImplVulkan_Init( &init_info, m_renderer.getSwapChainRenderPass() );
+#if ENABLE_IMGUI
+		gui::initGui( m_window, m_renderer );
+#endif
 	}
 
 	EngineContext::~EngineContext()
 	{
 #if ENABLE_IMGUI
-		cleanupImGui();
+		gui::cleanupImGui();
 #endif
 	}
 
-	void EngineContext::cleanupImGui()
-	{
-		ImGui_ImplVulkan_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext();
-	}
 
 } // namespace fgl::engine
