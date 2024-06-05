@@ -16,86 +16,42 @@
 namespace fgl::engine
 {
 
-	template < int N >
-	inline std::tuple< float, float > extract( const glm::vec3 rotation, const RotationOrder order )
+	using CosSinPair = std::tuple< float, float >;
+
+	inline std::tuple< CosSinPair, CosSinPair, CosSinPair >
+		extract( const glm::vec3 rotation, const RotationOrder order )
 	{
 		switch ( order )
 		{
 			case XZY:
-				switch ( N )
-				{
-					case 1:
-						return { glm::cos( rotation.x ), glm::sin( rotation.x ) };
-					case 2:
-						return { glm::cos( rotation.z ), glm::sin( rotation.z ) };
-					case 3:
-						return { glm::cos( rotation.y ), glm::sin( rotation.y ) };
-				}
-				break;
+				return { { glm::cos( rotation.x ), glm::sin( rotation.x ) },
+					     { glm::cos( rotation.z ), glm::sin( rotation.z ) },
+					     { glm::cos( rotation.y ), glm::sin( rotation.y ) } };
 			case XYZ: // DEFAULT
-				switch ( N )
-				{
-					case 1:
-						return { glm::cos( rotation.x ), glm::sin( rotation.x ) };
-					case 2:
-						return { glm::cos( rotation.y ), glm::sin( rotation.y ) };
-					case 3:
-						return { glm::cos( rotation.z ), glm::sin( rotation.z ) };
-				}
-				break;
+				return { { glm::cos( rotation.x ), glm::sin( rotation.x ) },
+					     { glm::cos( rotation.y ), glm::sin( rotation.y ) },
+					     { glm::cos( rotation.z ), glm::sin( rotation.z ) } };
 			case YXZ:
-				switch ( N )
-				{
-					case 1:
-						return { glm::cos( rotation.y ), glm::sin( rotation.y ) };
-					case 2:
-						return { glm::cos( rotation.x ), glm::sin( rotation.x ) };
-					case 3:
-						return { glm::cos( rotation.z ), glm::sin( rotation.z ) };
-				}
-				break;
+				return { { glm::cos( rotation.y ), glm::sin( rotation.y ) },
+					     { glm::cos( rotation.x ), glm::sin( rotation.x ) },
+					     { glm::cos( rotation.z ), glm::sin( rotation.z ) } };
 			case YZX:
-				switch ( N )
-				{
-					case 1:
-						return { glm::cos( rotation.y ), glm::sin( rotation.y ) };
-					case 2:
-						return { glm::cos( rotation.z ), glm::sin( rotation.z ) };
-					case 3:
-						return { glm::cos( rotation.x ), glm::sin( rotation.x ) };
-				}
-				break;
+				return { { glm::cos( rotation.y ), glm::sin( rotation.y ) },
+					     { glm::cos( rotation.z ), glm::sin( rotation.z ) },
+					     { glm::cos( rotation.x ), glm::sin( rotation.x ) } };
 			case ZYX:
-				switch ( N )
-				{
-					case 1:
-						return { glm::cos( rotation.z ), glm::sin( rotation.z ) };
-					case 2:
-						return { glm::cos( rotation.y ), glm::sin( rotation.y ) };
-					case 3:
-						return { glm::cos( rotation.x ), glm::sin( rotation.x ) };
-				}
-				break;
+				return { { glm::cos( rotation.z ), glm::sin( rotation.z ) },
+					     { glm::cos( rotation.y ), glm::sin( rotation.y ) },
+					     { glm::cos( rotation.x ), glm::sin( rotation.x ) } };
 			case ZXY:
-				switch ( N )
-				{
-					case 1:
-						return { glm::cos( rotation.z ), glm::sin( rotation.z ) };
-					case 2:
-						return { glm::cos( rotation.x ), glm::sin( rotation.x ) };
-					case 3:
-						return { glm::cos( rotation.y ), glm::sin( rotation.y ) };
-				}
-				break;
+				return { { glm::cos( rotation.z ), glm::sin( rotation.z ) },
+					     { glm::cos( rotation.x ), glm::sin( rotation.x ) },
+					     { glm::cos( rotation.y ), glm::sin( rotation.y ) } };
 			case END_OF_ENUM:
 				throw std::runtime_error( "Unimplemented rotation order" );
 		}
-		std::unreachable();
-	}
 
-	glm::mat3 taitBryanMatrix( const float x, const float y, const float z, const RotationOrder order )
-	{
-		return taitBryanMatrix( glm::vec3( x, y, z ), order );
+		std::unreachable();
 	}
 
 	glm::mat3 taitBryanMatrix( const glm::vec3 rotation, const RotationOrder order )
@@ -104,9 +60,11 @@ namespace fgl::engine
 
 		//TODO: Debug with Entry, There has got to be a better fix then this.
 
-		const auto [ c1, s1 ] = extract< 1 >( rotation, order );
-		const auto [ c2, s2 ] = extract< 2 >( rotation, order );
-		const auto [ c3, s3 ] = extract< 3 >( rotation, order );
+		const auto [ p1, p2, p3 ] = extract( rotation, order );
+
+		const auto [ c1, s1 ] = p1;
+		const auto [ c2, s2 ] = p2;
+		const auto [ c3, s3 ] = p3;
 
 		switch ( order )
 		{

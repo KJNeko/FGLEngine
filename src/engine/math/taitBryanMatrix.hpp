@@ -25,6 +25,9 @@ namespace fgl::engine
 
 	glm::mat3 taitBryanMatrix( const glm::vec3 rotation, const RotationOrder order = DEFAULT );
 
-	glm::mat3 taitBryanMatrix( const float x, const float y, const float z, const RotationOrder order = DEFAULT );
+	inline glm::mat3 taitBryanMatrix( const float x, const float y, const float z, const RotationOrder order = DEFAULT )
+	{
+		return taitBryanMatrix( glm::vec3( x, y, z ), order );
+	}
 
 } // namespace fgl::engine
