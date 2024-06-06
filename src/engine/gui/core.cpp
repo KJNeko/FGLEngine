@@ -16,6 +16,7 @@
 #pragma GCC diagnostic pop
 
 #include "engine/descriptors/DescriptorPool.hpp"
+#include "engine/filesystem/FileBrowser.hpp"
 #include "engine/model/Model.hpp"
 #include "engine/rendering/Device.hpp"
 #include "engine/rendering/Renderer.hpp"
@@ -30,7 +31,7 @@ namespace fgl::engine::gui
 		[[maybe_unused]] ImGuiIO& io { ImGui::GetIO() };
 		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+		// io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 		io.ConfigWindowsResizeFromEdges = true;
 
 		ImGui::StyleColorsDark();
@@ -81,11 +82,10 @@ namespace fgl::engine::gui
 		ImDrawData* data { ImGui::GetDrawData() };
 		ImGui_ImplVulkan_RenderDrawData( data, command_buffer );
 
-		ImGui::UpdatePlatformWindows();
-		ImGui::RenderPlatformWindowsDefault();
+		//ImGui::UpdatePlatformWindows();
+		//ImGui::RenderPlatformWindowsDefault();
 	}
 
-	void drawEntityInfo( FrameInfo& );
 
 	void drawMainGUI( FrameInfo& info )
 	{
@@ -95,6 +95,7 @@ namespace fgl::engine::gui
 
 		drawEntityGUI( info );
 		drawEntityInfo( info );
+		drawFilesystemGUI( info );
 
 		endImGui( info.command_buffer );
 	}
@@ -103,14 +104,7 @@ namespace fgl::engine::gui
 
 	void drawEntityGUI( FrameInfo& info )
 	{
-		ImGui::Begin( "Entities" );
-
-		if ( selected_object )
-			ImGui::Text( "Selected Object: %s, %d", selected_object->name.c_str(), selected_object->m_id );
-		else
-			ImGui::Text( "Selected Object: None" );
-
-		ImGui::Separator();
+		ImGui::Begin( "Scene" );
 
 		for ( OctTreeNodeLeaf* leaf : info.game_objects.getAllLeafs() )
 		{
@@ -134,15 +128,16 @@ namespace fgl::engine::gui
 	{
 		ImGui::Begin( "Entity info" );
 
-		if ( !selected_object )
-		{
-			ImGui::End();
-			return;
-		}
+		if ( selected_object ) selected_object->drawImGui();
 
-		ImGui::InputText( "Name", &selected_object->name );
+		ImGui::End();
+	}
 
-		ImGui::Text( "Model: " );
+	void drawFilesystemGUI( FrameInfo& info )
+	{
+		ImGui::Begin( "File Picker", nullptr, ImGuiWindowFlags_MenuBar );
+
+		filesystem::FileBrowser::drawGui( info );
 
 		ImGui::End();
 	}

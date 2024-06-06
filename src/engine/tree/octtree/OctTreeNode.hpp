@@ -70,10 +70,10 @@ namespace fgl::engine
 	  private:
 
 		//! Returns the node of a given ID (Searches down)
-		OctTreeNode* findID( const GameObject::ID id );
+		OctTreeNode* findID( const GameObject::GameObjectID id );
 
 		//! Returns true if the node contains a given ID
-		inline bool contains( const GameObject::ID id ) { return findID( id ) != nullptr; }
+		inline bool contains( const GameObject::GameObjectID id ) { return findID( id ) != nullptr; }
 
 		//! Splits a node. Does nothing if node is not a leaf.
 		void split( int depth = 1 );
@@ -83,7 +83,7 @@ namespace fgl::engine
 		//! returns true if this node should contain the given object
 		bool canContain( const GameObject& obj );
 
-		GameObject extract( const GameObject::ID id );
+		GameObject extract( const GameObject::GameObjectID id );
 
 		inline GameObject extract( const GameObject& obj ) { return this->extract( obj.getId() ); }
 
@@ -95,7 +95,7 @@ namespace fgl::engine
 			    && std::get< OctTreeNodeLeaf >( m_node_data ).empty();
 		}
 
-		auto getGameObjectItter( const GameObject::ID id );
+		auto getGameObjectItter( const GameObject::GameObjectID id );
 
 		void getAllLeafs( std::vector< OctTreeNodeLeaf* >& out_leafs );
 		void getAllLeafsInFrustum(

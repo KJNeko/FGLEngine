@@ -3,13 +3,13 @@
 //
 
 #pragma once
-#include "engine/rendering/Renderer.hpp"
 
 namespace fgl::engine
 {
 	class Device;
 	class Renderer;
 	class Window;
+	struct FrameInfo;
 } // namespace fgl::engine
 
 namespace fgl::engine::gui
@@ -19,5 +19,8 @@ namespace fgl::engine::gui
 
 	void drawMainGUI( FrameInfo& );
 	void drawEntityGUI( FrameInfo& );
+
+	void drawEntityInfo( FrameInfo& );
+	void drawFilesystemGUI( FrameInfo& info );
 
 } // namespace fgl::engine::gui

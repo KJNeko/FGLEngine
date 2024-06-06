@@ -7,7 +7,6 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <engine/FrameInfo.hpp>
 #include <glm/gtx/string_cast.hpp>
-#include <imgui/imgui.h>
 
 #include "engine/debug/drawers.hpp"
 #include "engine/model/Model.hpp"
@@ -26,6 +25,7 @@ namespace fgl::engine
 
 	void imGuiOctTreeSettings( FrameInfo& info )
 	{
+		/*
 #if ENABLE_IMGUI
 		if ( ImGui::CollapsingHeader( "OctTree debug settings" ) )
 		{
@@ -48,7 +48,7 @@ namespace fgl::engine
 				ImGui::Text( "Moved %ld objects", number_moved );
 			}
 		}
-#endif
+#endif*/
 	}
 
 	void OctTreeNode::getAllLeafsInFrustum(
@@ -209,7 +209,7 @@ namespace fgl::engine
 			else
 			{
 				objects.emplace_back( std::move( obj ) );
-				spdlog::info( "Added object" );
+				log::info( "Added object" );
 				return this;
 			}
 		}
@@ -240,7 +240,7 @@ namespace fgl::engine
 #endif
 	}
 
-	OctTreeNode* OctTreeNode::findID( const GameObject::ID id )
+	OctTreeNode* OctTreeNode::findID( const GameObject::GameObjectID id )
 	{
 		ZoneScoped;
 		if ( std::holds_alternative< OctTreeNodeLeaf >( this->m_node_data ) )
@@ -283,7 +283,7 @@ namespace fgl::engine
 		std::unreachable();
 	}
 
-	auto OctTreeNode::getGameObjectItter( const GameObject::ID id )
+	auto OctTreeNode::getGameObjectItter( const GameObject::GameObjectID id )
 	{
 		assert( std::holds_alternative< OctTreeNodeLeaf >( this->m_node_data ) );
 		auto& game_objects { std::get< OctTreeNodeLeaf >( this->m_node_data ) };
@@ -296,7 +296,7 @@ namespace fgl::engine
 		return m_bounds.contains( obj.m_transform.translation );
 	}
 
-	GameObject OctTreeNode::extract( const GameObject::ID id )
+	GameObject OctTreeNode::extract( const GameObject::GameObjectID id )
 	{
 		auto itter { getGameObjectItter( id ) };
 		auto game_object { std::move( *itter ) };
