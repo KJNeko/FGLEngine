@@ -114,7 +114,7 @@
 
 				# Safe for debug
 				# TODO: Figure out LTO with Alaestor's retarded compiler
-				set(FGL_SHARED_OPTIMIZATION_FLAGS "")
+				set(FGL_SHARED_OPTIMIZATION_FLAGS "-fno-rtti")
 
 				set(FGL_GENERAL_OPTIMIZATION_FLAGS "-fdevirtualize-at-ltrans -fdevirtualize-speculatively -funroll-loops -floop-nest-optimize -floop-parallelize-all -fsplit-paths -fstrict-aliasing -ftree-vectorize")
 
