@@ -4,14 +4,12 @@
 
 #include "EntityRendererSystem.hpp"
 
-#include <imgui/imgui.h>
 #include <tracy/TracyC.h>
 #include <vulkan/vulkan.hpp>
 
 #include <set>
 
 #include "DrawPair.hpp"
-#include "engine/debug/drawers.hpp"
 #include "engine/literals/size.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
 

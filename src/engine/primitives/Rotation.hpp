@@ -74,13 +74,13 @@ namespace fgl::engine
 
 		Rotation( const glm::quat other ) : glm::quat( other ) {}
 
-		auto pitch() { return RotationModifier< RotationModifierType::Pitch >( *this ); }
+		FGL_FORCE_INLINE_FLATTEN auto pitch() { return RotationModifier< RotationModifierType::Pitch >( *this ); }
 
-		auto roll() { return RotationModifier< RotationModifierType::Roll >( *this ); }
+		FGL_FORCE_INLINE_FLATTEN auto roll() { return RotationModifier< RotationModifierType::Roll >( *this ); }
 
-		auto yaw() { return RotationModifier< RotationModifierType::Yaw >( *this ); }
+		FGL_FORCE_INLINE_FLATTEN auto yaw() { return RotationModifier< RotationModifierType::Yaw >( *this ); }
 
-		float pitch() const
+		FGL_FORCE_INLINE float pitch() const
 		{
 			//TODO: Ask entry to explain this stuff
 			const float sinr_cosp { 2.0f * ( w * x + y * z ) };
@@ -88,14 +88,14 @@ namespace fgl::engine
 			return std::atan2( sinr_cosp, cosr_cosp );
 		}
 
-		float roll() const
+		FGL_FORCE_INLINE float roll() const
 		{
 			const float sinp { glm::sqrt( 1.0f + 2.0f * ( w * y - x * z ) ) };
 			const float cosp { glm::sqrt( 1.0f - 2.0f * ( w * y - x * z ) ) };
 			return 2.0f * std::atan2( sinp, cosp ) - ( std::numbers::pi_v< float > / 2.0f );
 		}
 
-		float yaw() const
+		FGL_FORCE_INLINE float yaw() const
 		{
 			const float siny_cosp { 2.0f * ( w * z + x * y ) };
 			const float cosy_cosp { 1.0f - 2.0f * ( y * y + z * z ) };
@@ -120,7 +120,7 @@ namespace fgl::engine
 	};
 
 	template < RotationModifierType ModifierType >
-	RotationModifier< ModifierType >::operator float() const
+	FGL_FORCE_INLINE_FLATTEN RotationModifier< ModifierType >::operator float() const
 	{
 		switch ( ModifierType )
 		{

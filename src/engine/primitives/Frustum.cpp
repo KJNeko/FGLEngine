@@ -8,7 +8,6 @@
 #include "engine/primitives/boxes/AxisAlignedBoundingBox.hpp"
 #include "engine/primitives/boxes/AxisAlignedBoundingCube.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"
-#include "imgui/imgui.h"
 
 namespace fgl::engine
 {
@@ -173,6 +172,7 @@ namespace fgl::engine
 
 	void imGuiFrustumSettings()
 	{
+		/*
 #if ENABLE_IMGUI
 		//Check if any of the box's points are inside the frustum
 		if ( ImGui::CollapsingHeader( "Frustum intersection settings" ) )
@@ -189,6 +189,7 @@ namespace fgl::engine
 			}
 		}
 #endif
+		*/
 	}
 
 	template <>

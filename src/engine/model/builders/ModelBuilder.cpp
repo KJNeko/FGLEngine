@@ -11,6 +11,7 @@ namespace fgl::engine
 
 	void ModelBuilder::loadModel( const std::filesystem::path& filepath )
 	{
+		ZoneScoped;
 		if ( filepath.extension() == ".obj" )
 		{
 			loadObj( filepath );
@@ -25,6 +26,7 @@ namespace fgl::engine
 
 	void ModelBuilder::loadVerts( std::vector< Vertex > verts, std::vector< std::uint32_t > indicies )
 	{
+		ZoneScoped;
 		VertexBufferSuballocation vertex_suballoc { this->m_vertex_buffer, verts };
 		IndexBufferSuballocation index_suballoc { this->m_index_buffer, std::move( indicies ) };
 

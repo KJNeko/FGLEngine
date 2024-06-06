@@ -18,6 +18,7 @@ namespace fgl::engine
 
 	std::vector< vk::DrawIndexedIndirectCommand > Model::buildParameters( const std::vector< Primitive >& primitives )
 	{
+		ZoneScoped;
 		std::vector< vk::DrawIndexedIndirectCommand > draw_parameters {};
 		draw_parameters.reserve( primitives.size() );
 
@@ -40,6 +41,7 @@ namespace fgl::engine
 
 	OrientedBoundingBox< CoordinateSpace::Model > Model::buildBoundingBox( const std::vector< Primitive >& primitives )
 	{
+		ZoneScoped;
 		assert( primitives.size() > 0 );
 		if ( primitives.size() <= 0 ) return {};
 
@@ -52,6 +54,7 @@ namespace fgl::engine
 
 	std::vector< vk::DrawIndexedIndirectCommand > Model::getDrawCommand( const std::uint32_t index ) const
 	{
+		ZoneScoped;
 		std::vector< vk::DrawIndexedIndirectCommand > draw_commands {};
 		draw_commands.reserve( m_primitives.size() );
 		for ( const auto& cmd : m_draw_parameters )
@@ -85,6 +88,7 @@ namespace fgl::engine
 	std::shared_ptr< Model > Model::
 		createModel( Device& device, const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer )
 	{
+		ZoneScoped;
 		std::cout << "Creating model: " << path << std::endl;
 		ModelBuilder builder { vertex_buffer, index_buffer };
 		builder.loadModel( path );
@@ -101,6 +105,7 @@ namespace fgl::engine
 	std::vector< std::shared_ptr< Model > > Model::createModelsFromScene(
 		Device& device, const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer )
 	{
+		ZoneScoped;
 		std::cout << "Loading scene: " << path << std::endl;
 		SceneBuilder builder { vertex_buffer, index_buffer };
 		builder.loadScene( path );
@@ -117,6 +122,7 @@ namespace fgl::engine
 		Buffer& vertex_buffer,
 		Buffer& index_buffer )
 	{
+		ZoneScoped;
 		ModelBuilder builder { vertex_buffer, index_buffer };
 		builder.loadVerts( std::move( verts ), std::move( indicies ) );
 

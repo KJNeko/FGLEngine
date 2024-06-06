@@ -22,6 +22,8 @@
 #include "imgui/backends/imgui_impl_vulkan.h"
 #pragma GCC diagnostic pop
 
+#include "engine/logging/logging.hpp"
+
 namespace fgl::engine
 {
 
@@ -53,6 +55,7 @@ namespace fgl::engine
 	Texture Texture::loadFromFile( const std::filesystem::path& path )
 	{
 		ZoneScoped;
+		log::debug( "Loading texture: {}", path );
 		//TODO: Make some way of cleaning the map when loading textures
 
 		if ( texture_map.contains( path.string() ) )
@@ -74,11 +77,42 @@ namespace fgl::engine
 
 		texture_map.emplace( path.string(), tex.m_handle );
 
+		log::debug( "Loaded texture at {} with res {}x{}", path, tex.getExtent().width, tex.getExtent().height );
+
 		return std::move( tex );
+	}
+
+	void Texture::drawImGui( vk::Extent2D extent )
+	{
+		if ( this->m_handle->m_imgui_set == VK_NULL_HANDLE ) createImGuiSet();
+
+		if ( extent == vk::Extent2D() )
+		{
+			extent = getExtent();
+		}
+
+		const ImVec2 imgui_size { static_cast< float >( extent.width ), static_cast< float >( extent.height ) };
+
+		ImGui::Image( static_cast< ImTextureID >( getImGuiDescriptorSet() ), imgui_size );
+	}
+
+	bool Texture::drawImGuiButton( vk::Extent2D extent )
+	{
+		if ( this->m_handle->m_imgui_set == VK_NULL_HANDLE ) createImGuiSet();
+
+		if ( extent == vk::Extent2D() )
+		{
+			extent = getExtent();
+		}
+
+		const ImVec2 imgui_size { static_cast< float >( extent.width ), static_cast< float >( extent.height ) };
+
+		return ImGui::ImageButton( static_cast< ImTextureID >( getImGuiDescriptorSet() ), imgui_size );
 	}
 
 	Texture Texture::generateFromPerlinNoise( int x_size, int y_size, std::size_t seed )
 	{
+		ZoneScoped;
 		const std::vector< std::byte > data { generatePerlinImage( { x_size, y_size }, 15, seed ) };
 
 		Texture tex { data, x_size, y_size, 4 };
@@ -207,7 +241,12 @@ namespace fgl::engine
 
 		auto& view { m_handle->m_image_view };
 
+		assert( view );
+
 		VkImageView vk_view { view->getVkView() };
+		assert( vk_view );
+
+		assert( view->getSampler() );
 		VkSampler vk_sampler { view->getSampler()->getVkSampler() };
 
 		m_handle->m_imgui_set =

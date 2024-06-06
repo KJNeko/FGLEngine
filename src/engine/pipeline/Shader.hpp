@@ -6,7 +6,7 @@
 
 #include <fstream>
 
-#include "engine/logging.hpp"
+#include "engine/logging/logging.hpp"
 
 namespace fgl::engine
 {
@@ -62,7 +62,7 @@ namespace fgl::engine
 			}
 			else
 			{
-				spdlog::critical( "Failed to load shader module {}. Path not found", path.string() );
+				log::critical( "Failed to load shader module {}. Path not found", path.string() );
 				throw std::runtime_error( "Failed to load shader module. Path not found" );
 			}
 		}

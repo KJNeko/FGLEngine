@@ -53,6 +53,9 @@ namespace fgl::engine
 		[[nodiscard]] static Texture generateFromPerlinNoise( int x_size, int y_size, std::size_t seed = 0 );
 		[[nodiscard]] static Texture loadFromFile( const std::filesystem::path& path );
 
+		void drawImGui( vk::Extent2D extent = {} );
+		bool drawImGuiButton(vk::Extent2D extent = {});
+
 		static DescriptorSet& getTextureDescriptorSet();
 	};
 

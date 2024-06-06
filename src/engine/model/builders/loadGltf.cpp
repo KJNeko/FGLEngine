@@ -21,6 +21,7 @@ namespace fgl::engine
 	template < typename T >
 	std::vector< T > extractData( const tinygltf::Model& model, const tinygltf::Accessor& accessor )
 	{
+		ZoneScoped;
 		if ( accessor.sparse.isSparse )
 		{
 			//Sparse loading required
@@ -71,8 +72,7 @@ namespace fgl::engine
 
 		if ( T_SIZE != copy_size )
 			throw std::runtime_error(
-				std::string( "Accessor copy values not matching sizeof(T): sizeof(" )
-				+ std::string( typeid( T ).name() ) + ") == " + std::to_string( T_SIZE )
+				std::string( "Accessor copy values not matching sizeof(T): sizeof(T) == " ) + std::to_string( T_SIZE )
 				+ " vs copy_size = " + std::to_string( copy_size ) );
 
 		const auto real_size { copy_size * accessor.count };
@@ -86,6 +86,7 @@ namespace fgl::engine
 
 	void ModelBuilder::loadGltf( const std::filesystem::path& filepath )
 	{
+		ZoneScoped;
 		std::cout << "Loading gltf model " << filepath << std::endl;
 
 		if ( !std::filesystem::exists( filepath ) ) throw std::runtime_error( "File does not exist" );

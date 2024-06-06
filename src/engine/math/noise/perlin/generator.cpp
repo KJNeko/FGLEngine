@@ -68,6 +68,7 @@ namespace fgl::engine
 	std::vector< std::byte >
 		generatePerlinImage( const glm::vec< 2, std::size_t > size, const int octives, const std::size_t seed )
 	{
+		ZoneScoped;
 		constexpr std::size_t channel_count { 4 }; // RGBA
 		std::vector< std::byte > data { size.x * size.y * channel_count };
 

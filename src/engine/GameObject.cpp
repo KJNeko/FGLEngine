@@ -4,6 +4,8 @@
 
 #include "GameObject.hpp"
 
+#include "engine/gui/helpers.hpp"
+#include "engine/gui/safe_include.hpp"
 #include "engine/model/Model.hpp"
 
 namespace fgl::engine
@@ -11,8 +13,28 @@ namespace fgl::engine
 
 	GameObject GameObject::createGameObject()
 	{
-		static ID current_id { 0 };
+		static GameObjectID current_id { 0 };
 		return { current_id++ };
+	}
+
+	void GameObject::drawImGui()
+	{
+		ImGui::InputText( "Name", &this->name );
+
+		// Transform - Position
+		WorldCoordinate& translation { this->m_transform.translation };
+		gui::dragFloat3( "Position", translation.vec() );
+
+		Rotation& rotation { this->m_transform.rotation };
+		gui::dragFloat3Rot( "Rotation", rotation );
+
+		auto& scale { this->m_transform.scale };
+		gui::dragFloat3( "Scale", scale );
+
+		for ( const GameObjectComponentBase* component : components )
+		{
+
+		}
 	}
 
 	OrientedBoundingBox< CoordinateSpace::World > GameObject::getBoundingBox() const

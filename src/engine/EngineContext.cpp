@@ -5,6 +5,7 @@
 #include "EngineContext.hpp"
 
 #include <glm/glm.hpp>
+#include <tracy/TracyC.h>
 #include <tracy/TracyVulkan.hpp>
 
 #include <chrono>
@@ -27,6 +28,7 @@ namespace fgl::engine
 
 	EngineContext::EngineContext()
 	{
+		ZoneScoped;
 		using namespace fgl::literals::size_literals;
 		initGlobalStagingBuffer( 512_MiB );
 #if ENABLE_IMGUI
@@ -39,6 +41,7 @@ namespace fgl::engine
 
 	void EngineContext::run()
 	{
+		TracyCZoneN( TRACY_PrepareEngine, "Inital Run", true );
 		std::cout << "Starting main loop run" << std::endl;
 		using namespace fgl::literals::size_literals;
 		Buffer global_ubo_buffer { 512_KiB,
@@ -108,6 +111,8 @@ namespace fgl::engine
 		camera.setPerspectiveProjection( glm::radians( 90.0f ), aspect, constants::NEAR_PLANE, constants::FAR_PLANE );
 
 		const auto old_aspect_ratio { m_renderer.getAspectRatio() };
+
+		TracyCZoneEnd( TRACY_PrepareEngine );
 
 		while ( !m_window.shouldClose() )
 		{
@@ -196,6 +201,7 @@ namespace fgl::engine
 
 	void EngineContext::loadGameObjects()
 	{
+		ZoneScoped;
 		std::cout << "Loading game objects" << std::endl;
 		auto command_buffer { Device::getInstance().beginSingleTimeCommands() };
 
@@ -254,6 +260,7 @@ namespace fgl::engine
 		}*/
 
 		{
+			ZoneScopedN( "Load phyiscs test" );
 			std::vector< std::shared_ptr< Model > > models { Model::createModelsFromScene(
 				Device::getInstance(),
 				"models/PhysicsTest.glb",
@@ -275,6 +282,7 @@ namespace fgl::engine
 		}
 
 		{
+			ZoneScopedN( "Load terrain" );
 			auto model {
 				generateTerrainModel( m_terrain_system.getVertexBuffer(), m_terrain_system.getIndexBuffer() )
 			};
@@ -379,6 +387,5 @@ namespace fgl::engine
 		gui::cleanupImGui();
 #endif
 	}
-
 
 } // namespace fgl::engine

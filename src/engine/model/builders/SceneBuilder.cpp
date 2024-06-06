@@ -12,7 +12,7 @@
 #include "objectloaders/tiny_gltf.h"
 #pragma GCC diagnostic pop
 
-#include <engine/logging.hpp>
+#include <engine/logging/logging.hpp>
 
 namespace fgl::engine
 {
@@ -24,6 +24,7 @@ namespace fgl::engine
 
 	int SceneBuilder::getTexcoordCount( const tinygltf::Primitive& prim ) const
 	{
+		ZoneScoped;
 		int counter { 0 };
 		for ( const auto& [ key, value ] : prim.attributes )
 		{
@@ -35,6 +36,7 @@ namespace fgl::engine
 	template < typename T >
 	std::vector< T > extractData( const tinygltf::Model& model, const tinygltf::Accessor& accessor )
 	{
+		ZoneScoped;
 		if ( accessor.sparse.isSparse )
 		{
 			//Sparse loading required
@@ -85,8 +87,7 @@ namespace fgl::engine
 
 		if ( T_SIZE != copy_size )
 			throw std::runtime_error(
-				std::string( "Accessor copy values not matching sizeof(T): sizeof(" )
-				+ std::string( typeid( T ).name() ) + ") == " + std::to_string( T_SIZE )
+				std::string( "Accessor copy values not matching sizeof(T): sizeof(T) == " ) + std::to_string( T_SIZE )
 				+ " vs copy_size = " + std::to_string( copy_size ) );
 
 		const auto real_size { copy_size * accessor.count };
@@ -101,6 +102,7 @@ namespace fgl::engine
 	std::vector< std::uint32_t > SceneBuilder::
 		extractIndicies( const tinygltf::Primitive& prim, const tinygltf::Model& model )
 	{
+		ZoneScoped;
 		const auto& indicies_accessor { model.accessors.at( prim.indices ) };
 
 		if ( indicies_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT )
@@ -125,11 +127,13 @@ namespace fgl::engine
 	const tinygltf::Accessor& SceneBuilder::getAccessorForAttribute(
 		const tinygltf::Primitive& prim, const tinygltf::Model& root, const std::string attrib ) const
 	{
+		ZoneScoped;
 		return root.accessors.at( prim.attributes.at( attrib ) );
 	}
 
 	Texture SceneBuilder::loadTexture( const tinygltf::Primitive& prim, const tinygltf::Model& root )
 	{
+		ZoneScoped;
 		const auto mat_idx { prim.material };
 		if ( mat_idx == -1 )
 		{
@@ -141,7 +145,7 @@ namespace fgl::engine
 
 		for ( const auto& [ key, value ] : material.values )
 		{
-			spdlog::debug( "Parsing texture for key {}", key );
+			log::debug( "Parsing texture for key {}", key );
 		}
 
 		//TODO:
@@ -150,6 +154,7 @@ namespace fgl::engine
 
 	std::vector< std::shared_ptr< Model > > SceneBuilder::getModels()
 	{
+		ZoneScoped;
 		std::vector< std::shared_ptr< Model > > new_models { std::move( models ) };
 
 		return new_models;
@@ -158,6 +163,7 @@ namespace fgl::engine
 	std::vector< glm::vec3 > SceneBuilder::
 		extractPositionInfo( const tinygltf::Primitive& prim, const tinygltf::Model& root )
 	{
+		ZoneScoped;
 		const tinygltf::Accessor& accessor { getAccessorForAttribute( prim, root, "POSITION" ) };
 
 		return extractData< glm::vec3 >( root, accessor );
@@ -166,6 +172,7 @@ namespace fgl::engine
 	std::vector< glm::vec3 > SceneBuilder::
 		extractNormalInfo( const tinygltf::Primitive& prim, const tinygltf::Model& root )
 	{
+		ZoneScoped;
 		if ( !hasAttribute( prim, "NORMAL" ) ) return {};
 		const tinygltf::Accessor& accessor { getAccessorForAttribute( prim, root, "NORMAL" ) };
 
@@ -174,7 +181,8 @@ namespace fgl::engine
 
 	std::vector< glm::vec2 > SceneBuilder::extractUVInfo( const tinygltf::Primitive& prim, const tinygltf::Model& root )
 	{
-		spdlog::debug( "Extracting UV info" );
+		ZoneScoped;
+		log::debug( "Extracting UV info" );
 
 		//TODO: Figure out how I can use multiple textures for various things.
 		if ( !hasAttribute( prim, "TEXCOORD_0" ) ) return {};
@@ -186,13 +194,15 @@ namespace fgl::engine
 
 	bool SceneBuilder::hasAttribute( const tinygltf::Primitive& prim, const std::string_view str )
 	{
+		ZoneScoped;
 		return prim.attributes.contains( std::string( str ) );
 	}
 
 	std::vector< Vertex > SceneBuilder::
 		extractVertexInfo( const tinygltf::Primitive& prim, const tinygltf::Model& root )
 	{
-		spdlog::debug( "Extracting vert info" );
+		ZoneScoped;
+		log::debug( "Extracting vert info" );
 		const auto pos { extractPositionInfo( prim, root ) };
 
 		std::vector< Vertex > verts {};
@@ -219,7 +229,7 @@ namespace fgl::engine
 			verts.emplace_back( vert );
 		}
 
-		spdlog::debug(
+		log::debug(
 			"Found {} verts.\n\t- Has UV info: {}\n\t- Has normals: {}",
 			verts.size(),
 			has_uv ? "Yes" : "No",
@@ -230,12 +240,13 @@ namespace fgl::engine
 
 	Primitive SceneBuilder::loadPrimitive( const tinygltf::Primitive& prim, const tinygltf::Model& root )
 	{
+		ZoneScoped;
 		std::string att_str;
 		for ( const auto& attrib : prim.attributes )
 		{
 			att_str += "Attribute: " + attrib.first + "\n";
 		}
-		spdlog::debug( "Attributes for primitive:\n{}", att_str );
+		log::debug( "Attributes for primitive:\n{}", att_str );
 
 		const bool has_normal { hasAttribute( prim, "NORMAL" ) };
 		const bool has_position { hasAttribute( prim, "POSITION" ) };
@@ -278,7 +289,7 @@ namespace fgl::engine
 				}
 			default:
 				{
-					spdlog::error( "Unsupported mode for primtiive loading: {}", prim.mode );
+					log::error( "Unsupported mode for primtiive loading: {}", prim.mode );
 					throw std::runtime_error( "Unsupported mode for primitive loading" );
 				}
 		}
@@ -288,6 +299,7 @@ namespace fgl::engine
 
 	OrientedBoundingBox< CoordinateSpace::Model > createModelBoundingBox( const std::vector< Primitive >& primitives )
 	{
+		ZoneScoped;
 		if ( primitives.size() <= 0 ) return {};
 
 		OrientedBoundingBox< CoordinateSpace::Model > box { primitives.at( 0 ).m_bounding_box };
@@ -299,10 +311,11 @@ namespace fgl::engine
 
 	std::shared_ptr< Model > SceneBuilder::loadModel( const int mesh_idx, const tinygltf::Model& root )
 	{
+		ZoneScoped;
 		const auto mesh { root.meshes[ mesh_idx ] };
 		const auto& primitives { mesh.primitives };
 
-		spdlog::debug( "Mesh idx {} has {} primitives", mesh_idx, primitives.size() );
+		log::debug( "Mesh idx {} has {} primitives", mesh_idx, primitives.size() );
 
 		std::vector< Primitive > finished_primitives {};
 
@@ -312,7 +325,7 @@ namespace fgl::engine
 			finished_primitives.emplace_back( std::move( primitive ) );
 		}
 
-		spdlog::debug( "Finished loading model with {} primitives", finished_primitives.size() );
+		log::debug( "Finished loading model with {} primitives", finished_primitives.size() );
 
 		const auto bounding_box { createModelBoundingBox( finished_primitives ) };
 
@@ -321,14 +334,15 @@ namespace fgl::engine
 
 	void SceneBuilder::handleNode( const int node_idx, const tinygltf::Model& root )
 	{
+		ZoneScoped;
 		const auto& node { root.nodes[ node_idx ] };
-		spdlog::debug( "Handling node: Index:{} Name:\"{}\"", node_idx, node.name );
+		log::debug( "Handling node: Index:{} Name:\"{}\"", node_idx, node.name );
 
 		const auto mesh_idx { node.mesh };
 		const auto skin_idx { node.skin };
 
-		spdlog::debug( "Mesh IDX: {}", mesh_idx );
-		spdlog::debug( "Skin IDX: {}", skin_idx );
+		log::debug( "Mesh IDX: {}", mesh_idx );
+		log::debug( "Skin IDX: {}", skin_idx );
 
 		std::shared_ptr< Model > model { loadModel( mesh_idx, root ) };
 
@@ -340,9 +354,10 @@ namespace fgl::engine
 
 	void SceneBuilder::handleScene( const tinygltf::Scene& scene, const tinygltf::Model& root )
 	{
-		spdlog::debug( "Handling scene: ", scene.name );
+		ZoneScoped;
+		log::debug( "Handling scene: ", scene.name );
 
-		spdlog::debug( "Scene has {} nodes", scene.nodes.size() );
+		log::debug( "Scene has {} nodes", scene.nodes.size() );
 		for ( const auto node_idx : scene.nodes )
 		{
 			handleNode( node_idx, root );
@@ -351,6 +366,7 @@ namespace fgl::engine
 
 	void SceneBuilder::loadScene( const std::filesystem::path path )
 	{
+		ZoneScoped;
 		if ( !std::filesystem::exists( path ) ) throw std::runtime_error( "Failed to find scene at filepath" );
 
 		tinygltf::TinyGLTF loader {};
@@ -366,13 +382,13 @@ namespace fgl::engine
 
 		if ( !err.empty() )
 		{
-			spdlog::error( "Error loading model {}: \"{}\"", path.string(), err );
+			log::error( "Error loading model {}: \"{}\"", path.string(), err );
 			throw std::runtime_error( err );
 		}
 
 		if ( !warn.empty() )
 		{
-			spdlog::warn( "Warning loading model {}: \"{}\"", path.string(), warn );
+			log::warn( "Warning loading model {}: \"{}\"", path.string(), warn );
 		}
 
 		const auto scenes { gltf_model.scenes };

@@ -8,7 +8,7 @@
 #include <set>
 #include <unordered_set>
 
-#include "engine/logging.hpp"
+#include "engine/logging/logging.hpp"
 
 PFN_vkCreateDebugUtilsMessengerEXT pfnVkCreateDebugUtilsMessengerEXT { nullptr };
 PFN_vkDestroyDebugUtilsMessengerEXT pfnVkDestroyDebugUtilsMessengerEXT { nullptr };
@@ -22,23 +22,24 @@ static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
 	[[maybe_unused]] void* pUserData )
 {
 	using Bits = VkDebugUtilsMessageSeverityFlagBitsEXT;
+	using namespace fgl::engine;
 
 	if ( pCallbackData->flags & Bits::VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT )
 	{
-		spdlog::info( pCallbackData->pMessage );
+		log::info( pCallbackData->pMessage );
 	}
 	else if ( pCallbackData->flags & Bits::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT )
 	{
-		spdlog::warn( pCallbackData->pMessage );
+		log::warn( pCallbackData->pMessage );
 	}
 	else if ( pCallbackData->flags & Bits::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT )
 	{
-		spdlog::error( pCallbackData->pMessage );
+		log::error( pCallbackData->pMessage );
 		std::abort();
 	}
 	else
 	{
-		//spdlog::critical( "Unknown severity message: {}", pCallbackData->pMessage );
+		//log::critical( "Unknown severity message: {}", pCallbackData->pMessage );
 		//std::abort();
 	}
 
@@ -570,6 +571,7 @@ namespace fgl::engine
 
 	vk::CommandBuffer Device::beginSingleTimeCommands()
 	{
+		ZoneScoped;
 		vk::CommandBufferAllocateInfo allocInfo {};
 		allocInfo.level = vk::CommandBufferLevel::ePrimary;
 		allocInfo.commandPool = m_commandPool;
@@ -589,6 +591,7 @@ namespace fgl::engine
 
 	void Device::endSingleTimeCommands( vk::CommandBuffer commandBuffer )
 	{
+		ZoneScoped;
 		vkEndCommandBuffer( commandBuffer );
 
 		vk::SubmitInfo submitInfo {};
@@ -606,6 +609,7 @@ namespace fgl::engine
 	void Device::
 		copyBufferToImage( vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height, uint32_t layerCount )
 	{
+		ZoneScoped;
 		vk::CommandBuffer commandBuffer { beginSingleTimeCommands() };
 
 		vk::BufferImageCopy region {};
