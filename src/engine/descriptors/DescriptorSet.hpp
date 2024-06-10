@@ -61,7 +61,7 @@ namespace fgl::engine
 		void bindAttachment(
 			std::uint32_t binding_idx, ImageView& view, vk::ImageLayout layout, vk::Sampler sampler = VK_NULL_HANDLE );
 
-		void bindTexture( std::uint32_t binding_idx, Texture& tex );
+		void bindTexture( std::uint32_t binding_idx, std::shared_ptr< Texture >& tex_ptr );
 
 		void setName( const std::string str );
 	};

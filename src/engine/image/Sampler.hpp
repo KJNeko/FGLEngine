@@ -16,7 +16,13 @@ namespace fgl::engine
 
 	  public:
 
-		Sampler() = delete;
+		Sampler() :
+		  Sampler(
+			  vk::Filter::eLinear,
+			  vk::Filter::eLinear,
+			  vk::SamplerMipmapMode::eLinear,
+			  vk::SamplerAddressMode::eClampToBorder )
+		{}
 
 		Sampler(
 			vk::Filter min_filter,

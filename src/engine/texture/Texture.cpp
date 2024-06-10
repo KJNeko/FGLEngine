@@ -6,10 +6,8 @@
 
 #include <initializer_list>
 
-#include "TextureHandle.hpp"
 #include "engine/FrameInfo.hpp"
 #include "engine/buffers/BufferSuballocation.hpp"
-#include "engine/descriptors/DescriptorPool.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/image/ImageView.hpp"
 #include "objectloaders/stb_image.h"
@@ -27,9 +25,8 @@
 namespace fgl::engine
 {
 
-	inline static std::unordered_map< std::string, std::weak_ptr< TextureHandle > > texture_map;
-
-	std::tuple< std::vector< std::byte >, int, int, int > loadTexture( const std::filesystem::path& path )
+	std::tuple< std::vector< std::byte >, int, int, vk::Format >
+		loadTexture( const std::filesystem::path& path, const vk::Format format )
 	{
 		ZoneScoped;
 		if ( !std::filesystem::exists( path ) ) throw std::runtime_error( "Failed to open file: " + path.string() );
@@ -49,42 +46,14 @@ namespace fgl::engine
 
 		stbi_image_free( data_c );
 
-		return { std::move( data ), x, y, 4 };
-	}
+		//TODO: Write check to ensure the format matches the number of channels
 
-	Texture Texture::loadFromFile( const std::filesystem::path& path )
-	{
-		ZoneScoped;
-		log::debug( "Loading texture: {}", path );
-		//TODO: Make some way of cleaning the map when loading textures
-
-		if ( texture_map.contains( path.string() ) )
-		{
-			if ( auto itter = texture_map.find( path.string() ); !itter->second.expired() )
-			{
-				return Texture( itter->second.lock() );
-			}
-			else
-			{
-				//Texture is expired. So it'll need to be reloaded.
-				texture_map.erase( itter );
-			}
-		}
-
-		const auto data { loadTexture( path ) };
-		Texture tex { data };
-		tex.m_handle->m_image_view->setName( path.string() );
-
-		texture_map.emplace( path.string(), tex.m_handle );
-
-		log::debug( "Loaded texture at {} with res {}x{}", path, tex.getExtent().width, tex.getExtent().height );
-
-		return std::move( tex );
+		return { std::move( data ), x, y, format };
 	}
 
 	void Texture::drawImGui( vk::Extent2D extent )
 	{
-		if ( this->m_handle->m_imgui_set == VK_NULL_HANDLE ) createImGuiSet();
+		if ( this->m_imgui_set == VK_NULL_HANDLE ) createImGuiSet();
 
 		if ( extent == vk::Extent2D() )
 		{
@@ -98,7 +67,7 @@ namespace fgl::engine
 
 	bool Texture::drawImGuiButton( vk::Extent2D extent )
 	{
-		if ( this->m_handle->m_imgui_set == VK_NULL_HANDLE ) createImGuiSet();
+		if ( this->m_imgui_set == VK_NULL_HANDLE ) createImGuiSet();
 
 		if ( extent == vk::Extent2D() )
 		{
@@ -107,44 +76,63 @@ namespace fgl::engine
 
 		const ImVec2 imgui_size { static_cast< float >( extent.width ), static_cast< float >( extent.height ) };
 
+		if ( !isReady() )
+		{
+			//TODO: Render placeholder
+			log::warn( "Attempted to render texture {} but texture was not ready!", this->m_texture_id );
+			return ImGui::Button( "No texture :(" );
+		}
+
 		return ImGui::ImageButton( static_cast< ImTextureID >( getImGuiDescriptorSet() ), imgui_size );
 	}
 
-	Texture Texture::generateFromPerlinNoise( int x_size, int y_size, std::size_t seed )
-	{
-		ZoneScoped;
-		const std::vector< std::byte > data { generatePerlinImage( { x_size, y_size }, 15, seed ) };
-
-		Texture tex { data, x_size, y_size, 4 };
-
-		return std::move( tex );
-	}
-
-	Texture::Texture( std::shared_ptr< TextureHandle > handle ) : m_handle( std::move( handle ) )
-	{}
-
-	Texture::Texture( const std::tuple< std::vector< std::byte >, int, int, int >& tuple ) :
+	Texture::Texture( const std::tuple< std::vector< std::byte >, int, int, vk::Format >& tuple ) :
 	  Texture( std::get< 0 >( tuple ), std::get< 1 >( tuple ), std::get< 2 >( tuple ), std::get< 3 >( tuple ) )
 	{}
 
-	Texture::Texture( const std::vector< std::byte >& data, const int x, const int y, const int channels ) :
-	  Texture( data, vk::Extent2D( x, y ), channels )
+	Texture::Texture( const std::vector< std::byte >& data, const int x, const int y, const vk::Format format ) :
+	  Texture( data, vk::Extent2D( x, y ), format )
 	{}
 
-	Texture::Texture( const std::vector< std::byte >& data, const vk::Extent2D extent, const int channels ) :
-	  m_handle( std::make_shared< TextureHandle >( data, extent, channels ) )
+	Texture::Texture( const std::vector< std::byte >& data, const vk::Extent2D extent, const vk::Format format ) :
+	  m_extent( extent )
+	{
+		ZoneScoped;
+		static TextureID tex_counter { 0 };
+
+		auto image = std::make_shared< Image >(
+			extent,
+			format,
+			vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+			vk::ImageLayout::eUndefined,
+			vk::ImageLayout::eShaderReadOnlyOptimal );
+
+		m_image_view = image->getView();
+
+		m_texture_id = tex_counter++;
+
+		m_staging = std::make_unique< BufferSuballocation >( getGlobalStagingBuffer(), data.size() );
+		//Copy data info buffer
+		std::memcpy( reinterpret_cast< unsigned char* >( m_staging->ptr() ), data.data(), data.size() );
+	}
+
+	Texture::Texture( const std::filesystem::path& path, const vk::Format format ) :
+	  Texture( loadTexture( path, format ) )
 	{}
+
+	Texture::~Texture()
+	{
+		if ( m_imgui_set != VK_NULL_HANDLE ) ImGui_ImplVulkan_RemoveTexture( m_imgui_set );
+	}
 
 	void Texture::stage( vk::CommandBuffer& cmd )
 	{
 		ZoneScoped;
-		assert( m_handle && "Attempted to stage invalid texture (No handle)" );
 
-		//assert( m_handle->m_staging && "Can't stage. No staging buffer made" );
+		//assert( m_staging && "Can't stage. No staging buffer made" );
 
-		//TODO: I need some way of telling if a Texture HAS been staged rather then simply checking if the staging buffer is present
-		// Since just checking if the buffer is present could not mean it has been staged (IE staged but not dropped, Or never created in the first place)
-		if ( !m_handle->m_staging ) return;
+		// Texutres are made with a staging buffer in RAM, Thus if the buffer has been dropped then we have been sucesfully staged.
+		if ( !m_staging ) return;
 
 		vk::ImageSubresourceRange range;
 		range.aspectMask = vk::ImageAspectFlagBits::eColor;
@@ -156,7 +144,7 @@ namespace fgl::engine
 		vk::ImageMemoryBarrier barrier {};
 		barrier.oldLayout = vk::ImageLayout::eUndefined;
 		barrier.newLayout = vk::ImageLayout::eTransferDstOptimal;
-		barrier.image = m_handle->m_image_view->getVkImage();
+		barrier.image = m_image_view->getVkImage();
 		barrier.subresourceRange = range;
 		barrier.srcAccessMask = {};
 		barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
@@ -172,7 +160,7 @@ namespace fgl::engine
 			barriers_to );
 
 		vk::BufferImageCopy region {};
-		region.bufferOffset = m_handle->m_staging->getOffset();
+		region.bufferOffset = m_staging->getOffset();
 		region.bufferRowLength = 0;
 		region.bufferImageHeight = 0;
 
@@ -182,21 +170,17 @@ namespace fgl::engine
 		region.imageSubresource.layerCount = 1;
 
 		region.imageOffset = vk::Offset3D( 0, 0, 0 );
-		region.imageExtent = vk::Extent3D( m_handle->m_extent, 1 );
+		region.imageExtent = vk::Extent3D( m_extent, 1 );
 
 		cmd.copyBufferToImage(
-			m_handle->m_staging->getVkBuffer(),
-			m_handle->m_image_view->getVkImage(),
-			vk::ImageLayout::eTransferDstOptimal,
-			1,
-			&region );
+			m_staging->getVkBuffer(), m_image_view->getVkImage(), vk::ImageLayout::eTransferDstOptimal, 1, &region );
 
 		//Transfer back to eGeneral
 
 		vk::ImageMemoryBarrier barrier_from {};
 		barrier_from.oldLayout = barrier.newLayout;
 		barrier_from.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-		barrier_from.image = m_handle->m_image_view->getVkImage();
+		barrier_from.image = m_image_view->getVkImage();
 		barrier_from.subresourceRange = range;
 		barrier_from.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
 		barrier_from.dstAccessMask = vk::AccessFlagBits::eShaderRead;
@@ -214,57 +198,55 @@ namespace fgl::engine
 
 	void Texture::dropStaging()
 	{
-		m_handle->m_staging.reset();
+		assert( m_staging );
+		m_staging.reset();
 	}
 
 	vk::DescriptorImageInfo Texture::getDescriptor() const
 	{
-		return m_handle->m_image_view->descriptorInfo( vk::ImageLayout::eGeneral );
+		return m_image_view->descriptorInfo( vk::ImageLayout::eGeneral );
 	}
 
 	vk::Extent2D Texture::getExtent() const
 	{
-		return m_handle->m_image_view->getExtent();
+		return m_image_view->getExtent();
 	}
 
 	ImageView& Texture::getImageView()
 	{
-		assert( m_handle );
-		assert( m_handle->m_image_view );
-		return *m_handle->m_image_view;
+		assert( m_image_view );
+		return *m_image_view;
 	}
 
 	void Texture::createImGuiSet()
 	{
 #if ENABLE_IMGUI
-		if ( m_handle->m_imgui_set != VK_NULL_HANDLE ) return;
+		if ( m_imgui_set != VK_NULL_HANDLE ) return;
 
-		auto& view { m_handle->m_image_view };
+		auto& view { m_image_view };
 
 		assert( view );
 
 		VkImageView vk_view { view->getVkView() };
 		assert( vk_view );
 
-		assert( view->getSampler() );
-		VkSampler vk_sampler { view->getSampler()->getVkSampler() };
+		VkSampler vk_sampler { view->getSampler().getVkSampler() };
 
-		m_handle->m_imgui_set =
-			ImGui_ImplVulkan_AddTexture( vk_sampler, vk_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+		m_imgui_set = ImGui_ImplVulkan_AddTexture( vk_sampler, vk_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 #endif
 	}
 
 	vk::DescriptorSet& Texture::getImGuiDescriptorSet()
 	{
-		assert( m_handle );
-		assert( m_handle->m_imgui_set != VK_NULL_HANDLE );
-		return m_handle->m_imgui_set;
+		assert( !m_staging );
+		assert( m_imgui_set != VK_NULL_HANDLE );
+		return m_imgui_set;
 	}
 
 	TextureID Texture::getID() const
 	{
-		assert( m_handle );
-		return m_handle->m_texture_id;
+		assert( !m_staging );
+		return m_texture_id;
 	}
 
 	DescriptorSet& Texture::getTextureDescriptorSet()

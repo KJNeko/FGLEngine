@@ -18,12 +18,15 @@ namespace fgl::engine::filesystem
 	{
 		static FileBrowser& getInstance();
 
+		static void goUp();
+
 		static void addFolderToRoot();
 
-		static void openFolderRoot( const std::string str );
+		static void openFolder( DirInfo& dir );
 
 		static void drawGui( FrameInfo& info );
-		static void drawFile( const FileInfo& data );
+		static void drawFile( FileInfo& data );
+		static void drawFolder( DirInfo& data );
 	};
 
 } // namespace fgl::engine::filesystem

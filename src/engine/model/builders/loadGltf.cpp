@@ -9,6 +9,7 @@
 #pragma GCC diagnostic pop
 
 #include "ModelBuilder.hpp"
+#include "engine/assets/stores.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/image/ImageView.hpp"
 #include "engine/image/Sampler.hpp"
@@ -253,24 +254,24 @@ namespace fgl::engine
 							sampler.wrapS == sampler.wrapT
 							&& "Can't support different wrap modes for textures on each axis" );
 
-						Texture tex { Texture::loadFromFile( filepath.parent_path() / source.uri ) };
+						//TOOD: Get format from texture info and convert to vkFOrmat
+
+						std::shared_ptr< Texture > tex {
+							getTextureStore().load( filepath.parent_path() / source.uri, vk::Format::eR8G8B8A8Unorm )
+						};
 						Sampler smp { translateFilterToVK( sampler.minFilter ),
 							          translateFilterToVK( sampler.magFilter ),
 							          vk::SamplerMipmapMode::eLinear,
 							          translateWarppingToVk( sampler.wrapS ) };
 
-						tex.getImageView().getSampler() = std::move( smp );
-						tex.createImGuiSet();
+						tex->getImageView().getSampler() = std::move( smp );
+						tex->createImGuiSet();
 
 						Texture::getTextureDescriptorSet().bindTexture( 0, tex );
 						Texture::getTextureDescriptorSet().update();
 
 						//Stage texture
 						auto cmd { Device::getInstance().beginSingleTimeCommands() };
-
-						tex.stage( cmd );
-						Device::getInstance().endSingleTimeCommands( cmd );
-						tex.dropStaging();
 
 						Primitive prim { std::move( vertex_buffer ),
 							             std::move( index_buffer ),

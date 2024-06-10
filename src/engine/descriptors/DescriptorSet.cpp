@@ -87,15 +87,21 @@ namespace fgl::engine
 		descriptor_writes.push_back( write );
 	}
 
-	void DescriptorSet::bindTexture( std::uint32_t binding_idx, Texture& tex )
+	void DescriptorSet::bindTexture( std::uint32_t binding_idx, std::shared_ptr< Texture >& tex_ptr )
 	{
 		assert( binding_idx < m_infos.size() && "Binding index out of range" );
 		assert(
 			std::holds_alternative< std::monostate >( m_infos[ binding_idx ] )
 			&& "Update must be called between each array bind" );
 
+		assert( tex_ptr );
+
+		//TODO: Bind temporary texture if tex_ptr is not ready.
+
+		Texture& tex { *tex_ptr };
+
 		m_infos[ binding_idx ] = tex.getImageView().descriptorInfo(
-			tex.getImageView().getSampler()->getVkSampler(), vk::ImageLayout::eShaderReadOnlyOptimal );
+			tex.getImageView().getSampler().getVkSampler(), vk::ImageLayout::eShaderReadOnlyOptimal );
 
 		vk::WriteDescriptorSet write {};
 		write.dstSet = m_set;

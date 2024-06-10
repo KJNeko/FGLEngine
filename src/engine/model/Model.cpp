@@ -133,18 +133,13 @@ namespace fgl::engine
 		return model_ptr;
 	}
 
-	void Model::syncBuffers( vk::CommandBuffer& cmd_buffer )
+	void Model::stage( vk::CommandBuffer& cmd_buffer )
 	{
 		assert( !m_primitives.empty() );
 		for ( auto& primitive : m_primitives )
 		{
 			primitive.m_vertex_buffer.stage( cmd_buffer );
 			primitive.m_index_buffer.stage( cmd_buffer );
-
-			if ( primitive.m_texture.has_value() )
-			{
-				primitive.m_texture->stage( cmd_buffer );
-			}
 		}
 	}
 

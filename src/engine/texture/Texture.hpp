@@ -8,36 +8,62 @@
 
 #include <filesystem>
 
-#include "TextureHandle.hpp"
+#include "engine/assets/AssetManager.hpp"
 
 namespace fgl::engine
 {
+	class BufferSuballocation;
+	class ImageView;
 	class DescriptorSet;
 	class TextureHandle;
 
-	//TODO: Implement texture handle map to avoid loading the same texture multiple times
-	class Texture
-	{
-		std::shared_ptr< TextureHandle > m_handle;
-		//! Has this texture been submitted to the GPU?
-		bool submitte_to_gpu { false };
+	using TextureID = std::uint32_t;
 
-		[[nodiscard]] Texture( const std::tuple< std::vector< std::byte >, int, int, int >& );
-		[[nodiscard]] Texture( std::shared_ptr< TextureHandle > handle );
+	class Texture;
+
+	using TextureStore = AssetStore< Texture >;
+
+	//TODO: Implement texture handle map to avoid loading the same texture multiple times
+	class Texture final : public AssetInterface< Texture >, public std::enable_shared_from_this< Texture >
+	{
+		template < typename T >
+		friend class AssetStore;
+
+		//TODO: Implement reusing texture ids
+		TextureID m_texture_id { std::numeric_limits< TextureID >::infinity() };
+
+		std::shared_ptr< ImageView > m_image_view {};
+
+		std::unique_ptr< BufferSuballocation > m_staging { nullptr };
+
+		vk::Extent2D m_extent { 0, 0 };
+
+		vk::DescriptorSet m_imgui_set { VK_NULL_HANDLE };
+
+		[[nodiscard]] Texture( const std::tuple< std::vector< std::byte >, int, int, vk::Format >& );
+
+		[[nodiscard]]
+		Texture( const std::vector< std::byte >& data, const int x, const int y, const vk::Format texture_format );
+
+		[[nodiscard]]
+		Texture( const std::vector< std::byte >& data, const vk::Extent2D extent, const vk::Format texture_format );
+
+		[[nodiscard]] Texture( const std::filesystem::path& path, const vk::Format format );
+
+		void stage( vk::CommandBuffer& cmd ) override;
+		void dropStaging();
 
 	  public:
 
-		[[nodiscard]] Texture( const std::vector< std::byte >& data, const int x, const int y, const int channels );
-		[[nodiscard]] Texture( const std::vector< std::byte >& data, const vk::Extent2D extent, const int channels );
+		Texture() = delete;
 
-		Texture( const Texture& ) = default;
+		~Texture();
+
+		Texture( const Texture& ) = delete;
 		Texture& operator=( const Texture& ) = delete;
 
-		Texture( Texture&& other ) = default;
-		Texture& operator=( Texture&& ) = default;
-
-		void stage( vk::CommandBuffer& cmd );
-		void dropStaging();
+		Texture( Texture&& other ) = delete;
+		Texture& operator=( Texture&& ) = delete;
 
 		[[nodiscard]] TextureID getID() const;
 
@@ -50,11 +76,8 @@ namespace fgl::engine
 
 		void createImGuiSet();
 
-		[[nodiscard]] static Texture generateFromPerlinNoise( int x_size, int y_size, std::size_t seed = 0 );
-		[[nodiscard]] static Texture loadFromFile( const std::filesystem::path& path );
-
 		void drawImGui( vk::Extent2D extent = {} );
-		bool drawImGuiButton(vk::Extent2D extent = {});
+		bool drawImGuiButton( vk::Extent2D extent = {} );
 
 		static DescriptorSet& getTextureDescriptorSet();
 	};

@@ -59,7 +59,7 @@ namespace fgl::engine
 		const tinygltf::Accessor& getAccessorForAttribute(
 			const tinygltf::Primitive& prim, const tinygltf::Model& root, const std::string attrib ) const;
 
-		Texture loadTexture( const tinygltf::Primitive& prim, const tinygltf::Model& root );
+		std::shared_ptr< Texture > loadTexture( const tinygltf::Primitive& prim, const tinygltf::Model& root );
 
 	  public:
 

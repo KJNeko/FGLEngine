@@ -42,7 +42,7 @@ namespace fgl::engine
 		OrientedBoundingBox< CoordinateSpace::Model > m_bounding_box;
 		PrimitiveMode m_mode;
 
-		std::optional< Texture > m_texture { std::nullopt };
+		std::shared_ptr< Texture > m_texture;
 
 		Primitive(
 			VertexBufferSuballocation&& vertex_buffer,
@@ -59,13 +59,13 @@ namespace fgl::engine
 			VertexBufferSuballocation&& vertex_buffer,
 			IndexBufferSuballocation&& index_buffer,
 			const OrientedBoundingBox< CoordinateSpace::Model >& bounding_box,
-			Texture&& texture,
+			std::shared_ptr< Texture >&& texture,
 			const PrimitiveMode mode ) :
 		  m_vertex_buffer( std::move( vertex_buffer ) ),
 		  m_index_buffer( std::move( index_buffer ) ),
 		  m_bounding_box( bounding_box ),
 		  m_mode( mode ),
-		  m_texture( std::move( texture ) )
+		  m_texture( std::forward< decltype( m_texture ) >( texture ) )
 		{}
 
 		Primitive() = delete;

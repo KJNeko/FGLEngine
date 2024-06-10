@@ -4,49 +4,43 @@
 
 #include "FileBrowser.hpp"
 
+#include "engine/assets/stores.hpp"
 #include "engine/filesystem/scanner/FileScanner.hpp"
 #include "engine/gui/safe_include.hpp"
 #include "engine/image/ImageView.hpp"
-#include "engine/image/Sampler.hpp"
 #include "engine/texture/Texture.hpp"
 
 namespace fgl::engine::filesystem
 {
 
-	inline static std::vector< std::unique_ptr< FileScanner > > scanners {};
-	inline static FileScanner* current_scanner { nullptr };
+	inline static std::optional< DirInfo > root {};
+	inline static DirInfo* current { nullptr };
 	inline static std::once_flag flag {};
-	inline static std::optional< Texture > folder_texture { std::nullopt };
+	inline static std::shared_ptr< Texture > folder_texture { nullptr };
+	inline static std::shared_ptr< Texture > file_texture { nullptr };
 
-	const std::filesystem::path path { "/home/kj16609/Desktop/Projects/cxx/Mecha/models" };
+	const std::filesystem::path test_path { "/home/kj16609/Desktop/Projects/cxx/Mecha/models" };
 
 	void prepareFileGUI()
 	{
 		ZoneScoped;
-		scanners.emplace_back( std::make_unique< FileScanner >( path ) );
 
 		//Prepare textures needed.
-		folder_texture = Texture::loadFromFile( "./models/folder.png" );
-		Sampler sampler { vk::Filter::eLinear,
-			              vk::Filter::eLinear,
-			              vk::SamplerMipmapMode::eLinear,
-			              vk::SamplerAddressMode::eClampToEdge };
-
-		folder_texture->getImageView().getSampler() = std::move( sampler );
+		folder_texture = getTextureStore().load( "./models/folder.png", vk::Format::eR8G8B8A8Unorm );
+		file_texture = getTextureStore().load( "./models/file.png", vk::Format::eR8G8B8A8Unorm );
 
 		auto cmd_buffer { Device::getInstance().beginSingleTimeCommands() };
 
-		folder_texture->stage( cmd_buffer );
-
 		Device::getInstance().endSingleTimeCommands( cmd_buffer );
 
-		folder_texture->dropStaging();
+		root = DirInfo( test_path );
+		current = &root.value();
 	}
 
 	void FileBrowser::drawGui( FrameInfo& info )
 	{
 		ZoneScoped;
-		//std::call_once( flag, []() { scanners.emplace_back( std::make_unique< FileScanner >( path ) ); } );
+		//std::call_once( flag, []() { scanners.emplace_back( std::make_unique< FileScanner >( test_path ) ); } );
 		std::call_once( flag, []() { prepareFileGUI(); } );
 
 		/*
@@ -67,23 +61,24 @@ namespace fgl::engine::filesystem
 		}
 		*/
 
-		ImGui::Text( "Scanners: %ld", scanners.size() );
-
 		const auto size { ImGui::GetWindowSize() };
 		constexpr float desired_size { 128.0f };
 		const float extra { std::fmod( size.x, desired_size ) };
 		const auto cols { ( size.x - extra ) / desired_size };
 
-		if ( ImGui::BeginTable( "Files", cols ) )
+		if ( current && ImGui::BeginTable( "Files", cols ) )
 		{
-			for ( auto& scanner : scanners )
+			//List folders first
+			for ( std::size_t i = 0; i < current->folderCount(); ++i )
 			{
-				//Print out all files found at the inital depth
-				for ( const FileInfo& file : *scanner )
-				{
-					if ( file.depth > 1 ) continue;
-					if ( ImGui::TableNextColumn() ) drawFile( file );
-				}
+				ImGui::TableNextColumn();
+				drawFolder( current->dir( i ) );
+			}
+
+			for ( std::size_t i = 0; i < current->fileCount(); ++i )
+			{
+				ImGui::TableNextColumn();
+				drawFile( current->file( i ) );
 			}
 
 			ImGui::EndTable();
@@ -92,25 +87,91 @@ namespace fgl::engine::filesystem
 		ImGui::Columns( 1 );
 	}
 
-	void FileBrowser::drawFile( const FileInfo& data )
+	enum FileType
+	{
+		TEXTURE,
+		MODEL,
+		BINARY,
+		DEFAULT = BINARY,
+	};
+
+	FileType getFileType( const std::filesystem::path path )
+	{
+		//TODO: NEVER TRUST FILE EXTENSIONS!
+		const auto extension { path.extension() };
+
+		//Map
+		static const std::map< FileType, std::vector< std::string_view > > map {
+			{ TEXTURE, { ".jpg", ".png" } }, { MODEL, { ".glb", ".obj", ".gltf" } }
+		};
+
+		for ( const auto& [ type, extensions ] : map )
+		{
+			//Check if the file extensions matches the list for this type
+			if ( std::find( extensions.begin(), extensions.end(), extension ) != extensions.end() )
+			{
+				return type;
+			}
+		}
+
+		//Default
+		return DEFAULT;
+	}
+
+	void drawTexture()
+	{}
+
+	void drawModel()
+	{}
+
+	void drawBinary()
+	{}
+
+	void FileBrowser::drawFile( FileInfo& data )
 	{
 		ZoneScoped;
 		ImGui::PushID( data.path.c_str() );
 		ImGui::Text( data.filename.c_str() );
 		ImGui::Text( data.ext.c_str() );
 
-		if ( data.is_folder ) // Folders have no extension
+		// file_texture->drawImGui( { 128, 128 } );
+		file_texture->drawImGuiButton( { 128, 128 } );
+		if ( ImGui::BeginDragDropSource() )
 		{
-			if ( folder_texture->drawImGuiButton( { 128, 128 } ) )
-			{
-				std::cout << "Pressed thing" << std::endl;
-			}
+			ImGui::
+				SetDragDropPayload( "_FILE_INFO", &data, sizeof( data ), ImGuiCond_Once /* Only copy the data once */ );
+			ImGui::SetTooltip( data.filename.c_str() );
+
+			ImGui::EndDragDropSource();
 		}
 
 		ImGui::SameLine();
 		ImGui::Text( "%0.1f KB", static_cast< float >( data.size ) / 1024.0f );
 		ImGui::NextColumn();
 		ImGui::PopID();
+	}
+
+	void FileBrowser::drawFolder( DirInfo& data )
+	{
+		ZoneScoped;
+		ImGui::PushID( data.path.c_str() );
+
+		ImGui::Text( data.path.filename().c_str() );
+		ImGui::Text( "Folder" );
+
+		if ( folder_texture->drawImGuiButton( { 128, 128 } ) )
+		{
+			openFolder( data );
+		}
+
+		ImGui::PopID();
+	}
+
+	void FileBrowser::openFolder( DirInfo& dir )
+	{
+		if ( !current ) throw std::runtime_error( "No current folder?" );
+
+		current = &dir;
 	}
 
 } // namespace fgl::engine::filesystem

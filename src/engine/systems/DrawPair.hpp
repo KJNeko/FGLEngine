@@ -5,7 +5,7 @@
 #pragma once
 #include "engine/GameObject.hpp"
 #include "engine/primitives/Frustum.hpp"
-#include "engine/texture/TextureHandle.hpp"
+#include "engine/texture/Texture.hpp"
 #include "engine/utils.hpp"
 
 namespace fgl::engine

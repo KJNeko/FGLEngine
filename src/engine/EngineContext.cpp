@@ -12,6 +12,7 @@
 #include <iostream>
 
 #include "KeyboardMovementController.hpp"
+#include "assets/stores.hpp"
 #include "engine/Average.hpp"
 #include "engine/buffers/UniqueFrameSuballocation.hpp"
 #include "engine/debug/drawers.hpp"
@@ -39,6 +40,19 @@ namespace fgl::engine
 
 	static Average< float, 60 * 15 > rolling_ms_average;
 
+	void preStage( vk::CommandBuffer& cmd_buffer )
+	{
+		ZoneScopedN( "Pre-Stage" );
+
+		getTextureStore().stage( cmd_buffer );
+	}
+
+	void postStage()
+	{
+		ZoneScopedN( "Post-Stage" );
+		getTextureStore().confirmStaged();
+	}
+
 	void EngineContext::run()
 	{
 		TracyCZoneN( TRACY_PrepareEngine, "Inital Run", true );
@@ -54,12 +68,9 @@ namespace fgl::engine
 		PerFrameSuballocation< HostSingleT< PointLight > > point_lights { global_ubo_buffer,
 			                                                              SwapChain::MAX_FRAMES_IN_FLIGHT };
 
-		Texture debug_tex { Texture::loadFromFile( "models/textures/DebugTexture.png" ) };
-		Sampler sampler { vk::Filter::eLinear,
-			              vk::Filter::eLinear,
-			              vk::SamplerMipmapMode::eLinear,
-			              vk::SamplerAddressMode::eClampToEdge };
-		debug_tex.getImageView().getSampler() = std::move( sampler );
+		std::shared_ptr< Texture > debug_tex {
+			getTextureStore().load( "models/textures/DebugTexture.png", vk::Format::eR8G8B8A8Unorm )
+		};
 
 		constexpr std::uint32_t matrix_default_size { 64_MiB };
 		constexpr std::uint32_t draw_parameter_default_size { 64_MiB };
@@ -146,6 +157,8 @@ namespace fgl::engine
 
 			if ( auto command_buffer = m_renderer.beginFrame(); command_buffer )
 			{
+				preStage( command_buffer );
+
 				ZoneScopedN( "Render" );
 				//Update
 				const std::uint16_t frame_index { m_renderer.getFrameIndex() };
@@ -194,6 +207,8 @@ namespace fgl::engine
 
 				FrameMark;
 			}
+
+			postStage();
 		}
 
 		Device::getInstance().device().waitIdle();
@@ -259,6 +274,7 @@ namespace fgl::engine
 			}
 		}*/
 
+		/*
 		{
 			ZoneScopedN( "Load phyiscs test" );
 			std::vector< std::shared_ptr< Model > > models { Model::createModelsFromScene(
@@ -312,6 +328,7 @@ namespace fgl::engine
 
 			m_game_objects_root.addGameObject( std::move( floor ) );
 		}
+		*/
 
 		/*
 		{

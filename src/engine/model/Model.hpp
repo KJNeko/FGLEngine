@@ -64,7 +64,7 @@ namespace fgl::engine
 		static std::vector< std::shared_ptr< Model > > createModelsFromScene(
 			Device& device, const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer );
 
-		void syncBuffers( vk::CommandBuffer& cmd_buffer );
+		void stage( vk::CommandBuffer& cmd_buffer );
 
 		const std::string& getName() const { return m_name; }
 

@@ -46,12 +46,12 @@ namespace fgl::engine
 					// If the textureless flag is on and we have a texture then skip the primitive.c
 					if ( options & TEXTURELESS )
 					{
-						if ( primitive.m_texture.has_value() ) continue;
+						if ( primitive.m_texture ) continue;
 					}
 					else
 					{
 						// Flag is not present
-						if ( !primitive.m_texture.has_value() ) continue;
+						if ( !primitive.m_texture ) continue;
 					}
 
 					const auto key { std::make_pair( matrix_info.texture_idx, primitive.m_index_buffer.getOffset() ) };

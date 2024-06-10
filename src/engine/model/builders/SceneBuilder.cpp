@@ -131,7 +131,7 @@ namespace fgl::engine
 		return root.accessors.at( prim.attributes.at( attrib ) );
 	}
 
-	Texture SceneBuilder::loadTexture( const tinygltf::Primitive& prim, const tinygltf::Model& root )
+	std::shared_ptr< Texture > SceneBuilder::loadTexture( const tinygltf::Primitive& prim, const tinygltf::Model& root )
 	{
 		ZoneScoped;
 		const auto mat_idx { prim.material };

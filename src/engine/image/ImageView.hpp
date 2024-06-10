@@ -21,7 +21,7 @@ namespace fgl::engine
 	{
 		std::shared_ptr< ImageHandle > m_resource;
 
-		std::optional< Sampler > m_sampler { std::nullopt };
+		Sampler m_sampler;
 
 		vk::DescriptorImageInfo m_descriptor_info {};
 
@@ -38,7 +38,12 @@ namespace fgl::engine
 		ImageView( ImageView&& other ) noexcept :
 		  m_resource( std::move( other.m_resource ) ),
 		  m_descriptor_info( std::move( other.m_descriptor_info ) ),
-		  m_image_view( std::move( other.m_image_view ) )
+		  m_image_view( std::move( other.m_image_view ) ),
+		  m_sampler(
+			  vk::Filter::eLinear,
+			  vk::Filter::eLinear,
+			  vk::SamplerMipmapMode::eLinear,
+			  vk::SamplerAddressMode::eClampToEdge )
 		{
 			other.m_image_view = VK_NULL_HANDLE;
 		}
@@ -59,7 +64,7 @@ namespace fgl::engine
 
 		vk::Image& getVkImage();
 
-		std::optional< Sampler >& getSampler() { return m_sampler; };
+		Sampler& getSampler() { return m_sampler; };
 
 		vk::DescriptorImageInfo descriptorInfo( vk::Sampler sampler, vk::ImageLayout layout ) const;
 		vk::DescriptorImageInfo descriptorInfo( vk::ImageLayout layout ) const;
