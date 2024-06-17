@@ -28,12 +28,17 @@ void main()
     vec3 normal = subpassLoad(i_normal).xyz;
     vec3 albedo = subpassLoad(i_albedo).xyz;
 
-    #define ambient 0.05
+    #define ambient 0.5
+
+    const vec3 sun_dir = vec3(0.0, 0.0, -1.0);
+    const vec3 sun_up = -sun_dir;
+
+    const float diff = dot(sun_up, normal);
 
     // Calculate sun light
-    vec3 sun_color = vec3(0.2);
-    vec3 sun_dir = normalize(vec3(0.0, -0.5, 0.5) - position);
-    float diff = max(dot(normalize(normal), sun_dir), 0.0);
+    vec3 sun_color = vec3(1.0);
+    //vec3 sun_dir = normalize(vec3(0.0, -0.5, 0.5) - position);
+    //float diff = max(dot(normalize(normal), sun_dir), 0.0);
     vec3 diffuse = diff * sun_color;
 
     vec3 frag_color = (ambient + diffuse) * albedo;
