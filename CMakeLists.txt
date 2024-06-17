@@ -59,10 +59,14 @@ foreach (ASSET IN LISTS ASSETS)
 		file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/assets/${REL_PATH})
 	endif ()
 
+	set(OUT_PATH ${CMAKE_BINARY_DIR}/bin/assets/${REL_PATH}${FILENAME})
+
 	add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/bin/assets/${FILENAME}
-			COMMAND ${CMAKE_COMMAND} -E copy ${ASSET} ${CMAKE_BINARY_DIR}/bin/assets/${FILENAME}
-			COMMENT " Copying ${ASSET} ")
+			COMMAND ${CMAKE_COMMAND} -E copy ${ASSET} ${OUT_PATH}
+			COMMENT " Copying ${ASSET} to ${OUT_PATH}")
+
 	list(APPEND OUT_ASSETS ${CMAKE_BINARY_DIR}/bin/assets/${FILENAME})
+	list(APPEND ADDITIONAL_CLEAN_FILES ${OUT_PATH})
 endforeach ()
 
 file(GLOB_RECURSE SHADERS
@@ -81,12 +85,16 @@ foreach (SHADER IN LISTS SHADERS)
 		set(REL_PATH ${REL_PATH}/)
 		file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/shaders/${REL_PATH})
 	endif ()
-	add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/bin/shaders/${FILENAME}.spv
-			COMMAND ${Vulkan_GLSLC_EXECUTABLE} ${SHADER_DEBUG_FLAGS} ${SHADER} -o ${CMAKE_BINARY_DIR}/bin/shaders/${REL_PATH}${FILENAME}.spv DEPENDS ${SHADER}
-			COMMENT " Compiling ${SHADER} ")
-	list(APPEND SPV_SHADERS ${CMAKE_BINARY_DIR}/bin/shaders/${FILENAME}.spv)
-endforeach ()
 
+	set(OUT_PATH ${CMAKE_BINARY_DIR}/bin/shaders/${REL_PATH}${FILENAME}.spv)
+
+	add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/bin/shaders/${FILENAME}.spv
+			COMMAND ${Vulkan_GLSLC_EXECUTABLE} ${SHADER_DEBUG_FLAGS} ${SHADER} -o ${OUT_PATH} DEPENDS ${SHADER}
+			COMMENT " Compiling ${SHADER} ")
+
+	list(APPEND SPV_SHADERS ${CMAKE_BINARY_DIR}/bin/shaders/${FILENAME}.spv)
+	list(APPEND ADDITIONAL_CLEAN_FILES ${OUT_PATH})
+endforeach ()
 
 add_custom_target(shaders ALL DEPENDS ${SPV_SHADERS})
 add_custom_target(assets ALL DEPENDS ${OUT_ASSETS})

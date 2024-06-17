@@ -69,7 +69,7 @@ namespace fgl::engine
 			                                                              SwapChain::MAX_FRAMES_IN_FLIGHT };
 
 		std::shared_ptr< Texture > debug_tex {
-			getTextureStore().load( "models/textures/DebugTexture.png", vk::Format::eR8G8B8A8Unorm )
+			getTextureStore().load( "assets/textures/DebugTexture.png", vk::Format::eR8G8B8A8Unorm )
 		};
 
 		constexpr std::uint32_t matrix_default_size { 64_MiB };
@@ -224,7 +224,7 @@ namespace fgl::engine
 		{
 			std::shared_ptr< Model > model { Model::createModel(
 				Device::getInstance(),
-				"models/night_heron8.obj",
+				"assets/night_heron8.obj",
 				m_entity_renderer.getVertexBuffer(),
 				m_entity_renderer.getIndexBuffer() ) };
 
@@ -246,7 +246,7 @@ namespace fgl::engine
 		{
 			std::shared_ptr< Model > model { Model::createModel(
 				Device::getInstance(),
-				"models/khronos-sponza/Sponza.gltf",
+				"assets/khronos-sponza/Sponza.gltf",
 				m_entity_renderer.getVertexBuffer(),
 				m_entity_renderer.getIndexBuffer() ) };
 
@@ -277,13 +277,13 @@ namespace fgl::engine
 		/*
 		{
 			ZoneScopedN( "Load phyiscs test" );
-			std::vector< std::shared_ptr< Model > > models { Model::createModelsFromScene(
+			std::vector< std::shared_ptr< Model > > assets { Model::createModelsFromScene(
 				Device::getInstance(),
-				"models/PhysicsTest.glb",
+				"assets/PhysicsTest.glb",
 				m_entity_renderer.getVertexBuffer(),
 				m_entity_renderer.getIndexBuffer() ) };
 
-			for ( auto& model : models )
+			for ( auto& model : assets )
 			{
 				GameObject object { GameObject::createGameObject() };
 				object.m_model = std::move( model );
@@ -303,7 +303,7 @@ namespace fgl::engine
 				generateTerrainModel( m_terrain_system.getVertexBuffer(), m_terrain_system.getIndexBuffer() )
 			};
 
-			//Texture texture { Texture::loadFromFile( "models/Vally/textures/heightmap.png" ) };
+			//Texture texture { Texture::loadFromFile( "assets/Vally/textures/heightmap.png" ) };
 			Texture texture { Texture::generateFromPerlinNoise( 1024, 1024, 120 ) };
 
 			Sampler sampler { vk::Filter::eLinear,
@@ -334,7 +334,7 @@ namespace fgl::engine
 		{
 			std::shared_ptr< Model > model { Model::createModel(
 				Device::getInstance(),
-				"models/smooth_vase.obj",
+				"assets/smooth_vase.obj",
 				m_entity_renderer.getVertexBuffer(),
 				m_entity_renderer.getIndexBuffer() ) };
 
@@ -352,7 +352,7 @@ namespace fgl::engine
 		{
 			std::shared_ptr< Model > flat_model { Model::createModel(
 				Device::getInstance(),
-				"models/flat_vase.obj",
+				"assets/flat_vase.obj",
 				m_entity_renderer.getVertexBuffer(),
 				m_entity_renderer.getIndexBuffer() ) };
 
@@ -369,7 +369,7 @@ namespace fgl::engine
 		{
 			std::shared_ptr< Model > quad_model { Model::createModel(
 				Device::getInstance(),
-				"models/quad.obj",
+				"assets/quad.obj",
 				m_entity_renderer.getVertexBuffer(),
 				m_entity_renderer.getIndexBuffer() ) };
 
