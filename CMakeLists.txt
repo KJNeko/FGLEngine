@@ -40,8 +40,6 @@ add_subdirectory(tests)
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/bin/shaders")
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/bin/models")
 
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/models" DESTINATION "${CMAKE_BINARY_DIR}/bin")
-
 string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_UPPER_BUILD_TYPE)
 
 if (CMAKE_UPPER_BUILD_TYPE STREQUAL "DEBUG" OR CMAKE_UPPER_BUILD_TYPE STREQUAL "RELWITHDEBINFO")
@@ -50,12 +48,14 @@ else ()
 	set(SHADER_DEBUG_FLAGS "")
 endif ()
 
-foreach (MODEL IN LISTS MODELS)
-	get_filename_component(FILENAME ${MODEL} NAME)
+file(GLOB_RECURSE ASSETS ${CMAKE_CURRENT_SOURCE_DIR}/models/*)
+
+foreach (ASSET IN LISTS ASSETS)
+	get_filename_component(FILENAME ${ASSET} NAME)
 	add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/bin/models/${FILENAME}
-			COMMAND ${CMAKE_COMMAND} -E copy ${MODEL} ${CMAKE_BINARY_DIR}/bin/models/${FILENAME}
-			COMMENT " Copying ${MODEL} ")
-	list(APPEND OBJ_MODELS ${CMAKE_BINARY_DIR}/bin/models/${FILENAME})
+			COMMAND ${CMAKE_COMMAND} -E copy ${ASSET} ${CMAKE_BINARY_DIR}/bin/models/${FILENAME}
+			COMMENT " Copying ${ASSET} ")
+	list(APPEND OUT_ASSETS ${CMAKE_BINARY_DIR}/bin/models/${FILENAME})
 endforeach ()
 
 file(GLOB_RECURSE SHADERS
@@ -82,7 +82,7 @@ endforeach ()
 
 
 add_custom_target(shaders ALL DEPENDS ${SPV_SHADERS})
-add_custom_target(models ALL DEPENDS ${OBJ_MODELS})
+add_custom_target(models ALL DEPENDS ${OUT_ASSETS})
 
 add_dependencies(${PROJECT_NAME} shaders)
 add_dependencies(${PROJECT_NAME} models)
