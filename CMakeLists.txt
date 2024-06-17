@@ -36,9 +36,8 @@ include(dependencies/catch2)
 add_subdirectory(src)
 add_subdirectory(tests)
 
-
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/bin/shaders")
-file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/bin/models")
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/bin/assets")
 
 string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_UPPER_BUILD_TYPE)
 
@@ -48,14 +47,22 @@ else ()
 	set(SHADER_DEBUG_FLAGS "")
 endif ()
 
-file(GLOB_RECURSE ASSETS ${CMAKE_CURRENT_SOURCE_DIR}/models/*)
+file(GLOB_RECURSE ASSETS ${CMAKE_CURRENT_SOURCE_DIR}/assets/*)
 
 foreach (ASSET IN LISTS ASSETS)
 	get_filename_component(FILENAME ${ASSET} NAME)
-	add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/bin/models/${FILENAME}
-			COMMAND ${CMAKE_COMMAND} -E copy ${ASSET} ${CMAKE_BINARY_DIR}/bin/models/${FILENAME}
+	get_filename_component(FILE_DIRECTORY ${ASSET} DIRECTORY)
+	file(RELATIVE_PATH REL_PATH ${CMAKE_CURRENT_SOURCE_DIR}/assets ${FILE_DIRECTORY})
+
+	if (NOT REL_PATH STREQUAL "")
+		set(REL_PATH ${REL_PATH}/)
+		file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/assets/${REL_PATH})
+	endif ()
+
+	add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/bin/assets/${FILENAME}
+			COMMAND ${CMAKE_COMMAND} -E copy ${ASSET} ${CMAKE_BINARY_DIR}/bin/assets/${FILENAME}
 			COMMENT " Copying ${ASSET} ")
-	list(APPEND OUT_ASSETS ${CMAKE_BINARY_DIR}/bin/models/${FILENAME})
+	list(APPEND OUT_ASSETS ${CMAKE_BINARY_DIR}/bin/assets/${FILENAME})
 endforeach ()
 
 file(GLOB_RECURSE SHADERS
@@ -82,10 +89,10 @@ endforeach ()
 
 
 add_custom_target(shaders ALL DEPENDS ${SPV_SHADERS})
-add_custom_target(models ALL DEPENDS ${OUT_ASSETS})
+add_custom_target(assets ALL DEPENDS ${OUT_ASSETS})
 
 add_dependencies(${PROJECT_NAME} shaders)
-add_dependencies(${PROJECT_NAME} models)
+add_dependencies(${PROJECT_NAME} assets)
 
 
 add_custom_command(
