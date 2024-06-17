@@ -8,40 +8,44 @@
 #include "engine/filesystem/scanner/FileScanner.hpp"
 #include "engine/gui/safe_include.hpp"
 #include "engine/image/ImageView.hpp"
+#include "engine/logging/logging.hpp"
 #include "engine/texture/Texture.hpp"
+#include "types.hpp"
 
 namespace fgl::engine::filesystem
 {
 
-	inline static std::optional< DirInfo > root {};
-	inline static DirInfo* current { nullptr };
+	//! Textures for files (pre-rendered image, images, ect)
+	inline static std::unordered_map< std::filesystem::path, Texture > file_textures {};
+	inline static std::optional< DirInfo > current { std::nullopt };
 	inline static std::once_flag flag {};
 	inline static std::shared_ptr< Texture > folder_texture { nullptr };
 	inline static std::shared_ptr< Texture > file_texture { nullptr };
+	inline static std::shared_ptr< Texture > up_texture { nullptr };
+	constexpr std::uint32_t desired_size { 128 };
 
-	const std::filesystem::path test_path { "/home/kj16609/Desktop/Projects/cxx/Mecha/models" };
+	const std::filesystem::path test_path { "/home/kj16609/Desktop/Projects/cxx/Mecha/assets" };
 
 	void prepareFileGUI()
 	{
 		ZoneScoped;
 
 		//Prepare textures needed.
-		folder_texture = getTextureStore().load( "./models/folder.png", vk::Format::eR8G8B8A8Unorm );
-		file_texture = getTextureStore().load( "./models/file.png", vk::Format::eR8G8B8A8Unorm );
+		folder_texture = getTextureStore().load( "./assets/folder.png", vk::Format::eR8G8B8A8Unorm );
+		file_texture = getTextureStore().load( "./assets/file.png", vk::Format::eR8G8B8A8Unorm );
+		up_texture = getTextureStore().load( "./assets/up.png", vk::Format::eR8G8B8A8Unorm );
 
 		auto cmd_buffer { Device::getInstance().beginSingleTimeCommands() };
 
 		Device::getInstance().endSingleTimeCommands( cmd_buffer );
 
-		root = DirInfo( test_path );
-		current = &root.value();
+		current = DirInfo( test_path );
 	}
 
 	void FileBrowser::drawGui( FrameInfo& info )
 	{
 		ZoneScoped;
-		//std::call_once( flag, []() { scanners.emplace_back( std::make_unique< FileScanner >( test_path ) ); } );
-		std::call_once( flag, []() { prepareFileGUI(); } );
+		std::call_once( flag, prepareFileGUI );
 
 		/*
 		if ( ImGui::BeginMenuBar() )
@@ -61,13 +65,31 @@ namespace fgl::engine::filesystem
 		}
 		*/
 
+		if ( !current.has_value() )
+		{
+			log::warn( "Current has no value!" );
+		}
+
 		const auto size { ImGui::GetWindowSize() };
-		constexpr float desired_size { 128.0f };
 		const float extra { std::fmod( size.x, desired_size ) };
-		const auto cols { ( size.x - extra ) / desired_size };
+		const auto cols { ( size.x - extra ) / static_cast< float >( desired_size )
+			              + ( current->hasParent() ? 1.0f : 0.0f ) };
+
+		if ( cols == 0 )
+		{
+			log::warn( "Unable to draw cols due to size constraint" );
+			return;
+		}
 
 		if ( current && ImGui::BeginTable( "Files", cols ) )
 		{
+			//List up if we can go up
+			if ( current->hasParent() )
+			{
+				ImGui::TableNextColumn();
+				drawUp( *current );
+			}
+
 			//List folders first
 			for ( std::size_t i = 0; i < current->folderCount(); ++i )
 			{
@@ -127,7 +149,7 @@ namespace fgl::engine::filesystem
 	void drawBinary()
 	{}
 
-	void FileBrowser::drawFile( FileInfo& data )
+	void FileBrowser::drawFile( const FileInfo& data )
 	{
 		ZoneScoped;
 		ImGui::PushID( data.path.c_str() );
@@ -135,11 +157,11 @@ namespace fgl::engine::filesystem
 		ImGui::Text( data.ext.c_str() );
 
 		// file_texture->drawImGui( { 128, 128 } );
-		file_texture->drawImGuiButton( { 128, 128 } );
+		file_texture->drawImGuiButton( { desired_size, desired_size } );
 		if ( ImGui::BeginDragDropSource() )
 		{
-			ImGui::
-				SetDragDropPayload( "_FILE_INFO", &data, sizeof( data ), ImGuiCond_Once /* Only copy the data once */ );
+			ImGui::SetDragDropPayload(
+				DRAG_TYPE_FILE_INFO, &data, sizeof( data ), ImGuiCond_Once /* Only copy the data once */ );
 			ImGui::SetTooltip( data.filename.c_str() );
 
 			ImGui::EndDragDropSource();
@@ -151,7 +173,7 @@ namespace fgl::engine::filesystem
 		ImGui::PopID();
 	}
 
-	void FileBrowser::drawFolder( DirInfo& data )
+	void FileBrowser::drawFolder( const DirInfo& data )
 	{
 		ZoneScoped;
 		ImGui::PushID( data.path.c_str() );
@@ -159,19 +181,38 @@ namespace fgl::engine::filesystem
 		ImGui::Text( data.path.filename().c_str() );
 		ImGui::Text( "Folder" );
 
-		if ( folder_texture->drawImGuiButton( { 128, 128 } ) )
+		if ( folder_texture->drawImGuiButton( { desired_size, desired_size } ) )
 		{
 			openFolder( data );
 		}
 
+		ImGui::Text( "%ld files/%ld folders", data.fileCount(), data.folderCount() );
+
 		ImGui::PopID();
 	}
 
-	void FileBrowser::openFolder( DirInfo& dir )
+	void FileBrowser::goUp()
 	{
-		if ( !current ) throw std::runtime_error( "No current folder?" );
+		current = current->up();
+	}
 
-		current = &dir;
+	void FileBrowser::openFolder( DirInfo dir )
+	{
+		current = dir;
+	}
+
+	void FileBrowser::drawUp( const DirInfo& data )
+	{
+		ImGui::PushID( data.path.c_str() );
+
+		ImGui::Text( data.path.filename().c_str() );
+		ImGui::Text( "Go Up" );
+		if ( up_texture->drawImGuiButton( { desired_size, desired_size } ) )
+		{
+			openFolder( data.up() );
+		}
+
+		ImGui::PopID();
 	}
 
 } // namespace fgl::engine::filesystem

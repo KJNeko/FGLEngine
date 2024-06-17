@@ -13,11 +13,9 @@
 namespace fgl::engine::filesystem
 {
 
-	DirInfo::DirInfo( const std::filesystem::path& dir, DirInfo* dir_parent ) :
-	  path( dir ),
-	  total_size( 0 ),
-	  parent( dir_parent )
+	DirInfo::DirInfo( const std::filesystem::path& dir ) : path( dir ), total_size( 0 )
 	{
+		assert( std::filesystem::exists( dir ) );
 		for ( auto itter = std::filesystem::directory_iterator( dir ); itter != std::filesystem::directory_iterator();
 		      ++itter )
 		{
@@ -32,6 +30,8 @@ namespace fgl::engine::filesystem
 			else
 				throw std::runtime_error( "Unknown/Unspported file type" );
 		}
+
+		nested_dirs.reserve( nested_dirs_to_scan.size() );
 	}
 
 	std::size_t DirInfo::fileCount() const
@@ -44,7 +44,7 @@ namespace fgl::engine::filesystem
 		return files[ index ];
 	}
 
-	DirInfo& DirInfo::dir( const std::size_t index )
+	DirInfo& DirInfo::dir( std::size_t index )
 	{
 		if ( index >= nested_dirs.size() + nested_dirs_to_scan.size() ) throw std::runtime_error( "Index OOB" );
 
@@ -52,11 +52,13 @@ namespace fgl::engine::filesystem
 		{
 			while ( nested_dirs.size() <= index )
 			{
-				auto to_scan { std::move( nested_dirs_to_scan.front() ) };
+				std::filesystem::path to_scan { std::move( nested_dirs_to_scan.front() ) };
 				nested_dirs_to_scan.pop();
 				log::debug( "Processed folder: {}", to_scan );
 
-				nested_dirs.emplace_back( to_scan, this );
+				DirInfo info { to_scan };
+
+				nested_dirs.push_back( std::move( info ) );
 			}
 		}
 

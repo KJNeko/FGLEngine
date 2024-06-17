@@ -20,13 +20,12 @@ namespace fgl::engine::filesystem
 
 		static void goUp();
 
-		static void addFolderToRoot();
+		static void openFolder( DirInfo dir );
 
-		static void openFolder( DirInfo& dir );
-
+		static void drawUp( const DirInfo& up );
 		static void drawGui( FrameInfo& info );
-		static void drawFile( FileInfo& data );
-		static void drawFolder( DirInfo& data );
+		static void drawFile( const FileInfo& data );
+		static void drawFolder( const DirInfo& data );
 	};
 
 } // namespace fgl::engine::filesystem
