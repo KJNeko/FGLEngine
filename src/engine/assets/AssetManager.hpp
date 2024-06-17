@@ -47,7 +47,7 @@ namespace fgl::engine
 
 		//! Assets needing to be staged
 		//TODO: ASYNC Ring buffer queue
-		std::queue< std::shared_ptr< T > > to_stage;
+		std::queue< std::shared_ptr< T > > to_stage {};
 		//TODO: Add tracy monitor to mutex
 		std::mutex queue_mtx {};
 

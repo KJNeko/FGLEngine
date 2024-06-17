@@ -4,9 +4,13 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wduplicated-branches"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
+#pragma GCC diagnostic pop
 
 #include "constants.hpp"
 #include "engine/primitives/Frustum.hpp"

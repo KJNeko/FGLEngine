@@ -52,7 +52,8 @@ namespace fgl::engine
 		  m_vertex_buffer( std::move( vertex_buffer ) ),
 		  m_index_buffer( std::move( index_buffer ) ),
 		  m_bounding_box( bounding_box ),
-		  m_mode( mode )
+		  m_mode( mode ),
+		  m_texture( nullptr )
 		{}
 
 		Primitive(

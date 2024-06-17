@@ -165,10 +165,11 @@ namespace fgl::engine
 		return pointInside( t );
 	}
 
-	inline static bool check_points { true };
-	inline static bool check_lines { true };
-	inline static bool check_single_line { false };
-	inline static int line_id { 0 };
+	//TODO: Implement frustum debug menu
+	[[maybe_unused]] inline static bool check_points { true };
+	[[maybe_unused]] inline static bool check_lines { true };
+	[[maybe_unused]] inline static bool check_single_line { false };
+	[[maybe_unused]] inline static int line_id { 0 };
 
 	void imGuiFrustumSettings()
 	{

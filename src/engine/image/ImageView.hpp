@@ -21,11 +21,11 @@ namespace fgl::engine
 	{
 		std::shared_ptr< ImageHandle > m_resource;
 
+		vk::DescriptorImageInfo m_descriptor_info;
+
+		vk::ImageView m_image_view;
+
 		Sampler m_sampler;
-
-		vk::DescriptorImageInfo m_descriptor_info {};
-
-		vk::ImageView m_image_view { VK_NULL_HANDLE };
 
 	  public:
 

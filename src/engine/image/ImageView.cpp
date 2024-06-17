@@ -7,7 +7,11 @@
 namespace fgl::engine
 {
 
-	ImageView::ImageView( std::shared_ptr< ImageHandle >& img ) : m_resource( img ), m_sampler()
+	ImageView::ImageView( std::shared_ptr< ImageHandle >& img ) :
+	  m_resource( img ),
+	  m_descriptor_info(),
+	  m_image_view( VK_NULL_HANDLE ),
+	  m_sampler()
 	{
 		vk::ImageViewCreateInfo view_info {};
 		view_info.image = img->getVkImage();

@@ -24,7 +24,7 @@ namespace fgl::engine
 	using TextureStore = AssetStore< Texture >;
 
 	//TODO: Implement texture handle map to avoid loading the same texture multiple times
-	class Texture final : public AssetInterface< Texture >, public std::enable_shared_from_this< Texture >
+	class Texture final : public AssetInterface< Texture >
 	{
 		template < typename T >
 		friend class AssetStore;
