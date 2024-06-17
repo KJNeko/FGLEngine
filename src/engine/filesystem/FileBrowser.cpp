@@ -23,6 +23,7 @@ namespace fgl::engine::filesystem
 	inline static std::shared_ptr< Texture > file_texture { nullptr };
 	inline static std::shared_ptr< Texture > up_texture { nullptr };
 	constexpr std::uint32_t desired_size { 128 };
+	constexpr std::uint32_t padding { 2 };
 
 	const std::filesystem::path test_path { "/home/kj16609/Desktop/Projects/cxx/Mecha/assets" };
 
@@ -70,10 +71,11 @@ namespace fgl::engine::filesystem
 			log::warn( "Current has no value!" );
 		}
 
-		const auto size { ImGui::GetWindowSize() };
-		const float extra { std::fmod( size.x, desired_size ) };
-		const auto cols { ( size.x - extra ) / static_cast< float >( desired_size )
-			              + ( current->hasParent() ? 1.0f : 0.0f ) };
+		auto size { ImGui::GetWindowSize() };
+		size.x -= 12; // Remove scrollbar pixels
+
+		const float extra { std::fmod( size.x, desired_size + ( padding * 2 ) ) };
+		const auto cols { ( size.x - extra ) / static_cast< float >( desired_size + ( padding * 2 ) ) };
 
 		if ( cols == 0 )
 		{
@@ -81,8 +83,13 @@ namespace fgl::engine::filesystem
 			return;
 		}
 
+		ImGui::PushStyleVar( ImGuiStyleVar_CellPadding, { padding, padding } );
+
 		if ( current && ImGui::BeginTable( "Files", cols ) )
 		{
+			for ( int i = 0; i < cols; ++i )
+				ImGui::TableSetupColumn( "", ImGuiTableColumnFlags_WidthFixed, desired_size );
+
 			//List up if we can go up
 			if ( current->hasParent() )
 			{
@@ -105,6 +112,8 @@ namespace fgl::engine::filesystem
 
 			ImGui::EndTable();
 		}
+
+		ImGui::PopStyleVar();
 
 		ImGui::Columns( 1 );
 	}
@@ -153,8 +162,6 @@ namespace fgl::engine::filesystem
 	{
 		ZoneScoped;
 		ImGui::PushID( data.path.c_str() );
-		ImGui::Text( data.filename.c_str() );
-		ImGui::Text( data.ext.c_str() );
 
 		// file_texture->drawImGui( { 128, 128 } );
 		file_texture->drawImGuiButton( { desired_size, desired_size } );
@@ -167,6 +174,9 @@ namespace fgl::engine::filesystem
 			ImGui::EndDragDropSource();
 		}
 
+		ImGui::Text( data.filename.c_str() );
+		ImGui::Text( data.ext.c_str() );
+
 		ImGui::SameLine();
 		ImGui::Text( "%0.1f KB", static_cast< float >( data.size ) / 1024.0f );
 		ImGui::NextColumn();
@@ -178,15 +188,13 @@ namespace fgl::engine::filesystem
 		ZoneScoped;
 		ImGui::PushID( data.path.c_str() );
 
-		ImGui::Text( data.path.filename().c_str() );
-		ImGui::Text( "Folder" );
-
 		if ( folder_texture->drawImGuiButton( { desired_size, desired_size } ) )
 		{
 			openFolder( data );
 		}
 
-		ImGui::Text( "%ld files/%ld folders", data.fileCount(), data.folderCount() );
+		ImGui::Text( data.path.filename().c_str() );
+		ImGui::Text( "%ld files\n%ld folders", data.fileCount(), data.folderCount() );
 
 		ImGui::PopID();
 	}
@@ -205,12 +213,12 @@ namespace fgl::engine::filesystem
 	{
 		ImGui::PushID( data.path.c_str() );
 
-		ImGui::Text( data.path.filename().c_str() );
-		ImGui::Text( "Go Up" );
 		if ( up_texture->drawImGuiButton( { desired_size, desired_size } ) )
 		{
 			openFolder( data.up() );
 		}
+
+		ImGui::Text( "Go Up" );
 
 		ImGui::PopID();
 	}
