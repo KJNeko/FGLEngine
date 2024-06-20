@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "Instance.hpp"
 #include "engine/Window.hpp"
 #include "engine/concepts/is_suballocation.hpp"
 #include "vma/vma_impl.hpp"
@@ -32,8 +33,8 @@ namespace fgl::engine
 
 	class Device
 	{
-		vk::Instance m_instance { VK_NULL_HANDLE };
-		vk::DebugUtilsMessengerEXT m_debugMessenger { VK_NULL_HANDLE };
+		Instance& m_instance;
+
 		vk::PhysicalDevice m_physical_device { VK_NULL_HANDLE };
 		vk::CommandPool m_commandPool { VK_NULL_HANDLE };
 
@@ -59,7 +60,8 @@ namespace fgl::engine
 
 		vk::PhysicalDeviceProperties m_properties {};
 
-		static Device& init( Window& window );
+		Device( Window& window, Instance& );
+
 		static Device& getInstance();
 
 		template < typename Dst, typename Src >
@@ -83,7 +85,6 @@ namespace fgl::engine
 
 	  private:
 
-		void createInstance();
 		void setupDebugMessenger();
 		void createSurface( Window& window );
 		void pickPhysicalDevice();
@@ -96,8 +97,6 @@ namespace fgl::engine
 		std::vector< const char* > getRequiredInstanceExtensions();
 		bool checkValidationLayerSupport();
 		QueueFamilyIndices findQueueFamilies( vk::PhysicalDevice device );
-		void populateDebugMessengerCreateInfo( vk::DebugUtilsMessengerCreateInfoEXT& createInfo );
-		void hasGlfwRequiredInstanceExtensions();
 		bool checkDeviceExtensionSupport( vk::PhysicalDevice device );
 		SwapChainSupportDetails querySwapChainSupport( vk::PhysicalDevice device );
 

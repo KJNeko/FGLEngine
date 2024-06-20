@@ -4,6 +4,14 @@
 
 #pragma once
 
+#define FGL_DELETE_DEFAULT_CTOR( ClassName ) ClassName() = delete;
+#define FGL_DELETE_COPY_ASSIGN( ClassName ) ClassName& operator=( const ClassName& ) = delete;
+#define FGL_DELETE_COPY_CTOR( ClassName ) ClassName( const ClassName& ) = delete;
+#define FGL_DELETE_MOVE_ASSIGN( ClassName ) ClassName& operator=( ClassName&& ) = delete;
+#define FGL_DELETE_MOVE_CTOR( ClassName ) ClassName( ClassName&& ) = delete;
+#define FGL_DELETE_COPY( ClassName ) FGL_DELETE_COPY_CTOR( ClassName ) FGL_DELETE_COPY_ASSIGN( ClassName )
+#define FGL_DELETE_MOVE( ClassName ) FGL_DELETE_MOVE_CTOR( ClassName ) FGL_DELETE_MOVE_ASSIGN( ClassName )
+
 #ifndef FGL_FORCE_NOTHING
 
 #ifdef __GNUC__
@@ -29,6 +37,7 @@
 #endif
 
 #else
+
 #define FGL_FLATTEN
 #define FGL_FLATTEN_HOT
 #define FGL_FORCE_INLINE

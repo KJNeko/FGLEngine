@@ -19,7 +19,6 @@ namespace fgl::engine
 	  m_name( window_name )
 	{
 		initWindow();
-		Device::init( *this );
 	}
 
 	Window::~Window()

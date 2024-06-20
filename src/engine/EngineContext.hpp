@@ -20,7 +20,16 @@ namespace fgl::engine
 		static constexpr int DEFAULT_WIDTH { 1920 };
 		static constexpr int DEFAULT_HEIGHT { 1080 };
 
+		vk::raii::Context ctx {};
+
+		// Window must be prepared *BEFORE* instance is ready in order to make
+		// glfwGetRequiredInstanceExtensions valid
 		Window m_window { DEFAULT_WIDTH, DEFAULT_HEIGHT, "titor Engine" };
+
+		Instance m_instance { ctx };
+
+		Device device { m_window, m_instance };
+
 		Renderer m_renderer { m_window };
 
 		//GameObject::Map game_objects {};

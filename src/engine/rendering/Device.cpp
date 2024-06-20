@@ -10,90 +10,10 @@
 
 #include "engine/logging/logging.hpp"
 
-PFN_vkCreateDebugUtilsMessengerEXT pfnVkCreateDebugUtilsMessengerEXT { nullptr };
-PFN_vkDestroyDebugUtilsMessengerEXT pfnVkDestroyDebugUtilsMessengerEXT { nullptr };
-PFN_vkSetDebugUtilsObjectNameEXT pfnVkSetDebugUtilsObjectNameEXT { nullptr };
-
-// local callback functions
-static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
-	[[maybe_unused]] VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-	[[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT messageType,
-	const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-	[[maybe_unused]] void* pUserData )
-{
-	using Bits = VkDebugUtilsMessageSeverityFlagBitsEXT;
-	using namespace fgl::engine;
-
-	if ( pCallbackData->flags & Bits::VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT )
-	{
-		log::info( pCallbackData->pMessage );
-	}
-	else if ( pCallbackData->flags & Bits::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT )
-	{
-		log::warn( pCallbackData->pMessage );
-	}
-	else if ( pCallbackData->flags & Bits::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT )
-	{
-		log::error( pCallbackData->pMessage );
-		std::abort();
-	}
-	else
-	{
-		//log::critical( "Unknown severity message: {}", pCallbackData->pMessage );
-		//std::abort();
-	}
-
-	return VK_FALSE;
-}
-
-VKAPI_ATTR VkResult VKAPI_CALL vkCreateDebugUtilsMessengerEXT(
-	VkInstance instance,
-	const VkDebugUtilsMessengerCreateInfoEXT* create_info,
-	const VkAllocationCallbacks* allocator,
-	VkDebugUtilsMessengerEXT* messenger )
-{
-	return pfnVkCreateDebugUtilsMessengerEXT( instance, create_info, allocator, messenger );
-}
-
-VKAPI_ATTR void VKAPI_CALL vkDestroyDebugUtilsMessengerEXT(
-	VkInstance instance, VkDebugUtilsMessengerEXT messenger, VkAllocationCallbacks const * pAllocator )
-{
-	return pfnVkDestroyDebugUtilsMessengerEXT( instance, messenger, pAllocator );
-}
-
-VKAPI_ATTR VkResult VKAPI_CALL
-	vkSetDebugUtilsObjectNameEXT( VkDevice device, const VkDebugUtilsObjectNameInfoEXT* nameInfo )
-{
-	return pfnVkSetDebugUtilsObjectNameEXT( device, nameInfo );
-}
-
 namespace fgl::engine
 {
-	vk::Result CreateDebugUtilsMessengerEXT(
-		vk::Instance instance,
-		const vk::DebugUtilsMessengerCreateInfoEXT& pCreateInfo,
-		[[maybe_unused]] const vk::AllocationCallbacks* pAllocator,
-		vk::DebugUtilsMessengerEXT* pDebugMessenger )
-	{
-		return instance.createDebugUtilsMessengerEXT( &pCreateInfo, pAllocator, pDebugMessenger );
-	}
 
-	void DestroyDebugUtilsMessengerEXT(
-		vk::Instance instance,
-		vk::DebugUtilsMessengerEXT debugMessenger,
-		[[maybe_unused]] const vk::AllocationCallbacks* pAllocator )
-	{
-		instance.destroyDebugUtilsMessengerEXT( debugMessenger );
-	}
-
-	inline static std::unique_ptr< Device > global_device { nullptr };
-
-	Device& Device::init( Window& window )
-	{
-		global_device = std::make_unique< Device >( window );
-		DescriptorPool::init( *global_device );
-		return *global_device;
-	}
+	Device* global_device { nullptr };
 
 	Device& Device::getInstance()
 	{
@@ -102,15 +22,19 @@ namespace fgl::engine
 	}
 
 	// class member functions
-	Device::Device( Window& window )
+	Device::Device( Window& window, Instance& instance ) : m_instance( instance )
 	{
-		createInstance();
-		setupDebugMessenger();
+		assert( !global_device );
+
 		createSurface( window );
 		pickPhysicalDevice();
 		createLogicalDevice();
 		createVMAAllocator();
 		createCommandPool();
+
+		global_device = this;
+
+		DescriptorPool::init( *global_device );
 	}
 
 	Device::~Device()
@@ -118,61 +42,15 @@ namespace fgl::engine
 		vkDestroyCommandPool( m_device, m_commandPool, nullptr );
 		vkDestroyDevice( m_device, nullptr );
 
-		if ( enableValidationLayers )
-		{
-			DestroyDebugUtilsMessengerEXT( m_instance, m_debugMessenger, nullptr );
-		}
-
 		vkDestroySurfaceKHR( m_instance, m_surface_khr, nullptr );
 		vkDestroyInstance( m_instance, nullptr );
 	}
 
-	void Device::createInstance()
-	{
-		if ( enableValidationLayers && !checkValidationLayerSupport() )
-		{
-			throw std::runtime_error( "validation layers requested, but not available!" );
-		}
-
-		vk::ApplicationInfo appInfo {};
-		appInfo.pApplicationName = "Mecha Game";
-		appInfo.applicationVersion = VK_MAKE_VERSION( 1, 0, 0 );
-		appInfo.pEngineName = "titor";
-		appInfo.engineVersion = VK_MAKE_VERSION( 1, 0, 0 );
-		appInfo.apiVersion = VK_API_VERSION_1_3;
-
-		vk::InstanceCreateInfo createInfo {};
-		createInfo.pApplicationInfo = &appInfo;
-
-		auto extensions { getRequiredInstanceExtensions() };
-		assert( extensions.size() >= 1 );
-		createInfo.enabledExtensionCount = static_cast< uint32_t >( extensions.size() );
-		createInfo.ppEnabledExtensionNames = extensions.data();
-
-		hasGlfwRequiredInstanceExtensions();
-
-		vk::DebugUtilsMessengerCreateInfoEXT debugCreateInfo {};
-		if ( enableValidationLayers )
-		{
-			createInfo.enabledLayerCount = static_cast< uint32_t >( validationLayers.size() );
-			createInfo.ppEnabledLayerNames = validationLayers.data();
-
-			populateDebugMessengerCreateInfo( debugCreateInfo );
-			createInfo.pNext = &debugCreateInfo;
-		}
-		else
-		{
-			createInfo.enabledLayerCount = 0;
-			createInfo.pNext = nullptr;
-		}
-
-		if ( vk::createInstance( &createInfo, nullptr, &m_instance ) != vk::Result::eSuccess )
-			throw std::runtime_error( "Failed to create Vulkan instance" );
-	}
-
 	void Device::pickPhysicalDevice()
 	{
-		std::vector< vk::PhysicalDevice > devices { m_instance.enumeratePhysicalDevices() };
+		std::vector< vk::PhysicalDevice > devices {
+			static_cast< vk::Instance >( m_instance ).enumeratePhysicalDevices()
+		};
 
 		bool found { false };
 
@@ -317,57 +195,6 @@ namespace fgl::engine
 		return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 	}
 
-	void Device::populateDebugMessengerCreateInfo( vk::DebugUtilsMessengerCreateInfoEXT& createInfo )
-	{
-		createInfo.messageSeverity =
-			vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
-		createInfo.messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral
-		                       | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation
-		                       | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
-		createInfo.pfnUserCallback = debugCallback;
-		createInfo.pUserData = nullptr; // Optional
-	}
-
-	void Device::setupDebugMessenger()
-	{
-		std::cout << "Setting up debug messenger: " << std::endl;
-
-		if ( !enableValidationLayers )
-		{
-			std::cout << "-- Validation disabled" << std::endl;
-			return;
-		}
-
-		pfnVkCreateDebugUtilsMessengerEXT = reinterpret_cast<
-			PFN_vkCreateDebugUtilsMessengerEXT >( m_instance.getProcAddr( "vkCreateDebugUtilsMessengerEXT" ) );
-		pfnVkDestroyDebugUtilsMessengerEXT = reinterpret_cast<
-			PFN_vkDestroyDebugUtilsMessengerEXT >( m_instance.getProcAddr( "vkDestroyDebugUtilsMessengerEXT" ) );
-		pfnVkSetDebugUtilsObjectNameEXT =
-			reinterpret_cast< PFN_vkSetDebugUtilsObjectNameEXT >( m_instance
-		                                                              .getProcAddr( "vkSetDebugUtilsObjectNameEXT" ) );
-
-		if ( !pfnVkCreateDebugUtilsMessengerEXT || !pfnVkDestroyDebugUtilsMessengerEXT )
-		{
-			throw std::runtime_error( "failed to load debug messenger functions!" );
-		}
-
-		if ( !pfnVkSetDebugUtilsObjectNameEXT )
-		{
-			throw std::runtime_error( "failed to load debug object name function!" );
-		}
-
-		vk::DebugUtilsMessengerCreateInfoEXT createInfo {};
-		populateDebugMessengerCreateInfo( createInfo );
-
-		if ( CreateDebugUtilsMessengerEXT( m_instance, createInfo, nullptr, &m_debugMessenger )
-		     != vk::Result::eSuccess )
-		{
-			throw std::runtime_error( "failed to set up debug messenger!" );
-		}
-
-		std::cout << "-- Debug callback setup" << std::endl;
-	}
-
 	bool Device::checkValidationLayerSupport()
 	{
 		std::vector< vk::LayerProperties > availableLayers { vk::enumerateInstanceLayerProperties() };
@@ -413,34 +240,6 @@ namespace fgl::engine
 		}
 
 		return extensions;
-	}
-
-	void Device::hasGlfwRequiredInstanceExtensions()
-	{
-		std::vector< vk::ExtensionProperties > instance_extensions { vk::enumerateInstanceExtensionProperties() };
-
-		std::cout << "available instance instance_extensions:" << std::endl;
-		std::unordered_set< std::string > available;
-		for ( const auto& extension : instance_extensions )
-		{
-			std::cout << "\t" << extension.extensionName << std::endl;
-			available.insert( extension.extensionName );
-		}
-
-		std::cout << "required instance instance_extensions:" << std::endl;
-		auto requiredExtensions { getRequiredInstanceExtensions() };
-		for ( const char* required : requiredExtensions )
-		{
-			if ( std::find_if(
-					 instance_extensions.begin(),
-					 instance_extensions.end(),
-					 [ required ]( const vk::ExtensionProperties& prop )
-					 { return std::strcmp( prop.extensionName, required ); } )
-			     == instance_extensions.end() )
-				throw std::runtime_error( "Missing required glfw extension" );
-			else
-				std::cout << required << std::endl;
-		}
 	}
 
 	bool Device::checkDeviceExtensionSupport( vk::PhysicalDevice device )
