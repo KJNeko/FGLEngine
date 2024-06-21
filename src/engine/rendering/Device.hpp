@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "Instance.hpp"
+#include "PhysicalDevice.hpp"
 #include "engine/Window.hpp"
 #include "engine/concepts/is_suballocation.hpp"
 #include "vma/vma_impl.hpp"
@@ -35,19 +36,38 @@ namespace fgl::engine
 	{
 		Instance& m_instance;
 
-		vk::PhysicalDevice m_physical_device { VK_NULL_HANDLE };
-		vk::CommandPool m_commandPool { VK_NULL_HANDLE };
+		Surface m_surface_khr;
 
-		VmaAllocator m_allocator { VK_NULL_HANDLE };
+		PhysicalDevice m_physical_device;
 
-		vk::Device m_device { VK_NULL_HANDLE };
-		vk::SurfaceKHR m_surface_khr { VK_NULL_HANDLE };
-		vk::Queue m_graphics_queue { VK_NULL_HANDLE };
-		vk::Queue m_present_queue { VK_NULL_HANDLE };
+		inline static std::vector< const char* > validationLayers { "VK_LAYER_KHRONOS_validation" };
+		inline static std::vector< const char* > deviceExtensions { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+			                                                        VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME };
 
-		std::vector< const char* > validationLayers { "VK_LAYER_KHRONOS_validation" };
-		std::vector< const char* > deviceExtensions { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-			                                          VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME };
+		struct DeviceCreateInfo
+		{
+			vk::PhysicalDeviceFeatures m_requested_features;
+			vk::PhysicalDeviceDescriptorIndexingFeatures m_indexing_features;
+			std::vector< vk::DeviceQueueCreateInfo > m_queue_create_infos;
+			vk::DeviceCreateInfo m_create_info;
+
+			vk::PhysicalDeviceFeatures getDeviceFeatures( PhysicalDevice& );
+			vk::PhysicalDeviceDescriptorIndexingFeatures getIndexingFeatures();
+			std::vector< vk::DeviceQueueCreateInfo > getQueueCreateInfos( PhysicalDevice& );
+			vk::DeviceCreateInfo getCreateInfo( PhysicalDevice& );
+
+			DeviceCreateInfo( PhysicalDevice& );
+
+		} device_creation_info;
+
+		vk::raii::Device m_device;
+
+		vk::raii::CommandPool m_commandPool;
+
+		vk::raii::Queue m_graphics_queue;
+		vk::raii::Queue m_present_queue;
+
+		VmaAllocator m_allocator;
 
 		void copyBuffer(
 			vk::Buffer dst,
@@ -60,7 +80,10 @@ namespace fgl::engine
 
 		vk::PhysicalDeviceProperties m_properties {};
 
-		Device( Window& window, Instance& );
+		vk::CommandPoolCreateInfo commandPoolInfo();
+
+		Device( Window&, Instance& );
+		~Device();
 
 		static Device& getInstance();
 
@@ -85,20 +108,12 @@ namespace fgl::engine
 
 	  private:
 
-		void setupDebugMessenger();
-		void createSurface( Window& window );
-		void pickPhysicalDevice();
-		void createLogicalDevice();
-		void createVMAAllocator();
-		void createCommandPool();
+		VmaAllocator createVMAAllocator();
 
 		// helper functions
-		bool isDeviceSuitable( vk::PhysicalDevice device );
-		std::vector< const char* > getRequiredInstanceExtensions();
 		bool checkValidationLayerSupport();
-		QueueFamilyIndices findQueueFamilies( vk::PhysicalDevice device );
-		bool checkDeviceExtensionSupport( vk::PhysicalDevice device );
-		SwapChainSupportDetails querySwapChainSupport( vk::PhysicalDevice device );
+		bool checkDeviceExtensionSupport( vk::raii::PhysicalDevice device );
+		SwapChainSupportDetails querySwapChainSupport( vk::raii::PhysicalDevice device );
 
 	  public:
 
@@ -112,28 +127,24 @@ namespace fgl::engine
 
 	  public:
 
-		Device( Window& window );
-		~Device();
-
 		// Not copyable or movable
-		Device( const Device& ) = delete;
-		Device& operator=( const Device& ) = delete;
-		Device( Device&& ) = delete;
-		Device& operator=( Device&& ) = delete;
+		FGL_DELETE_DEFAULT_CTOR( Device )
+		FGL_DELETE_COPY( Device )
+		FGL_DELETE_MOVE( Device )
 
 		vk::CommandPool getCommandPool() { return m_commandPool; }
 
-		vk::Device device() { return m_device; }
+		vk::raii::Device& device() { return m_device; }
 
-		vk::Instance instance() { return m_instance; }
+		Instance& instance() { return m_instance; }
 
-		vk::PhysicalDevice phyDevice() { return m_physical_device; }
+		PhysicalDevice& phyDevice() { return m_physical_device; }
 
 		vk::SurfaceKHR surface() { return m_surface_khr; }
 
-		vk::Queue graphicsQueue() { return m_graphics_queue; }
+		vk::raii::Queue& graphicsQueue() { return m_graphics_queue; }
 
-		vk::Queue presentQueue() { return m_present_queue; }
+		vk::raii::Queue& presentQueue() { return m_present_queue; }
 
 		VmaAllocator allocator() { return m_allocator; }
 
@@ -141,16 +152,18 @@ namespace fgl::engine
 
 		uint32_t findMemoryType( uint32_t typeFilter, vk::MemoryPropertyFlags properties );
 
-		QueueFamilyIndices findPhysicalQueueFamilies() { return findQueueFamilies( m_physical_device ); }
-
 		vk::Format findSupportedFormat(
 			const std::vector< vk::Format >& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features );
 
-		vk::CommandBuffer beginSingleTimeCommands();
-		void endSingleTimeCommands( vk::CommandBuffer commandBuffer );
+		vk::raii::CommandBuffer beginSingleTimeCommands();
+		void endSingleTimeCommands( vk::raii::CommandBuffer& commandBuffer );
 
 		void copyBufferToImage(
 			vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height, uint32_t layerCount );
+
+		VkDevice operator*() { return *m_device; }
+
+		vk::raii::Device* operator->() { return &m_device; }
 	};
 
 } // namespace fgl::engine

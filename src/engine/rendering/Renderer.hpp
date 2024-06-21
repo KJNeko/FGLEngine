@@ -25,14 +25,14 @@ namespace fgl::engine
 	class Renderer
 	{
 		Window& m_window;
-		std::unique_ptr< SwapChain > m_swapchain { std::make_unique< SwapChain >( m_window.getExtent() ) };
+		PhysicalDevice& m_phy_device;
+		std::unique_ptr< SwapChain > m_swapchain;
 
-		std::vector< vk::CommandBuffer > m_command_buffer {};
+		std::vector< vk::raii::CommandBuffer> m_command_buffer {};
 
 		std::optional< TracyVkCtx > m_tracy_ctx { std::nullopt };
 
 		void createCommandBuffers();
-		void freeCommandBuffers();
 		void recreateSwapchain();
 
 		uint32_t current_image_idx { std::numeric_limits< std::uint32_t >::max() };
@@ -54,7 +54,7 @@ namespace fgl::engine
 
 		bool isFrameInProgress() const { return is_frame_started; }
 
-		vk::CommandBuffer& getCurrentCommandbuffer()
+		vk::raii::CommandBuffer& getCurrentCommandbuffer()
 		{
 			assert( is_frame_started && "Cannot get command buffer while frame not in progress" );
 			return m_command_buffer[ current_frame_idx ];
@@ -70,16 +70,16 @@ namespace fgl::engine
 #endif
 		}
 
-		vk::RenderPass getSwapChainRenderPass() const { return m_swapchain->getRenderPass(); }
+		vk::raii::RenderPass& getSwapChainRenderPass() const { return m_swapchain->getRenderPass(); }
 
 		float getAspectRatio() const { return m_swapchain->extentAspectRatio(); }
 
-		vk::CommandBuffer beginFrame();
+		vk::raii::CommandBuffer& beginFrame();
 		void endFrame();
-		void beginSwapchainRendererPass( vk::CommandBuffer buffer );
-		void endSwapchainRendererPass( vk::CommandBuffer buffer );
+		void beginSwapchainRendererPass( vk::raii::CommandBuffer& buffer );
+		void endSwapchainRendererPass( vk::raii::CommandBuffer& buffer );
 
-		Renderer( Window& window );
+		Renderer( Window& window, PhysicalDevice& phy_device );
 		~Renderer();
 		Renderer( Renderer&& other ) = delete;
 		Renderer( const Renderer& other ) = delete;

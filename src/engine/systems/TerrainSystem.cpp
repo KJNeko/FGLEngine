@@ -11,7 +11,7 @@
 namespace fgl::engine
 {
 
-	TerrainSystem::TerrainSystem( Device& device, VkRenderPass render_pass )
+	TerrainSystem::TerrainSystem( Device& device, vk::raii::RenderPass& render_pass )
 	{
 		ZoneScoped;
 		PipelineConfigInfo info { render_pass };
@@ -25,7 +25,7 @@ namespace fgl::engine
 
 		info.subpass = 0;
 
-		m_pipeline = std::make_unique< Pipeline >( device, info );
+		m_pipeline = std::make_unique< Pipeline >( device, std::move( info ) );
 		m_pipeline->setDebugName( "Terrain pipeline" );
 
 		using namespace fgl::literals::size_literals;
@@ -37,7 +37,7 @@ namespace fgl::engine
 		this->m_vertex_buffer->setDebugName( "Terrain vertex buffer" );
 	}
 
-	vk::CommandBuffer& TerrainSystem::setupSystem( FrameInfo& info )
+	vk::raii::CommandBuffer& TerrainSystem::setupSystem( FrameInfo& info )
 	{
 		auto& command_buffer { info.command_buffer };
 		m_pipeline->bind( command_buffer );
@@ -52,7 +52,7 @@ namespace fgl::engine
 	{
 		ZoneScopedN( "Terrain pass" );
 		auto& command_buffer { setupSystem( info ) };
-		TracyVkZone( info.tracy_ctx, command_buffer, "Render terrain" );
+		TracyVkZone( info.tracy_ctx, *command_buffer, "Render terrain" );
 
 		auto [ draw_commands, model_matricies ] =
 			getDrawCallsFromTree( info.game_objects, info.camera_frustum, IS_VISIBLE | IS_TERRAIN );

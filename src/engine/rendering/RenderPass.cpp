@@ -9,9 +9,9 @@
 namespace fgl::engine
 {
 
-	vk::RenderPass RenderPass::create()
+	vk::raii::RenderPass RenderPass::create()
 	{
-		auto device { Device::getInstance().device() };
+		auto& device { Device::getInstance() };
 
 		vk::RenderPassCreateInfo info;
 
@@ -24,12 +24,7 @@ namespace fgl::engine
 
 		vk::RenderPass render_pass {};
 
-		if ( device.createRenderPass( &info, nullptr, &render_pass ) != vk::Result::eSuccess ) [[unlikely]]
-		{
-			throw std::runtime_error( "failed to create render pass!" );
-		}
-		else
-			return render_pass;
+		return device->createRenderPass( info );
 	}
 
 } // namespace fgl::engine

@@ -14,15 +14,10 @@
 namespace fgl::engine
 {
 
-	DescriptorSet::DescriptorSet( vk::DescriptorSetLayout layout ) :
-	  m_layout( layout ),
-	  m_set( DescriptorPool::getInstance().allocateSet( layout ) )
+	DescriptorSet::DescriptorSet( vk::raii::DescriptorSetLayout&& layout ) :
+	  m_layout( std::forward< vk::raii::DescriptorSetLayout >( layout ) ),
+	  m_set( DescriptorPool::getInstance().allocateSet( m_layout ) )
 	{}
-
-	DescriptorSet::~DescriptorSet()
-	{
-		if ( m_set != VK_NULL_HANDLE ) DescriptorPool::getInstance().deallocSet( m_set );
-	}
 
 	DescriptorSet::DescriptorSet( DescriptorSet&& other ) :
 	  m_infos( std::move( other.m_infos ) ),
@@ -67,7 +62,7 @@ namespace fgl::engine
 	}
 
 	void DescriptorSet::
-		bindImage( std::uint32_t binding_idx, ImageView& view, vk::ImageLayout layout, vk::Sampler sampler )
+		bindImage( std::uint32_t binding_idx, ImageView& view, vk::ImageLayout layout, vk::raii::Sampler sampler )
 	{
 		assert( binding_idx < m_infos.size() && "Binding index out of range" );
 
@@ -138,7 +133,7 @@ namespace fgl::engine
 	}
 
 	void DescriptorSet::
-		bindAttachment( std::uint32_t binding_idx, ImageView& view, vk::ImageLayout layout, vk::Sampler sampler )
+		bindAttachment( std::uint32_t binding_idx, ImageView& view, vk::ImageLayout layout, vk::raii::Sampler sampler )
 	{
 		assert( binding_idx < m_infos.size() && "Binding index out of range" );
 
@@ -163,7 +158,7 @@ namespace fgl::engine
 		vk::DebugUtilsObjectNameInfoEXT info {};
 		info.objectType = vk::ObjectType::eDescriptorSet;
 		info.pObjectName = str.c_str();
-		info.setObjectHandle( reinterpret_cast< std::uint64_t >( static_cast< VkDescriptorSet >( m_set ) ) );
+		info.setObjectHandle( reinterpret_cast< std::uint64_t >( getVkDescriptorSet() ) );
 
 		Device::getInstance().setDebugUtilsObjectName( info );
 	}

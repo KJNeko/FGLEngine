@@ -24,24 +24,26 @@ namespace fgl::engine
 
 	  private:
 
+		PhysicalDevice& m_phy_device;
+
 		vk::Format m_swap_chain_format { vk::Format::eUndefined };
 		vk::Format m_swap_chain_depth_format { findDepthFormat() };
 		vk::Extent2D m_swap_chain_extent { 0, 0 };
 
-		std::vector< vk::Framebuffer > m_swap_chain_buffers {};
-		vk::RenderPass m_render_pass { VK_NULL_HANDLE };
+		std::vector< vk::raii::Framebuffer > m_swap_chain_buffers {};
+		vk::raii::RenderPass m_render_pass { VK_NULL_HANDLE };
 		std::unique_ptr< RenderPassResources > m_render_pass_resources { nullptr };
 
 		std::vector< Image > m_swap_chain_images {};
 
 		vk::Extent2D windowExtent;
 
-		vk::SwapchainKHR swapChain { VK_NULL_HANDLE };
+		vk::raii::SwapchainKHR swapChain { VK_NULL_HANDLE };
 		std::shared_ptr< SwapChain > old_swap_chain {};
 
-		std::vector< vk::Semaphore > imageAvailableSemaphores {};
-		std::vector< vk::Semaphore > renderFinishedSemaphores {};
-		std::vector< vk::Fence > inFlightFences {};
+		std::vector< vk::raii::Semaphore > imageAvailableSemaphores {};
+		std::vector< vk::raii::Semaphore > renderFinishedSemaphores {};
+		std::vector< vk::raii::Fence > inFlightFences {};
 		std::vector< vk::Fence > imagesInFlight {};
 		size_t currentFrame { 0 };
 
@@ -73,19 +75,18 @@ namespace fgl::engine
 			return *m_gbuffer_descriptor_set[ frame_idx ];
 		}
 
-		SwapChain( vk::Extent2D windowExtent );
+		SwapChain( vk::Extent2D windowExtent, PhysicalDevice& phy_dev );
 		SwapChain( vk::Extent2D windowExtent, std::shared_ptr< SwapChain > previous );
-		~SwapChain();
 
 		SwapChain( const SwapChain& ) = delete;
 		SwapChain& operator=( const SwapChain& ) = delete;
 
-		vk::Framebuffer getFrameBuffer( std::uint32_t index ) const
+		vk::raii::Framebuffer& getFrameBuffer( std::uint32_t index )
 		{
 			return m_swap_chain_buffers[ static_cast< std::size_t >( index ) ];
 		}
 
-		vk::RenderPass getRenderPass() const { return m_render_pass; }
+		vk::raii::RenderPass& getRenderPass() { return m_render_pass; }
 
 		std::uint16_t imageCount() const { return static_cast< std::uint16_t >( m_swap_chain_images.size() ); }
 
@@ -112,7 +113,8 @@ namespace fgl::engine
 		vk::Format findDepthFormat();
 
 		[[nodiscard]] std::pair< vk::Result, std::uint32_t > acquireNextImage();
-		[[nodiscard]] vk::Result submitCommandBuffers( const vk::CommandBuffer* buffers, std::uint32_t imageIndex );
+		[[nodiscard]] vk::Result
+			submitCommandBuffers( const vk::raii::CommandBuffer& buffers, std::uint32_t imageIndex );
 	};
 
 } // namespace fgl::engine

@@ -40,7 +40,7 @@ namespace fgl::engine
 
 	static Average< float, 60 * 15 > rolling_ms_average;
 
-	void preStage( vk::CommandBuffer& cmd_buffer )
+	void preStage( vk::raii::CommandBuffer& cmd_buffer )
 	{
 		ZoneScopedN( "Pre-Stage" );
 
@@ -155,7 +155,7 @@ namespace fgl::engine
 			camera_controller.moveInPlaneXZ( m_window.window(), delta_time, viewer );
 			camera.setView( viewer.getPosition(), viewer.getRotation() );
 
-			if ( auto command_buffer = m_renderer.beginFrame(); command_buffer )
+			if ( auto& command_buffer = m_renderer.beginFrame(); *command_buffer )
 			{
 				preStage( command_buffer );
 
@@ -188,7 +188,7 @@ namespace fgl::engine
 				camera_info[ frame_index ] = current_camera_info;
 
 				m_culling_system.startPass( frame_info );
-				TracyVkCollect( frame_info.tracy_ctx, command_buffer );
+				TracyVkCollect( frame_info.tracy_ctx, *command_buffer );
 				m_culling_system.wait();
 
 				m_renderer.beginSwapchainRendererPass( command_buffer );

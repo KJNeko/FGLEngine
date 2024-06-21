@@ -101,7 +101,7 @@ namespace fgl::engine
 			return std::make_unique< RenderPassResources >( std::move( views ) );
 		}
 
-		vk::RenderPass create();
+		vk::raii::RenderPass create();
 	};
 
 } // namespace fgl::engine

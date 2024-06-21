@@ -16,12 +16,15 @@
 namespace fgl::engine
 {
 
-	SwapChain::SwapChain( vk::Extent2D extent ) : windowExtent( extent )
+	SwapChain::SwapChain( vk::Extent2D extent, PhysicalDevice& phy_device ) :
+	  m_phy_device( phy_device ),
+	  windowExtent( extent )
 	{
 		init();
 	}
 
 	SwapChain::SwapChain( vk::Extent2D extent, std::shared_ptr< SwapChain > previous ) :
+	  m_phy_device( previous->m_phy_device ),
 	  windowExtent( extent ),
 	  old_swap_chain( previous )
 	{
@@ -37,64 +40,37 @@ namespace fgl::engine
 		createSyncObjects();
 	}
 
-	SwapChain::~SwapChain()
-	{
-		ZoneScoped;
-		if ( swapChain != nullptr )
-		{
-			vkDestroySwapchainKHR( Device::getInstance().device(), swapChain, nullptr );
-			swapChain = nullptr;
-		}
-
-		for ( auto framebuffer : m_swap_chain_buffers )
-		{
-			vkDestroyFramebuffer( Device::getInstance().device(), framebuffer, nullptr );
-		}
-
-		vkDestroyRenderPass( Device::getInstance().device(), m_render_pass, nullptr );
-
-		// cleanup synchronization objects
-		for ( size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
-		{
-			vkDestroySemaphore( Device::getInstance().device(), renderFinishedSemaphores[ i ], nullptr );
-			vkDestroySemaphore( Device::getInstance().device(), imageAvailableSemaphores[ i ], nullptr );
-			vkDestroyFence( Device::getInstance().device(), inFlightFences[ i ], nullptr );
-		}
-	}
-
 	std::pair< vk::Result, std::uint32_t > SwapChain::acquireNextImage()
 	{
 		ZoneScoped;
-		if ( Device::getInstance()
-		         .device()
-		         .waitForFences( 1, &inFlightFences[ currentFrame ], VK_TRUE, std::numeric_limits< uint64_t >::max() )
+
+		std::vector< vk::Fence > fences { inFlightFences[ currentFrame ] };
+
+		if ( Device::getInstance().device().waitForFences( fences, VK_TRUE, std::numeric_limits< uint64_t >::max() )
 		     != vk::Result::eSuccess )
 			throw std::runtime_error( "failed to wait for fences!" );
 
 		std::uint32_t image_idx { 0 };
 
-		vk::Result result { Device::getInstance().device().acquireNextImageKHR(
-			swapChain,
+		auto result { swapChain.acquireNextImage(
 			std::numeric_limits< uint64_t >::max(),
-			imageAvailableSemaphores[ currentFrame ], // must be a not signaled semaphore
-			VK_NULL_HANDLE,
-			&image_idx ) };
+			imageAvailableSemaphores[ currentFrame ] // must be a not signaled semaphore
+			) };
 
-		return { result, image_idx };
+		return result;
 	}
 
-	vk::Result SwapChain::submitCommandBuffers( const vk::CommandBuffer* buffers, std::uint32_t imageIndex )
+	vk::Result SwapChain::submitCommandBuffers( const vk::raii::CommandBuffer& buffers, std::uint32_t imageIndex )
 	{
 		ZoneScoped;
-		if ( imagesInFlight[ imageIndex ] != VK_NULL_HANDLE )
-		{
-			if ( Device::getInstance()
-			         .device()
-			         .waitForFences( 1, &imagesInFlight[ imageIndex ], VK_TRUE, std::numeric_limits< uint64_t >::max() )
-			     != vk::Result::eSuccess )
-				throw std::runtime_error( "failed to wait for fences!" );
-		}
+
 		imagesInFlight[ imageIndex ] = inFlightFences[ currentFrame ];
+
+		std::vector< vk::Fence > fences { imagesInFlight[ imageIndex ] };
+
+		if ( Device::getInstance().device().waitForFences( fences, VK_TRUE, std::numeric_limits< uint64_t >::max() )
+		     != vk::Result::eSuccess )
+			throw std::runtime_error( "failed to wait for fences!" );
 
 		vk::SubmitInfo submitInfo {};
 
@@ -105,36 +81,17 @@ namespace fgl::engine
 		submitInfo.pWaitDstStageMask = waitStages;
 
 		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = buffers;
+		submitInfo.pCommandBuffers = &( *buffers );
 
 		vk::Semaphore signalSemaphores[] = { renderFinishedSemaphores[ currentFrame ] };
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signalSemaphores;
 
-		if ( Device::getInstance().device().resetFences( 1, &inFlightFences[ currentFrame ] ) != vk::Result::eSuccess )
-			throw std::runtime_error( "failed to reset fences!" );
+		Device::getInstance().device().resetFences( fences );
 
-		if ( auto result =
-		         Device::getInstance().graphicsQueue().submit( 1, &submitInfo, inFlightFences[ currentFrame ] );
-		     result != vk::Result::eSuccess )
-		{
-#pragma GCC diagnostic push
-			//Can't possibly handle all of these. It will add like....100 lines of just empty cases
-#pragma GCC diagnostic ignored "-Wswitch-enum"
-			switch ( result )
-			{
-				case vk::Result::eErrorOutOfDateKHR:
-					return vk::Result::eErrorOutOfDateKHR;
-				case vk::Result::eSuboptimalKHR:
-					return vk::Result::eSuboptimalKHR;
-				case vk::Result::eErrorDeviceLost:
-					throw std::runtime_error( "Device lost!" );
-				default:
-					throw std::runtime_error(
-						"failed to submit draw command buffer!: ID" + std::to_string( static_cast< int >( result ) ) );
-			}
-#pragma GCC diagnostic pop
-		}
+		std::vector< vk::SubmitInfo > submit_infos { submitInfo };
+
+		Device::getInstance().graphicsQueue().submit( submitInfo, inFlightFences[ currentFrame ] );
 
 		vk::PresentInfoKHR presentInfo = {};
 
@@ -148,7 +105,7 @@ namespace fgl::engine
 		std::array< std::uint32_t, 1 > indicies { { imageIndex } };
 		presentInfo.setImageIndices( indicies );
 
-		if ( auto present_result = Device::getInstance().presentQueue().presentKHR( &presentInfo );
+		if ( auto present_result = Device::getInstance().presentQueue().presentKHR( presentInfo );
 		     present_result != vk::Result::eSuccess )
 		{
 			if ( present_result == vk::Result::eSuboptimalKHR ) return vk::Result::eSuboptimalKHR;
@@ -187,11 +144,15 @@ namespace fgl::engine
 		createInfo.imageArrayLayers = 1;
 		createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
 
-		QueueFamilyIndices indices = Device::getInstance().findPhysicalQueueFamilies();
-		uint32_t queueFamilyIndices[] = { indices.graphicsFamily, indices.presentFamily };
+		std::uint32_t graphics_family { m_phy_device.queueInfo().getIndex( vk::QueueFlagBits::eGraphics ) };
+		std::uint32_t present_family { m_phy_device.queueInfo().getPresentIndex() };
 
-		if ( indices.graphicsFamily != indices.presentFamily )
+		const uint32_t queueFamilyIndices[] = { graphics_family, present_family };
+
+		if ( graphics_family != present_family )
 		{
+			// If the familys are not the same then the swapchain must be shared between
+			// both queues.
 			createInfo.imageSharingMode = vk::SharingMode::eConcurrent;
 			createInfo.queueFamilyIndexCount = 2;
 			createInfo.pQueueFamilyIndices = queueFamilyIndices;
@@ -209,17 +170,11 @@ namespace fgl::engine
 		createInfo.presentMode = presentMode;
 		createInfo.clipped = VK_TRUE;
 
-		createInfo.oldSwapchain = old_swap_chain == nullptr ? VK_NULL_HANDLE : old_swap_chain->swapChain;
+		createInfo.oldSwapchain = old_swap_chain == nullptr ? VK_NULL_HANDLE : *old_swap_chain->swapChain;
 
-		if ( Device::getInstance().device().createSwapchainKHR( &createInfo, nullptr, &swapChain )
-		     != vk::Result::eSuccess )
-		{
-			throw std::runtime_error( "failed to create swap chain!" );
-		}
+		swapChain = Device::getInstance()->createSwapchainKHR( createInfo );
 
-		std::vector< vk::Image > swap_chain_images {
-			Device::getInstance().device().getSwapchainImagesKHR( swapChain )
-		};
+		std::vector< vk::Image > swap_chain_images { swapChain.getImages() };
 
 		for ( std::uint64_t i = 0; i < swap_chain_images.size(); i++ )
 		{
@@ -352,7 +307,8 @@ namespace fgl::engine
 	void SwapChain::createFramebuffers()
 	{
 		ZoneScoped;
-		m_swap_chain_buffers.resize( imageCount() );
+		m_swap_chain_buffers.clear();
+		m_swap_chain_buffers.reserve( imageCount() );
 		for ( uint8_t i = 0; i < imageCount(); i++ )
 		{
 			std::vector< vk::ImageView > attachments { m_render_pass_resources->forFrame( i ) };
@@ -367,22 +323,16 @@ namespace fgl::engine
 			framebufferInfo.height = swapChainExtent.height;
 			framebufferInfo.layers = 1;
 
-			if ( Device::getInstance()
-			         .device()
-			         .createFramebuffer( &framebufferInfo, nullptr, &( m_swap_chain_buffers[ i ] ) )
-			     != vk::Result::eSuccess )
-			{
-				throw std::runtime_error( "failed to create framebuffer!" );
-			}
+			m_swap_chain_buffers.push_back( Device::getInstance()->createFramebuffer( framebufferInfo ) );
 		}
 	}
 
 	void SwapChain::createSyncObjects()
 	{
 		ZoneScoped;
-		imageAvailableSemaphores.resize( MAX_FRAMES_IN_FLIGHT );
-		renderFinishedSemaphores.resize( MAX_FRAMES_IN_FLIGHT );
-		inFlightFences.resize( MAX_FRAMES_IN_FLIGHT );
+		imageAvailableSemaphores.reserve( MAX_FRAMES_IN_FLIGHT );
+		renderFinishedSemaphores.reserve( MAX_FRAMES_IN_FLIGHT );
+		inFlightFences.reserve( MAX_FRAMES_IN_FLIGHT );
 		imagesInFlight.resize( imageCount(), VK_NULL_HANDLE );
 
 		vk::SemaphoreCreateInfo semaphoreInfo {};
@@ -392,15 +342,11 @@ namespace fgl::engine
 
 		for ( size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
 		{
-			auto vk_device { Device::getInstance().device() };
-			if ( vk_device.createSemaphore( &semaphoreInfo, nullptr, &imageAvailableSemaphores[ i ] )
-			     != vk::Result::eSuccess )
-				throw std::runtime_error( "failed to create image available semaphore!" );
-			if ( vk_device.createSemaphore( &semaphoreInfo, nullptr, &renderFinishedSemaphores[ i ] )
-			     != vk::Result::eSuccess )
-				throw std::runtime_error( "failed to create render finished semaphore!" );
-			if ( vk_device.createFence( &fenceInfo, nullptr, &inFlightFences[ i ] ) != vk::Result::eSuccess )
-				throw std::runtime_error( "failed to create in flight fence!" );
+			auto& device { Device::getInstance() };
+
+			imageAvailableSemaphores.push_back( device->createSemaphore( semaphoreInfo ) );
+			renderFinishedSemaphores.push_back( device->createSemaphore( semaphoreInfo ) );
+			inFlightFences.push_back( device->createFence( fenceInfo ) );
 		}
 	}
 

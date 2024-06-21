@@ -6,12 +6,9 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include <optional>
-
 #include "Image.hpp"
 #include "ImageHandle.hpp"
 #include "Sampler.hpp"
-#include "engine/concepts/is_image.hpp"
 #include "engine/rendering/Device.hpp"
 
 namespace fgl::engine
@@ -23,7 +20,7 @@ namespace fgl::engine
 
 		vk::DescriptorImageInfo m_descriptor_info;
 
-		vk::ImageView m_image_view;
+		vk::raii::ImageView m_image_view;
 
 		Sampler m_sampler;
 
@@ -48,21 +45,16 @@ namespace fgl::engine
 			other.m_image_view = VK_NULL_HANDLE;
 		}
 
-		~ImageView()
-		{
-			if ( m_image_view )
-			{
-				Device::getInstance().device().destroyImageView( m_image_view );
-			}
-		}
-
+		vk::raii::ImageView createImageView( const std::shared_ptr< ImageHandle >& img );
 		ImageView( std::shared_ptr< ImageHandle >& img );
 
 		vk::Extent2D getExtent() const;
 
-		vk::ImageView& getVkView();
+		vk::raii::ImageView& getVkView();
 
-		vk::Image& getVkImage();
+		VkImageView operator*() { return *m_image_view; }
+
+		VkImage getVkImage() { return m_resource->getVkImage(); }
 
 		Sampler& getSampler() { return m_sampler; };
 

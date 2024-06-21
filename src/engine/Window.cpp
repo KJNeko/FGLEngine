@@ -5,7 +5,6 @@
 #include "Window.hpp"
 
 #include <vulkan/vulkan.hpp>
-#include <vulkan/vulkan_handles.hpp>
 
 #include <stdexcept>
 
@@ -42,13 +41,15 @@ namespace fgl::engine
 		glfwSetFramebufferSizeCallback( m_window, framebufferResizeCallback );
 	}
 
-	vk::SurfaceKHR Window::createWindowSurface( vk::Instance instance )
+	vk::raii::SurfaceKHR Window::createWindowSurface( Instance& instance )
 	{
 		VkSurfaceKHR temp_surface { VK_NULL_HANDLE };
 		if ( glfwCreateWindowSurface( instance, m_window, nullptr, &temp_surface ) != VK_SUCCESS )
 			throw std::runtime_error( "Failed to create window surface" );
 
-		return vk::SurfaceKHR( temp_surface );
+		vk::raii::SurfaceKHR surface { instance.handle(), temp_surface };
+
+		return surface;
 	}
 
 	void Window::framebufferResizeCallback( GLFWwindow* glfw_window, int width, int height )

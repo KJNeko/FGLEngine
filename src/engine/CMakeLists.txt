@@ -9,11 +9,6 @@ add_library(FGLEngine STATIC ${CPP_SOURCES} ${HPP_SOURCES})
 set(CMAKE_CXX_STANDARD 23)
 
 target_precompile_headers(FGLEngine PRIVATE
-		<vector>
-		<iostream>
-		<array>
-		<chrono>
-		<optional>
 
 		<vulkan/vulkan.h>
 

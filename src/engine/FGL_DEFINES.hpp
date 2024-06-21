@@ -11,6 +11,8 @@
 #define FGL_DELETE_MOVE_CTOR( ClassName ) ClassName( ClassName&& ) = delete;
 #define FGL_DELETE_COPY( ClassName ) FGL_DELETE_COPY_CTOR( ClassName ) FGL_DELETE_COPY_ASSIGN( ClassName )
 #define FGL_DELETE_MOVE( ClassName ) FGL_DELETE_MOVE_CTOR( ClassName ) FGL_DELETE_MOVE_ASSIGN( ClassName )
+#define FGL_DELETE_ALL_Ro5( ClassName )                                                                                \
+	FGL_DELETE_DEFAULT_CTOR( ClassName ) FGL_DELETE_COPY( ClassName ) FGL_DELETE_MOVE( ClassName )
 
 #ifndef FGL_FORCE_NOTHING
 

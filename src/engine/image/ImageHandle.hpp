@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "engine/logging/logging.hpp"
 #include "engine/rendering/Device.hpp"
 #include "vma/vma_impl.hpp"
 #include "vulkan/vulkan.hpp"
@@ -19,8 +20,6 @@ namespace fgl::engine
 		VmaAllocation m_allocation { VK_NULL_HANDLE };
 		VmaAllocationInfo m_allocation_info {};
 
-		vk::Image m_image { VK_NULL_HANDLE };
-
 		vk::Extent2D m_extent;
 		vk::Format m_format;
 		vk::ImageUsageFlags m_usage;
@@ -28,17 +27,15 @@ namespace fgl::engine
 		vk::ImageLayout m_initial_layout { vk::ImageLayout::eUndefined };
 		vk::ImageLayout m_final_layout { vk::ImageLayout::eUndefined };
 
+		// Because of the way the swapchain works we need to be able to storage a `VkImage` handle.
+		std::variant< vk::raii::Image, vk::Image > m_image;
+
 		friend class ImageView;
 		friend class Image;
 
 	  public:
 
-		ImageHandle() = delete;
-
-		ImageHandle( const ImageHandle& other ) = delete;
-		ImageHandle& operator=( const ImageHandle& other ) = delete;
-
-		ImageHandle( ImageHandle&& other ) noexcept;
+		FGL_DELETE_ALL_Ro5( ImageHandle );
 
 		ImageHandle(
 			const vk::Extent2D extent, const vk::Format format, vk::Image image, vk::ImageUsageFlags usage ) noexcept;
@@ -52,7 +49,18 @@ namespace fgl::engine
 
 		void setName( const std::string str );
 
-		vk::Image& getVkImage() { return m_image; }
+		VkImage operator*()
+		{
+			ZoneScoped;
+			if ( std::holds_alternative< vk::raii::Image >( m_image ) )
+			{
+				return *std::get< vk::raii::Image >( m_image );
+			}
+			else
+				return std::get< vk::Image >( m_image );
+		}
+
+		VkImage getVkImage() { return **this; }
 
 		vk::Format format() const { return m_format; }
 
@@ -77,7 +85,9 @@ namespace fgl::engine
 		~ImageHandle()
 		{
 			if ( m_allocation != VK_NULL_HANDLE )
-				vmaDestroyImage( Device::getInstance().allocator(), m_image, m_allocation );
+			{
+				vmaFreeMemory( Device::getInstance().allocator(), m_allocation );
+			}
 		}
 	};
 

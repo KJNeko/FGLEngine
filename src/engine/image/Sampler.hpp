@@ -5,14 +5,15 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_raii.hpp>
 
 namespace fgl::engine
 {
 
 	class Sampler
 	{
-		bool valid { false };
-		vk::Sampler m_sampler { VK_NULL_HANDLE };
+		bool valid;
+		vk::raii::Sampler m_sampler;
 
 	  public:
 
@@ -30,14 +31,14 @@ namespace fgl::engine
 			vk::SamplerMipmapMode mipmap_mode,
 			vk::SamplerAddressMode sampler_mode );
 
+		VkSampler operator*() { return *m_sampler; }
+
 		Sampler( const Sampler& ) = delete;
 		Sampler& operator=( const Sampler& ) = delete;
 		Sampler( Sampler&& other );
 		Sampler& operator=( Sampler&& );
 
-		~Sampler();
-
-		vk::Sampler& getVkSampler() { return m_sampler; }
+		vk::raii::Sampler& getVkSampler() { return m_sampler; }
 	};
 
 } // namespace fgl::engine

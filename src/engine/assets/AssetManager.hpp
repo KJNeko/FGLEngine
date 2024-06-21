@@ -5,6 +5,7 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_raii.hpp>
 
 #include <filesystem>
 #include <memory>
@@ -20,7 +21,7 @@ namespace fgl::engine
 	struct AssetInterface
 	{
 		//! Stages the asset to the device (GPU)
-		virtual void stage( vk::CommandBuffer& buffer ) = 0;
+		virtual void stage( vk::raii::CommandBuffer& buffer ) = 0;
 
 		friend class AssetStore< T >;
 
@@ -76,7 +77,7 @@ namespace fgl::engine
 
 		//! Returns true if all items to be staged were submitted to the queue
 		//! Returns false if more items remain
-		bool stage( vk::CommandBuffer& buffer )
+		bool stage( vk::raii::CommandBuffer& buffer )
 		{
 			ZoneScoped;
 			std::lock_guard guard { queue_mtx };

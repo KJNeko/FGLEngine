@@ -23,24 +23,32 @@ namespace fgl::engine::internal
 	  protected:
 
 		Device& m_device;
-		vk::Pipeline m_vk_pipeline { VK_NULL_HANDLE };
-		vk::PipelineLayout m_layout { VK_NULL_HANDLE };
+		vk::raii::PipelineLayout m_layout;
+		vk::raii::Pipeline m_vk_pipeline;
 		vk::ShaderModule m_vert_shader { VK_NULL_HANDLE };
 		vk::ShaderModule m_frag_shader { VK_NULL_HANDLE };
 
-		void createGraphicsPipeline(
-			std::vector< std::unique_ptr< ShaderHandle > >& shaders, const PipelineConfigInfo& info );
+		vk::raii::Pipeline createGraphicsPipeline(
+			std::vector< std::unique_ptr< ShaderHandle > >& shaders,
+			const PipelineConfigInfo& info,
+			vk::raii::PipelineLayout& layout );
 
 	  public:
 
-		Pipeline( Device& device ) : m_device( device ) {}
-
-		~Pipeline();
+		Pipeline(
+			Device& device,
+			vk::raii::PipelineLayout layout,
+			PipelineConfigInfo info,
+			std::vector< std::unique_ptr< ShaderHandle > > shaders ) :
+		  m_device( device ),
+		  m_layout( std::move( layout ) ),
+		  m_vk_pipeline( createGraphicsPipeline( shaders, info, m_layout ) )
+		{}
 
 		Pipeline( const Pipeline& other ) = delete;
 		Pipeline& operator=( const Pipeline& ) = delete;
 
-		void bind( vk::CommandBuffer& command_buffer );
+		void bind( vk::raii::CommandBuffer& command_buffer );
 
 		void setDebugName( const std::string str );
 	};

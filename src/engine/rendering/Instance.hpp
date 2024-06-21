@@ -44,6 +44,8 @@ namespace fgl::engine
 
 		~Instance();
 
+		inline vk::raii::Instance& handle() { return m_instance; }
+
 		inline operator vk::Instance() { return m_instance; }
 
 		inline operator VkInstance() { return *m_instance; }

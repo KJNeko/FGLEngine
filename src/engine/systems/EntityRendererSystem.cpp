@@ -12,6 +12,7 @@
 #include "DrawPair.hpp"
 #include "engine/literals/size.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
+#include "spdlog/fmt/bundled/compile.h"
 
 namespace fgl::engine
 {
@@ -25,22 +26,19 @@ namespace fgl::engine
 			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eDeviceLocal );
 	}
 
-	EntityRendererSystem::EntityRendererSystem( Device& device, VkRenderPass render_pass ) : m_device( device )
+	EntityRendererSystem::EntityRendererSystem( Device& device, vk::raii::RenderPass& render_pass ) : m_device( device )
 	{
 		ZoneScoped;
-		PipelineConfigInfo info { render_pass };
-
-		for ( int i = 0; i < 4; ++i ) PipelineConfigInfo::addColorAttachmentConfig( info );
-
-		info.subpass = 0;
-
-		//m_pipeline = std::make_unique< Pipeline >( m_device, info );
-		//m_pipeline->setDebugName( "Entity pipeline" );
-
-		m_standard_pipeline = std::make_unique< StandardPipeline >( m_device, info );
-		m_textured_pipeline = std::make_unique< TexturedPipeline >( m_device, info );
-
+		PipelineConfigInfo standard_info { render_pass };
+		for ( int i = 0; i < 4; ++i ) PipelineConfigInfo::addColorAttachmentConfig( standard_info );
+		standard_info.subpass = 0;
+		m_standard_pipeline = std::make_unique< StandardPipeline >( m_device, std::move( standard_info ) );
 		m_standard_pipeline->setDebugName( "Standard entity pipeline" );
+
+		PipelineConfigInfo textured_info { render_pass };
+		for ( int i = 0; i < 4; ++i ) PipelineConfigInfo::addColorAttachmentConfig( textured_info );
+		textured_info.subpass = 0;
+		m_textured_pipeline = std::make_unique< TexturedPipeline >( m_device, std::move( textured_info ) );
 		m_textured_pipeline->setDebugName( "Textured entity pipeline" );
 
 		using namespace fgl::literals::size_literals;
@@ -50,7 +48,7 @@ namespace fgl::engine
 		initDrawParameterBuffer( 1_KiB );
 	}
 
-	vk::CommandBuffer& EntityRendererSystem::setupSystem( FrameInfo& info )
+	vk::raii::CommandBuffer& EntityRendererSystem::setupSystem( FrameInfo& info )
 	{
 		auto& command_buffer { info.command_buffer };
 
@@ -69,7 +67,7 @@ namespace fgl::engine
 	{
 		ZoneScopedN( "Entity pass" );
 		auto& command_buffer { setupSystem( info ) };
-		TracyVkZone( info.tracy_ctx, command_buffer, "Render entities" );
+		TracyVkZone( info.tracy_ctx, *command_buffer, "Render entities" );
 
 		texturelessPass( info );
 		//texturedPass( info );
@@ -120,7 +118,7 @@ namespace fgl::engine
 	{
 		ZoneScopedN( "Textureless pass" );
 		auto& command_buffer { info.command_buffer };
-		TracyVkZone( info.tracy_ctx, command_buffer, "Render textureless entities" );
+		TracyVkZone( info.tracy_ctx, *command_buffer, "Render textureless entities" );
 
 		//Bind pipeline
 		m_standard_pipeline->bind( command_buffer );

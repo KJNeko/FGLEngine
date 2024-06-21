@@ -25,11 +25,11 @@ namespace fgl::engine
 
 		std::unique_ptr< CompositionPipeline > m_pipeline { nullptr };
 
-		vk::CommandBuffer& setupSystem( FrameInfo& info );
+		vk::raii::CommandBuffer& setupSystem( FrameInfo& info );
 
 	  public:
 
-		CompositionSystem( Device& device, VkRenderPass render_pass );
+		CompositionSystem( Device& device, vk::raii::RenderPass& render_pass );
 		~CompositionSystem() = default;
 
 		void pass( FrameInfo& info );

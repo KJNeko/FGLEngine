@@ -38,7 +38,7 @@ namespace fgl::engine
 			return *m_suballocations[ index ];
 		}
 
-		void bindForFrame( vk::CommandBuffer& cmd_buffer, std::uint16_t frame_idx )
+		void bindForFrame( vk::raii::CommandBuffer& cmd_buffer, std::uint16_t frame_idx )
 		{
 			m_suballocations[ frame_idx ].bind( cmd_buffer );
 		}

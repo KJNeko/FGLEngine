@@ -133,7 +133,7 @@ namespace fgl::engine
 		return model_ptr;
 	}
 
-	void Model::stage( vk::CommandBuffer& cmd_buffer )
+	void Model::stage( vk::raii::CommandBuffer& cmd_buffer )
 	{
 		assert( !m_primitives.empty() );
 		for ( auto& primitive : m_primitives )

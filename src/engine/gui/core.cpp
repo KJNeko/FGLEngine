@@ -39,26 +39,28 @@ namespace fgl::engine::gui
 		Device& device { Device::getInstance() };
 
 		ImGui_ImplGlfw_InitForVulkan( window.window(), true );
-		ImGui_ImplVulkan_InitInfo init_info { .Instance = device.instance(),
-			                                  .PhysicalDevice = device.phyDevice(),
-			                                  .Device = device.device(),
-			                                  .QueueFamily = device.findPhysicalQueueFamilies().graphicsFamily,
-			                                  .Queue = device.graphicsQueue(),
-			                                  .DescriptorPool = DescriptorPool::getInstance().getVkPool(),
-			                                  .RenderPass = renderer.getSwapChainRenderPass(),
-			                                  .MinImageCount = 2,
-			                                  .ImageCount = 2,
-			                                  .MSAASamples = VK_SAMPLE_COUNT_1_BIT,
+		ImGui_ImplVulkan_InitInfo init_info {
+			.Instance = device.instance(),
+			.PhysicalDevice = *device.phyDevice().handle(),
+			.Device = *device,
+			.QueueFamily = device.phyDevice().queueInfo().getIndex( vk::QueueFlagBits::eGraphics ),
+			.Queue = *device.graphicsQueue(),
+			.DescriptorPool = *DescriptorPool::getInstance().getPool(),
+			.RenderPass = *renderer.getSwapChainRenderPass(),
+			.MinImageCount = 2,
+			.ImageCount = 2,
+			.MSAASamples = VK_SAMPLE_COUNT_1_BIT,
 
-			                                  .PipelineCache = VK_NULL_HANDLE,
-			                                  .Subpass = 1,
+			.PipelineCache = VK_NULL_HANDLE,
+			.Subpass = 1,
 
-			                                  .UseDynamicRendering = VK_FALSE,
-			                                  .PipelineRenderingCreateInfo = {},
+			.UseDynamicRendering = VK_FALSE,
+			.PipelineRenderingCreateInfo = {},
 
-			                                  .Allocator = VK_NULL_HANDLE,
-			                                  .CheckVkResultFn = VK_NULL_HANDLE,
-			                                  .MinAllocationSize = 1024 * 1024 };
+			.Allocator = VK_NULL_HANDLE,
+			.CheckVkResultFn = VK_NULL_HANDLE,
+			.MinAllocationSize = 1024 * 1024
+		};
 
 		ImGui_ImplVulkan_Init( &init_info );
 	}
@@ -74,18 +76,17 @@ namespace fgl::engine::gui
 		ImGui::Begin( "Main" );
 	}
 
-	void endImGui( vk::CommandBuffer& command_buffer )
+	void endImGui( vk::raii::CommandBuffer& command_buffer )
 	{
 		ImGui::End();
 		ImGui::Render();
 
 		ImDrawData* data { ImGui::GetDrawData() };
-		ImGui_ImplVulkan_RenderDrawData( data, command_buffer );
+		ImGui_ImplVulkan_RenderDrawData( data, *command_buffer );
 
 		//ImGui::UpdatePlatformWindows();
 		//ImGui::RenderPlatformWindowsDefault();
 	}
-
 
 	void drawMainGUI( FrameInfo& info )
 	{

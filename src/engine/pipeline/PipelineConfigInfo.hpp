@@ -5,9 +5,12 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_raii.hpp>
 
 #include <cstdint>
 #include <vector>
+
+#include "engine/FGL_DEFINES.hpp"
 
 namespace fgl::engine
 {
@@ -27,16 +30,18 @@ namespace fgl::engine
 		std::vector< vk::DynamicState > dynamic_state_enables {};
 		vk::PipelineDynamicStateCreateInfo dynamic_state_info {};
 
-		vk::PipelineLayout layout { nullptr };
-		vk::RenderPass render_pass { nullptr };
+		vk::RenderPass render_pass { VK_NULL_HANDLE };
 		std::uint32_t subpass { 0 };
 
 		std::vector< vk::VertexInputBindingDescription > binding_descriptions {};
 		std::vector< vk::VertexInputAttributeDescription > attribute_descriptions {};
 
-		PipelineConfigInfo( vk::RenderPass pass );
-		PipelineConfigInfo( const PipelineConfigInfo& other ) = delete;
-		PipelineConfigInfo& operator=( const PipelineConfigInfo& ) = delete;
+		FGL_DELETE_COPY( PipelineConfigInfo )
+
+		PipelineConfigInfo( vk::raii::RenderPass& pass );
+
+		PipelineConfigInfo& operator=( PipelineConfigInfo&& other ) = default;
+		PipelineConfigInfo( PipelineConfigInfo&& other ) = default;
 
 		static void disableVertexInput( PipelineConfigInfo& info );
 		static void setTriangleListTopo( PipelineConfigInfo& info );

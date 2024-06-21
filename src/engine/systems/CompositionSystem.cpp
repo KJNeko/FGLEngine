@@ -9,7 +9,7 @@
 namespace fgl::engine
 {
 
-	CompositionSystem::CompositionSystem( [[maybe_unused]] Device& device, VkRenderPass render_pass )
+	CompositionSystem::CompositionSystem( [[maybe_unused]] Device& device, vk::raii::RenderPass& render_pass )
 	{
 		PipelineConfigInfo composition_info { render_pass };
 		PipelineConfigInfo::addColorAttachmentConfig( composition_info );
@@ -17,11 +17,11 @@ namespace fgl::engine
 		PipelineConfigInfo::disableCulling( composition_info );
 		composition_info.subpass = 1;
 
-		m_pipeline = std::make_unique< CompositionPipeline >( Device::getInstance(), composition_info );
+		m_pipeline = std::make_unique< CompositionPipeline >( Device::getInstance(), std::move( composition_info ) );
 		m_pipeline->setDebugName( "Composition pipeline" );
 	}
 
-	vk::CommandBuffer& CompositionSystem::setupSystem( FrameInfo& info )
+	vk::raii::CommandBuffer& CompositionSystem::setupSystem( FrameInfo& info )
 	{
 		auto& command_buffer { info.command_buffer };
 		m_pipeline->bind( command_buffer );

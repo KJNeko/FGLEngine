@@ -37,6 +37,7 @@ namespace fgl::engine
 	struct DescriptorSetCollection
 	{
 		using DescriptorSetTuple = std::tuple< DescriptorSets... >;
+		static constexpr auto SIZE { sizeof...( DescriptorSets ) };
 
 		constexpr static std::uint64_t DescriptorSetCount { sizeof...( DescriptorSets ) };
 
@@ -53,13 +54,13 @@ namespace fgl::engine
 
 		constexpr static std::uint16_t empty_sets { ( is_empty_descriptor_set< DescriptorSets > + ... ) };
 
-		using LayoutArray = std::array< vk::DescriptorSetLayout, DescriptorSetCount - has_constant_range >;
-
-		static LayoutArray createDescriptorSets()
+		static std::vector< vk::raii::DescriptorSetLayout > createDescriptorSets()
 		{
-			LayoutArray layouts;
-			createDescriptorSetsT< layouts.size(), 0, DescriptorSets... >( layouts );
-			return layouts;
+			auto vec { createDescriptorSetsT< DescriptorSets... >() };
+			assert( vec.size() > 0 );
+			assert( vec.size() == binding_sets );
+
+			return createDescriptorSetsT< DescriptorSets... >();
 		}
 
 		template < std::uint64_t IDX >

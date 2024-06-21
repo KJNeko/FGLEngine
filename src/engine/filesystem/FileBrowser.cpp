@@ -36,10 +36,6 @@ namespace fgl::engine::filesystem
 		file_texture = getTextureStore().load( "./assets/file.png", vk::Format::eR8G8B8A8Unorm );
 		up_texture = getTextureStore().load( "./assets/up.png", vk::Format::eR8G8B8A8Unorm );
 
-		auto cmd_buffer { Device::getInstance().beginSingleTimeCommands() };
-
-		Device::getInstance().endSingleTimeCommands( cmd_buffer );
-
 		current = DirInfo( test_path );
 	}
 

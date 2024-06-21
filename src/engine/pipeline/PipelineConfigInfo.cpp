@@ -127,7 +127,7 @@ namespace fgl::engine
 		info.rasterization_info.cullMode = vk::CullModeFlagBits::eNone;
 	}
 
-	PipelineConfigInfo::PipelineConfigInfo( vk::RenderPass pass )
+	PipelineConfigInfo::PipelineConfigInfo( vk::raii::RenderPass& pass )
 	{
 		render_pass = pass;
 		defaultConfig( *this );

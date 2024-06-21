@@ -26,9 +26,4 @@ namespace fgl::engine
 		m_handle->setName( str );
 	}
 
-	vk::Image& Image::getVkImage()
-	{
-		return m_handle->m_image;
-	}
-
 } // namespace fgl::engine

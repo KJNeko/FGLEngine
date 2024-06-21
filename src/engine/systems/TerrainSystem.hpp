@@ -42,7 +42,7 @@ namespace fgl::engine
 		std::array< std::unique_ptr< ModelMatrixInfoBufferSuballocation >, SwapChain::MAX_FRAMES_IN_FLIGHT >
 			m_model_matrix_info_buffers {};
 
-		vk::CommandBuffer& setupSystem( FrameInfo& info );
+		vk::raii::CommandBuffer& setupSystem( FrameInfo& info );
 
 		void initVertexBuffer( std::uint32_t size )
 		{
@@ -66,7 +66,7 @@ namespace fgl::engine
 
 		inline Buffer& getIndexBuffer() { return *m_index_buffer; }
 
-		TerrainSystem( Device& device, VkRenderPass render_pass );
+		TerrainSystem( Device& device, vk::raii::RenderPass& render_pass );
 		~TerrainSystem() = default;
 
 		void pass( FrameInfo& info );

@@ -53,7 +53,7 @@ namespace fgl::engine
 
 	void Texture::drawImGui( vk::Extent2D extent )
 	{
-		if ( this->m_imgui_set == VK_NULL_HANDLE ) createImGuiSet();
+		if ( m_imgui_set == VK_NULL_HANDLE ) createImGuiSet();
 
 		if ( extent == vk::Extent2D() )
 		{
@@ -125,7 +125,7 @@ namespace fgl::engine
 		if ( m_imgui_set != VK_NULL_HANDLE ) ImGui_ImplVulkan_RemoveTexture( m_imgui_set );
 	}
 
-	void Texture::stage( vk::CommandBuffer& cmd )
+	void Texture::stage( vk::raii::CommandBuffer& cmd )
 	{
 		ZoneScoped;
 
@@ -172,8 +172,10 @@ namespace fgl::engine
 		region.imageOffset = vk::Offset3D( 0, 0, 0 );
 		region.imageExtent = vk::Extent3D( m_extent, 1 );
 
+		std::vector< vk::BufferImageCopy > regions { region };
+
 		cmd.copyBufferToImage(
-			m_staging->getVkBuffer(), m_image_view->getVkImage(), vk::ImageLayout::eTransferDstOptimal, 1, &region );
+			m_staging->getVkBuffer(), m_image_view->getVkImage(), vk::ImageLayout::eTransferDstOptimal, regions );
 
 		//Transfer back to eGeneral
 
@@ -227,10 +229,10 @@ namespace fgl::engine
 
 		assert( view );
 
-		VkImageView vk_view { view->getVkView() };
+		VkImageView vk_view { **view };
 		assert( vk_view );
 
-		VkSampler vk_sampler { view->getSampler().getVkSampler() };
+		VkSampler vk_sampler { *( view->getSampler() ) };
 
 		m_imgui_set = ImGui_ImplVulkan_AddTexture( vk_sampler, vk_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 #endif
@@ -252,14 +254,17 @@ namespace fgl::engine
 	DescriptorSet& Texture::getTextureDescriptorSet()
 	{
 		static std::unique_ptr< DescriptorSet > set { nullptr };
-		static std::optional< vk::DescriptorSetLayout > set_layout { std::nullopt };
+		static std::optional< vk::raii::DescriptorSetLayout > set_layout { std::nullopt };
 
 		if ( set )
 			return *set;
 		else
 		{
 			set_layout = TextureDescriptorSet::createLayout();
-			set = std::make_unique< DescriptorSet >( set_layout.value() );
+
+			if ( !set_layout.has_value() ) throw std::runtime_error( "No set layout made" );
+
+			set = std::make_unique< DescriptorSet >( std::move( set_layout.value() ) );
 			set->setMaxIDX( 1 );
 			set->setName( "Texture descriptor set" );
 			return *set;

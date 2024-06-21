@@ -129,10 +129,8 @@ namespace fgl::engine
 			return extractBindingFlags< 0, 0 >();
 		}
 
-		static vk::DescriptorSetLayout createDescriptorSetLayout()
+		static vk::raii::DescriptorSetLayout createDescriptorSetLayout()
 		{
-			vk::DescriptorSetLayout layout { VK_NULL_HANDLE };
-
 			static constinit std::array< vk::DescriptorSetLayoutBinding, used_descriptor_count > bindings {
 				getLayoutBindings()
 			};
@@ -154,18 +152,14 @@ namespace fgl::engine
 			layout_info.pBindings = bindings.data();
 			layout_info.pNext = &flags_info;
 
-			if ( Device::getInstance().device().createDescriptorSetLayout( &layout_info, nullptr, &layout )
-			     != vk::Result::eSuccess )
-				throw std::runtime_error( "Failed to create descriptor set layout" );
-
-			return layout;
+			return Device::getInstance()->createDescriptorSetLayout( layout_info );
 		}
 
 	  public:
 
 		DescriptorSetLayout() = delete;
 
-		static vk::DescriptorSetLayout createLayout() { return createDescriptorSetLayout(); }
+		static vk::raii::DescriptorSetLayout createLayout() { return createDescriptorSetLayout(); }
 	};
 
 	template < std::uint16_t set_idx >

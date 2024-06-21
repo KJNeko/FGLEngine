@@ -7,30 +7,31 @@
 namespace fgl::engine
 {
 
+	vk::raii::ImageView ImageView::createImageView( const std::shared_ptr< ImageHandle >& img )
+	{
+		vk::ImageViewCreateInfo info {};
+		info.image = **img;
+		info.viewType = vk::ImageViewType::e2D;
+		info.format = img->format();
+
+		info.subresourceRange.aspectMask = img->aspectMask();
+
+		info.subresourceRange.baseMipLevel = 0;
+		info.subresourceRange.levelCount = 1;
+		info.subresourceRange.baseArrayLayer = 0;
+		info.subresourceRange.layerCount = 1;
+
+		return Device::getInstance()->createImageView( info );
+	}
+
 	ImageView::ImageView( std::shared_ptr< ImageHandle >& img ) :
 	  m_resource( img ),
 	  m_descriptor_info(),
-	  m_image_view( VK_NULL_HANDLE ),
-	  m_sampler()
+	  m_sampler(),
+	  m_image_view( createImageView( img ) )
 	{
-		vk::ImageViewCreateInfo view_info {};
-		view_info.image = img->getVkImage();
-		view_info.viewType = vk::ImageViewType::e2D;
-		view_info.format = img->format();
-
-		view_info.subresourceRange.aspectMask = img->aspectMask();
-
-		view_info.subresourceRange.baseMipLevel = 0;
-		view_info.subresourceRange.levelCount = 1;
-		view_info.subresourceRange.baseArrayLayer = 0;
-		view_info.subresourceRange.layerCount = 1;
-
 		m_descriptor_info.imageLayout = img->m_final_layout;
 		m_descriptor_info.imageView = m_image_view;
-
-		if ( Device::getInstance().device().createImageView( &view_info, nullptr, &m_image_view )
-		     != vk::Result::eSuccess )
-			throw std::runtime_error( "Failed to create image view" );
 	}
 
 	vk::DescriptorImageInfo ImageView::descriptorInfo( vk::Sampler sampler, vk::ImageLayout layout ) const
@@ -51,14 +52,9 @@ namespace fgl::engine
 		return info;
 	}
 
-	vk::ImageView& ImageView::getVkView()
+	vk::raii::ImageView& ImageView::getVkView()
 	{
 		return m_image_view;
-	}
-
-	vk::Image& ImageView::getVkImage()
-	{
-		return m_resource->getVkImage();
 	}
 
 	vk::Extent2D ImageView::getExtent() const

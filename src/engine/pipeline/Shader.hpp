@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <vulkan/vulkan_raii.hpp>
+
 #include <fstream>
 
 #include "engine/logging/logging.hpp"
@@ -31,41 +33,16 @@ namespace fgl::engine
 
 	struct ShaderHandle
 	{
+		std::vector< std::byte > shader_data;
+		vk::ShaderModuleCreateInfo module_create_info;
 		vk::PipelineShaderStageCreateInfo stage_info;
-		vk::ShaderModule shader_module;
 
-		ShaderHandle( const std::filesystem::path path, const vk::PipelineShaderStageCreateInfo info ) :
-		  stage_info( info ),
-		  shader_module( VK_NULL_HANDLE )
-		{
-			if ( auto ifs = std::ifstream( path, std::ios::binary | std::ios::ate ); ifs )
-			{
-				std::vector< std::byte > data;
-				data.resize( ifs.tellg() );
-				ifs.seekg( 0, std::ios::beg );
+		vk::raii::ShaderModule shader_module;
 
-				static_assert( sizeof( std::ifstream::char_type ) == sizeof( std::byte ) );
-				ifs.read( reinterpret_cast< std::ifstream::char_type* >( data.data() ), data.size() );
+		std::vector< std::byte > loadData( const std::filesystem::path& );
+		vk::ShaderModuleCreateInfo createModuleInfo();
 
-				vk::ShaderModuleCreateInfo module_info {};
-				module_info.flags = {};
-				module_info.codeSize = data.size();
-				module_info.pCode = reinterpret_cast< const std::uint32_t* >( data.data() );
-
-				if ( Device::getInstance().device().createShaderModule( &module_info, nullptr, &shader_module )
-				     != vk::Result::eSuccess )
-					throw std::runtime_error( "Failed to create shader module" );
-
-				std::cout << "Created shader module for: " << path << std::endl;
-
-				stage_info.module = shader_module;
-			}
-			else
-			{
-				log::critical( "Failed to load shader module {}. Path not found", path.string() );
-				throw std::runtime_error( "Failed to load shader module. Path not found" );
-			}
-		}
+		ShaderHandle( const std::filesystem::path path, const vk::PipelineShaderStageCreateInfo info );
 
 		ShaderHandle( const ShaderHandle& other ) = delete;
 
@@ -74,11 +51,6 @@ namespace fgl::engine
 		ShaderHandle( ShaderHandle&& other ) = delete;
 
 		ShaderHandle& operator=( ShaderHandle&& other ) = delete;
-
-		~ShaderHandle()
-		{
-			if ( shader_module != VK_NULL_HANDLE ) Device::getInstance().device().destroyShaderModule( shader_module );
-		}
 	};
 
 	vk::ShaderModule loadShaderModule( const std::string_view path );

@@ -71,8 +71,9 @@ namespace fgl::engine
 
 		if ( range.size > m_byte_size ) range.size = VK_WHOLE_SIZE;
 
-		if ( Device::getInstance().device().flushMappedMemoryRanges( 1, &range ) != vk::Result::eSuccess )
-			throw std::runtime_error( "Failed to flush memory" );
+		std::vector< vk::MappedMemoryRange > ranges { range };
+
+		Device::getInstance()->flushMappedMemoryRanges( ranges );
 	}
 
 	Buffer& BufferSuballocation::getBuffer() const

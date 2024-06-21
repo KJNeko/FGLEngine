@@ -4,7 +4,6 @@
 
 #include "Pipeline.hpp"
 
-#include <array>
 #include <fstream>
 
 #include "Shader.hpp"
@@ -13,8 +12,10 @@
 namespace fgl::engine::internal
 {
 
-	void Pipeline::createGraphicsPipeline(
-		std::vector< std::unique_ptr< ShaderHandle > >& shaders, const PipelineConfigInfo& info )
+	vk::raii::Pipeline Pipeline::createGraphicsPipeline(
+		std::vector< std::unique_ptr< ShaderHandle > >& shaders,
+		const PipelineConfigInfo& info,
+		vk::raii::PipelineLayout& layout )
 	{
 		assert( info.render_pass != VK_NULL_HANDLE && "Cannot create graphics pipeline: no render pass provided" );
 
@@ -52,26 +53,16 @@ namespace fgl::engine::internal
 		pipeline_info.pDepthStencilState = &info.depth_stencil_info;
 		pipeline_info.pColorBlendState = &info.color_blend_info;
 		pipeline_info.pDynamicState = &info.dynamic_state_info;
-		pipeline_info.layout = info.layout;
+		pipeline_info.layout = *layout;
 		pipeline_info.renderPass = info.render_pass;
 		pipeline_info.subpass = info.subpass;
 		pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
 		pipeline_info.basePipelineIndex = -1;
 
-		if ( auto temp = m_device.device().createGraphicsPipeline( VK_NULL_HANDLE, pipeline_info );
-		     temp.result != vk::Result::eSuccess )
-			throw std::runtime_error( "Failed to create graphics pipeline" );
-		else
-			m_vk_pipeline = temp.value;
+		return m_device->createGraphicsPipeline( VK_NULL_HANDLE, pipeline_info );
 	}
 
-	Pipeline::~Pipeline()
-	{
-		m_device.device().destroyPipelineLayout( m_layout, nullptr );
-		m_device.device().destroyPipeline( m_vk_pipeline, nullptr );
-	}
-
-	void Pipeline::bind( vk::CommandBuffer& command_buffer )
+	void Pipeline::bind( vk::raii::CommandBuffer& command_buffer )
 	{
 		command_buffer.bindPipeline( vk::PipelineBindPoint::eGraphics, m_vk_pipeline );
 	}
@@ -81,7 +72,7 @@ namespace fgl::engine::internal
 		vk::DebugUtilsObjectNameInfoEXT info {};
 		info.objectType = vk::ObjectType::ePipeline;
 		info.pObjectName = str.c_str();
-		info.objectHandle = reinterpret_cast< std::uint64_t >( static_cast< VkPipeline >( this->m_vk_pipeline ) );
+		info.objectHandle = reinterpret_cast< std::uint64_t >( static_cast< VkPipeline >( *this->m_vk_pipeline ) );
 		Device::getInstance().setDebugUtilsObjectName( info );
 	}
 

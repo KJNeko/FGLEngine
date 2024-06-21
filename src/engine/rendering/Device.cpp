@@ -21,65 +21,62 @@ namespace fgl::engine
 		return *global_device;
 	}
 
-	// class member functions
-	Device::Device( Window& window, Instance& instance ) : m_instance( instance )
+	vk::PhysicalDeviceFeatures Device::DeviceCreateInfo::getDeviceFeatures( PhysicalDevice& physical_device )
 	{
-		assert( !global_device );
+		const vk::PhysicalDeviceFeatures available_features { physical_device->getFeatures() };
 
-		createSurface( window );
-		pickPhysicalDevice();
-		createLogicalDevice();
-		createVMAAllocator();
-		createCommandPool();
+		if ( available_features.samplerAnisotropy != VK_TRUE )
+		{
+			throw std::runtime_error( "samplerAnsitrophy not supported by device" );
+		}
 
-		global_device = this;
+		if ( available_features.multiDrawIndirect != VK_TRUE )
+		{
+			throw std::runtime_error( "multiDrawIndirect not supported by device" );
+		}
 
-		DescriptorPool::init( *global_device );
+		if ( available_features.tessellationShader != VK_TRUE )
+		{
+			throw std::runtime_error( "Tesselation shader not supported by device" );
+		}
+
+		if ( available_features.drawIndirectFirstInstance != VK_TRUE )
+		{
+			throw std::runtime_error( "drawIndirectFirstInstance not supported by device" );
+		}
+
+		//Set enabled features
+		vk::PhysicalDeviceFeatures deviceFeatures = {};
+		deviceFeatures.samplerAnisotropy = VK_TRUE;
+		deviceFeatures.multiDrawIndirect = VK_TRUE;
+		deviceFeatures.tessellationShader = VK_TRUE;
+		deviceFeatures.drawIndirectFirstInstance = VK_TRUE;
+
+		return deviceFeatures;
 	}
 
-	Device::~Device()
+	vk::PhysicalDeviceDescriptorIndexingFeatures Device::DeviceCreateInfo::getIndexingFeatures()
 	{
-		vkDestroyCommandPool( m_device, m_commandPool, nullptr );
-		vkDestroyDevice( m_device, nullptr );
+		vk::PhysicalDeviceDescriptorIndexingFeatures indexing_features {};
+		indexing_features.setRuntimeDescriptorArray( VK_TRUE );
+		indexing_features.setDescriptorBindingPartiallyBound( VK_TRUE );
+		indexing_features.setShaderSampledImageArrayNonUniformIndexing( VK_TRUE );
+		indexing_features.setDescriptorBindingSampledImageUpdateAfterBind( VK_TRUE );
 
-		vkDestroySurfaceKHR( m_instance, m_surface_khr, nullptr );
-		vkDestroyInstance( m_instance, nullptr );
+		return indexing_features;
 	}
 
-	void Device::pickPhysicalDevice()
+	std::vector< vk::DeviceQueueCreateInfo > Device::DeviceCreateInfo::getQueueCreateInfos( PhysicalDevice&
+	                                                                                            physical_device )
 	{
-		std::vector< vk::PhysicalDevice > devices {
-			static_cast< vk::Instance >( m_instance ).enumeratePhysicalDevices()
+		std::vector< vk::DeviceQueueCreateInfo > queueCreateInfos;
+		std::set< std::uint32_t > uniqueQueueFamilies = {
+			physical_device.queueInfo().getIndex( vk::QueueFlagBits::eGraphics ),
+			physical_device.queueInfo().getPresentIndex(),
 		};
 
-		bool found { false };
-
-		for ( const auto& device : devices )
-		{
-			if ( isDeviceSuitable( device ) )
-			{
-				m_physical_device = device;
-				found = true;
-				break;
-			}
-		}
-
-		m_properties = m_physical_device.getProperties();
-
-		if ( !found )
-		{
-			throw std::runtime_error( "failed to find a suitable GPU!" );
-		}
-	}
-
-	void Device::createLogicalDevice()
-	{
-		const QueueFamilyIndices indices { findQueueFamilies( m_physical_device ) };
-
-		std::vector< vk::DeviceQueueCreateInfo > queueCreateInfos;
-		std::set< uint32_t > uniqueQueueFamilies = { indices.graphicsFamily, indices.presentFamily };
-
-		float queuePriority = 1.0f;
+		//TODO: Store this somewhere where it doesn't need to be static
+		static float queuePriority = 1.0f;
 		for ( uint32_t queueFamily : uniqueQueueFamilies )
 		{
 			vk::DeviceQueueCreateInfo queueCreateInfo = {};
@@ -89,30 +86,23 @@ namespace fgl::engine
 			queueCreateInfos.push_back( queueCreateInfo );
 		}
 
-		vk::PhysicalDeviceFeatures deviceFeatures = {};
-		deviceFeatures.samplerAnisotropy = VK_TRUE;
-		deviceFeatures.multiDrawIndirect = VK_TRUE;
-		deviceFeatures.tessellationShader = VK_TRUE;
-		deviceFeatures.drawIndirectFirstInstance = VK_TRUE;
+		return queueCreateInfos;
+	}
 
-		vk::PhysicalDeviceDescriptorIndexingFeatures indexing_features {};
-		indexing_features.setRuntimeDescriptorArray( true );
-		indexing_features.setDescriptorBindingPartiallyBound( true );
-		indexing_features.setShaderSampledImageArrayNonUniformIndexing( true );
-		indexing_features.setDescriptorBindingSampledImageUpdateAfterBind( true );
-
+	vk::DeviceCreateInfo Device::DeviceCreateInfo::getCreateInfo( PhysicalDevice& physical_device )
+	{
 		vk::DeviceCreateInfo createInfo {};
-		createInfo.queueCreateInfoCount = static_cast< uint32_t >( queueCreateInfos.size() );
-		createInfo.pQueueCreateInfos = queueCreateInfos.data();
+		createInfo.queueCreateInfoCount = static_cast< uint32_t >( m_queue_create_infos.size() );
+		createInfo.pQueueCreateInfos = m_queue_create_infos.data();
 
-		createInfo.pEnabledFeatures = &deviceFeatures;
+		createInfo.pEnabledFeatures = &m_requested_features;
 		createInfo.enabledExtensionCount = static_cast< uint32_t >( deviceExtensions.size() );
 		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
-		createInfo.setPNext( &indexing_features );
+		createInfo.setPNext( &m_indexing_features );
 
 		//Get device extension list
-		const auto supported_extensions { m_physical_device.enumerateDeviceExtensionProperties() };
+		const auto supported_extensions { physical_device.handle().enumerateDeviceExtensionProperties() };
 		std::cout << "Supported device extensions:" << std::endl;
 		for ( auto& desired_ext : deviceExtensions )
 		{
@@ -131,7 +121,7 @@ namespace fgl::engine
 
 		// might not really be necessary anymore because device specific validation layers
 		// have been deprecated
-		if ( enableValidationLayers )
+		if ( true )
 		{
 			createInfo.enabledLayerCount = static_cast< uint32_t >( validationLayers.size() );
 			createInfo.ppEnabledLayerNames = validationLayers.data();
@@ -141,59 +131,47 @@ namespace fgl::engine
 			createInfo.enabledLayerCount = 0;
 		}
 
-		if ( auto res = m_physical_device.createDevice( &createInfo, nullptr, &m_device ); res != vk::Result::eSuccess )
-		{
-			throw std::runtime_error( "failed to create logical device!" );
-		}
-
-		m_device.getQueue( indices.graphicsFamily, 0, &m_graphics_queue );
-		m_device.getQueue( indices.presentFamily, 0, &m_present_queue );
+		return createInfo;
 	}
 
-	void Device::createCommandPool()
-	{
-		QueueFamilyIndices queueFamilyIndices = findPhysicalQueueFamilies();
+	Device::DeviceCreateInfo::DeviceCreateInfo( PhysicalDevice& physical_device ) :
+	  m_requested_features( getDeviceFeatures( physical_device ) ),
+	  m_indexing_features( getIndexingFeatures() ),
+	  m_queue_create_infos( getQueueCreateInfos( physical_device ) ),
+	  m_create_info( getCreateInfo( physical_device ) )
+	{}
 
+	vk::CommandPoolCreateInfo Device::commandPoolInfo()
+	{
 		vk::CommandPoolCreateInfo poolInfo = {};
-		poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;
+		poolInfo.queueFamilyIndex = m_physical_device.queueInfo().getIndex( vk::QueueFlagBits::eGraphics );
 		poolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer | vk::CommandPoolCreateFlagBits::eTransient;
 
-		if ( m_device.createCommandPool( &poolInfo, nullptr, &m_commandPool ) != vk::Result::eSuccess )
-		{
-			throw std::runtime_error( "failed to create command pool!" );
-		}
+		return poolInfo;
 	}
 
-	void Device::createSurface( Window& window )
+	// class member functions
+	Device::Device( Window& window, Instance& instance ) :
+	  m_instance( instance ),
+	  m_surface_khr( window, instance ),
+	  m_physical_device( m_instance, m_surface_khr ),
+	  device_creation_info( m_physical_device ),
+	  m_device( m_physical_device, device_creation_info.m_create_info ),
+	  m_commandPool( m_device.createCommandPool( commandPoolInfo() ) ),
+	  m_graphics_queue( m_device
+	                        .getQueue( m_physical_device.queueInfo().getIndex( vk::QueueFlagBits::eGraphics ), 0 ) ),
+	  m_present_queue( m_device.getQueue( m_physical_device.queueInfo().getPresentIndex(), 0 ) ),
+	  m_allocator( createVMAAllocator() )
 	{
-		m_surface_khr = window.createWindowSurface( m_instance );
+		assert( !global_device );
+
+		global_device = this;
+
+		DescriptorPool::init( *global_device );
 	}
 
-	bool Device::isDeviceSuitable( vk::PhysicalDevice device )
-	{
-		const QueueFamilyIndices indices { findQueueFamilies( device ) };
-
-		const bool extensionsSupported { checkDeviceExtensionSupport( device ) };
-
-		bool swapChainAdequate { false };
-		if ( extensionsSupported )
-		{
-			const SwapChainSupportDetails swapChainSupport { querySwapChainSupport( device ) };
-			swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
-		}
-
-		vk::PhysicalDeviceFeatures supportedFeatures;
-		device.getFeatures( &supportedFeatures );
-
-		std::cout << "Device: " << device.getProperties().deviceName << std::endl;
-		std::cout << "\tgraphicsFamily: " << indices.graphicsFamily << std::endl;
-		std::cout << "\tpresentFamily: " << indices.presentFamily << std::endl;
-		std::cout << "\textensionsSupported: " << extensionsSupported << std::endl;
-		std::cout << "\tswapChainAdequate: " << swapChainAdequate << std::endl;
-		std::cout << "\tsamplerAnisotropy: " << supportedFeatures.samplerAnisotropy << std::endl;
-
-		return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
-	}
+	Device::~Device()
+	{}
 
 	bool Device::checkValidationLayerSupport()
 	{
@@ -221,28 +199,7 @@ namespace fgl::engine
 		return true;
 	}
 
-	std::vector< const char* > Device::getRequiredInstanceExtensions()
-	{
-		uint32_t glfwExtensionCount = 0;
-		const char** glfwExtensions;
-		glfwExtensions = glfwGetRequiredInstanceExtensions( &glfwExtensionCount );
-
-		if ( glfwExtensions == nullptr ) throw std::runtime_error( "Failed to get required extensions from glfw" );
-
-		std::vector< const char* > extensions( glfwExtensions, glfwExtensions + glfwExtensionCount );
-
-		// "VK_KHR_surface" is guaranteed to be in this list
-		assert( extensions.size() >= 1 );
-
-		if ( enableValidationLayers )
-		{
-			extensions.push_back( VK_EXT_DEBUG_UTILS_EXTENSION_NAME );
-		}
-
-		return extensions;
-	}
-
-	bool Device::checkDeviceExtensionSupport( vk::PhysicalDevice device )
+	bool Device::checkDeviceExtensionSupport( vk::raii::PhysicalDevice device )
 	{
 		const std::vector< vk::ExtensionProperties > availableExtensions {
 			device.enumerateDeviceExtensionProperties()
@@ -267,68 +224,14 @@ namespace fgl::engine
 		return found_count == required_count;
 	}
 
-	QueueFamilyIndices Device::findQueueFamilies( vk::PhysicalDevice device )
-	{
-		QueueFamilyIndices indices {};
-
-		std::vector< vk::QueueFamilyProperties > queueFamilies { device.getQueueFamilyProperties() };
-
-		int i { 0 };
-		for ( const auto& queueFamily : queueFamilies )
-		{
-			if ( queueFamily.queueCount > 0 && queueFamily.queueFlags & vk::QueueFlagBits::eGraphics )
-			{
-				indices.graphicsFamily = i;
-				indices.graphicsFamilyHasValue = true;
-			}
-			vk::Bool32 presentSupport { VK_FALSE };
-			vkGetPhysicalDeviceSurfaceSupportKHR( device, i, m_surface_khr, &presentSupport );
-			if ( queueFamily.queueCount > 0 && presentSupport )
-			{
-				indices.presentFamily = i;
-				indices.presentFamilyHasValue = true;
-			}
-			if ( indices.isComplete() )
-			{
-				break;
-			}
-
-			i++;
-		}
-
-		return indices;
-	}
-
-	SwapChainSupportDetails Device::querySwapChainSupport( vk::PhysicalDevice device )
+	SwapChainSupportDetails Device::querySwapChainSupport( vk::raii::PhysicalDevice device )
 	{
 		SwapChainSupportDetails details;
 
-		if ( device.getSurfaceCapabilitiesKHR( m_surface_khr, &details.capabilities ) != vk::Result::eSuccess )
-			throw std::runtime_error( "failed to get surface capabilities" );
+		details.capabilities = device.getSurfaceCapabilitiesKHR( m_surface_khr );
+		details.formats = device.getSurfaceFormatsKHR( m_surface_khr );
+		details.presentModes = device.getSurfacePresentModesKHR( m_surface_khr );
 
-		uint32_t formatCount { 0 };
-		if ( device.getSurfaceFormatsKHR( m_surface_khr, &formatCount, nullptr ) != vk::Result::eSuccess )
-			throw std::runtime_error( "failed to get surface formats" );
-
-		if ( formatCount != 0 )
-		{
-			details.formats.resize( formatCount );
-			if ( device.getSurfaceFormatsKHR( m_surface_khr, &formatCount, details.formats.data() )
-			     != vk::Result::eSuccess )
-				throw std::runtime_error( "failed to get surface formats" );
-		}
-
-		uint32_t presentModeCount { 0 };
-		if ( device.getSurfacePresentModesKHR( m_surface_khr, &presentModeCount, nullptr ) != vk::Result::eSuccess )
-			throw std::runtime_error( "failed to get surface present modes" );
-
-		if ( presentModeCount != 0 )
-		{
-			details.presentModes.resize( presentModeCount );
-			if ( device.getSurfacePresentModesKHR( m_surface_khr, &presentModeCount, details.presentModes.data() )
-			     != vk::Result::eSuccess )
-				throw std::runtime_error( "failed to get surface present modes" );
-		}
 		return details;
 	}
 
@@ -337,8 +240,7 @@ namespace fgl::engine
 	{
 		for ( vk::Format format : candidates )
 		{
-			vk::FormatProperties props;
-			m_physical_device.getFormatProperties( format, &props );
+			vk::FormatProperties props { m_physical_device.handle().getFormatProperties( format ) };
 
 			if ( tiling == vk::ImageTiling::eLinear && ( props.linearTilingFeatures & features ) == features )
 			{
@@ -354,8 +256,7 @@ namespace fgl::engine
 
 	uint32_t Device::findMemoryType( uint32_t typeFilter, vk::MemoryPropertyFlags properties )
 	{
-		vk::PhysicalDeviceMemoryProperties memProperties;
-		m_physical_device.getMemoryProperties( &memProperties );
+		vk::PhysicalDeviceMemoryProperties memProperties { m_physical_device.handle().getMemoryProperties() };
 		for ( uint32_t i = 0; i < memProperties.memoryTypeCount; i++ )
 		{
 			if ( ( typeFilter & ( 1 << i ) )
@@ -368,7 +269,7 @@ namespace fgl::engine
 		throw std::runtime_error( "failed to find suitable memory type!" );
 	}
 
-	vk::CommandBuffer Device::beginSingleTimeCommands()
+	vk::raii::CommandBuffer Device::beginSingleTimeCommands()
 	{
 		ZoneScoped;
 		vk::CommandBufferAllocateInfo allocInfo {};
@@ -376,40 +277,43 @@ namespace fgl::engine
 		allocInfo.commandPool = m_commandPool;
 		allocInfo.commandBufferCount = 1;
 
-		vk::CommandBuffer commandBuffer {};
-		if ( m_device.allocateCommandBuffers( &allocInfo, &commandBuffer ) != vk::Result::eSuccess )
-			throw std::runtime_error( "failed to allocate command buffers!" );
+		auto command_buffers { m_device.allocateCommandBuffers( allocInfo ) };
+
+		assert( command_buffers.size() == 1 );
+
+		vk::raii::CommandBuffer command_buffer { std::move( command_buffers[ 0 ] ) };
 
 		vk::CommandBufferBeginInfo beginInfo {};
 		beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
 
-		commandBuffer.begin( beginInfo );
+		command_buffer.begin( beginInfo );
 
-		return commandBuffer;
+		return command_buffer;
 	}
 
-	void Device::endSingleTimeCommands( vk::CommandBuffer commandBuffer )
+	void Device::endSingleTimeCommands( vk::raii::CommandBuffer& commandBuffer )
 	{
 		ZoneScoped;
-		vkEndCommandBuffer( commandBuffer );
+		commandBuffer.end();
 
 		vk::SubmitInfo submitInfo {};
 		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &commandBuffer;
+		submitInfo.pCommandBuffers = &( *commandBuffer );
 
-		if ( m_graphics_queue.submit( 1, &submitInfo, VK_NULL_HANDLE ) != vk::Result::eSuccess )
-			throw std::runtime_error( "failed to submit single time command buffer!" );
+		std::vector< vk::SubmitInfo > submit_infos { submitInfo };
+
+		m_graphics_queue.submit( submit_infos );
 
 		m_graphics_queue.waitIdle();
 
-		m_device.freeCommandBuffers( m_commandPool, 1, &commandBuffer );
+		//m_device.freeCommandBuffers( m_commandPool, 1, &commandBuffer );
 	}
 
 	void Device::
 		copyBufferToImage( vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height, uint32_t layerCount )
 	{
 		ZoneScoped;
-		vk::CommandBuffer commandBuffer { beginSingleTimeCommands() };
+		vk::raii::CommandBuffer commandBuffer { beginSingleTimeCommands() };
 
 		vk::BufferImageCopy region {};
 		region.bufferOffset = 0;
@@ -424,50 +328,55 @@ namespace fgl::engine
 		region.imageOffset = vk::Offset3D { 0, 0, 0 };
 		region.imageExtent = vk::Extent3D { width, height, 1 };
 
-		commandBuffer.copyBufferToImage( buffer, image, vk::ImageLayout::eTransferDstOptimal, 1, &region );
+		std::vector< vk::BufferImageCopy > regions { region };
+
+		commandBuffer.copyBufferToImage( buffer, image, vk::ImageLayout::eTransferDstOptimal, regions );
+
 		endSingleTimeCommands( commandBuffer );
 	}
 
-	void Device::createVMAAllocator()
+	VmaAllocator Device::createVMAAllocator()
 	{
 		VmaVulkanFunctions vk_func {};
 		vk_func.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
 		vk_func.vkGetDeviceProcAddr = vkGetDeviceProcAddr;
 
 		VmaAllocatorCreateInfo create_info {};
-		create_info.physicalDevice = m_physical_device;
-		create_info.device = m_device;
+		create_info.physicalDevice = *m_physical_device.handle();
+		create_info.device = *m_device;
 		create_info.pVulkanFunctions = &vk_func;
 		create_info.instance = m_instance;
 		create_info.vulkanApiVersion = VK_API_VERSION_1_0;
 
-		if ( vmaCreateAllocator( &create_info, &m_allocator ) != VK_SUCCESS )
+		VmaAllocator allocator;
+
+		if ( vmaCreateAllocator( &create_info, &allocator ) != VK_SUCCESS )
 			throw std::runtime_error( "Failed to create VMA allocator" );
+
+		return allocator;
 	}
 
 	void Device::copyBuffer(
 		vk::Buffer dst, vk::Buffer src, vk::DeviceSize dst_offset, vk::DeviceSize src_offset, vk::DeviceSize size )
 	{
-		vk::CommandBuffer commandBuffer { beginSingleTimeCommands() };
+		vk::raii::CommandBuffer commandBuffer { beginSingleTimeCommands() };
 
 		vk::BufferCopy copyRegion {};
 		copyRegion.size = size;
 		copyRegion.srcOffset = src_offset;
 		copyRegion.dstOffset = dst_offset;
 
-		commandBuffer.copyBuffer( src, dst, 1, &copyRegion );
+		std::vector< vk::BufferCopy > copy_regions { copyRegion };
+
+		commandBuffer.copyBuffer( src, dst, copy_regions );
 
 		endSingleTimeCommands( commandBuffer );
 	}
 
-	vk::Result Device::setDebugUtilsObjectName( [[maybe_unused]] const vk::DebugUtilsObjectNameInfoEXT& nameInfo )
+	vk::Result Device::setDebugUtilsObjectName( const vk::DebugUtilsObjectNameInfoEXT& nameInfo )
 	{
 #ifndef NDEBUG
-		if ( device().setDebugUtilsObjectNameEXT( &nameInfo ) != vk::Result::eSuccess )
-		{
-			std::cout << "Failed to set debug object name" << std::endl;
-			throw std::runtime_error( "Failed to set debug object name" );
-		}
+		device().setDebugUtilsObjectNameEXT( nameInfo );
 #endif
 		return vk::Result::eSuccess;
 	}

@@ -6,6 +6,7 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include <vulkan/vulkan_raii.hpp>
 namespace fgl::engine
 {
 
@@ -21,7 +22,7 @@ namespace fgl::engine
 			static_assert( sizeof( T ) <= 128, "Push constant range size must be less or equal to 128 bytes" );
 		}
 
-		static void push( vk::CommandBuffer command_buffer, vk::PipelineLayout m_pipeline_layout, T& data )
+		static void push( vk::raii::CommandBuffer& command_buffer, vk::PipelineLayout m_pipeline_layout, T& data )
 		{
 			command_buffer.pushConstants( m_pipeline_layout, stages, offset, sizeof( T ), &data );
 		}

@@ -70,7 +70,7 @@ namespace fgl::engine
 	{
 		std::uint16_t frame_idx;
 		float frame_time;
-		vk::CommandBuffer command_buffer;
+		vk::raii::CommandBuffer& command_buffer;
 
 		struct
 		{

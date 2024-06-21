@@ -11,34 +11,39 @@
 namespace fgl::engine
 {
 
-	Sampler::Sampler(
+	vk::raii::Sampler createSampler(
 		vk::Filter min_filter,
 		vk::Filter mag_filter,
-		vk::SamplerMipmapMode mipmap_mode,
-		vk::SamplerAddressMode sampler_mode ) :
-	  valid( true )
+		vk::SamplerMipmapMode mipmode,
+		vk::SamplerAddressMode address_mode )
 	{
 		vk::SamplerCreateInfo info;
 
 		info.magFilter = mag_filter;
 		info.minFilter = min_filter;
 
-		info.mipmapMode = mipmap_mode;
+		info.mipmapMode = mipmode;
 
-		info.addressModeU = sampler_mode;
-		info.addressModeV = sampler_mode;
-		info.addressModeW = sampler_mode;
+		info.addressModeU = address_mode;
+		info.addressModeV = address_mode;
+		info.addressModeW = address_mode;
 
 		info.minLod = -1000;
 		info.maxLod = 1000;
 
 		info.maxAnisotropy = 1.0f;
 
-		if ( Device::getInstance().device().createSampler( &info, nullptr, &m_sampler ) != vk::Result::eSuccess )
-		{
-			throw std::runtime_error( "Failed to create sampler" );
-		}
+		return Device::getInstance()->createSampler( info );
 	}
+
+	Sampler::Sampler(
+		vk::Filter min_filter,
+		vk::Filter mag_filter,
+		vk::SamplerMipmapMode mipmap_mode,
+		vk::SamplerAddressMode sampler_mode ) :
+	  valid( true ),
+	  m_sampler( createSampler( mag_filter, min_filter, mipmap_mode, sampler_mode ) )
+	{}
 
 	Sampler::Sampler( Sampler&& other ) : valid( other.valid ), m_sampler( std::move( other.m_sampler ) )
 	{
@@ -51,11 +56,6 @@ namespace fgl::engine
 		other.valid = false;
 		if ( valid ) m_sampler = std::move( other.m_sampler );
 		return *this;
-	}
-
-	Sampler::~Sampler()
-	{
-		if ( valid ) Device::getInstance().device().destroySampler( m_sampler );
 	}
 
 } // namespace fgl::engine

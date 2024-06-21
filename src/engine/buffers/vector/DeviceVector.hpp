@@ -34,7 +34,7 @@ namespace fgl::engine
 
 		HostVector< T >& getStaging() { return *m_staging_buffer; }
 
-		void stage( vk::CommandBuffer& command_buffer )
+		void stage( vk::raii::CommandBuffer& command_buffer )
 		{
 			assert( m_staging_buffer && "DeviceVector::stage() called without staging buffer" );
 

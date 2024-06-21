@@ -7,41 +7,19 @@
 namespace fgl::engine
 {
 
-	ImageHandle::ImageHandle( fgl::engine::ImageHandle&& other ) noexcept :
-	  m_allocation( other.m_allocation ),
-	  m_allocation_info( other.m_allocation_info ),
-	  m_image( other.m_image ),
-	  m_extent( other.m_extent ),
-	  m_format( other.m_format ),
-	  m_usage( other.m_usage )
-	{
-		other.m_allocation = VK_NULL_HANDLE;
-		other.m_image = VK_NULL_HANDLE;
-		other.m_allocation_info = {};
-		other.m_image = VK_NULL_HANDLE;
-	}
-
 	ImageHandle::ImageHandle(
 		const vk::Extent2D extent, const vk::Format format, vk::Image image, vk::ImageUsageFlags usage ) noexcept :
-	  m_image( image ),
-	  m_extent( extent ),
-	  m_format( format ),
-	  m_usage( usage )
-	{}
-
-	ImageHandle::ImageHandle(
-		const vk::Extent2D extent,
-		const vk::Format format,
-		vk::ImageUsageFlags usage,
-		vk::ImageLayout inital_layout,
-		vk::ImageLayout final_layout ) :
 	  m_extent( extent ),
 	  m_format( format ),
 	  m_usage( usage ),
-	  m_initial_layout( inital_layout ),
-	  m_final_layout( final_layout )
+	  m_image( image )
 	{
-		ZoneScoped;
+		assert( std::get< vk::Image >( m_image ) != VK_NULL_HANDLE );
+	}
+
+	vk::raii::Image createImage(
+		const vk::Extent2D extent, const vk::Format format, vk::ImageLayout inital_layout, vk::ImageUsageFlags usage )
+	{
 		vk::ImageCreateInfo image_info {};
 
 		image_info.imageType = vk::ImageType::e2D;
@@ -61,9 +39,28 @@ namespace fgl::engine
 		image_info.samples = vk::SampleCountFlagBits::e1;
 		image_info.sharingMode = vk::SharingMode::eExclusive;
 
-		if ( Device::getInstance().device().createImage( &image_info, nullptr, &m_image ) != vk::Result::eSuccess )
-			throw std::runtime_error( "Failed to create image" );
+		return Device::getInstance()->createImage( image_info );
+	}
 
+	ImageHandle::ImageHandle(
+		const vk::Extent2D extent,
+		const vk::Format format,
+		vk::ImageUsageFlags usage,
+		vk::ImageLayout inital_layout,
+		vk::ImageLayout final_layout ) :
+	  m_extent( extent ),
+	  m_format( format ),
+	  m_usage( usage ),
+	  m_initial_layout( inital_layout ),
+	  m_final_layout( final_layout ),
+	  m_image( createImage( extent, format, inital_layout, usage ) )
+
+	{
+		assert( std::holds_alternative< vk::raii::Image >( m_image ) );
+		assert( *std::get< vk::raii::Image >( m_image ) != VK_NULL_HANDLE );
+
+		ZoneScoped;
+		//Allocate memory for image
 		VmaAllocationCreateInfo alloc_info {};
 		alloc_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
@@ -82,7 +79,7 @@ namespace fgl::engine
 
 		info.objectType = vk::ObjectType::eImage;
 		info.pObjectName = str.c_str();
-		info.setObjectHandle( reinterpret_cast< uint64_t >( static_cast< VkImage >( m_image ) ) );
+		info.setObjectHandle( reinterpret_cast< uint64_t >( getVkImage() ) );
 
 		Device::getInstance().setDebugUtilsObjectName( info );
 	}

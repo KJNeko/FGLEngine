@@ -26,8 +26,8 @@ namespace fgl::engine
 		std::vector< std::variant< std::shared_ptr< ImageView >, std::shared_ptr< BufferSuballocation > > >
 			m_resources {};
 
-		vk::DescriptorSetLayout m_layout;
-		vk::DescriptorSet m_set;
+		vk::raii::DescriptorSetLayout m_layout;
+		vk::raii::DescriptorSet m_set;
 
 		std::uint32_t m_max_idx { 0 };
 
@@ -39,11 +39,12 @@ namespace fgl::engine
 
 		void setMaxIDX( std::uint32_t max_idx );
 
-		vk::DescriptorSet& getSet() { return m_set; }
+		VkDescriptorSet operator*() { return *m_set; }
+
+		VkDescriptorSet getVkDescriptorSet() { return *m_set; }
 
 		DescriptorSet() = delete;
-		DescriptorSet( vk::DescriptorSetLayout layout );
-		~DescriptorSet();
+		DescriptorSet( vk::raii::DescriptorSetLayout&& layout );
 
 		//Copy
 		DescriptorSet( const DescriptorSet& other ) = delete;
@@ -54,12 +55,18 @@ namespace fgl::engine
 		DescriptorSet& operator=( DescriptorSet&& other );
 
 		void bindImage(
-			std::uint32_t binding_idx, ImageView& view, vk::ImageLayout layout, vk::Sampler sampler = VK_NULL_HANDLE );
+			std::uint32_t binding_idx,
+			ImageView& view,
+			vk::ImageLayout layout,
+			vk::raii::Sampler sampler = VK_NULL_HANDLE );
 
 		void bindUniformBuffer( std::uint32_t binding_idx, BufferSuballocation& buffer );
 
 		void bindAttachment(
-			std::uint32_t binding_idx, ImageView& view, vk::ImageLayout layout, vk::Sampler sampler = VK_NULL_HANDLE );
+			std::uint32_t binding_idx,
+			ImageView& view,
+			vk::ImageLayout layout,
+			vk::raii::Sampler sampler = VK_NULL_HANDLE );
 
 		void bindTexture( std::uint32_t binding_idx, std::shared_ptr< Texture >& tex_ptr );
 

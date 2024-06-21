@@ -8,7 +8,8 @@
 
 namespace fgl::engine
 {
-	DescriptorPool::DescriptorPool( Device& device, std::uint32_t set_count )
+
+	vk::raii::DescriptorPool createPool( Device& device, std::uint32_t set_count )
 	{
 		std::vector< vk::DescriptorPoolSize > pool_sizes {};
 		for ( auto& [ type, ratio ] : descriptor_allocation_ratios )
@@ -23,22 +24,24 @@ namespace fgl::engine
 		pool_info.setFlags(
 			vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet | vk::DescriptorPoolCreateFlagBits::eUpdateAfterBind );
 
-		vk::Device vk_device { device.device() };
-		if ( vk_device.createDescriptorPool( &pool_info, nullptr, &m_pool ) != vk::Result::eSuccess )
-			throw std::runtime_error( "Failed to create descriptor pool" );
+		return device->createDescriptorPool( pool_info );
 	}
 
-	[[nodiscard]] vk::DescriptorSet DescriptorPool::allocateSet( vk::DescriptorSetLayout& layout )
+	DescriptorPool::DescriptorPool( Device& device, std::uint32_t set_count ) :
+	  m_pool( createPool( device, set_count ) )
+	{}
+
+	[[nodiscard]] vk::raii::DescriptorSet DescriptorPool::allocateSet( vk::raii::DescriptorSetLayout& layout )
 	{
-		vk::DescriptorSet set;
 		vk::DescriptorSetAllocateInfo alloc_info {};
 		alloc_info.setDescriptorPool( m_pool );
 		alloc_info.setDescriptorSetCount( 1 );
-		alloc_info.setPSetLayouts( &layout );
+		alloc_info.setPSetLayouts( &( *layout ) );
 
-		vk::Device vk_device { Device::getInstance().device() };
-		if ( vk_device.allocateDescriptorSets( &alloc_info, &set ) != vk::Result::eSuccess )
-			throw std::runtime_error( "Failed to allocate descriptor set" );
+		std::vector< vk::raii::DescriptorSet > sets { Device::getInstance()->allocateDescriptorSets( alloc_info ) };
+		assert( sets.size() == 1 );
+
+		vk::raii::DescriptorSet set { std::move( sets[ 0 ] ) };
 
 		return set;
 	}
@@ -56,12 +59,6 @@ namespace fgl::engine
 	{
 		assert( s_pool && "Descriptor pool not initialized" );
 		return *s_pool;
-	}
-
-	void DescriptorPool::deallocSet( vk::DescriptorSet& set )
-	{
-		vk::Device vk_device { Device::getInstance().device() };
-		vk_device.freeDescriptorSets( m_pool, 1, &set );
 	}
 
 } // namespace fgl::engine

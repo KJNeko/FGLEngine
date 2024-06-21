@@ -83,44 +83,38 @@ namespace fgl::engine
 				return emptySetsBeforeIDX< start_idx - 1 >() + is_empty_descriptor_set< BindingSet< start_idx > >;
 		}
 
-		vk::PipelineLayout createLayout( Device& device )
+		vk::raii::PipelineLayout createLayout( [[maybe_unused]] Device& device )
 		{
-			if ( m_layout != VK_NULL_HANDLE ) return m_layout;
+			std::vector< vk::raii::DescriptorSetLayout > layouts { DescriptorSetCollection::createDescriptorSets() };
+			std::vector< vk::DescriptorSetLayout > vk_layouts {};
+			vk_layouts.reserve( layouts.size() );
 
-			typename DescriptorSetCollection::LayoutArray layouts { DescriptorSetCollection::createDescriptorSets() };
+			for ( vk::raii::DescriptorSetLayout& layout : layouts )
+			{
+				vk_layouts.emplace_back( *layout );
+			}
 
 			vk::PipelineLayoutCreateInfo pipeline_layout_info {};
-			pipeline_layout_info.setLayoutCount = has_binding_sets ? static_cast< uint32_t >( layouts.size() ) : 0;
-			pipeline_layout_info.pSetLayouts = has_binding_sets ? layouts.data() : VK_NULL_HANDLE;
+			pipeline_layout_info.setLayoutCount = has_binding_sets ? static_cast< uint32_t >( vk_layouts.size() ) : 0;
+			pipeline_layout_info.pSetLayouts = has_binding_sets ? vk_layouts.data() : VK_NULL_HANDLE;
 			pipeline_layout_info.pushConstantRangeCount = has_constant_range ? 1 : 0;
 			pipeline_layout_info.pPushConstantRanges = has_constant_range ? getRange() : VK_NULL_HANDLE;
 
-			if ( device.device().createPipelineLayout( &pipeline_layout_info, nullptr, &m_layout )
-			     != vk::Result::eSuccess )
-				throw std::runtime_error( "Failed to create pipeline layout" );
-
-			return m_layout;
-		}
-
-		PipelineConfigInfo& populate( PipelineConfigInfo& info, Device& device )
-		{
-			info.layout = createLayout( device );
-
-			return info;
+			return Device::getInstance()->createPipelineLayout( pipeline_layout_info );
 		}
 
 	  public:
 
-		vk::PipelineLayout getLayout() { return m_layout; }
-
-		void bindDescriptor( vk::CommandBuffer cmd_buffer, std::uint16_t set_idx, DescriptorSet& descriptor )
+		void bindDescriptor( vk::raii::CommandBuffer& cmd_buffer, std::uint16_t set_idx, DescriptorSet& descriptor )
 		{
-			cmd_buffer.bindDescriptorSets(
-				vk::PipelineBindPoint::eGraphics, m_layout, set_idx, 1, &( descriptor.getSet() ), 0, nullptr );
+			const std::vector< vk::DescriptorSet > sets { *descriptor };
+			const std::vector< std::uint32_t > offsets {};
+
+			cmd_buffer.bindDescriptorSets( vk::PipelineBindPoint::eGraphics, m_layout, set_idx, sets, offsets );
 		}
 
 		template < typename TPushData >
-		void pushConstant( vk::CommandBuffer cmd_buffer, TPushData& data )
+		void pushConstant( vk::raii::CommandBuffer& cmd_buffer, TPushData& data )
 		{
 			if constexpr ( has_constant_range )
 			{
@@ -135,14 +129,13 @@ namespace fgl::engine
 				assert( "Attempted to push constant to pipeline without push constant range" );
 		}
 
-		PipelineT( Device& device, PipelineConfigInfo& info ) : Pipeline( device )
-		{
-			populate( info, device );
-
-			auto shaders { ShaderCollection::loadShaders() };
-
-			createGraphicsPipeline( shaders, info );
-		}
+		PipelineT( Device& device, PipelineConfigInfo&& info ) :
+		  Pipeline(
+			  device,
+			  createLayout( device ),
+			  std::forward< PipelineConfigInfo >( info ),
+			  ShaderCollection::loadShaders() )
+		{}
 	};
 
 } // namespace fgl::engine

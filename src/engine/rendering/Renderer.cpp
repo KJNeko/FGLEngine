@@ -25,36 +25,35 @@
 namespace fgl::engine
 {
 
-	Renderer::Renderer( Window& window ) : m_window( window )
+	Renderer::Renderer( Window& window, PhysicalDevice& phy_device ) :
+	  m_window( window ),
+	  m_phy_device( phy_device ),
+	  m_swapchain( std::make_unique< SwapChain >( m_window.getExtent(), m_phy_device ) )
 	{
 		recreateSwapchain();
 		createCommandBuffers();
 	}
 
 	Renderer::~Renderer()
+	{}
+
+	TracyVkCtx createContext( PhysicalDevice& physical_device, Device& device, vk::raii::CommandBuffer& cmd_buffer )
 	{
-		freeCommandBuffers();
+		return TracyVkContext( *physical_device, *device, *device.graphicsQueue(), *cmd_buffer );
 	}
 
 	void Renderer::createCommandBuffers()
 	{
-		m_command_buffer.resize( SwapChain::MAX_FRAMES_IN_FLIGHT );
-
 		vk::CommandBufferAllocateInfo alloc_info {};
 		alloc_info.pNext = VK_NULL_HANDLE;
 		alloc_info.commandPool = Device::getInstance().getCommandPool();
 		alloc_info.level = vk::CommandBufferLevel::ePrimary;
-		alloc_info.commandBufferCount = static_cast< std::uint32_t >( m_command_buffer.size() );
+		alloc_info.commandBufferCount = SwapChain::MAX_FRAMES_IN_FLIGHT;
 
-		if ( Device::getInstance().device().allocateCommandBuffers( &alloc_info, m_command_buffer.data() )
-		     != vk::Result::eSuccess )
-			throw std::runtime_error( "Failed to allocate command buffers" );
+		m_command_buffer = Device::getInstance().device().allocateCommandBuffers( alloc_info );
 
 #if TRACY_ENABLE
-		VkPhysicalDevice phy_dev { Device::getInstance().phyDevice() };
-		VkDevice dev { Device::getInstance().device() };
-
-		m_tracy_ctx = TracyVkContext( phy_dev, dev, Device::getInstance().graphicsQueue(), m_command_buffer[ 0 ] );
+		m_tracy_ctx = createContext( m_phy_device, Device::getInstance(), m_command_buffer[ 0 ] );
 
 		/*
 		m_tracy_ctx = TracyVkContextCalibrated(
@@ -83,7 +82,7 @@ namespace fgl::engine
 		Device::getInstance().device().waitIdle();
 
 		if ( m_swapchain == nullptr )
-			m_swapchain = std::make_unique< SwapChain >( extent );
+			m_swapchain = std::make_unique< SwapChain >( extent, m_phy_device );
 		else
 		{
 			std::shared_ptr< SwapChain > old_swap_chain { std::move( m_swapchain ) };
@@ -94,17 +93,7 @@ namespace fgl::engine
 		}
 	}
 
-	void Renderer::freeCommandBuffers()
-	{
-		if ( m_command_buffer.size() == 0 ) return;
-
-		Device::getInstance().device().freeCommandBuffers(
-			Device::getInstance().getCommandPool(),
-			static_cast< std::uint32_t >( m_command_buffer.size() ),
-			m_command_buffer.data() );
-	}
-
-	vk::CommandBuffer Renderer::beginFrame()
+	vk::raii::CommandBuffer& Renderer::beginFrame()
 	{
 		assert( !is_frame_started && "Cannot begin frame while frame is already in progress" );
 		auto [ result, image_idx ] = m_swapchain->acquireNextImage();
@@ -113,7 +102,6 @@ namespace fgl::engine
 		if ( result == vk::Result::eErrorOutOfDateKHR )
 		{
 			recreateSwapchain();
-			return nullptr;
 		}
 
 		if ( result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR )
@@ -137,12 +125,11 @@ namespace fgl::engine
 		ZoneScopedN( "Ending frame" );
 		assert( is_frame_started && "Cannot call end frame while frame is not in progress" );
 
-		auto command_buffer { getCurrentCommandbuffer() };
+		auto& command_buffer { getCurrentCommandbuffer() };
 
-		if ( vkEndCommandBuffer( command_buffer ) != VK_SUCCESS )
-			throw std::runtime_error( "Failed to end recording command buffer" );
+		command_buffer.end();
 
-		const auto result { m_swapchain->submitCommandBuffers( &command_buffer, current_image_idx ) };
+		const auto result { m_swapchain->submitCommandBuffers( command_buffer, current_image_idx ) };
 
 		if ( result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR
 		     || m_window.wasWindowResized() )
@@ -157,11 +144,11 @@ namespace fgl::engine
 		current_frame_idx = static_cast< std::uint16_t >( ( current_frame_idx + 1 ) % SwapChain::MAX_FRAMES_IN_FLIGHT );
 	}
 
-	void Renderer::beginSwapchainRendererPass( vk::CommandBuffer buffer )
+	void Renderer::beginSwapchainRendererPass( vk::raii::CommandBuffer& buffer )
 	{
 		assert( is_frame_started && "Cannot call beginSwapChainRenderPass if frame is not in progress" );
 		assert(
-			buffer == getCurrentCommandbuffer()
+			*buffer == *getCurrentCommandbuffer()
 			&& "Cannot begin render pass on command buffer from a different frame" );
 
 		std::vector< vk::ClearValue > clear_values { m_swapchain->getClearValues() };
@@ -174,7 +161,7 @@ namespace fgl::engine
 		render_pass_info.clearValueCount = static_cast< std::uint32_t >( clear_values.size() );
 		render_pass_info.pClearValues = clear_values.data();
 
-		buffer.beginRenderPass( &render_pass_info, vk::SubpassContents::eInline );
+		buffer.beginRenderPass( render_pass_info, vk::SubpassContents::eInline );
 
 		vk::Viewport viewport {};
 		viewport.x = 0.0f;
@@ -185,16 +172,21 @@ namespace fgl::engine
 		viewport.maxDepth = 1.0f;
 
 		vk::Rect2D scissor { { 0, 0 }, m_swapchain->getSwapChainExtent() };
-		buffer.setViewport( 0, 1, &viewport );
-		buffer.setScissor( 0, 1, &scissor );
+
+		std::vector< vk::Viewport > viewports { viewport };
+		std::vector< vk::Rect2D > scissors { scissor };
+
+		buffer.setViewport( 0, viewports );
+		buffer.setScissor( 0, scissors );
 	}
 
-	void Renderer::endSwapchainRendererPass( vk::CommandBuffer buffer )
+	void Renderer::endSwapchainRendererPass( vk::raii::CommandBuffer& buffer )
 	{
 		assert( is_frame_started && "Cannot call endSwapChainRenderPass if frame is not in progress" );
 		assert(
-			buffer == getCurrentCommandbuffer() && "Cannot end render pass on command buffer from a different frame" );
+			*buffer == *getCurrentCommandbuffer()
+			&& "Cannot end render pass on command buffer from a different frame" );
 
-		vkCmdEndRenderPass( buffer );
+		buffer.endRenderPass();
 	}
 } // namespace fgl::engine

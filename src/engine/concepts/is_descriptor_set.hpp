@@ -5,6 +5,7 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_raii.hpp>
 
 #include <concepts>
 #include <cstdint>
@@ -18,6 +19,6 @@ namespace fgl::engine
 		} -> std::same_as< const std::uint16_t& >;
 		{
 			T::createLayout()
-		} -> std::same_as< vk::DescriptorSetLayout >;
+		} -> std::same_as< vk::raii::DescriptorSetLayout >;
 	};
 } // namespace fgl::engine

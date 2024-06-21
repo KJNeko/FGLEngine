@@ -4,16 +4,12 @@
 
 #pragma once
 
-#include <concepts>
+#include <vulkan/vulkan_raii.hpp>
 
-namespace vk
-{
-	class CommandBuffer;
-}
+#include <concepts>
 
 namespace fgl::engine
 {
-
 	struct FrameInfo;
 
 	template < typename T >
@@ -34,7 +30,7 @@ namespace fgl::engine
 		};
 		{
 			t.setupSystem( info )
-		} -> std::same_as< vk::CommandBuffer& >;
+		} -> std::same_as< vk::raii::CommandBuffer& >;
 	};
 
 } // namespace fgl::engine

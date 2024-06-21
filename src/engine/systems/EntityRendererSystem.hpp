@@ -75,7 +75,7 @@ namespace fgl::engine
 				vk::MemoryPropertyFlagBits::eDeviceLocal );
 		}
 
-		vk::CommandBuffer& setupSystem( FrameInfo& );
+		vk::raii::CommandBuffer& setupSystem( FrameInfo& );
 
 	  public:
 
@@ -87,7 +87,7 @@ namespace fgl::engine
 		void texturelessPass( FrameInfo& info );
 		void texturedPass( FrameInfo& info );
 
-		EntityRendererSystem( Device& device, VkRenderPass render_pass );
+		EntityRendererSystem( Device& device, vk::raii::RenderPass& render_pass );
 		~EntityRendererSystem() = default;
 		EntityRendererSystem( EntityRendererSystem&& other ) = delete;
 		EntityRendererSystem( const EntityRendererSystem& other ) = delete;

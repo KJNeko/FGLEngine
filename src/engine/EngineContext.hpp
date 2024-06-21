@@ -30,7 +30,7 @@ namespace fgl::engine
 
 		Device device { m_window, m_instance };
 
-		Renderer m_renderer { m_window };
+		Renderer m_renderer { m_window, device.phyDevice() };
 
 		//GameObject::Map game_objects {};
 		OctTreeNode m_game_objects_root { WorldCoordinate( constants::WORLD_CENTER ) };

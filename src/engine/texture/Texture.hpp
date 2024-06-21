@@ -50,7 +50,7 @@ namespace fgl::engine
 
 		[[nodiscard]] Texture( const std::filesystem::path& path, const vk::Format format );
 
-		void stage( vk::CommandBuffer& cmd ) override;
+		void stage( vk::raii::CommandBuffer& cmd ) override;
 		void dropStaging();
 
 	  public:

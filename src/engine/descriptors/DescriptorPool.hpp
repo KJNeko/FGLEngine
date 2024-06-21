@@ -5,6 +5,7 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_raii.hpp>
 
 #include <cstdint>
 #include <unordered_map>
@@ -19,7 +20,7 @@ namespace fgl::engine
 
 	class DescriptorPool
 	{
-		vk::DescriptorPool m_pool {};
+		vk::raii::DescriptorPool m_pool;
 
 		DescriptorPool( Device& device, std::uint32_t set_count );
 
@@ -30,24 +31,13 @@ namespace fgl::engine
 		DescriptorPool& operator=( const DescriptorPool& other ) = delete;
 		DescriptorPool& operator=( DescriptorPool&& other ) = delete;
 
-		vk::DescriptorPool getPool() const
-		{
-			assert( m_pool && "DescriptorPool::getVkPool() called on null pool" );
+		vk::raii::DescriptorPool& getPool() { return m_pool; }
 
-			return m_pool;
-		}
-
-		VkDescriptorPool getVkPool() const
-		{
-			assert( m_pool && "DescriptorPool::getVkPool() called on null pool" );
-
-			return m_pool;
-		}
+		VkDescriptorPool operator*() { return *m_pool; }
 
 		static DescriptorPool& init( Device& device );
 		[[nodiscard]] static DescriptorPool& getInstance();
 
-		[[nodiscard]] vk::DescriptorSet allocateSet( vk::DescriptorSetLayout& layout );
-		void deallocSet( vk::DescriptorSet& set );
+		[[nodiscard]] vk::raii::DescriptorSet allocateSet( vk::raii::DescriptorSetLayout& layout );
 	};
 } // namespace fgl::engine
