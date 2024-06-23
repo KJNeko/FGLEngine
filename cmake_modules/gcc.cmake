@@ -16,9 +16,9 @@
 				AppendFlag("-Wdouble-promotion") #Prevents issue where you can do math as a double which might not be intended.
 				AppendFlag("-Wnonnull") #Prevents passing null as an argument marked as nonnull attribute
 				AppendFlag("-Wnull-dereference") #Warns about a possible null dereference. Compiler checks all possible paths
+				# Can't selectively disable this for certian things.
 				#AppendFlag("-Wnrvo") #Compiler checks for return value optimization invalidations
-				# Disabled because of older GCC compilers being unhappy with it
-				#AppendFlag("-Winfinite-recursion") #Warns about infinite recursive calls
+				AppendFlag("-Winfinite-recursion") #Warns about infinite recursive calls
 				AppendFlag("-Winit-self") #Yells at you if you init something with itself
 				AppendFlag("-Wimplicit-fallthrough=4") # Warns about switch statements having a implicit fallthrough. must be marked with [[fallthrough]]
 				AppendFlag("-Wignored-qualifiers") #Warns if qualifiers are used in return types. Which are ignored.
@@ -30,7 +30,7 @@
 				AppendFlag("-Wmissing-include-dirs") #Warns when missing a include dir that was supplied to the compiler
 				AppendFlag("-Wmultistatement-macros") #Warns about odd behaviours with macros being used with conditionals that appear guarded by them
 				AppendFlag("-Wparentheses") #Warns about unnecessary parentheses or other weird cases. (Also warns of a case x<=y<=z being seen as (<=y ? 1 : 0) <= z
-				#AppendFlag("-Wno-self-move") # Prevents moving a value into itself. Which has no effect
+				AppendFlag("-Wno-self-move") # Prevents moving a value into itself. Which has no effect
 				AppendFlag("-Wsequence-point") # Prevents some really weird shit like a = a++. Since due to the order of operations this results in undefined behaviour
 				AppendFlag("-Wreturn-type") #Warns when a return type defaults to int.
 				AppendFlag("-Wno-shift-count-negative") #Warns when a bitshift count is negative
@@ -62,8 +62,7 @@
 				AppendFlag("-Wclobbered") #Warns about variables that are changed by longjmp or vfork
 				AppendFlag("-Wconversion") #Warns about conversions between real and integer numbers and conversions between signed/unsigned numbers
 				AppendFlag("-Wdangling-else") #Warns about confusing else statements
-				# Disabled because of older GCC compilers being unhappy with it
-				#AppendFlag("-Wdangling-pointer=2") #Warns about use of pointers with automatic lifetime
+				AppendFlag("-Wdangling-pointer=2") #Warns about use of pointers with automatic lifetime
 				AppendFlag("-Wempty-body") #Warns about empty conditional bodies
 				AppendFlag("-Wfloat-conversion") #Warns about reduction of precision from double -> float conversions
 				AppendFlag("-Waddress") #Prevents off uses of addresses
@@ -77,7 +76,7 @@
 				AppendFlag("-Wctor-dtor-privacy") #Warns if a class appears unusable due to private ctor/dtors
 				AppendFlag("-Wdelete-non-virtual-dtor") #Warns about using `delete` on a class that has virtual functions without a virtual dtor
 				# Disabled because of older GCC compilers being unhappy with it
-				#AppendFlag("-Winvalid-constexpr") #Warns that a function marked as constexpr can't possibly produce a constexpr expression
+				AppendFlag("-Winvalid-constexpr") #Warns that a function marked as constexpr can't possibly produce a constexpr expression
 				AppendFlag("-Wnoexcept") #Warns when a noexcept expression is false due to throwing
 				AppendFlag("-Wnoexcept-type")
 				AppendFlag("-Wclass-memaccess") #Warns about accessing memory of a class. Which is likely invalid
@@ -98,15 +97,14 @@
 				AppendFlag("-Wsuggest-final-types") #Self explanatory
 				AppendFlag("-Wsuggest-final-methods")# ^
 				AppendFlag("-Wsuggest-override")#      ^
-				# Disabled because of older GCC compilers being unhappy with it
-				##AppendFlag("-Wuse-after-free") #Warns about accessing a value after calling 'free' on it
+				AppendFlag("-Wuse-after-free") #Warns about accessing a value after calling 'free' on it
 				AppendFlag("-Wuseless-cast") #Warns about a cast that is useless.
 
 				# Starting other weird flags
 				AppendFlag("-fdiagnostics-show-template-tree") # Shows the template diagnostic info as a tree instead.
 				AppendFlag("-fdiagnostics-path-format=inline-events")
 
-				set(FGL_CONFIG "-std=c++23 -fmax-errors=3 -fconcepts-diagnostics-depth=8 -march=native -flto -ftree-vectorize")
+				set(FGL_CONFIG "-std=c++23 -fmax-errors=3 -fconcepts-diagnostics-depth=8 -march=native -flto=auto -ftree-vectorize")
 
 				#if (DEFINED USE_WERROR)
 				#		set(FGL_CONFIG "${FGL_CONFIG} -Werror")
