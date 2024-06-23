@@ -6,10 +6,8 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include "Image.hpp"
 #include "ImageHandle.hpp"
 #include "Sampler.hpp"
-#include "engine/rendering/Device.hpp"
 
 namespace fgl::engine
 {
@@ -29,6 +27,7 @@ namespace fgl::engine
 		void setName( const std::string str );
 
 		ImageView() = delete;
+
 		ImageView( const ImageView& ) = delete;
 		ImageView& operator=( const ImageView& ) = delete;
 
