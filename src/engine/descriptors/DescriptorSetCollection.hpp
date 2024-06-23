@@ -39,20 +39,20 @@ namespace fgl::engine
 		using DescriptorSetTuple = std::tuple< DescriptorSets... >;
 		static constexpr auto SIZE { sizeof...( DescriptorSets ) };
 
-		constexpr static std::uint64_t DescriptorSetCount { sizeof...( DescriptorSets ) };
+		static constexpr std::uint64_t DescriptorSetCount { sizeof...( DescriptorSets ) };
 
 		//If the first descriptor set is a constant range, then the pipeline has a constant range
-		constexpr static bool has_constant_range {
+		static constexpr bool has_constant_range {
 			is_constant_range< std::tuple_element_t< 0, std::tuple< DescriptorSets... > > >
 		};
 
-		constexpr static std::uint16_t binding_sets { ( is_descriptor_set< DescriptorSets > + ... ) };
+		static constexpr std::uint16_t binding_sets { ( is_descriptor_set< DescriptorSets > + ... ) };
 
-		constexpr static std::uint16_t max_binding_set { getMaxBindingSetIDX< DescriptorSets... >() };
+		static constexpr std::uint16_t max_binding_set { getMaxBindingSetIDX< DescriptorSets... >() };
 
-		constexpr static std::uint16_t set_count { ( is_descriptor_set< DescriptorSets > + ... ) };
+		static constexpr std::uint16_t set_count { ( is_descriptor_set< DescriptorSets > + ... ) };
 
-		constexpr static std::uint16_t empty_sets { ( is_empty_descriptor_set< DescriptorSets > + ... ) };
+		static constexpr std::uint16_t empty_sets { ( is_empty_descriptor_set< DescriptorSets > + ... ) };
 
 		static std::vector< vk::raii::DescriptorSetLayout > createDescriptorSets()
 		{

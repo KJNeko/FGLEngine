@@ -19,7 +19,7 @@ namespace fgl::engine
 	{
 		static_assert( sizeof...( Descriptors ) > 0, "Binding set must have at least one binding" );
 
-		inline static constexpr std::uint16_t m_set_idx { set_idx };
+		static constexpr std::uint16_t m_set_idx { set_idx };
 
 		//! The number of bindings in this set
 		static constexpr std::uint16_t descriptor_count { sizeof...( Descriptors ) };
