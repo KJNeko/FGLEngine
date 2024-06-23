@@ -9,9 +9,12 @@
 #include <filesystem>
 
 #include "engine/assets/AssetManager.hpp"
+#include "engine/image/Sampler.hpp"
 
 namespace fgl::engine
 {
+	class Sampler;
+	class Image;
 	class BufferSuballocation;
 	class ImageView;
 	class DescriptorSet;

@@ -78,7 +78,7 @@ namespace fgl::engine
 
 	  public:
 
-		vk::PhysicalDeviceProperties m_properties {};
+		vk::PhysicalDeviceProperties m_properties;
 
 		vk::CommandPoolCreateInfo commandPoolInfo();
 

@@ -175,7 +175,9 @@ namespace fgl::engine
 					                   matrix_info_buffers[ frame_index ],
 					                   draw_parameter_buffers[ frame_index ],
 					                   m_renderer.getGBufferDescriptor( frame_index ),
-					                   view_frustum };
+					                   m_renderer.getGBufferCompositeDescriptor( frame_index ),
+					                   view_frustum,
+					                   this->m_renderer.getSwapChain() };
 
 #if TRACY_ENABLE
 				//auto& tracy_ctx { frame_info.tracy_ctx };
@@ -199,7 +201,7 @@ namespace fgl::engine
 
 				m_composition_system.pass( frame_info );
 
-				gui::drawMainGUI( frame_info );
+				m_gui_system.pass( frame_info );
 
 				m_renderer.endSwapchainRendererPass( command_buffer );
 
@@ -252,7 +254,7 @@ namespace fgl::engine
 
 			assert( model );
 
-			model->syncBuffers( command_buffer );
+			model->stage( command_buffer );
 
 			constexpr int x_val { 1 };
 			constexpr int y_val { x_val };
@@ -272,9 +274,9 @@ namespace fgl::engine
 					m_game_objects_root.addGameObject( std::move( sponza ) );
 				}
 			}
-		}*/
+		}
+		*/
 
-		/*
 		{
 			ZoneScopedN( "Load phyiscs test" );
 			std::vector< std::shared_ptr< Model > > assets { Model::createModelsFromScene(
@@ -291,12 +293,13 @@ namespace fgl::engine
 				object.object_flags |= IS_VISIBLE | IS_ENTITY;
 
 				assert( object.m_model );
-				object.m_model->syncBuffers( command_buffer );
+				object.m_model->stage( command_buffer );
 
 				m_game_objects_root.addGameObject( std::move( object ) );
 			}
 		}
 
+		/*
 		{
 			ZoneScopedN( "Load terrain" );
 			auto model {

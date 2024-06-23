@@ -10,7 +10,6 @@
 #include <cstring>
 #include <iostream>
 #include <limits>
-#include <set>
 #include <stdexcept>
 
 namespace fgl::engine
@@ -196,7 +195,11 @@ namespace fgl::engine
 
 		for ( int i = 0; i < imageCount(); ++i )
 		{
-			m_swap_chain_images[ i ].setName( "SwapChainImage: " + std::to_string( i ) );
+			auto& image { m_swap_chain_images[ i ] };
+
+			image.setName( "SwapChainImage: " + std::to_string( i ) );
+
+			auto texture { std::make_unique< Texture >( image ) };
 		}
 
 		colorAttachment.linkImages( m_swap_chain_images );
@@ -205,18 +208,26 @@ namespace fgl::engine
 		ColorAttachment g_buffer_position { vk::Format::eR16G16B16A16Sfloat };
 		ColorAttachment g_buffer_normal { vk::Format::eR16G16B16A16Sfloat };
 		ColorAttachment g_buffer_albedo { vk::Format::eR8G8B8A8Unorm };
+		ColorAttachment g_buffer_composite { vk::Format::eR8G8B8A8Unorm };
 
-		g_buffer_position.createResourceSpread( imageCount(), getSwapChainExtent() );
-		g_buffer_normal.createResourceSpread( imageCount(), getSwapChainExtent() );
-		g_buffer_albedo.createResourceSpread( imageCount(), getSwapChainExtent() );
+		g_buffer_position.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
+		g_buffer_normal.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
+		g_buffer_albedo.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
+		g_buffer_composite.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
 
 		g_buffer_position.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
 		g_buffer_normal.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
 		g_buffer_albedo.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
+		g_buffer_composite.setClear( vk::ClearColorValue( std::array< float, 4 > { 0.0f, 0.0f, 0.0f, 0.0f } ) );
 
-		g_buffer_position.m_attachment_resources.m_images[ 0 ]->setName( "GBufferPosition" );
-		g_buffer_normal.m_attachment_resources.m_images[ 0 ]->setName( "GBufferNormal" );
-		g_buffer_albedo.m_attachment_resources.m_images[ 0 ]->setName( "GBufferAlbedo" );
+		g_buffer_position_img = std::make_unique< Texture >( g_buffer_position.m_attachment_resources.m_images[ 0 ]
+		                                                         ->setName( "GBufferPosition" ) );
+		g_buffer_normal_img = std::make_unique< Texture >( g_buffer_normal.m_attachment_resources.m_images[ 0 ]
+		                                                       ->setName( "GBufferNormal" ) );
+		g_buffer_albedo_img = std::make_unique< Texture >( g_buffer_albedo.m_attachment_resources.m_images[ 0 ]
+		                                                       ->setName( "GBufferAlbedo" ) );
+		g_buffer_composite_img = std::make_unique< Texture >( g_buffer_composite.m_attachment_resources.m_images[ 0 ]
+		                                                          ->setName( "GBufferComposite" ) );
 
 		RenderPass render_pass {};
 
@@ -225,27 +236,50 @@ namespace fgl::engine
 		depthAttachment.setClear( vk::ClearDepthStencilValue( 1.0f, 0 ) );
 
 		render_pass.registerAttachments(
-			colorAttachment, depthAttachment, g_buffer_position, g_buffer_normal, g_buffer_albedo );
+			colorAttachment, depthAttachment, g_buffer_position, g_buffer_normal, g_buffer_albedo, g_buffer_composite );
 
 		for ( int i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
 		{
-			auto set { std::make_unique< DescriptorSet >( GBufferDescriptorSet::createLayout() ) };
-			set->setMaxIDX( 2 );
+			{
+				auto set { std::make_unique< DescriptorSet >( GBufferDescriptorSet::createLayout() ) };
 
-			set->bindAttachment(
-				0,
-				*( g_buffer_position.resources().m_image_views[ i ].get() ),
-				vk::ImageLayout::eShaderReadOnlyOptimal );
+				set->setMaxIDX( 2 );
 
-			set->bindAttachment(
-				1, *( g_buffer_normal.resources().m_image_views[ i ].get() ), vk::ImageLayout::eShaderReadOnlyOptimal );
+				set->bindAttachment(
+					0,
+					*( g_buffer_position.resources().m_image_views[ i ].get() ),
+					vk::ImageLayout::eShaderReadOnlyOptimal );
 
-			set->bindAttachment(
-				2, *( g_buffer_albedo.resources().m_image_views[ i ].get() ), vk::ImageLayout::eShaderReadOnlyOptimal );
+				set->bindAttachment(
+					1,
+					*( g_buffer_normal.resources().m_image_views[ i ].get() ),
+					vk::ImageLayout::eShaderReadOnlyOptimal );
 
-			set->update();
+				set->bindAttachment(
+					2,
+					*( g_buffer_albedo.resources().m_image_views[ i ].get() ),
+					vk::ImageLayout::eShaderReadOnlyOptimal );
 
-			m_gbuffer_descriptor_set[ i ] = std::move( set );
+				set->update();
+
+				m_gbuffer_descriptor_set[ i ] = std::move( set );
+			}
+
+			{
+				auto composite_set {
+					std::make_unique< DescriptorSet >( GBufferCompositeDescriptorSet::createLayout() )
+				};
+
+				composite_set->setMaxIDX( 2 );
+				composite_set->bindAttachment(
+					0,
+					*( g_buffer_composite.resources().m_image_views[ 0 ].get() ),
+					vk::ImageLayout::eShaderReadOnlyOptimal );
+
+				composite_set->update();
+
+				m_gbuffer_composite_descriptor_set[ i ] = std::move( composite_set );
+			}
 		}
 
 		static_assert( is_attachment< ColoredPresentAttachment > );
@@ -254,13 +288,10 @@ namespace fgl::engine
 		Subpass<
 			vk::PipelineBindPoint::eGraphics,
 			UsedAttachment< DepthAttachment, vk::ImageLayout::eDepthStencilAttachmentOptimal >,
-			UsedAttachment< ColoredPresentAttachment, vk::ImageLayout::eColorAttachmentOptimal >,
 			UsedAttachment< ColorAttachment, vk::ImageLayout::eColorAttachmentOptimal >,
 			UsedAttachment< ColorAttachment, vk::ImageLayout::eColorAttachmentOptimal >,
 			UsedAttachment< ColorAttachment, vk::ImageLayout::eColorAttachmentOptimal > >
-			g_buffer_subpass {
-				0, depthAttachment, colorAttachment, g_buffer_position, g_buffer_normal, g_buffer_albedo
-			};
+			g_buffer_subpass { 0, depthAttachment, g_buffer_position, g_buffer_normal, g_buffer_albedo };
 
 		g_buffer_subpass.registerDependencyFromExternal(
 			vk::AccessFlagBits::eDepthStencilAttachmentWrite,
@@ -272,15 +303,30 @@ namespace fgl::engine
 		Subpass<
 			vk::PipelineBindPoint::eGraphics,
 			UsedAttachment< DepthAttachment, vk::ImageLayout::eDepthStencilAttachmentOptimal >,
-			UsedAttachment< ColoredPresentAttachment, vk::ImageLayout::eColorAttachmentOptimal >,
+			UsedAttachment< ColorAttachment, vk::ImageLayout::eColorAttachmentOptimal >,
 			InputAttachment< ColorAttachment, vk::ImageLayout::eShaderReadOnlyOptimal >,
 			InputAttachment< ColorAttachment, vk::ImageLayout::eShaderReadOnlyOptimal >,
 			InputAttachment< ColorAttachment, vk::ImageLayout::eShaderReadOnlyOptimal > >
-			present_subpass {
-				1, depthAttachment, colorAttachment, g_buffer_position, g_buffer_normal, g_buffer_albedo
+			composite_subpass {
+				1, depthAttachment, g_buffer_composite, g_buffer_position, g_buffer_normal, g_buffer_albedo
 			};
 
-		present_subpass.registerDependencyFrom(
+		// To prevent the composite buffer from getting obliterated by the gui pass and so we can use it to render to the GUI in certian areas, We need to keep them seperate and the composite image to be unmodified.
+		Subpass<
+			vk::PipelineBindPoint::eGraphics,
+			UsedAttachment< DepthAttachment, vk::ImageLayout::eDepthStencilAttachmentOptimal >,
+			UsedAttachment< ColoredPresentAttachment, vk::ImageLayout::eColorAttachmentOptimal >,
+			InputAttachment< ColorAttachment, vk::ImageLayout::eShaderReadOnlyOptimal > >
+			gui_subpass { 2, depthAttachment, colorAttachment, g_buffer_composite };
+
+		/*
+
+		g_buffer_subpass -> composite_subpass -> gui_subpass
+
+		*/
+
+		// Register a dependency for the composite subpass that prevents it from working until the g_buffer_subpass has finished writing it's color attachments
+		composite_subpass.registerDependencyFrom(
 			g_buffer_subpass,
 			vk::AccessFlagBits::eColorAttachmentWrite,
 			vk::PipelineStageFlagBits::eColorAttachmentOutput,
@@ -288,7 +334,15 @@ namespace fgl::engine
 			vk::PipelineStageFlagBits::eFragmentShader,
 			vk::DependencyFlagBits::eByRegion );
 
-		present_subpass.registerDependencyToExternal(
+		gui_subpass.registerDependencyFrom(
+			composite_subpass,
+			vk::AccessFlagBits::eColorAttachmentWrite,
+			vk::PipelineStageFlagBits::eColorAttachmentOutput,
+			vk::AccessFlagBits::eInputAttachmentRead,
+			vk::PipelineStageFlagBits::eFragmentShader,
+			vk::DependencyFlagBits::eByRegion );
+
+		gui_subpass.registerDependencyToExternal(
 			vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite,
 			vk::PipelineStageFlagBits::eColorAttachmentOutput,
 			vk::AccessFlagBits::eMemoryRead,
@@ -296,7 +350,8 @@ namespace fgl::engine
 			vk::DependencyFlagBits::eByRegion );
 
 		render_pass.registerSubpass( g_buffer_subpass );
-		render_pass.registerSubpass( present_subpass );
+		render_pass.registerSubpass( composite_subpass );
+		render_pass.registerSubpass( gui_subpass );
 
 		m_render_pass = render_pass.create();
 

@@ -161,7 +161,8 @@ namespace fgl::engine
 	  m_graphics_queue( m_device
 	                        .getQueue( m_physical_device.queueInfo().getIndex( vk::QueueFlagBits::eGraphics ), 0 ) ),
 	  m_present_queue( m_device.getQueue( m_physical_device.queueInfo().getPresentIndex(), 0 ) ),
-	  m_allocator( createVMAAllocator() )
+	  m_allocator( createVMAAllocator() ),
+	  m_properties( m_physical_device.handle().getProperties() )
 	{
 		assert( !global_device );
 

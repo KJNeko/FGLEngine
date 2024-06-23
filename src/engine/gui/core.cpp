@@ -15,6 +15,8 @@
 #include <imgui.h>
 #pragma GCC diagnostic pop
 
+#include <imgui_internal.h>
+
 #include "engine/descriptors/DescriptorPool.hpp"
 #include "engine/filesystem/FileBrowser.hpp"
 #include "engine/model/Model.hpp"
@@ -52,7 +54,7 @@ namespace fgl::engine::gui
 			.MSAASamples = VK_SAMPLE_COUNT_1_BIT,
 
 			.PipelineCache = VK_NULL_HANDLE,
-			.Subpass = 1,
+			.Subpass = 2,
 
 			.UseDynamicRendering = VK_FALSE,
 			.PipelineRenderingCreateInfo = {},
@@ -88,12 +90,147 @@ namespace fgl::engine::gui
 		//ImGui::RenderPlatformWindowsDefault();
 	}
 
+	void drawRenderingOutputs( const FrameInfo& info )
+	{
+		ImGui::Begin( "RenderOutputs" );
+
+		enum RenderingOutputSelection : std::uint_fast8_t
+		{
+			Composite = 0,
+			Albedo = 1,
+			Normal = 2,
+			Position = 3
+		};
+
+		static const char* const options[] = { "Composite", "Albedo", "Normal", "Position" };
+		static std::uint_fast8_t current { Composite };
+
+		if ( ImGui::BeginCombo( "Rendering Output", options[ current ] ) )
+		{
+			constexpr float desired_size { 64 };
+			//Calculate size
+			const float ratio { info.swap_chain.extentAspectRatio() };
+
+			// h = w/h
+
+			float fh_size { desired_size };
+			float fv_size { desired_size * ratio };
+
+			// If height is larger then the size then we need to compute the width from the height max
+			if ( fv_size > desired_size )
+			{
+				fv_size = desired_size;
+				fh_size = fv_size / ratio;
+			}
+
+			std::uint32_t h_size { static_cast< std::uint32_t >( fh_size ) };
+			std::uint32_t v_size { static_cast< std::uint32_t >( fv_size ) };
+
+			//Composite
+			if ( ImGui::Selectable( options[ Composite ], current == Composite ) )
+			{
+				log::debug( "Changing output to Compositite" );
+				current = Composite;
+			}
+
+			info.swap_chain.g_buffer_albedo_img->drawImGui( { v_size, h_size } );
+			ImGui::SameLine();
+			if ( ImGui::Selectable( options[ Albedo ], current == Albedo ) )
+			{
+				log::debug( "Changing output to Albedo" );
+				current = Albedo;
+			}
+
+			info.swap_chain.g_buffer_normal_img->drawImGui( { v_size, h_size } );
+			ImGui::SameLine();
+			if ( ImGui::Selectable( options[ Normal ], current == Normal ) )
+			{
+				log::debug( "Changing output to Normal" );
+				current = Normal;
+			}
+
+			info.swap_chain.g_buffer_position_img->drawImGui( { v_size, h_size } );
+			ImGui::SameLine();
+			if ( ImGui::Selectable( options[ Position ], current == Position ) )
+			{
+				log::debug( "Changing output to Position" );
+				current = Position;
+			}
+
+			ImGui::EndCombo();
+		}
+
+		switch ( current )
+		{
+			default:
+				[[fallthrough]];
+			case Composite:
+				info.swap_chain.g_buffer_composite_img->drawImGui();
+				break;
+			case Albedo:
+				info.swap_chain.g_buffer_albedo_img->drawImGui();
+				break;
+			case Normal:
+				info.swap_chain.g_buffer_normal_img->drawImGui();
+				break;
+			case Position:
+				info.swap_chain.g_buffer_position_img->drawImGui();
+				break;
+		}
+
+		ImGui::End();
+	}
+
+	void prepareDock()
+	{
+		// Docks seem utterly broken.
+		ImGuiID primary_id { ImGui::GetID( "WindowGroup" ) };
+
+		ImGui::DockSpaceOverViewport( primary_id, ImGui::GetMainViewport() );
+
+		ImGui::DockBuilderRemoveNode( primary_id );
+		ImGui::DockBuilderAddNode( primary_id, ImGuiDockNodeFlags_DockSpace );
+
+		const auto viewport { ImGui::GetMainViewport() };
+		ImGui::DockBuilderSetNodeSize( primary_id, viewport->Size );
+
+		ImGuiID right {};
+		auto left { ImGui::DockBuilderSplitNode( primary_id, ImGuiDir_Left, 0.2f, nullptr, &right ) };
+		ImGui::DockBuilderAddNode( right );
+		auto center { ImGui::DockBuilderSplitNode( right, ImGuiDir_Left, 0.2f, nullptr, &right ) };
+
+		ImGui::DockBuilderAddNode( center, ImGuiDockNodeFlags_DockSpace );
+		ImGui::DockBuilderAddNode( left, ImGuiDockNodeFlags_DockSpace );
+		ImGui::DockBuilderAddNode( right, ImGuiDockNodeFlags_DockSpace );
+
+		ImGuiID left_up {};
+		auto left_down { ImGui::DockBuilderSplitNode( primary_id, ImGuiDir_Down, 0.2f, nullptr, &left_up ) };
+
+		ImGui::DockBuilderDockWindow( "Scene", left_up );
+		ImGui::DockBuilderDockWindow( "Main", left_down );
+
+		ImGui::DockBuilderDockWindow( "Entity info", right );
+
+		ImGuiID up {};
+		auto down { ImGui::DockBuilderSplitNode( center, ImGuiDir_Down, 0.2f, nullptr, &up ) };
+
+		ImGui::DockBuilderDockWindow( "RenderOutputs", up );
+		ImGui::DockBuilderDockWindow( "File Picker", down );
+
+		ImGui::DockBuilderFinish( primary_id );
+	}
+
 	void drawMainGUI( FrameInfo& info )
 	{
 		ZoneScoped;
-		//TracyVkZone( tracy_ctx, command_buffer, "ImGui Rendering" );
+		TracyVkZone( info.tracy_ctx, *info.command_buffer, "ImGui Rendering" );
 		beginImGui();
 
+		// TODO: Maybe play with docks again some other time
+		//static std::once_flag flag;
+		//std::call_once( flag, prepareDock );
+
+		drawRenderingOutputs( info );
 		drawEntityGUI( info );
 		drawEntityInfo( info );
 		drawFilesystemGUI( info );

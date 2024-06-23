@@ -21,7 +21,7 @@ namespace fgl::engine
 
 		info.assembly_info.topology = vk::PrimitiveTopology::ePatchList;
 
-		for ( int i = 0; i < 4; ++i ) PipelineConfigInfo::addColorAttachmentConfig( info );
+		for ( int i = 0; i < 3; ++i ) PipelineConfigInfo::addColorAttachmentConfig( info );
 
 		info.subpass = 0;
 

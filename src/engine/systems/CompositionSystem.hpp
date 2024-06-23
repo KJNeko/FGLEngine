@@ -4,26 +4,27 @@
 
 #pragma once
 
-#include <engine/FrameInfo.hpp>
 #include <engine/pipeline/PipelineT.hpp>
 
 #include "concepts.hpp"
+#include "engine/FrameInfo.hpp"
 #include "engine/descriptors/DescriptorSetCollection.hpp"
 
 namespace fgl::engine
 {
+
 	class CompositionSystem
 	{
 		using DescriptorSets = DescriptorSetCollection< GBufferDescriptorSet >;
 
-		using VertexShader = VertexShaderT< "shaders/composition.vert.spv" >;
+		using VertexShader = VertexShaderT< "shaders/fullscreen.vert.spv" >;
 		using FragmentShader = FragmentShaderT< "shaders/composition.frag.spv" >;
 
 		using Shaders = ShaderCollection< VertexShader, FragmentShader >;
 
 		using CompositionPipeline = PipelineT< Shaders, DescriptorSets >;
 
-		std::unique_ptr< CompositionPipeline > m_pipeline { nullptr };
+		std::unique_ptr< CompositionPipeline > m_composite_pipeline { nullptr };
 
 		vk::raii::CommandBuffer& setupSystem( FrameInfo& info );
 

@@ -1,21 +1,18 @@
 #pragma once
 
+#include <vulkan/vulkan.h>
+
+#include <memory>
+#include <optional>
+#include <vector>
+
 #include "Device.hpp"
 #include "RenderPass.hpp"
 #include "engine/FrameInfo.hpp"
-#include "engine/image/Image.hpp"
-
-// vulkan headers
-#include <vulkan/vulkan.h>
-
-// std lib headers
-#include <memory>
-#include <string>
-#include <vector>
+#include "engine/texture/Texture.hpp"
 
 namespace fgl::engine
 {
-
 	class SwapChain
 	{
 	  public:
@@ -49,6 +46,15 @@ namespace fgl::engine
 
 		std::vector< vk::ClearValue > m_clear_values {};
 
+	  public:
+
+		std::unique_ptr< Texture > g_buffer_position_img { nullptr };
+		std::unique_ptr< Texture > g_buffer_normal_img { nullptr };
+		std::unique_ptr< Texture > g_buffer_albedo_img { nullptr };
+		std::unique_ptr< Texture > g_buffer_composite_img { nullptr };
+
+	  private:
+
 		void init();
 		void createSwapChain();
 		void createRenderPass();
@@ -61,6 +67,8 @@ namespace fgl::engine
 		vk::Extent2D chooseSwapExtent( const vk::SurfaceCapabilitiesKHR& capabilities );
 
 		std::array< std::unique_ptr< DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT > m_gbuffer_descriptor_set {};
+		std::array< std::unique_ptr< DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
+			m_gbuffer_composite_descriptor_set {};
 
 	  public:
 
@@ -73,6 +81,13 @@ namespace fgl::engine
 				m_gbuffer_descriptor_set.size() == SwapChain::MAX_FRAMES_IN_FLIGHT
 				&& "GBuffer descriptor set not initialized" );
 			return *m_gbuffer_descriptor_set[ frame_idx ];
+		}
+
+		fgl::engine::DescriptorSet& getGBufferCompositeDescriptor( uint16_t frame_idx ) const
+		{
+			assert( frame_idx < SwapChain::MAX_FRAMES_IN_FLIGHT && "Frame index out of range" );
+
+			return *m_gbuffer_composite_descriptor_set[ frame_idx ];
 		}
 
 		SwapChain( vk::Extent2D windowExtent, PhysicalDevice& phy_dev );

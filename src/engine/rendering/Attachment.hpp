@@ -99,12 +99,13 @@ namespace fgl::engine
 		}
 
 		//! Creates a resource that is used across all frames
-		void createResourceSpread( const std::uint32_t count, vk::Extent2D extent )
+		void createResourceSpread(
+			const std::uint32_t count, vk::Extent2D extent, vk::ImageUsageFlags extra_flags = vk::ImageUsageFlags( 0 ) )
 		{
 			auto image { std::make_shared< Image >(
 				extent,
 				description.format,
-				usage | vk::ImageUsageFlagBits::eInputAttachment,
+				usage | vk::ImageUsageFlagBits::eInputAttachment | extra_flags,
 				inital_layout,
 				final_layout ) };
 			for ( std::uint32_t i = 0; i < count; ++i )

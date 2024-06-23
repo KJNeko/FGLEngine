@@ -28,7 +28,7 @@ namespace fgl::engine
 		PhysicalDevice& m_phy_device;
 		std::unique_ptr< SwapChain > m_swapchain;
 
-		std::vector< vk::raii::CommandBuffer> m_command_buffer {};
+		std::vector< vk::raii::CommandBuffer > m_command_buffer {};
 
 		std::optional< TracyVkCtx > m_tracy_ctx { std::nullopt };
 
@@ -44,6 +44,11 @@ namespace fgl::engine
 		DescriptorSet& getGBufferDescriptor( std::uint16_t frame_idx ) const
 		{
 			return m_swapchain->getGBufferDescriptor( frame_idx );
+		}
+
+		DescriptorSet& getGBufferCompositeDescriptor( std::uint16_t frame_idx ) const
+		{
+			return m_swapchain->getGBufferCompositeDescriptor( frame_idx );
 		}
 
 		std::uint16_t getFrameIndex() const
@@ -78,6 +83,8 @@ namespace fgl::engine
 		void endFrame();
 		void beginSwapchainRendererPass( vk::raii::CommandBuffer& buffer );
 		void endSwapchainRendererPass( vk::raii::CommandBuffer& buffer );
+
+		SwapChain& getSwapChain() { return *m_swapchain; }
 
 		Renderer( Window& window, PhysicalDevice& phy_device );
 		~Renderer();

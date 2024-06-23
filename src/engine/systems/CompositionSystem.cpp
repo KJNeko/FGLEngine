@@ -17,16 +17,18 @@ namespace fgl::engine
 		PipelineConfigInfo::disableCulling( composition_info );
 		composition_info.subpass = 1;
 
-		m_pipeline = std::make_unique< CompositionPipeline >( Device::getInstance(), std::move( composition_info ) );
-		m_pipeline->setDebugName( "Composition pipeline" );
+		m_composite_pipeline =
+			std::make_unique< CompositionPipeline >( Device::getInstance(), std::move( composition_info ) );
+		m_composite_pipeline->setDebugName( "Composition pipeline" );
 	}
 
 	vk::raii::CommandBuffer& CompositionSystem::setupSystem( FrameInfo& info )
 	{
 		auto& command_buffer { info.command_buffer };
-		m_pipeline->bind( command_buffer );
+		m_composite_pipeline->bind( command_buffer );
 
-		m_pipeline->bindDescriptor( command_buffer, GBufferDescriptorSet::m_set_idx, info.gbuffer_descriptor_set );
+		m_composite_pipeline
+			->bindDescriptor( command_buffer, GBufferDescriptorSet::m_set_idx, info.gbuffer_descriptor_set );
 
 		return info.command_buffer;
 	}

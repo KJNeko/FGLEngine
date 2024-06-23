@@ -22,6 +22,7 @@
 
 namespace fgl::engine
 {
+	class SwapChain;
 
 	struct PointLight
 	{
@@ -64,6 +65,11 @@ namespace fgl::engine
 
 	using GBufferDescriptorSet = DescriptorSetLayout< 0, PositionDescriptor, NormalDescriptor, AlbedoDescriptor >;
 
+
+	using CompositeDescriptor = AttachmentDescriptor< 0, vk::ShaderStageFlagBits::eFragment >;
+
+	using GBufferCompositeDescriptorSet = DescriptorSetLayout< 0, CompositeDescriptor >;
+
 	class OctTreeNode;
 
 	struct FrameInfo
@@ -87,8 +93,10 @@ namespace fgl::engine
 		Buffer& draw_parameter_buffer;
 
 		DescriptorSet& gbuffer_descriptor_set;
+		DescriptorSet& gbuffer_composite_set;
 
 		const Frustum< CoordinateSpace::World >& camera_frustum;
+		SwapChain& swap_chain;
 
 		std::vector< std::vector< GameObject >* > in_view_leafs {};
 	};
