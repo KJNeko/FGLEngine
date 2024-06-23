@@ -59,11 +59,15 @@ namespace fgl::engine
 
 		~Texture();
 
+		void stage();
+
 		Texture( const Texture& ) = delete;
 		Texture& operator=( const Texture& ) = delete;
 
 		Texture( Texture&& other ) = delete;
 		Texture& operator=( Texture&& ) = delete;
+
+		Texture( Image& image, Sampler sampler = Sampler() );
 
 		[[nodiscard]] TextureID getID() const;
 

@@ -9,21 +9,26 @@
 #include "engine/FrameInfo.hpp"
 #include "engine/buffers/BufferSuballocation.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
+#include "engine/image/Image.hpp"
 #include "engine/image/ImageView.hpp"
+#include "engine/logging/logging.hpp"
+#include "engine/math/noise/perlin/generator.hpp"
 #include "objectloaders/stb_image.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #pragma GCC diagnostic ignored "-Wconversion"
-#include "engine/math/noise/perlin/generator.hpp"
 #include "imgui/backends/imgui_impl_vulkan.h"
 #pragma GCC diagnostic pop
 
-#include "engine/logging/logging.hpp"
-
 namespace fgl::engine
 {
+	std::uint64_t getNextID()
+	{
+		static std::uint64_t id { 0 };
+		return id++;
+	}
 
 	std::tuple< std::vector< std::byte >, int, int, vk::Format >
 		loadTexture( const std::filesystem::path& path, const vk::Format format )
@@ -53,6 +58,12 @@ namespace fgl::engine
 
 	void Texture::drawImGui( vk::Extent2D extent )
 	{
+		if ( !isReady() )
+		{
+			log::debug( "Unable to draw Image {}. Image not ready", this->getID() );
+			return;
+		}
+
 		if ( m_imgui_set == VK_NULL_HANDLE ) createImGuiSet();
 
 		if ( extent == vk::Extent2D() )
@@ -95,10 +106,10 @@ namespace fgl::engine
 	{}
 
 	Texture::Texture( const std::vector< std::byte >& data, const vk::Extent2D extent, const vk::Format format ) :
-	  m_extent( extent )
+	  m_extent( extent ),
+	  m_texture_id( getNextID() )
 	{
 		ZoneScoped;
-		static TextureID tex_counter { 0 };
 
 		auto image = std::make_shared< Image >(
 			extent,
@@ -108,8 +119,6 @@ namespace fgl::engine
 			vk::ImageLayout::eShaderReadOnlyOptimal );
 
 		m_image_view = image->getView();
-
-		m_texture_id = tex_counter++;
 
 		m_staging = std::make_unique< BufferSuballocation >( getGlobalStagingBuffer(), data.size() );
 		//Copy data info buffer
@@ -123,6 +132,18 @@ namespace fgl::engine
 	Texture::~Texture()
 	{
 		if ( m_imgui_set != VK_NULL_HANDLE ) ImGui_ImplVulkan_RemoveTexture( m_imgui_set );
+	}
+
+	void Texture::stage()
+	{
+		auto command_buffer { Device::getInstance().beginSingleTimeCommands() };
+
+		stage( command_buffer );
+
+		Device::getInstance().endSingleTimeCommands( command_buffer );
+
+		setReady();
+		m_staging.reset();
 	}
 
 	void Texture::stage( vk::raii::CommandBuffer& cmd )
@@ -200,8 +221,7 @@ namespace fgl::engine
 
 	void Texture::dropStaging()
 	{
-		assert( m_staging );
-		m_staging.reset();
+		if ( m_staging ) m_staging.reset();
 	}
 
 	vk::DescriptorImageInfo Texture::getDescriptor() const
@@ -222,7 +242,14 @@ namespace fgl::engine
 
 	void Texture::createImGuiSet()
 	{
+		if ( !this->isReady() )
+		{
+			log::debug( "Unable to create ImGui set. Texture was not ready" );
+			return;
+		}
+
 #if ENABLE_IMGUI
+		log::debug( "Created ImGui set for image ID {}", this->getID() );
 		if ( m_imgui_set != VK_NULL_HANDLE ) return;
 
 		auto& view { m_image_view };
@@ -243,6 +270,12 @@ namespace fgl::engine
 		assert( !m_staging );
 		assert( m_imgui_set != VK_NULL_HANDLE );
 		return m_imgui_set;
+	}
+
+	Texture::Texture( Image& image, Sampler sampler ) : m_image_view( image.getView() ), m_texture_id( getNextID() )
+	{
+		m_image_view->getSampler() = std::move( sampler );
+		setReady();
 	}
 
 	TextureID Texture::getID() const
