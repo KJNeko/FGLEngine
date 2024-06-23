@@ -267,6 +267,8 @@ namespace fgl::engine
 						tex->getImageView().getSampler() = std::move( smp );
 						tex->createImGuiSet();
 
+						tex->stage();
+
 						Texture::getTextureDescriptorSet().bindTexture( 0, tex );
 						Texture::getTextureDescriptorSet().update();
 
