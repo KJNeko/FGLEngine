@@ -154,6 +154,24 @@ namespace fgl::engine::filesystem
 	void drawBinary()
 	{}
 
+	std::string toHumanByteSize( size_t size )
+	{
+		if ( size < 1000 )
+		{
+			return format_ns::format( "{} B", size );
+		}
+		else if ( size < 1000 * 1000 )
+		{
+			return format_ns::format( "{:0.2f} KB", static_cast< float >( size ) / 1000.0f );
+		}
+		else if ( size < 1000 * 1000 * 1000 )
+		{
+			return format_ns::format( "{:0.2f} MB", static_cast< float >( size ) / 1000.0f / 1000.0f );
+		}
+
+		return format_ns::format( "{:0.2f} GB", static_cast< float >( size ) / 1000.0f / 1000.0f / 1000.0f );
+	}
+
 	void FileBrowser::drawFile( const FileInfo& data )
 	{
 		ZoneScoped;
@@ -171,10 +189,9 @@ namespace fgl::engine::filesystem
 		}
 
 		ImGui::Text( data.filename.c_str() );
-		ImGui::Text( data.ext.c_str() );
 
-		ImGui::SameLine();
-		ImGui::Text( "%0.1f KB", static_cast< float >( data.size ) / 1024.0f );
+		std::string str { toHumanByteSize( data.size ) };
+		ImGui::Text( str.c_str() );
 		ImGui::NextColumn();
 		ImGui::PopID();
 	}
