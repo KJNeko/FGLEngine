@@ -37,7 +37,7 @@ namespace fgl::engine
 
 		[[nodiscard]] vk::Image& getVkImage();
 
-		void setName( const std::string str );
+		Image& setName( const std::string str );
 
 		Image(
 			const vk::Extent2D extent,
