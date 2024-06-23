@@ -24,12 +24,6 @@ namespace fgl::engine
 
 		Image() = delete;
 
-		Image( const Image& ) = delete;
-		Image& operator=( const Image& ) = delete;
-
-		Image( Image&& ) noexcept = default;
-		Image& operator=( Image&& ) noexcept = default;
-
 		Image( const vk::Extent2D extent, const vk::Format format, vk::Image image, vk::ImageUsageFlags usage ) noexcept
 		  :
 		  m_handle( std::make_shared< ImageHandle >( extent, format, image, usage ) )
@@ -47,6 +41,24 @@ namespace fgl::engine
 			vk::ImageLayout final_layout ) :
 		  m_handle( std::make_shared< ImageHandle >( extent, format, usage, inital_layout, final_layout ) )
 		{}
+
+		Image( Image&& other ) = default;
+
+		Image( const Image& other ) : m_handle( other.m_handle ), view() {}
+
+		Image& operator=( const Image& other )
+		{
+			m_handle = other.m_handle;
+			view = {};
+			return *this;
+		}
+
+		Image& operator=( Image&& other ) noexcept
+		{
+			m_handle = std::move( other.m_handle );
+			view = std::move( other.view );
+			return *this;
+		}
 
 		[[nodiscard]] std::shared_ptr< ImageView > getView();
 	};
