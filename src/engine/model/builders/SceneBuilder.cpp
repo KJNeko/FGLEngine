@@ -345,6 +345,7 @@ namespace fgl::engine
 		log::debug( "Skin IDX: {}", skin_idx );
 
 		std::shared_ptr< Model > model { loadModel( mesh_idx, root ) };
+		model->setName( node.name );
 
 		assert( model );
 

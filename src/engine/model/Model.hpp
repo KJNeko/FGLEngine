@@ -27,8 +27,6 @@ namespace fgl::engine
 
 	class Model
 	{
-		Device& m_device;
-
 		static std::vector< vk::DrawIndexedIndirectCommand > buildParameters( const std::vector< Primitive >&
 		                                                                          primitives );
 		static OrientedBoundingBox< CoordinateSpace::Model > buildBoundingBox( const std::vector< Primitive >&
@@ -67,6 +65,8 @@ namespace fgl::engine
 		void stage( vk::raii::CommandBuffer& cmd_buffer );
 
 		const std::string& getName() const { return m_name; }
+
+		void setName( std::string str ) { m_name = str; }
 
 		Model(
 			Device& device, ModelBuilder& builder, const OrientedBoundingBox< CoordinateSpace::Model > bounding_box );
