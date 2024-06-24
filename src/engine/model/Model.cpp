@@ -68,13 +68,17 @@ namespace fgl::engine
 		return draw_commands;
 	}
 
-	Model::Model( ModelBuilder& builder, const OrientedBoundingBox< CoordinateSpace::Model > bounding_box ) :
-	  Model( std::move( builder.m_primitives ), bounding_box )
+	Model::Model(
+		ModelBuilder& builder, const OrientedBoundingBox< CoordinateSpace::Model > bounding_box, std::string name ) :
+	  Model( std::move( builder.m_primitives ), bounding_box, name )
 	{}
 
 	Model::Model(
-		std::vector< Primitive >&& primitives, const OrientedBoundingBox< CoordinateSpace::Model > bounding_box ) :
+		std::vector< Primitive >&& primitives,
+		const OrientedBoundingBox< CoordinateSpace::Model > bounding_box,
+		std::string name ) :
 	  m_draw_parameters( buildParameters( primitives ) ),
+	  m_name( name ),
 	  m_bounding_box( bounding_box )
 	{
 		assert( bounding_box.middle.vec() != constants::DEFAULT_VEC3 );

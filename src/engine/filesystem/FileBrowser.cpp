@@ -17,7 +17,9 @@ namespace fgl::engine::filesystem
 
 	//! Textures for files (pre-rendered image, images, ect)
 	inline static std::unordered_map< std::filesystem::path, Texture > file_textures {};
-	inline static std::optional< DirInfo > current { std::nullopt };
+
+	inline static std::unique_ptr< DirInfo > current { nullptr };
+
 	inline static std::once_flag flag {};
 	inline static std::shared_ptr< Texture > folder_texture { nullptr };
 	inline static std::shared_ptr< Texture > file_texture { nullptr };
@@ -34,7 +36,7 @@ namespace fgl::engine::filesystem
 		file_texture = getTextureStore().load( "./assets/file.png", vk::Format::eR8G8B8A8Unorm );
 		up_texture = getTextureStore().load( "./assets/up.png", vk::Format::eR8G8B8A8Unorm );
 
-		current = DirInfo( test_path );
+		current = std::make_unique< DirInfo >( test_path );
 	}
 
 	void FileBrowser::drawGui( FrameInfo& info )
@@ -60,9 +62,10 @@ namespace fgl::engine::filesystem
 		}
 		*/
 
-		if ( !current.has_value() )
+		if ( !current )
 		{
-			log::warn( "Current has no value!" );
+			log::critical( "Current has no value!" );
+			std::abort();
 		}
 
 		auto size { ImGui::GetWindowSize() };
@@ -91,8 +94,10 @@ namespace fgl::engine::filesystem
 			if ( current->hasParent() )
 			{
 				ImGui::TableNextColumn();
-				drawUp( *current );
+				drawUp( current );
 			}
+
+			assert( current );
 
 			//List folders first
 			for ( std::size_t i = 0; i < current->folderCount(); ++i )
@@ -172,6 +177,8 @@ namespace fgl::engine::filesystem
 		if ( folder_texture->drawImGuiButton( { desired_size, desired_size } ) )
 		{
 			openFolder( data );
+			ImGui::PopID();
+			return;
 		}
 
 		ImGui::Text( data.path.filename().c_str() );
@@ -187,16 +194,18 @@ namespace fgl::engine::filesystem
 
 	void FileBrowser::openFolder( DirInfo dir )
 	{
-		current = dir;
+		current = std::make_unique< DirInfo >( dir.path );
 	}
 
-	void FileBrowser::drawUp( const DirInfo& data )
+	void FileBrowser::drawUp( const std::unique_ptr< DirInfo >& data )
 	{
-		ImGui::PushID( data.path.c_str() );
+		auto up { data->up() };
+
+		ImGui::PushID( up->path.c_str() );
 
 		if ( up_texture->drawImGuiButton( { desired_size, desired_size } ) )
 		{
-			openFolder( data.up() );
+			openFolder( *up );
 		}
 
 		ImGui::Text( "Go Up" );

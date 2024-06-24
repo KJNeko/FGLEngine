@@ -22,7 +22,7 @@ namespace fgl::engine::filesystem
 
 		static void openFolder( DirInfo dir );
 
-		static void drawUp( const DirInfo& up );
+		static void drawUp( const std::unique_ptr< DirInfo >& up );
 		static void drawGui( FrameInfo& info );
 		static void drawFile( const FileInfo& data );
 		static void drawFolder( const DirInfo& data );

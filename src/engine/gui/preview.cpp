@@ -17,6 +17,7 @@
 #include "engine/FrameInfo.hpp"
 #include "engine/filesystem/scanner/FileScanner.hpp"
 #include "engine/filesystem/types.hpp"
+#include "engine/model/builders/SceneBuilder.hpp"
 #include "engine/rendering/SwapChain.hpp"
 
 namespace fgl::engine::gui
@@ -62,6 +63,27 @@ namespace fgl::engine::gui
 							}
 						case filesystem::SCENE:
 							{
+								SceneBuilder builder { info.model_vertex_buffer, info.model_index_buffer };
+
+								builder.loadScene( data->path );
+
+								std::vector< GameObject > objs {};
+								auto models { builder.getModels() };
+								objs.reserve( models.size() );
+								for ( auto& model : models )
+								{
+									GameObject obj { GameObject::createGameObject() };
+
+									obj.getModel() = std::move( model );
+									obj.addFlag( IS_ENTITY | IS_VISIBLE );
+
+									objs.emplace_back( std::move( obj ) );
+								}
+
+								for ( auto& obj : objs )
+								{
+									info.game_objects.addGameObject( std::move( obj ) );
+								}
 							}
 					}
 				}

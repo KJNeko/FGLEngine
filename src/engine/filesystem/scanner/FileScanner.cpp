@@ -40,9 +40,9 @@ namespace fgl::engine::filesystem
 
 		//TODO: Never trust file extensions
 		static const std::unordered_map< EngineFileType, std::vector< std::string_view > > extension_map {
-			{ EngineFileType::MODEL, { ".obj", ".gltf" } },
+			{ EngineFileType::MODEL, { ".obj" } },
 			{ EngineFileType::TEXTURE, { ".png", ".jpg" } },
-			{ EngineFileType::SCENE, { ".glb" } }
+			{ EngineFileType::SCENE, { ".glb", ".gltf" } }
 		};
 
 		for ( const auto& [ type, strings ] : extension_map )

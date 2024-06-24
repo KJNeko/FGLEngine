@@ -12,6 +12,7 @@
 
 #include "Primitive.hpp"
 #include "engine/buffers/Buffer.hpp"
+#include "engine/primitives/TransformComponent.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"
 #include "engine/rendering/Device.hpp"
 
@@ -31,6 +32,8 @@ namespace fgl::engine
 		                                                                          primitives );
 		static OrientedBoundingBox< CoordinateSpace::Model > buildBoundingBox( const std::vector< Primitive >&
 		                                                                           primitives );
+
+		TransformComponent m_model_transform;
 
 		std::vector< vk::DrawIndexedIndirectCommand > m_draw_parameters;
 
@@ -65,12 +68,15 @@ namespace fgl::engine
 
 		const std::string& getName() const { return m_name; }
 
-		void setName( std::string str ) { m_name = str; }
-
-		Model( ModelBuilder& builder, const OrientedBoundingBox< CoordinateSpace::Model > bounding_box );
+		Model(
+			ModelBuilder& builder,
+			const OrientedBoundingBox< CoordinateSpace::Model > bounding_box,
+			std::string name = {} );
 
 		Model(
-			std::vector< Primitive >&& primitives, const OrientedBoundingBox< CoordinateSpace::Model > bounding_box );
+			std::vector< Primitive >&& primitives,
+			const OrientedBoundingBox< CoordinateSpace::Model > bounding_box,
+			std::string name = {} );
 
 		~Model() = default;
 

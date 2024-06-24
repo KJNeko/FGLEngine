@@ -329,7 +329,7 @@ namespace fgl::engine
 
 		const auto bounding_box { createModelBoundingBox( finished_primitives ) };
 
-		return std::make_shared< Model >( std::move( finished_primitives ), bounding_box );
+		return std::make_shared< Model >( std::move( finished_primitives ), bounding_box, mesh.name );
 	}
 
 	void SceneBuilder::handleNode( const int node_idx, const tinygltf::Model& root )
@@ -345,7 +345,6 @@ namespace fgl::engine
 		log::debug( "Skin IDX: {}", skin_idx );
 
 		std::shared_ptr< Model > model { loadModel( mesh_idx, root ) };
-		model->setName( node.name );
 
 		assert( model );
 
@@ -373,12 +372,29 @@ namespace fgl::engine
 		tinygltf::TinyGLTF loader {};
 		tinygltf::Model gltf_model {};
 
-		std::string err;
-		std::string warn;
+		std::string err {};
+		std::string warn {};
 
-		if ( !loader.LoadBinaryFromFile( &gltf_model, &err, &warn, path ) )
+		if ( path.extension() == ".gltf" )
 		{
-			throw std::runtime_error( "Failed to load binary model" );
+			//Must use the ASCII loader
+			if ( !loader.LoadASCIIFromFile( &gltf_model, &err, &warn, path ) )
+			{
+				log::info( "Failed to scene at {}", path );
+				if ( !warn.empty() ) log::warn( warn );
+				if ( !err.empty() ) log::error( err );
+				throw std::runtime_error( "Failed to load binary model" );
+			}
+		}
+		else
+		{
+			if ( !loader.LoadBinaryFromFile( &gltf_model, &err, &warn, path ) )
+			{
+				log::info( "Failed to scene at {}", path );
+				if ( !warn.empty() ) log::warn( warn );
+				if ( !err.empty() ) log::error( err );
+				throw std::runtime_error( "Failed to load binary model" );
+			}
 		}
 
 		if ( !err.empty() )

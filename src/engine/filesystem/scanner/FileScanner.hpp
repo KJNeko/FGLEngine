@@ -5,7 +5,6 @@
 #pragma once
 
 #include <cassert>
-#include <coroutine>
 #include <filesystem>
 #include <queue>
 #include <string>
@@ -25,10 +24,11 @@ namespace fgl::engine::filesystem
 
 	  public:
 
-		inline DirInfo up() const
+		inline std::unique_ptr< DirInfo > up() const
 		{
 			assert( std::filesystem::exists( path ) );
-			return DirInfo( path.parent_path() );
+
+			return std::make_unique< DirInfo >( path.parent_path() );
 		}
 
 		std::size_t fileCount() const;
