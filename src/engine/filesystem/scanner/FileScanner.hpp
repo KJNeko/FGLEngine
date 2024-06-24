@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cassert>
 #include <coroutine>
 #include <filesystem>
 #include <queue>

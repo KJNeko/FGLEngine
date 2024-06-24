@@ -24,9 +24,10 @@
 
 namespace fgl::engine
 {
-	std::uint64_t getNextID()
+	//TODO: We should be trying to re-use IDs that are released from textures so we can prevent this number from getting extremely large.
+	std::uint32_t getNextID()
 	{
-		static std::uint64_t id { 0 };
+		static std::uint32_t id { 0 };
 		return id++;
 	}
 
@@ -106,8 +107,8 @@ namespace fgl::engine
 	{}
 
 	Texture::Texture( const std::vector< std::byte >& data, const vk::Extent2D extent, const vk::Format format ) :
-	  m_extent( extent ),
-	  m_texture_id( getNextID() )
+	  m_texture_id( getNextID() ),
+	  m_extent( extent )
 	{
 		ZoneScoped;
 
@@ -272,7 +273,11 @@ namespace fgl::engine
 		return m_imgui_set;
 	}
 
-	Texture::Texture( Image& image, Sampler sampler ) : m_image_view( image.getView() ), m_texture_id( getNextID() )
+	Texture::Texture( Image& image, Sampler sampler ) :
+	  m_texture_id( getNextID() ),
+	  m_image_view( image.getView() ),
+	  //TODO: Figure out how to get extents from images.
+	  m_extent()
 	{
 		m_image_view->getSampler() = std::move( sampler );
 		setReady();

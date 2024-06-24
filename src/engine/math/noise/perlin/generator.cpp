@@ -5,6 +5,7 @@
 #include "generator.hpp"
 
 #include <glm/geometric.hpp>
+#include <tracy/Tracy.hpp>
 
 #include <algorithm>
 #include <random>

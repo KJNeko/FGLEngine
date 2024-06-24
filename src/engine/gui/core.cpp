@@ -15,8 +15,6 @@
 #include <imgui.h>
 #pragma GCC diagnostic pop
 
-#include <imgui_internal.h>
-
 #include "engine/descriptors/DescriptorPool.hpp"
 #include "engine/filesystem/FileBrowser.hpp"
 #include "engine/model/Model.hpp"
@@ -181,6 +179,8 @@ namespace fgl::engine::gui
 		ImGui::End();
 	}
 
+	/*
+	ImGui DockBuilder is still very much not ready for use.
 	void prepareDock()
 	{
 		// Docks seem utterly broken.
@@ -219,6 +219,7 @@ namespace fgl::engine::gui
 
 		ImGui::DockBuilderFinish( primary_id );
 	}
+	*/
 
 	void drawMainGUI( FrameInfo& info )
 	{

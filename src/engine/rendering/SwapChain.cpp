@@ -218,7 +218,7 @@ namespace fgl::engine
 		g_buffer_position.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
 		g_buffer_normal.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
 		g_buffer_albedo.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
-		g_buffer_composite.setClear( vk::ClearColorValue( std::array< float, 4 > { 0.0f, 0.0f, 0.0f, 0.0f } ) );
+		g_buffer_composite.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
 
 		g_buffer_position_img = std::make_unique< Texture >( g_buffer_position.m_attachment_resources.m_images[ 0 ]
 		                                                         ->setName( "GBufferPosition" ) );

@@ -70,8 +70,10 @@ namespace fgl::engine::filesystem
 		auto size { ImGui::GetWindowSize() };
 		size.x -= 12; // Remove scrollbar pixels
 
-		const float extra { std::fmod( size.x, desired_size + ( padding * 2 ) ) };
-		const auto cols { ( size.x - extra ) / static_cast< float >( desired_size + ( padding * 2 ) ) };
+		const float extra { std::fmod( size.x, static_cast< float >( desired_size + ( padding * 2 ) ) ) };
+		const auto cols {
+			static_cast< int >( ( size.x - extra ) / static_cast< float >( desired_size + ( padding * 2 ) ) )
+		};
 
 		if ( cols == 0 )
 		{
