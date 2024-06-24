@@ -26,6 +26,7 @@ namespace fgl::engine::gui
 
 	void initGui( const Window& window, const Renderer& renderer )
 	{
+		ZoneScoped;
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		[[maybe_unused]] ImGuiIO& io { ImGui::GetIO() };
@@ -67,6 +68,7 @@ namespace fgl::engine::gui
 
 	void beginImGui()
 	{
+		ZoneScoped;
 		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
@@ -78,6 +80,7 @@ namespace fgl::engine::gui
 
 	void endImGui( vk::raii::CommandBuffer& command_buffer )
 	{
+		ZoneScoped;
 		ImGui::End();
 		ImGui::Render();
 
@@ -90,6 +93,7 @@ namespace fgl::engine::gui
 
 	void drawRenderingOutputs( const FrameInfo& info )
 	{
+		ZoneScoped;
 		ImGui::Begin( "RenderOutputs" );
 
 		enum RenderingOutputSelection : std::uint_fast8_t
@@ -243,6 +247,7 @@ namespace fgl::engine::gui
 
 	void drawEntityGUI( FrameInfo& info )
 	{
+		ZoneScoped;
 		ImGui::Begin( "Scene" );
 
 		for ( OctTreeNodeLeaf* leaf : info.game_objects.getAllLeafs() )
@@ -265,6 +270,7 @@ namespace fgl::engine::gui
 
 	void drawEntityInfo( FrameInfo& info )
 	{
+		ZoneScoped;
 		ImGui::Begin( "Entity info" );
 
 		if ( selected_object ) selected_object->drawImGui();
@@ -274,6 +280,7 @@ namespace fgl::engine::gui
 
 	void drawFilesystemGUI( FrameInfo& info )
 	{
+		ZoneScoped;
 		ImGui::Begin( "File Picker", nullptr, ImGuiWindowFlags_MenuBar );
 
 		filesystem::FileBrowser::drawGui( info );
@@ -283,6 +290,7 @@ namespace fgl::engine::gui
 
 	void cleanupImGui()
 	{
+		ZoneScoped;
 		ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();

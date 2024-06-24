@@ -29,8 +29,6 @@ namespace fgl::engine::filesystem
 
 	void prepareFileGUI()
 	{
-		ZoneScoped;
-
 		//Prepare textures needed.
 		folder_texture = getTextureStore().load( "./assets/folder.png", vk::Format::eR8G8B8A8Unorm );
 		file_texture = getTextureStore().load( "./assets/file.png", vk::Format::eR8G8B8A8Unorm );
@@ -176,7 +174,6 @@ namespace fgl::engine::filesystem
 
 	void FileBrowser::drawFile( const FileInfo& data )
 	{
-		ZoneScoped;
 		ImGui::PushID( data.path.c_str() );
 
 		// file_texture->drawImGui( { 128, 128 } );
@@ -200,7 +197,6 @@ namespace fgl::engine::filesystem
 
 	void FileBrowser::drawFolder( const DirInfo& data )
 	{
-		ZoneScoped;
 		ImGui::PushID( data.path.c_str() );
 
 		if ( folder_texture->drawImGuiButton( { desired_size, desired_size } ) )
