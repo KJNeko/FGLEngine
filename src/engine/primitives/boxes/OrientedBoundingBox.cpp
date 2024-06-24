@@ -238,6 +238,7 @@ namespace fgl::engine
 
 	OrientedBoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< Vertex >& verts )
 	{
+		assert( verts.size() > 0 );
 		log::debug( "Generating bounding box for {} verts", verts.size() );
 		// neg (min)
 		glm::vec3 top_right_forward { verts[ 0 ].m_position };

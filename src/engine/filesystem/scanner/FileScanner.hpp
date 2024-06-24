@@ -69,6 +69,18 @@ namespace fgl::engine::filesystem
 		DirInfo& operator=( DirInfo&& ) = default;
 	};
 
+	enum EngineFileType
+	{
+		TEXTURE = 1,
+		MODEL = 2,
+		SCENE = 3,
+		BINARY = 4,
+		UNKNOWN,
+		DEFAULT = UNKNOWN,
+	};
+
+	EngineFileType determineEngineFileType( const std::filesystem::path& path );
+
 	struct FileInfo
 	{
 		std::string filename;
@@ -76,15 +88,17 @@ namespace fgl::engine::filesystem
 		std::filesystem::path path;
 		std::size_t size;
 		bool is_folder;
+		EngineFileType engine_type;
 
 		FileInfo() = delete;
 
-		FileInfo( std::filesystem::path path_in ) :
+		FileInfo( const std::filesystem::path& path_in ) :
 		  filename( path_in.filename().string() ),
 		  ext( path_in.extension().string() ),
 		  path( path_in ),
 		  size( std::filesystem::file_size( path_in ) ),
-		  is_folder( std::filesystem::is_directory( path ) )
+		  is_folder( std::filesystem::is_directory( path ) ),
+		  engine_type( determineEngineFileType( path_in ) )
 		{
 			assert( std::filesystem::exists( path_in ) );
 		}

@@ -66,6 +66,7 @@ namespace fgl::engine::filesystem
 		}
 
 		auto size { ImGui::GetWindowSize() };
+		//TODO: Probably a cleaner way to do this.
 		size.x -= 12; // Remove scrollbar pixels
 
 		const float extra { std::fmod( size.x, static_cast< float >( desired_size + ( padding * 2 ) ) ) };
@@ -112,37 +113,6 @@ namespace fgl::engine::filesystem
 		ImGui::PopStyleVar();
 
 		ImGui::Columns( 1 );
-	}
-
-	enum FileType
-	{
-		TEXTURE,
-		MODEL,
-		BINARY,
-		DEFAULT = BINARY,
-	};
-
-	FileType getFileType( const std::filesystem::path path )
-	{
-		//TODO: NEVER TRUST FILE EXTENSIONS!
-		const auto extension { path.extension() };
-
-		//Map
-		static const std::map< FileType, std::vector< std::string_view > > map {
-			{ TEXTURE, { ".jpg", ".png" } }, { MODEL, { ".glb", ".obj", ".gltf" } }
-		};
-
-		for ( const auto& [ type, extensions ] : map )
-		{
-			//Check if the file extensions matches the list for this type
-			if ( std::find( extensions.begin(), extensions.end(), extension ) != extensions.end() )
-			{
-				return type;
-			}
-		}
-
-		//Default
-		return DEFAULT;
 	}
 
 	void drawTexture()

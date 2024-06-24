@@ -175,6 +175,8 @@ namespace fgl::engine
 					                   m_renderer.getCurrentTracyCTX(),
 					                   matrix_info_buffers[ frame_index ],
 					                   draw_parameter_buffers[ frame_index ],
+					                   *this->m_vertex_buffer,
+					                   *this->m_index_buffer,
 					                   m_renderer.getGBufferDescriptor( frame_index ),
 					                   m_renderer.getGBufferCompositeDescriptor( frame_index ),
 					                   view_frustum,
@@ -280,8 +282,9 @@ namespace fgl::engine
 
 		{
 			ZoneScopedN( "Load phyiscs test" );
-			std::vector< std::shared_ptr< Model > > assets { Model::createModelsFromScene(
-				"assets/PhysicsTest.glb", m_entity_renderer.getVertexBuffer(), m_entity_renderer.getIndexBuffer() ) };
+			std::vector< std::shared_ptr< Model > > assets {
+				Model::createModelsFromScene( "assets/PhysicsTest.glb", *m_vertex_buffer, *m_index_buffer )
+			};
 
 			for ( auto& model : assets )
 			{

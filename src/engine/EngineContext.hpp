@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Window.hpp"
+#include "engine/literals/size.hpp"
 #include "engine/rendering/Renderer.hpp"
 #include "engine/systems/CullingSystem.hpp"
 #include "engine/systems/EntityRendererSystem.hpp"
@@ -15,6 +16,8 @@
 
 namespace fgl::engine
 {
+
+	using namespace fgl::literals::size_literals;
 
 	class EngineContext
 	{
@@ -35,6 +38,15 @@ namespace fgl::engine
 
 		//GameObject::Map game_objects {};
 		OctTreeNode m_game_objects_root { WorldCoordinate( constants::WORLD_CENTER ) };
+
+		std::unique_ptr< Buffer > m_vertex_buffer { std::make_unique< Buffer >(
+			256_MiB,
+			vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst,
+			vk::MemoryPropertyFlagBits::eDeviceLocal ) };
+		std::unique_ptr< Buffer > m_index_buffer { std::make_unique< Buffer >(
+			32_MiB,
+			vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
+			vk::MemoryPropertyFlagBits::eDeviceLocal ) };
 
 		// SubPass 0
 		CullingSystem m_culling_system {};

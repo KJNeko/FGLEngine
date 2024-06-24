@@ -20,6 +20,7 @@
 #include "engine/model/Model.hpp"
 #include "engine/rendering/Device.hpp"
 #include "engine/rendering/Renderer.hpp"
+#include "preview.hpp"
 
 namespace fgl::engine::gui
 {
@@ -91,97 +92,6 @@ namespace fgl::engine::gui
 		//ImGui::RenderPlatformWindowsDefault();
 	}
 
-	void drawRenderingOutputs( const FrameInfo& info )
-	{
-		ZoneScoped;
-		ImGui::Begin( "RenderOutputs" );
-
-		enum RenderingOutputSelection : std::uint_fast8_t
-		{
-			Composite = 0,
-			Albedo = 1,
-			Normal = 2,
-			Position = 3
-		};
-
-		static const char* const options[] = { "Composite", "Albedo", "Normal", "Position" };
-		static std::uint_fast8_t current { Composite };
-
-		if ( ImGui::BeginCombo( "Rendering Output", options[ current ] ) )
-		{
-			constexpr float desired_size { 64 };
-			//Calculate size
-			const float ratio { info.swap_chain.extentAspectRatio() };
-
-			// h = w/h
-
-			float fh_size { desired_size };
-			float fv_size { desired_size * ratio };
-
-			// If height is larger then the size then we need to compute the width from the height max
-			if ( fv_size > desired_size )
-			{
-				fv_size = desired_size;
-				fh_size = fv_size / ratio;
-			}
-
-			std::uint32_t h_size { static_cast< std::uint32_t >( fh_size ) };
-			std::uint32_t v_size { static_cast< std::uint32_t >( fv_size ) };
-
-			//Composite
-			if ( ImGui::Selectable( options[ Composite ], current == Composite ) )
-			{
-				log::debug( "Changing output to Compositite" );
-				current = Composite;
-			}
-
-			info.swap_chain.g_buffer_albedo_img->drawImGui( { v_size, h_size } );
-			ImGui::SameLine();
-			if ( ImGui::Selectable( options[ Albedo ], current == Albedo ) )
-			{
-				log::debug( "Changing output to Albedo" );
-				current = Albedo;
-			}
-
-			info.swap_chain.g_buffer_normal_img->drawImGui( { v_size, h_size } );
-			ImGui::SameLine();
-			if ( ImGui::Selectable( options[ Normal ], current == Normal ) )
-			{
-				log::debug( "Changing output to Normal" );
-				current = Normal;
-			}
-
-			info.swap_chain.g_buffer_position_img->drawImGui( { v_size, h_size } );
-			ImGui::SameLine();
-			if ( ImGui::Selectable( options[ Position ], current == Position ) )
-			{
-				log::debug( "Changing output to Position" );
-				current = Position;
-			}
-
-			ImGui::EndCombo();
-		}
-
-		switch ( current )
-		{
-			default:
-				[[fallthrough]];
-			case Composite:
-				info.swap_chain.g_buffer_composite_img->drawImGui();
-				break;
-			case Albedo:
-				info.swap_chain.g_buffer_albedo_img->drawImGui();
-				break;
-			case Normal:
-				info.swap_chain.g_buffer_normal_img->drawImGui();
-				break;
-			case Position:
-				info.swap_chain.g_buffer_position_img->drawImGui();
-				break;
-		}
-
-		ImGui::End();
-	}
 
 	/*
 	ImGui DockBuilder is still very much not ready for use.

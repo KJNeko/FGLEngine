@@ -34,6 +34,28 @@ namespace fgl::engine::filesystem
 		nested_dirs.reserve( nested_dirs_to_scan.size() );
 	}
 
+	EngineFileType determineEngineFileType( const std::filesystem::path& path )
+	{
+		const auto& ext { path.extension() };
+
+		//TODO: Never trust file extensions
+		static const std::unordered_map< EngineFileType, std::vector< std::string_view > > extension_map {
+			{ EngineFileType::MODEL, { ".obj", ".gltf" } },
+			{ EngineFileType::TEXTURE, { ".png", ".jpg" } },
+			{ EngineFileType::SCENE, { ".glb" } }
+		};
+
+		for ( const auto& [ type, strings ] : extension_map )
+		{
+			for ( const auto& str : strings )
+			{
+				if ( str == ext ) return type;
+			}
+		}
+
+		return EngineFileType::UNKNOWN;
+	}
+
 	std::size_t DirInfo::fileCount() const
 	{
 		return files.size();

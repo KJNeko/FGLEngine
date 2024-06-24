@@ -93,6 +93,9 @@ namespace fgl::engine
 		Buffer& model_matrix_info_buffer;
 		Buffer& draw_parameter_buffer;
 
+		Buffer& model_vertex_buffer;
+		Buffer& model_index_buffer;
+
 		DescriptorSet& gbuffer_descriptor_set;
 		DescriptorSet& gbuffer_composite_set;
 

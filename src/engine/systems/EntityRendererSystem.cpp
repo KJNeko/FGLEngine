@@ -43,8 +43,6 @@ namespace fgl::engine
 
 		using namespace fgl::literals::size_literals;
 
-		initVertexBuffer( 512_MiB );
-		initIndexBuffer( 128_MiB );
 		initDrawParameterBuffer( 1_KiB );
 	}
 
@@ -145,11 +143,11 @@ namespace fgl::engine
 		draw_parameter_buffer =
 			std::make_unique< DrawParameterBufferSuballocation >( info.draw_parameter_buffer, draw_commands );
 
-		const std::vector< vk::Buffer > vert_buffers { m_vertex_buffer->getVkBuffer(),
+		const std::vector< vk::Buffer > vert_buffers { info.model_vertex_buffer.getVkBuffer(),
 			                                           model_matrix_info_buffer->getVkBuffer() };
 
 		command_buffer.bindVertexBuffers( 0, vert_buffers, { 0, model_matrix_info_buffer->getOffset() } );
-		command_buffer.bindIndexBuffer( m_index_buffer->getVkBuffer(), 0, vk::IndexType::eUint32 );
+		command_buffer.bindIndexBuffer( info.model_index_buffer.getVkBuffer(), 0, vk::IndexType::eUint32 );
 
 		command_buffer.drawIndexedIndirect(
 			draw_parameter_buffer->getVkBuffer(),

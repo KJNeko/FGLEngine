@@ -23,26 +23,11 @@ namespace fgl::engine
 	{
 		Device& m_device;
 
-		/*
-		using VertexShader = VertexShaderT< "shaders/gbuffer.vert.spv" >;
-		using FragmentShader = FragmentShaderT< "shaders/gbuffer.frag.spv" >;
-		using Shaders = ShaderCollection< VertexShader, FragmentShader >;
-
-		using DescriptorSets = DescriptorSetCollection< GlobalDescriptorSet, TextureDescriptorSet >;
-
-		using Pipeline = PipelineT< Shaders, DescriptorSets >;
-
-		std::unique_ptr< Pipeline > m_pipeline {};
-		*/
-
 		//! Standard pipeline for textureless models
 		std::unique_ptr< StandardPipeline > m_standard_pipeline {};
 
 		//! Pipeline for basic textured models (Single texture)
 		std::unique_ptr< TexturedPipeline > m_textured_pipeline {};
-
-		std::unique_ptr< Buffer > m_vertex_buffer { nullptr };
-		std::unique_ptr< Buffer > m_index_buffer { nullptr };
 
 		using DrawParameterBufferSuballocation = HostVector< vk::DrawIndexedIndirectCommand >;
 
@@ -59,29 +44,9 @@ namespace fgl::engine
 		PerFrameArray< std::unique_ptr< DrawParameterBufferSuballocation > > m_draw_textured_parameter_buffers {};
 		PerFrameArray< std::unique_ptr< ModelMatrixInfoBufferSuballocation > > m_textured_model_matrix_info_buffers {};
 
-		void initVertexBuffer( std::uint32_t size )
-		{
-			m_vertex_buffer = std::make_unique< Buffer >(
-				size,
-				vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst,
-				vk::MemoryPropertyFlagBits::eDeviceLocal );
-		}
-
-		void initIndexBuffer( std::uint32_t size )
-		{
-			m_index_buffer = std::make_unique< Buffer >(
-				size,
-				vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
-				vk::MemoryPropertyFlagBits::eDeviceLocal );
-		}
-
 		vk::raii::CommandBuffer& setupSystem( FrameInfo& );
 
 	  public:
-
-		Buffer& getVertexBuffer() { return *m_vertex_buffer; }
-
-		Buffer& getIndexBuffer() { return *m_index_buffer; }
 
 		void pass( FrameInfo& info );
 		void texturelessPass( FrameInfo& info );

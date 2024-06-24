@@ -8,6 +8,7 @@
 #include <objectloaders/tiny_obj_loader.h>
 #pragma GCC diagnostic pop
 
+#include <fstream>
 #include <unordered_map>
 
 #include "ModelBuilder.hpp"
@@ -19,21 +20,31 @@ namespace fgl::engine
 {
 	void ModelBuilder::loadObj( const std::filesystem::path& filepath )
 	{
+		assert( std::filesystem::exists( filepath ) );
 		m_primitives.clear();
 
-		tinyobj::attrib_t attrib {};
-		std::vector< tinyobj::shape_t > shapes {};
-		std::vector< tinyobj::material_t > materials {};
-		std::string warn {};
-		std::string error {};
+		tinyobj::ObjReader reader {};
+		reader.ParseFromFile( filepath.string() );
 
-		if ( !tinyobj::LoadObj( &attrib, &shapes, &materials, &warn, &error, filepath.string< char >().c_str() ) )
-			throw std::runtime_error( warn + error );
+		if ( !reader.Valid() ) throw std::runtime_error( "Reader not valid" );
+
+		const tinyobj::attrib_t& attrib { reader.GetAttrib() };
+		const std::vector< tinyobj::shape_t >& shapes { reader.GetShapes() };
+		const std::vector< tinyobj::material_t >& materials { reader.GetMaterials() };
+
+		if ( shapes.size() == 0 ) throw std::runtime_error( "Failed to get shapes from OBJ" );
+
+		const std::string& warn { reader.Warning() };
+		const std::string& error { reader.Error() };
+
+		if ( !warn.empty() ) log::warn( "While loading model {}: {}", filepath, warn );
+
+		if ( !error.empty() ) log::error( "While loading model {}: {}", filepath, error );
 
 		std::unordered_map< Vertex, std::uint32_t > unique_verts {};
 
-		std::vector< Vertex > verts;
-		std::vector< std::uint32_t > indicies;
+		std::vector< Vertex > verts {};
+		std::vector< std::uint32_t > indicies {};
 
 		for ( const auto& shape : shapes )
 		{
@@ -51,10 +62,6 @@ namespace fgl::engine
 					vert.m_color = { attrib.colors[ static_cast< std::uint64_t >( 3 * index.vertex_index + 0 ) ],
 						             attrib.colors[ static_cast< std::uint64_t >( 3 * index.vertex_index + 1 ) ],
 						             attrib.colors[ static_cast< std::uint64_t >( 3 * index.vertex_index + 2 ) ] };
-
-					assert( vert.m_color[ 0 ] > 0.2f );
-					assert( vert.m_color[ 1 ] > 0.2f );
-					assert( vert.m_color[ 2 ] > 0.2f );
 				}
 
 				if ( index.normal_index >= 0 )
