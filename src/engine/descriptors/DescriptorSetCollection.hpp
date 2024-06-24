@@ -60,7 +60,7 @@ namespace fgl::engine
 			assert( vec.size() > 0 );
 			assert( vec.size() == binding_sets );
 
-			return createDescriptorSetsT< DescriptorSets... >();
+			return vec;
 		}
 
 		template < std::uint64_t IDX >

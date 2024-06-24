@@ -65,6 +65,10 @@ namespace fgl::engine
 			VULKAN_HPP_DEFAULT_DISPATCHER.vkGetCalibratedTimestampsEXT );
 		*/
 #endif
+
+		alloc_info.level = vk::CommandBufferLevel::eSecondary;
+
+		m_gui_command_buffer = Device::getInstance()->allocateCommandBuffers( alloc_info );
 	}
 
 	void Renderer::recreateSwapchain()
@@ -93,7 +97,7 @@ namespace fgl::engine
 		}
 	}
 
-	vk::raii::CommandBuffer& Renderer::beginFrame()
+	std::pair< vk::raii::CommandBuffer&, vk::raii::CommandBuffer& > Renderer::beginFrame()
 	{
 		assert( !is_frame_started && "Cannot begin frame while frame is already in progress" );
 		auto [ result, image_idx ] = m_swapchain->acquireNextImage();
@@ -109,6 +113,7 @@ namespace fgl::engine
 
 		is_frame_started = true;
 		auto& command_buffer { getCurrentCommandbuffer() };
+		auto& gui_command_buffer { getCurrentGuiCommandBuffer() };
 
 		vk::CommandBufferBeginInfo begin_info {};
 		begin_info.pNext = VK_NULL_HANDLE;
@@ -117,7 +122,21 @@ namespace fgl::engine
 
 		command_buffer.begin( begin_info );
 
-		return command_buffer;
+		vk::CommandBufferInheritanceInfo inheritance_info {};
+		inheritance_info.framebuffer = this->getSwapChain().getFrameBuffer( current_image_idx );
+		inheritance_info.renderPass = this->getSwapChainRenderPass();
+		inheritance_info.subpass = 2;
+
+		vk::CommandBufferBeginInfo gui_begin_info {};
+		gui_begin_info.pInheritanceInfo = &inheritance_info;
+		gui_begin_info.flags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
+
+		gui_command_buffer.begin( gui_begin_info );
+
+		setViewport( gui_command_buffer );
+		setScissor( gui_command_buffer );
+
+		return { command_buffer, gui_command_buffer };
 	}
 
 	void Renderer::endFrame()
@@ -144,12 +163,33 @@ namespace fgl::engine
 		current_frame_idx = static_cast< std::uint16_t >( ( current_frame_idx + 1 ) % SwapChain::MAX_FRAMES_IN_FLIGHT );
 	}
 
+	void Renderer::setViewport( const vk::raii::CommandBuffer& buffer )
+	{
+		vk::Viewport viewport {};
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = static_cast< float >( m_swapchain->getSwapChainExtent().width );
+		viewport.height = static_cast< float >( m_swapchain->getSwapChainExtent().height );
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+
+		std::vector< vk::Viewport > viewports { viewport };
+
+		buffer.setViewport( 0, viewports );
+	}
+
+	void Renderer::setScissor( const vk::raii::CommandBuffer& buffer )
+	{
+		vk::Rect2D scissor { { 0, 0 }, m_swapchain->getSwapChainExtent() };
+
+		std::vector< vk::Rect2D > scissors { scissor };
+
+		buffer.setScissor( 0, scissors );
+	}
+
 	void Renderer::beginSwapchainRendererPass( vk::raii::CommandBuffer& buffer )
 	{
 		assert( is_frame_started && "Cannot call beginSwapChainRenderPass if frame is not in progress" );
-		assert(
-			*buffer == *getCurrentCommandbuffer()
-			&& "Cannot begin render pass on command buffer from a different frame" );
 
 		std::vector< vk::ClearValue > clear_values { m_swapchain->getClearValues() };
 
@@ -163,29 +203,13 @@ namespace fgl::engine
 
 		buffer.beginRenderPass( render_pass_info, vk::SubpassContents::eInline );
 
-		vk::Viewport viewport {};
-		viewport.x = 0.0f;
-		viewport.y = 0.0f;
-		viewport.width = static_cast< float >( m_swapchain->getSwapChainExtent().width );
-		viewport.height = static_cast< float >( m_swapchain->getSwapChainExtent().height );
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
-
-		vk::Rect2D scissor { { 0, 0 }, m_swapchain->getSwapChainExtent() };
-
-		std::vector< vk::Viewport > viewports { viewport };
-		std::vector< vk::Rect2D > scissors { scissor };
-
-		buffer.setViewport( 0, viewports );
-		buffer.setScissor( 0, scissors );
+		setViewport( buffer );
+		setScissor( buffer );
 	}
 
 	void Renderer::endSwapchainRendererPass( vk::raii::CommandBuffer& buffer )
 	{
 		assert( is_frame_started && "Cannot call endSwapChainRenderPass if frame is not in progress" );
-		assert(
-			*buffer == *getCurrentCommandbuffer()
-			&& "Cannot end render pass on command buffer from a different frame" );
 
 		buffer.endRenderPass();
 	}

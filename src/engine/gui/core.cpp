@@ -223,7 +223,7 @@ namespace fgl::engine::gui
 	void drawMainGUI( FrameInfo& info )
 	{
 		ZoneScoped;
-		TracyVkZone( info.tracy_ctx, *info.command_buffer, "ImGui Rendering" );
+		TracyVkZone( info.tracy_ctx, *info.gui_command_buffer, "ImGui Rendering" );
 		beginImGui();
 
 		// TODO: Maybe play with docks again some other time
@@ -235,7 +235,7 @@ namespace fgl::engine::gui
 		drawEntityInfo( info );
 		drawFilesystemGUI( info );
 
-		endImGui( info.command_buffer );
+		endImGui( info.gui_command_buffer );
 	}
 
 	static GameObject* selected_object { nullptr };

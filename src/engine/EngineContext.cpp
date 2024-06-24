@@ -155,7 +155,7 @@ namespace fgl::engine
 			camera_controller.moveInPlaneXZ( m_window.window(), delta_time, viewer );
 			camera.setView( viewer.getPosition(), viewer.getRotation() );
 
-			if ( auto& command_buffer = m_renderer.beginFrame(); *command_buffer )
+			if ( auto [ command_buffer, gui_command_buffer ] = m_renderer.beginFrame(); *command_buffer )
 			{
 				preStage( command_buffer );
 
@@ -168,6 +168,7 @@ namespace fgl::engine
 				FrameInfo frame_info { frame_index,
 					                   delta_time,
 					                   command_buffer,
+					                   gui_command_buffer,
 					                   { camera, viewer.m_transform },
 					                   global_descriptor_sets[ frame_index ],
 					                   m_game_objects_root,

@@ -5,7 +5,6 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
-#include <vulkan/vulkan_handles.hpp>
 
 #include <cassert>
 #include <memory>
@@ -29,6 +28,7 @@ namespace fgl::engine
 		std::unique_ptr< SwapChain > m_swapchain;
 
 		std::vector< vk::raii::CommandBuffer > m_command_buffer {};
+		std::vector< vk::raii::CommandBuffer > m_gui_command_buffer {};
 
 		std::optional< TracyVkCtx > m_tracy_ctx { std::nullopt };
 
@@ -65,6 +65,8 @@ namespace fgl::engine
 			return m_command_buffer[ current_frame_idx ];
 		}
 
+		vk::raii::CommandBuffer& getCurrentGuiCommandBuffer() { return m_gui_command_buffer[ current_frame_idx ]; }
+
 		TracyVkCtx getCurrentTracyCTX() const
 		{
 #if TRACY_ENABLE
@@ -79,8 +81,12 @@ namespace fgl::engine
 
 		float getAspectRatio() const { return m_swapchain->extentAspectRatio(); }
 
-		vk::raii::CommandBuffer& beginFrame();
+		std::pair< vk::raii::CommandBuffer&, vk::raii::CommandBuffer& > beginFrame();
 		void endFrame();
+
+		void setViewport( const vk::raii::CommandBuffer& buffer );
+		void setScissor( const vk::raii::CommandBuffer& buffer );
+
 		void beginSwapchainRendererPass( vk::raii::CommandBuffer& buffer );
 		void endSwapchainRendererPass( vk::raii::CommandBuffer& buffer );
 

@@ -65,7 +65,6 @@ namespace fgl::engine
 
 	using GBufferDescriptorSet = DescriptorSetLayout< 0, PositionDescriptor, NormalDescriptor, AlbedoDescriptor >;
 
-
 	using CompositeDescriptor = AttachmentDescriptor< 0, vk::ShaderStageFlagBits::eFragment >;
 
 	using GBufferCompositeDescriptorSet = DescriptorSetLayout< 0, CompositeDescriptor >;
@@ -76,7 +75,9 @@ namespace fgl::engine
 	{
 		std::uint16_t frame_idx;
 		float frame_time;
+
 		vk::raii::CommandBuffer& command_buffer;
+		vk::raii::CommandBuffer& gui_command_buffer;
 
 		struct
 		{

@@ -127,7 +127,7 @@ namespace fgl::engine
 																				   CoordinateSpace::World >& frustum )
 		{
 			ZoneScoped;
-			std::vector< OctTreeNodeLeaf* > leafs;
+			std::vector< OctTreeNodeLeaf* > leafs {};
 			leafs.reserve( LEAF_RESERVE_SIZE );
 			this->getAllLeafsInFrustum( frustum, leafs );
 			return leafs;

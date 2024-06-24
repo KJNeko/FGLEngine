@@ -22,8 +22,6 @@ namespace fgl::engine
 		info.dependencyCount = static_cast< std::uint32_t >( dependencies.size() );
 		info.pDependencies = dependencies.data();
 
-		vk::RenderPass render_pass {};
-
 		return device->createRenderPass( info );
 	}
 
