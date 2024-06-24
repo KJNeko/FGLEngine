@@ -49,18 +49,17 @@ namespace fgl::engine
 		std::vector< vk::DrawIndexedIndirectCommand > getDrawCommand( const std::uint32_t index ) const;
 
 		//TODO: Switch to using shared_ptr instead of unique_ptr
-		static std::shared_ptr< Model > createModel(
-			Device& device, const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer );
+		static std::shared_ptr< Model >
+			createModel( const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer );
 
 		static std::shared_ptr< Model > createModelFromVerts(
-			Device& device,
 			std::vector< Vertex > verts,
 			std::vector< std::uint32_t > indicies,
 			Buffer& vertex_buffer,
 			Buffer& index_buffer );
 
-		static std::vector< std::shared_ptr< Model > > createModelsFromScene(
-			Device& device, const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer );
+		static std::vector< std::shared_ptr< Model > >
+			createModelsFromScene( const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer );
 
 		void stage( vk::raii::CommandBuffer& cmd_buffer );
 
@@ -68,13 +67,10 @@ namespace fgl::engine
 
 		void setName( std::string str ) { m_name = str; }
 
-		Model(
-			Device& device, ModelBuilder& builder, const OrientedBoundingBox< CoordinateSpace::Model > bounding_box );
+		Model( ModelBuilder& builder, const OrientedBoundingBox< CoordinateSpace::Model > bounding_box );
 
 		Model(
-			Device& device,
-			std::vector< Primitive >&& primitives,
-			const OrientedBoundingBox< CoordinateSpace::Model > bounding_box );
+			std::vector< Primitive >&& primitives, const OrientedBoundingBox< CoordinateSpace::Model > bounding_box );
 
 		~Model() = default;
 

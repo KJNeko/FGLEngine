@@ -28,8 +28,9 @@ namespace fgl::engine
 
 		std::vector< std::uint32_t > indicies { 0, 1, 2, 3 };
 
-		std::shared_ptr< Model > model { Model::createModelFromVerts(
-			Device::getInstance(), std::move( verts ), std::move( indicies ), vertex_buffer, index_buffer ) };
+		std::shared_ptr< Model > model {
+			Model::createModelFromVerts( std::move( verts ), std::move( indicies ), vertex_buffer, index_buffer )
+		};
 
 		return model;
 	}

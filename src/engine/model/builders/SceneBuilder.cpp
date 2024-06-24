@@ -329,7 +329,7 @@ namespace fgl::engine
 
 		const auto bounding_box { createModelBoundingBox( finished_primitives ) };
 
-		return std::make_shared< Model >( Device::getInstance(), std::move( finished_primitives ), bounding_box );
+		return std::make_shared< Model >( std::move( finished_primitives ), bounding_box );
 	}
 
 	void SceneBuilder::handleNode( const int node_idx, const tinygltf::Model& root )

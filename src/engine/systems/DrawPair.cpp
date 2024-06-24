@@ -31,16 +31,16 @@ namespace fgl::engine
 			{
 				ZoneScopedN( "Process object" );
 
-				if ( !( ( obj.object_flags & flags ) == flags ) ) continue;
+				if ( !( ( obj.flags() & flags ) == flags ) ) continue;
 
-				assert( obj.m_model );
+				assert( obj.hasModel() );
 
 				// debug::world::drawBoundingBox( obj.getBoundingBox() );
 
-				for ( const Primitive& primitive : obj.m_model->m_primitives )
+				for ( const Primitive& primitive : obj.getModel()->m_primitives )
 				{
 					//assert( primitive.m_texture );
-					const ModelMatrixInfo matrix_info { .model_matrix = obj.m_transform.mat4(),
+					const ModelMatrixInfo matrix_info { .model_matrix = obj.getTransform().mat4(),
 						                                .texture_idx = primitive.getTextureID() };
 
 					// If the textureless flag is on and we have a texture then skip the primitive.c

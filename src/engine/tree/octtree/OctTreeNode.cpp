@@ -175,7 +175,7 @@ namespace fgl::engine
 
 		for ( GameObject& obj : game_objects )
 		{
-			const auto& obj_coordinate { obj.m_transform.translation };
+			const auto& obj_coordinate { obj.getTransform().translation };
 			const bool is_right { obj_coordinate.x > center.x };
 			const bool is_forward { obj_coordinate.y > center.y };
 			const bool is_up { obj_coordinate.z > center.z };
@@ -251,7 +251,7 @@ namespace fgl::engine
 			if ( std::find_if(
 					 game_objects.begin(),
 					 game_objects.end(),
-					 [ id ]( const GameObject& obj ) { return obj.m_id == id; } )
+					 [ id ]( const GameObject& obj ) { return obj.getId() == id; } )
 			     != game_objects.end() )
 			{
 				return this;
@@ -293,7 +293,7 @@ namespace fgl::engine
 
 	bool OctTreeNode::canContain( const GameObject& obj )
 	{
-		return m_bounds.contains( obj.m_transform.translation );
+		return m_bounds.contains( obj.getTransform().translation );
 	}
 
 	GameObject OctTreeNode::extract( const GameObject::GameObjectID id )

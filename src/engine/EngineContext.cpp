@@ -109,7 +109,7 @@ namespace fgl::engine
 
 		auto viewer { GameObject::createGameObject() };
 
-		viewer.m_transform.translation = WorldCoordinate( constants::WORLD_CENTER + glm::vec3( 0.0f, 0.0f, 2.5f ) );
+		viewer.getTransform().translation = WorldCoordinate( constants::WORLD_CENTER + glm::vec3( 0.0f, 0.0f, 2.5f ) );
 
 		KeyboardMovementController camera_controller {};
 
@@ -169,7 +169,7 @@ namespace fgl::engine
 					                   delta_time,
 					                   command_buffer,
 					                   gui_command_buffer,
-					                   { camera, viewer.m_transform },
+					                   { camera, viewer.getTransform() },
 					                   global_descriptor_sets[ frame_index ],
 					                   m_game_objects_root,
 					                   m_renderer.getCurrentTracyCTX(),
@@ -281,20 +281,16 @@ namespace fgl::engine
 		{
 			ZoneScopedN( "Load phyiscs test" );
 			std::vector< std::shared_ptr< Model > > assets { Model::createModelsFromScene(
-				Device::getInstance(),
-				"assets/PhysicsTest.glb",
-				m_entity_renderer.getVertexBuffer(),
-				m_entity_renderer.getIndexBuffer() ) };
+				"assets/PhysicsTest.glb", m_entity_renderer.getVertexBuffer(), m_entity_renderer.getIndexBuffer() ) };
 
 			for ( auto& model : assets )
 			{
 				GameObject object { GameObject::createGameObject() };
-				object.m_model = std::move( model );
-				object.m_transform.translation = WorldCoordinate( 0.0f );
-				object.object_flags |= IS_VISIBLE | IS_ENTITY;
+				object.getModel() = std::move( model );
+				object.getTransform().translation = WorldCoordinate( 0.0f );
+				object.addFlag( IS_VISIBLE | IS_ENTITY );
 
-				assert( object.m_model );
-				object.m_model->stage( command_buffer );
+				object.getModel()->stage( command_buffer );
 
 				m_game_objects_root.addGameObject( std::move( object ) );
 			}

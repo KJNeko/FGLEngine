@@ -19,7 +19,7 @@ namespace fgl::engine
 
 	void GameObject::drawImGui()
 	{
-		ImGui::InputText( "Name", &this->name );
+		ImGui::InputText( "Name", &( this->getName() ) );
 
 		// Transform - Position
 		WorldCoordinate& translation { this->m_transform.translation };
@@ -32,9 +32,7 @@ namespace fgl::engine
 		gui::dragFloat3( "Scale", scale );
 
 		for ( const GameObjectComponentBase* component : components )
-		{
-
-		}
+		{}
 	}
 
 	OrientedBoundingBox< CoordinateSpace::World > GameObject::getBoundingBox() const

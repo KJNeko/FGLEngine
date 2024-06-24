@@ -249,9 +249,9 @@ namespace fgl::engine::gui
 		{
 			for ( GameObject& entity : *leaf )
 			{
-				ImGui::PushID( entity.m_id );
+				ImGui::PushID( entity.getId() );
 
-				if ( ImGui::Selectable( entity.name.c_str() ) )
+				if ( ImGui::Selectable( entity.getName().c_str() ) )
 				{
 					selected_object = &entity;
 				}

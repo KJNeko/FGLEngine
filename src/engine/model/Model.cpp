@@ -68,16 +68,12 @@ namespace fgl::engine
 		return draw_commands;
 	}
 
-	Model::Model(
-		Device& device, ModelBuilder& builder, const OrientedBoundingBox< CoordinateSpace::Model > bounding_box ) :
-	  Model( device, std::move( builder.m_primitives ), bounding_box )
+	Model::Model( ModelBuilder& builder, const OrientedBoundingBox< CoordinateSpace::Model > bounding_box ) :
+	  Model( std::move( builder.m_primitives ), bounding_box )
 	{}
 
 	Model::Model(
-		Device& device,
-		std::vector< Primitive >&& primitives,
-		const OrientedBoundingBox< CoordinateSpace::Model > bounding_box ) :
-	  m_device( device ),
+		std::vector< Primitive >&& primitives, const OrientedBoundingBox< CoordinateSpace::Model > bounding_box ) :
 	  m_draw_parameters( buildParameters( primitives ) ),
 	  m_bounding_box( bounding_box )
 	{
@@ -86,7 +82,7 @@ namespace fgl::engine
 	}
 
 	std::shared_ptr< Model > Model::
-		createModel( Device& device, const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer )
+		createModel( const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer )
 	{
 		ZoneScoped;
 		std::cout << "Creating model: " << path << std::endl;
@@ -96,14 +92,14 @@ namespace fgl::engine
 		//Calculate bounding box
 		OrientedBoundingBox bounding_box { buildBoundingBox( builder.m_primitives ) };
 
-		auto model_ptr { std::make_shared< Model >( device, builder, bounding_box ) };
+		auto model_ptr { std::make_shared< Model >( builder, bounding_box ) };
 
 		std::cout << "Finished making model: " << path << std::endl;
 		return model_ptr;
 	}
 
-	std::vector< std::shared_ptr< Model > > Model::createModelsFromScene(
-		Device& device, const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer )
+	std::vector< std::shared_ptr< Model > > Model::
+		createModelsFromScene( const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer )
 	{
 		ZoneScoped;
 		std::cout << "Loading scene: " << path << std::endl;
@@ -116,7 +112,6 @@ namespace fgl::engine
 	}
 
 	std::shared_ptr< Model > Model::createModelFromVerts(
-		Device& device,
 		std::vector< Vertex > verts,
 		std::vector< std::uint32_t > indicies,
 		Buffer& vertex_buffer,
@@ -128,7 +123,7 @@ namespace fgl::engine
 
 		OrientedBoundingBox bounding_box { buildBoundingBox( builder.m_primitives ) };
 
-		auto model_ptr { std::make_shared< Model >( device, builder, bounding_box ) };
+		auto model_ptr { std::make_shared< Model >( builder, bounding_box ) };
 
 		return model_ptr;
 	}

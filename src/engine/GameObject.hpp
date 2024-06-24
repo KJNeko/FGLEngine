@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "engine/primitives/TransformComponent.hpp"
+#include "model/Model.hpp"
 
 namespace fgl::engine
 {
@@ -88,6 +89,8 @@ namespace fgl::engine
 
 		static constexpr GameObjectID INVALID_ID { std::numeric_limits< GameObjectID >::max() };
 
+	  private:
+
 		GameObjectID m_id { INVALID_ID };
 		GameObjectFlagType object_flags { GameObjectFlagMask::MASK_DEFAULT };
 		TransformComponent m_transform {};
@@ -95,15 +98,19 @@ namespace fgl::engine
 		std::vector< GameObjectComponentBase* > components {};
 
 		std::shared_ptr< Model > m_model { nullptr };
-		std::string name { "Unnamed Game Object" };
+		std::string name {};
 
 	  private:
 
 		GameObject( GameObjectID obj_id ) : m_id( obj_id ) {}
 
-		GameObject() = delete;
+		FGL_DELETE_DEFAULT_CTOR( GameObject );
+		FGL_DELETE_COPY( GameObject );
 
 	  public:
+
+		GameObject& operator=( GameObject&& other ) = default;
+		GameObject( GameObject&& other ) = default;
 
 		template < typename T >
 			requires is_component< T >
@@ -117,21 +124,47 @@ namespace fgl::engine
 			return false;
 		}
 
-		GameObject( const GameObject& other ) = delete;
-		GameObject& operator=( const GameObject& other ) = delete;
+		//Flags
+		GameObjectFlagType flags() const { return object_flags; }
 
-		GameObject( GameObject&& other ) = default;
-		GameObject& operator=( GameObject&& ) = default;
+		void addFlag( GameObjectFlagType flag ) { object_flags |= flag; }
 
-		inline const WorldCoordinate& getPosition() const { return m_transform.translation; }
+		void removeFlag( GameObjectFlagType flag ) { object_flags &= ( ~flag ); }
 
-		inline const Rotation& getRotation() const { return m_transform.rotation; }
+		//Model
+		bool hasModel() const { return m_model != nullptr; }
 
+		const std::shared_ptr< Model >& getModel() const { return m_model; }
+
+		std::shared_ptr< Model >& getModel() { return m_model; }
+
+		//Transform
+		TransformComponent& getTransform() { return m_transform; }
+
+		const TransformComponent& getTransform() const { return m_transform; }
+
+		const WorldCoordinate& getPosition() const { return m_transform.translation; }
+
+		const Rotation& getRotation() const { return m_transform.rotation; }
+
+		//Bounding Box
 		OrientedBoundingBox< CoordinateSpace::World > getBoundingBox() const;
 
+		//Misc
 		static GameObject createGameObject();
 
 		inline GameObjectID getId() const { return m_id; }
+
+		//! Returns the name of the game object. If no name is set then the name of the model is used.
+		inline std::string& getName()
+		{
+			if ( name.empty() && m_model )
+			{
+				name = m_model->getName();
+			}
+
+			return name;
+		}
 
 		void drawImGui();
 	};
