@@ -44,6 +44,8 @@ namespace fgl::engine
 		{
 			if ( queue_info[ i ].can_present ) return i;
 		}
+
+		throw std::runtime_error( "Unable to find present queue" );
 	}
 
 } // namespace fgl::engine
