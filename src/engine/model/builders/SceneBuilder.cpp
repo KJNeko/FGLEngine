@@ -335,11 +335,11 @@ namespace fgl::engine
 	void SceneBuilder::handleNode( const int node_idx, const tinygltf::Model& root )
 	{
 		ZoneScoped;
-		const auto& node { root.nodes[ node_idx ] };
+		const tinygltf::Node& node { root.nodes[ node_idx ] };
 		log::debug( "Handling node: Index:{} Name:\"{}\"", node_idx, node.name );
 
-		const auto mesh_idx { node.mesh };
-		const auto skin_idx { node.skin };
+		const int mesh_idx { node.mesh };
+		const int skin_idx { node.skin };
 
 		log::debug( "Mesh IDX: {}", mesh_idx );
 		log::debug( "Skin IDX: {}", skin_idx );
