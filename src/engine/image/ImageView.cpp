@@ -27,8 +27,8 @@ namespace fgl::engine
 	ImageView::ImageView( std::shared_ptr< ImageHandle >& img ) :
 	  m_resource( img ),
 	  m_descriptor_info(),
-	  m_sampler(),
-	  m_image_view( createImageView( img ) )
+	  m_image_view( createImageView( img ) ),
+	  m_sampler()
 	{
 		m_descriptor_info.imageLayout = img->m_final_layout;
 		m_descriptor_info.imageView = m_image_view;

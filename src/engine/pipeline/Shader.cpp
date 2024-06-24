@@ -43,8 +43,8 @@ namespace fgl::engine
 	ShaderHandle::ShaderHandle( const std::filesystem::path path, const vk::PipelineShaderStageCreateInfo info ) :
 	  shader_data( loadData( path ) ),
 	  module_create_info( createModuleInfo() ),
-	  shader_module( Device::getInstance()->createShaderModule( module_create_info ) ),
-	  stage_info( info )
+	  stage_info( info ),
+	  shader_module( Device::getInstance()->createShaderModule( module_create_info ) )
 	{
 		stage_info.module = shader_module;
 	}

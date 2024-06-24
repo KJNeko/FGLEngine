@@ -33,13 +33,13 @@ namespace fgl::engine
 		friend class AssetStore;
 
 		//TODO: Implement reusing texture ids
-		TextureID m_texture_id { std::numeric_limits< TextureID >::infinity() };
+		TextureID m_texture_id;
 
 		std::shared_ptr< ImageView > m_image_view {};
 
 		std::unique_ptr< BufferSuballocation > m_staging { nullptr };
 
-		vk::Extent2D m_extent { 0, 0 };
+		vk::Extent2D m_extent;
 
 		vk::DescriptorSet m_imgui_set { VK_NULL_HANDLE };
 

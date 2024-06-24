@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 #include "engine/primitives/TransformComponent.hpp"
 
@@ -69,7 +70,7 @@ namespace fgl::engine
 
 	class ModelComponent final : public GameObjectComponent< 1 >
 	{
-		std::shared_ptr<Model> m_model;
+		std::shared_ptr< Model > m_model;
 
 	  public:
 
