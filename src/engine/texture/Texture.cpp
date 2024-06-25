@@ -32,10 +32,13 @@ namespace fgl::engine
 	}
 
 	std::tuple< std::vector< std::byte >, int, int, vk::Format >
-		loadTexture( const std::filesystem::path& path, const vk::Format format )
+		loadTexture( const std::filesystem::path& path, vk::Format format = vk::Format::eUndefined )
 	{
 		ZoneScoped;
 		if ( !std::filesystem::exists( path ) ) throw std::runtime_error( "Failed to open file: " + path.string() );
+
+		//TODO: More robust image loading. I should be checking what channels images have and what they are using for their bits per channel.
+		if ( format == vk::Format::eUndefined ) format = vk::Format::eR8G8B8A8Unorm;
 
 		int x { 0 };
 		int y { 0 };
@@ -128,6 +131,9 @@ namespace fgl::engine
 
 	Texture::Texture( const std::filesystem::path& path, const vk::Format format ) :
 	  Texture( loadTexture( path, format ) )
+	{}
+
+	Texture::Texture( const std::filesystem::path& path ) : Texture( loadTexture( path ) )
 	{}
 
 	Texture::~Texture()

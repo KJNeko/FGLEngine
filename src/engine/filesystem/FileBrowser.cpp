@@ -16,7 +16,7 @@ namespace fgl::engine::filesystem
 {
 
 	//! Textures for files (pre-rendered image, images, ect)
-	inline static std::unordered_map< std::filesystem::path, Texture > file_textures {};
+	inline static std::unordered_map< std::filesystem::path, std::shared_ptr< Texture > > file_textures {};
 
 	inline static std::unique_ptr< DirInfo > current { nullptr };
 
@@ -120,15 +120,6 @@ namespace fgl::engine::filesystem
 		ImGui::Columns( 1 );
 	}
 
-	void drawTexture()
-	{}
-
-	void drawModel()
-	{}
-
-	void drawBinary()
-	{}
-
 	std::string toHumanByteSize( size_t size )
 	{
 		if ( size < 1000 )
@@ -147,19 +138,78 @@ namespace fgl::engine::filesystem
 		return format_ns::format( "{:0.2f} GB", static_cast< float >( size ) / 1000.0f / 1000.0f / 1000.0f );
 	}
 
+	void drawTexture( const FileInfo& info )
+	{
+		if ( auto itter = file_textures.find( info.path ); itter != file_textures.end() )
+		{
+			auto& [ path, texture ] = *itter;
+
+			texture->drawImGuiButton( { desired_size, desired_size } );
+		}
+		else
+		{
+			file_texture->drawImGuiButton( { desired_size, desired_size } );
+
+			auto tex { getTextureStore().load( info.path ) };
+
+			// Add the texture
+			file_textures.insert( std::make_pair( info.path, std::move( tex ) ) );
+		}
+
+		if ( ImGui::BeginDragDropSource() )
+		{
+			ImGui::SetDragDropPayload(
+				DRAG_TYPE_FILE_TEXTURE_INFO, &info, sizeof( info ), ImGuiCond_Once /* Only copy the info once */ );
+			ImGui::SetTooltip( info.filename.c_str() );
+
+			ImGui::EndDragDropSource();
+		}
+	}
+
+	void drawBinary( const FileInfo& info )
+	{
+		// file_texture->drawImGui( { 128, 128 } );
+		file_texture->drawImGuiButton( { desired_size, desired_size } );
+
+		//Unable to drag/drop because we have no idea what this is supposed to be for.
+	}
+
+	void drawModel( const FileInfo& info )
+	{
+		//TODO: Pre-render preview image for models
+		drawBinary( info );
+
+		if ( ImGui::BeginDragDropSource() )
+		{
+			ImGui::SetDragDropPayload(
+				DRAG_TYPE_FILE_MODEL_INFO, &info, sizeof( info ), ImGuiCond_Once /* Only copy the info once */ );
+			ImGui::SetTooltip( info.filename.c_str() );
+
+			ImGui::EndDragDropSource();
+		}
+	}
+
 	void FileBrowser::drawFile( const FileInfo& data )
 	{
 		ImGui::PushID( data.path.c_str() );
 
-		// file_texture->drawImGui( { 128, 128 } );
-		file_texture->drawImGuiButton( { desired_size, desired_size } );
-		if ( ImGui::BeginDragDropSource() )
+		switch ( data.engine_type )
 		{
-			ImGui::SetDragDropPayload(
-				DRAG_TYPE_FILE_INFO, &data, sizeof( data ), ImGuiCond_Once /* Only copy the data once */ );
-			ImGui::SetTooltip( data.filename.c_str() );
-
-			ImGui::EndDragDropSource();
+			case TEXTURE:
+				drawTexture( data );
+				break;
+			case MODEL:
+				[[fallthrough]];
+			case SCENE:
+				drawModel( data );
+				break;
+			default:
+				[[fallthrough]];
+			case BINARY:
+				[[fallthrough]];
+			case UNKNOWN:
+				drawBinary( data );
+				break;
 		}
 
 		ImGui::Text( data.filename.c_str() );
@@ -194,6 +244,7 @@ namespace fgl::engine::filesystem
 
 	void FileBrowser::openFolder( DirInfo dir )
 	{
+		file_textures.clear();
 		current = std::make_unique< DirInfo >( dir.path );
 	}
 

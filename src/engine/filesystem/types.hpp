@@ -4,5 +4,5 @@
 
 #pragma once
 
-//constexpr inline static std::string_view DRAG_TYPE_FILE_INFO { "_FILE_INFO" };
-#define DRAG_TYPE_FILE_INFO "_FILE_INFO"
+#define DRAG_TYPE_FILE_MODEL_INFO "_MODEL_FILE_INFO"
+#define DRAG_TYPE_FILE_TEXTURE_INFO "_TEXTURE_FILE_INFO"

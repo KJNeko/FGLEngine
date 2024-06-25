@@ -52,6 +52,7 @@ namespace fgl::engine
 		Texture( const std::vector< std::byte >& data, const vk::Extent2D extent, const vk::Format texture_format );
 
 		[[nodiscard]] Texture( const std::filesystem::path& path, const vk::Format format );
+		[[nodiscard]] Texture( const std::filesystem::path& path );
 
 		void stage( vk::raii::CommandBuffer& cmd ) override;
 		void dropStaging();

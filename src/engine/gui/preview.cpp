@@ -27,7 +27,7 @@ namespace fgl::engine::gui
 	{
 		if ( ImGui::BeginDragDropTarget() )
 		{
-			if ( const ImGuiPayload* payload = ImGui::AcceptDragDropPayload( DRAG_TYPE_FILE_INFO ); payload )
+			if ( const ImGuiPayload* payload = ImGui::AcceptDragDropPayload( DRAG_TYPE_FILE_MODEL_INFO ); payload )
 			{
 				if ( payload->IsDelivery() )
 				{
