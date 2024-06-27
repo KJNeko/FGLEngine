@@ -69,13 +69,6 @@ namespace fgl::engine
 
 		VmaAllocator m_allocator;
 
-		void copyBuffer(
-			vk::Buffer dst,
-			vk::Buffer src,
-			vk::DeviceSize dst_offset,
-			vk::DeviceSize src_offset,
-			vk::DeviceSize size = VK_WHOLE_SIZE );
-
 	  public:
 
 		vk::PhysicalDeviceProperties m_properties;
@@ -86,25 +79,6 @@ namespace fgl::engine
 		~Device();
 
 		static Device& getInstance();
-
-		template < typename Dst, typename Src >
-			requires( is_buffer< Dst > || is_suballocation< Dst > ) && (is_buffer< Src > || is_suballocation< Src >)
-		void copyBuffer(
-			Dst& dst,
-			Src& src,
-			vk::DeviceSize dst_offset,
-			vk::DeviceSize src_offset,
-			vk::DeviceSize size = VK_WHOLE_SIZE )
-		{
-			copyBuffer( dst.getBuffer(), src.getBuffer(), dst_offset, src_offset, size );
-		}
-
-		template < typename Dst, typename Src >
-			requires is_suballocation< Dst > && is_suballocation< Src >
-		void copyBuffer( Dst& dst, Src& src, vk::DeviceSize size )
-		{
-			copyBuffer( dst, src, dst.offset(), src.offset(), size );
-		}
 
 	  private:
 

@@ -7,6 +7,8 @@
 #include "Buffer.hpp"
 #include "BufferSuballocationHandle.hpp"
 #include "SuballocationView.hpp"
+#include "align.hpp"
+#include "engine/logging/logging.hpp"
 
 namespace fgl::engine
 {

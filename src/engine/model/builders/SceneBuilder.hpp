@@ -12,6 +12,7 @@
 
 namespace fgl::engine
 {
+	struct PrimitiveTextures;
 	struct Vertex;
 	class Model;
 	struct Primitive;
@@ -25,12 +26,15 @@ namespace tinygltf
 	class Model;
 	struct Primitive;
 	struct Accessor;
+	struct Parameter;
 } // namespace tinygltf
 
 namespace fgl::engine
 {
 	class SceneBuilder
 	{
+		//! Root path. Set by 'load' functions
+		std::filesystem::path m_root {};
 		Buffer& m_vertex_buffer;
 		Buffer& m_index_buffer;
 
@@ -58,8 +62,10 @@ namespace fgl::engine
 
 		const tinygltf::Accessor& getAccessorForAttribute(
 			const tinygltf::Primitive& prim, const tinygltf::Model& root, const std::string attrib ) const;
+		std::shared_ptr< Texture >
+			getTextureForParameter( const tinygltf::Parameter& parameter, const tinygltf::Model& root );
 
-		std::shared_ptr< Texture > loadTexture( const tinygltf::Primitive& prim, const tinygltf::Model& root );
+		PrimitiveTextures loadTextures( const tinygltf::Primitive& prim, const tinygltf::Model& root );
 
 	  public:
 

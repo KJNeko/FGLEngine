@@ -5,27 +5,13 @@
 #include "Buffer.hpp"
 
 #include "BufferSuballocationHandle.hpp"
+#include "align.hpp"
+#include "engine/buffers/exceptions.hpp"
+#include "engine/literals/size.hpp"
 #include "engine/rendering/Device.hpp"
 
 namespace fgl::engine
 {
-	std::unique_ptr< Buffer > global_staging_buffer { nullptr };
-
-	void initGlobalStagingBuffer( std::uint64_t size )
-	{
-		using namespace fgl::literals::size_literals;
-		global_staging_buffer = std::make_unique< Buffer >(
-			size,
-			vk::BufferUsageFlagBits::eTransferSrc,
-			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eDeviceLocal );
-	}
-
-	Buffer& getGlobalStagingBuffer()
-	{
-		assert( global_staging_buffer && "Global staging buffer not initialized" );
-		return *global_staging_buffer.get();
-	}
-
 	BufferHandle::BufferHandle(
 		vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties ) :
 	  m_memory_size( memory_size ),
@@ -85,7 +71,7 @@ namespace fgl::engine
 				 Device::getInstance().allocator(), &vk_buffer_info, &alloc_info, &buffer, &m_allocation, nullptr )
 		     != VK_SUCCESS )
 		{
-			throw std::runtime_error( "Failed to allocate" );
+			throw BufferException( "Unable to allocate memory in VMA" );
 		}
 
 		m_buffer = buffer;
@@ -215,7 +201,7 @@ namespace fgl::engine
 						  << ( allocated_memory_counter + free_memory_counter - memory_size ) << std::endl;
 			}
 
-			throw exceptions::AllocationException();
+			throw BufferOOM();
 		}
 
 		//Allocate

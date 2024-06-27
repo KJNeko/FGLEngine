@@ -21,10 +21,10 @@ namespace fgl::engine
 		return { std::move( vertex_buffer_suballoc ), std::move( index_buffer_suballoc ), bounds, mode };
 	}
 
-	TextureID Primitive::getTextureID() const
+	TextureID Primitive::getAlbedoTextureID() const
 	{
-		if ( m_texture )
-			return m_texture->getID();
+		if ( m_textures.albedo )
+			return m_textures.albedo->getID();
 		else
 			return std::numeric_limits< TextureID >::max();
 	}

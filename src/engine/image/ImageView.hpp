@@ -26,6 +26,9 @@ namespace fgl::engine
 
 		void setName( const std::string str );
 
+		//! Returns true if the resource has been staged
+		bool ready();
+
 		ImageView() = delete;
 
 		ImageView( const ImageView& ) = delete;

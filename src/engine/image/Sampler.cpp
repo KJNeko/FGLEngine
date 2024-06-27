@@ -15,7 +15,9 @@ namespace fgl::engine
 		vk::Filter min_filter,
 		vk::Filter mag_filter,
 		vk::SamplerMipmapMode mipmode,
-		vk::SamplerAddressMode address_mode )
+		vk::SamplerAddressMode sampler_wrap_u,
+		vk::SamplerAddressMode sampler_wrap_v,
+		vk::SamplerAddressMode sampler_wrap_w )
 	{
 		vk::SamplerCreateInfo info;
 
@@ -24,9 +26,9 @@ namespace fgl::engine
 
 		info.mipmapMode = mipmode;
 
-		info.addressModeU = address_mode;
-		info.addressModeV = address_mode;
-		info.addressModeW = address_mode;
+		info.addressModeU = sampler_wrap_u;
+		info.addressModeV = sampler_wrap_v;
+		info.addressModeW = sampler_wrap_w;
 
 		info.minLod = -1000;
 		info.maxLod = 1000;
@@ -37,12 +39,70 @@ namespace fgl::engine
 	}
 
 	Sampler::Sampler(
-		vk::Filter min_filter,
-		vk::Filter mag_filter,
-		vk::SamplerMipmapMode mipmap_mode,
-		vk::SamplerAddressMode sampler_mode ) :
+		const vk::Filter min_filter,
+		const vk::Filter mag_filter,
+		const vk::SamplerMipmapMode mipmap_mode,
+		const vk::SamplerAddressMode sampler_wrap_u,
+		const vk::SamplerAddressMode sampler_wrap_v,
+		const vk::SamplerAddressMode sampler_wrap_w ) :
 	  valid( true ),
-	  m_sampler( createSampler( mag_filter, min_filter, mipmap_mode, sampler_mode ) )
+	  m_sampler( createSampler( mag_filter, min_filter, mipmap_mode, sampler_wrap_u, sampler_wrap_v, sampler_wrap_w ) )
+	{}
+
+	namespace gl
+	{
+		vk::Filter filterToVk( int value )
+		{
+			switch ( value )
+			{
+				default:
+					throw std::runtime_error( "Failed to translate fitler value from opengl to vulkan!" );
+				case GL_NEAREST:
+					return vk::Filter::eNearest;
+				case GL_LINEAR:
+					return vk::Filter::eLinear;
+				case GL_LINEAR_MIPMAP_LINEAR:
+					return vk::Filter::eLinear;
+			}
+
+			std::unreachable();
+		}
+
+		vk::SamplerAddressMode wrappingToVk( const int val )
+		{
+			switch ( val )
+			{
+				default:
+					throw std::runtime_error( "Failed to translate wrapping filter to vk address mode" );
+				case GL_REPEAT:
+					return vk::SamplerAddressMode::eRepeat;
+#ifdef GL_CLAMP_TO_BORDER
+				case GL_CLAMP_TO_BORDER:
+					return vk::SamplerAddressMode::eClampToBorder;
+#endif
+#ifdef GL_CLAMP_TO_EDGE
+				case GL_CLAMP_TO_EDGE:
+					return vk::SamplerAddressMode::eClampToEdge;
+#endif
+			}
+		};
+
+	} // namespace gl
+
+	/**
+	 *
+	 * @param mag_filter
+	 * @param min_filter
+	 * @param wraps x wrap
+	 * @param wrapt y wrap
+	 */
+	Sampler::Sampler( int min_filter, int mag_filter, int wraps, int wrapt ) :
+	  Sampler(
+		  gl::filterToVk( min_filter ),
+		  gl::filterToVk( mag_filter ),
+		  vk::SamplerMipmapMode::eLinear,
+		  gl::wrappingToVk( wraps ),
+		  gl::wrappingToVk( wrapt ) )
 	{}
 
 	Sampler::Sampler( Sampler&& other ) : valid( other.valid ), m_sampler( std::move( other.m_sampler ) )

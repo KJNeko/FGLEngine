@@ -30,6 +30,8 @@ namespace fgl::engine
 		// Because of the way the swapchain works we need to be able to storage a `VkImage` handle.
 		std::variant< vk::raii::Image, vk::Image > m_image;
 
+		bool m_staged { false };
+
 		friend class ImageView;
 		friend class Image;
 
@@ -65,6 +67,10 @@ namespace fgl::engine
 		vk::Format format() const { return m_format; }
 
 		vk::Extent2D extent() const { return m_extent; }
+
+		bool ready() const { return m_staged; }
+
+		void setReady( const bool value ) { m_staged = value; }
 
 		vk::ImageAspectFlags aspectMask() const
 		{

@@ -14,6 +14,7 @@
 #include "KeyboardMovementController.hpp"
 #include "assets/stores.hpp"
 #include "engine/Average.hpp"
+#include "engine/assets/TransferManager.hpp"
 #include "engine/buffers/UniqueFrameSuballocation.hpp"
 #include "engine/debug/drawers.hpp"
 #include "engine/literals/size.hpp"
@@ -31,7 +32,9 @@ namespace fgl::engine
 	{
 		ZoneScoped;
 		using namespace fgl::literals::size_literals;
-		initGlobalStagingBuffer( 512_MiB );
+
+		TransferManager::createInstance( device, 512_MiB );
+
 #if ENABLE_IMGUI
 		initImGui();
 #endif
@@ -39,19 +42,6 @@ namespace fgl::engine
 	}
 
 	static Average< float, 60 * 15 > rolling_ms_average;
-
-	void preStage( vk::raii::CommandBuffer& cmd_buffer )
-	{
-		ZoneScopedN( "Pre-Stage" );
-
-		getTextureStore().stage( cmd_buffer );
-	}
-
-	void postStage()
-	{
-		ZoneScopedN( "Post-Stage" );
-		getTextureStore().confirmStaged();
-	}
 
 	void EngineContext::run()
 	{
@@ -127,6 +117,8 @@ namespace fgl::engine
 
 		while ( !m_window.shouldClose() )
 		{
+			TransferManager::getInstance().submitNow();
+
 			ZoneScopedN( "Poll" );
 			glfwPollEvents();
 
@@ -157,8 +149,6 @@ namespace fgl::engine
 
 			if ( auto [ command_buffer, gui_command_buffer ] = m_renderer.beginFrame(); *command_buffer )
 			{
-				preStage( command_buffer );
-
 				ZoneScopedN( "Render" );
 				//Update
 				const std::uint16_t frame_index { m_renderer.getFrameIndex() };
@@ -194,6 +184,9 @@ namespace fgl::engine
 
 				m_culling_system.startPass( frame_info );
 				TracyVkCollect( frame_info.tracy_ctx, *command_buffer );
+
+				TransferManager::getInstance().recordOwnershipTransferDst( command_buffer );
+
 				m_culling_system.wait();
 
 				m_renderer.beginSwapchainRendererPass( command_buffer );
@@ -210,10 +203,13 @@ namespace fgl::engine
 
 				m_renderer.endFrame();
 
+				TransferManager::getInstance().dump();
+
 				FrameMark;
 			}
 
-			postStage();
+			using namespace std::chrono_literals;
+			std::this_thread::sleep_for( 13ms );
 		}
 
 		Device::getInstance().device().waitIdle();
@@ -292,8 +288,6 @@ namespace fgl::engine
 				object.getModel() = std::move( model );
 				object.getTransform().translation = WorldCoordinate( 0.0f );
 				object.addFlag( IS_VISIBLE | IS_ENTITY );
-
-				object.getModel()->stage( command_buffer );
 
 				m_game_objects_root.addGameObject( std::move( object ) );
 			}

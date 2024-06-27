@@ -17,8 +17,10 @@ namespace fgl::engine
 
 	class Image
 	{
-		std::shared_ptr< ImageHandle > m_handle {};
+		std::shared_ptr< ImageHandle > m_handle;
 		std::weak_ptr< ImageView > view {};
+
+		friend class TransferManager;
 
 	  public:
 
@@ -28,8 +30,6 @@ namespace fgl::engine
 		  :
 		  m_handle( std::make_shared< ImageHandle >( extent, format, image, usage ) )
 		{}
-
-		[[nodiscard]] vk::Image& getVkImage();
 
 		Image& setName( const std::string str );
 
@@ -42,9 +42,7 @@ namespace fgl::engine
 		  m_handle( std::make_shared< ImageHandle >( extent, format, usage, inital_layout, final_layout ) )
 		{}
 
-		Image( Image&& other ) = default;
-
-		Image( const Image& other ) : m_handle( other.m_handle ), view() {}
+		Image( const Image& other ) : m_handle( other.m_handle ) {}
 
 		Image& operator=( const Image& other )
 		{
@@ -52,6 +50,8 @@ namespace fgl::engine
 			view = {};
 			return *this;
 		}
+
+		Image( Image&& other ) = default;
 
 		Image& operator=( Image&& other ) noexcept
 		{

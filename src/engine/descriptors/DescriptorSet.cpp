@@ -98,6 +98,8 @@ namespace fgl::engine
 		m_infos[ binding_idx ] = tex.getImageView().descriptorInfo(
 			tex.getImageView().getSampler().getVkSampler(), vk::ImageLayout::eShaderReadOnlyOptimal );
 
+		log::info( "Bound texture {} to global texture array", tex.getID() );
+
 		vk::WriteDescriptorSet write {};
 		write.dstSet = m_set;
 		write.dstBinding = binding_idx;

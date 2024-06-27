@@ -67,4 +67,9 @@ namespace fgl::engine
 		m_resource->setName( str );
 	}
 
+	bool ImageView::ready()
+	{
+		return m_resource->ready();
+	}
+
 } // namespace fgl::engine

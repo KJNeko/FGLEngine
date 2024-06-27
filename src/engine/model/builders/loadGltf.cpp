@@ -9,6 +9,7 @@
 #pragma GCC diagnostic pop
 
 #include "ModelBuilder.hpp"
+#include "engine/assets/TransferManager.hpp"
 #include "engine/assets/stores.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/image/ImageView.hpp"
@@ -259,6 +260,7 @@ namespace fgl::engine
 						std::shared_ptr< Texture > tex {
 							getTextureStore().load( filepath.parent_path() / source.uri, vk::Format::eR8G8B8A8Unorm )
 						};
+
 						Sampler smp { translateFilterToVK( sampler.minFilter ),
 							          translateFilterToVK( sampler.magFilter ),
 							          vk::SamplerMipmapMode::eLinear,
@@ -267,18 +269,19 @@ namespace fgl::engine
 						tex->getImageView().getSampler() = std::move( smp );
 						tex->createImGuiSet();
 
-						tex->stage();
-
 						Texture::getTextureDescriptorSet().bindTexture( 0, tex );
 						Texture::getTextureDescriptorSet().update();
 
 						//Stage texture
 						auto cmd { Device::getInstance().beginSingleTimeCommands() };
 
+						PrimitiveTextures primitive_textures {};
+						primitive_textures.albedo = tex;
+
 						Primitive prim { std::move( vertex_buffer ),
 							             std::move( index_buffer ),
 							             bounding_box,
-							             std::move( tex ),
+							             std::move( primitive_textures ),
 							             PrimitiveMode::TRIS };
 
 						m_primitives.emplace_back( std::move( prim ) );

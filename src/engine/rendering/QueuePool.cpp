@@ -5,7 +5,6 @@
 #include "QueuePool.hpp"
 
 #include "Attachment.hpp"
-#include "PhysicalDevice.hpp"
 
 namespace fgl::engine
 {
@@ -26,13 +25,16 @@ namespace fgl::engine
 		}
 	}
 
-	QueuePool::QueueIndex QueuePool::getIndex( const vk::QueueFlags flags )
+	QueuePool::QueueIndex QueuePool::getIndex( const vk::QueueFlags flags, const vk::QueueFlags anti_flags )
 	{
 		for ( std::uint32_t i = 0; i < queue_info.size(); ++i )
 		{
 			const auto& [ props, can_present, num_allocated ] = queue_info[ i ];
 
-			if ( props.queueFlags & flags && props.queueCount > 0 ) return i;
+			if ( ( props.queueFlags & flags ) && !( anti_flags & flags ) && props.queueCount > 0 )
+			{
+				return i;
+			}
 		}
 
 		throw std::runtime_error( "Failed to get index of queue family with given flags" );

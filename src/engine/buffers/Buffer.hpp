@@ -5,37 +5,17 @@
 #pragma once
 
 #include <tracy/Tracy.hpp>
-#include <vulkan/vulkan.h>
 #include <vulkan/vulkan.hpp>
 
 #include <cassert>
 #include <cmath>
-#include <concepts>
 #include <cstdint>
-#include <cstring>
 #include <iostream>
 #include <map>
 #include <memory>
-#include <stdexcept>
 #include <unordered_map>
 
-#include "align.hpp"
-#include "engine/literals/size.hpp"
 #include "vma/vma_impl.hpp"
-
-namespace fgl::engine::exceptions
-{
-	struct EngineError : public std::runtime_error
-	{
-		EngineError( const char* msg ) : std::runtime_error( msg ) {}
-	};
-
-	struct AllocationException : public EngineError
-	{
-		AllocationException() : EngineError( "Failed to allocate memory" ) {}
-	};
-
-} // namespace fgl::engine::exceptions
 
 namespace fgl::engine
 {
@@ -190,6 +170,4 @@ namespace fgl::engine
 		void setDebugName( const std::string str );
 	};
 
-	void initGlobalStagingBuffer( std::uint64_t size );
-	Buffer& getGlobalStagingBuffer();
 } // namespace fgl::engine

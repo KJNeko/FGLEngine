@@ -12,7 +12,8 @@ namespace fgl::engine
 	  m_extent( extent ),
 	  m_format( format ),
 	  m_usage( usage ),
-	  m_image( image )
+	  m_image( image ),
+	  m_staged( true ) // Set staged to be true since we don't need to stage this image.
 	{
 		assert( std::get< vk::Image >( m_image ) != VK_NULL_HANDLE );
 	}
@@ -53,8 +54,8 @@ namespace fgl::engine
 	  m_usage( usage ),
 	  m_initial_layout( inital_layout ),
 	  m_final_layout( final_layout ),
-	  m_image( createImage( extent, format, inital_layout, usage ) )
-
+	  m_image( createImage( extent, format, inital_layout, usage ) ),
+	  m_staged( true )
 	{
 		assert( std::holds_alternative< vk::raii::Image >( m_image ) );
 		assert( *std::get< vk::raii::Image >( m_image ) != VK_NULL_HANDLE );

@@ -14,6 +14,10 @@
 
 #include <engine/logging/logging.hpp>
 
+#include "engine/assets/stores.hpp"
+#include "engine/descriptors/DescriptorSet.hpp"
+#include "engine/image/ImageView.hpp"
+
 namespace fgl::engine
 {
 
@@ -131,7 +135,38 @@ namespace fgl::engine
 		return root.accessors.at( prim.attributes.at( attrib ) );
 	}
 
-	std::shared_ptr< Texture > SceneBuilder::loadTexture( const tinygltf::Primitive& prim, const tinygltf::Model& root )
+	std::shared_ptr< Texture > SceneBuilder::
+		getTextureForParameter( const tinygltf::Parameter& parameter, const tinygltf::Model& root )
+	{
+		const auto texture_idx { parameter.TextureIndex() };
+
+		const tinygltf::Texture& tex_info { root.textures[ texture_idx ] };
+
+		const auto source_idx { tex_info.source };
+
+		const tinygltf::Image& source { root.images[ source_idx ] };
+
+		if ( source.uri.empty() ) throw std::runtime_error( "Unsupported loading method for image (Must be a file)" );
+
+		const std::filesystem::path filepath { source.uri };
+		const auto full_path { m_root / filepath };
+
+		const auto sampler_idx { tex_info.sampler };
+		const tinygltf::Sampler& sampler_info { root.samplers[ sampler_idx ] };
+
+		Sampler sampler { sampler_info.minFilter, sampler_info.magFilter, sampler_info.wrapS, sampler_info.wrapT };
+
+		std::shared_ptr< Texture > texture { getTextureStore().load( full_path ) };
+		texture->getImageView().getSampler() = std::move( sampler );
+
+		//Prepare the texture into the global system
+		Texture::getTextureDescriptorSet().bindTexture( 0, texture );
+		Texture::getTextureDescriptorSet().update();
+
+		return texture;
+	}
+
+	PrimitiveTextures SceneBuilder::loadTextures( const tinygltf::Primitive& prim, const tinygltf::Model& root )
 	{
 		ZoneScoped;
 		const auto mat_idx { prim.material };
@@ -141,15 +176,40 @@ namespace fgl::engine
 			throw std::runtime_error( "No material for primitive. One was expected" );
 		}
 
-		const auto& material { root.materials[ mat_idx ] };
+		const tinygltf::Material& materials { root.materials[ mat_idx ] };
 
-		for ( const auto& [ key, value ] : material.values )
+		for ( const auto& [ key, value ] : materials.values )
 		{
-			log::debug( "Parsing texture for key {}", key );
+			log::debug( "Found key: {}", key );
 		}
 
-		//TODO:
-		throw std::runtime_error( "No material loader implemented" );
+		auto findParameter = [ &materials ]( const std::string name ) -> std::optional< tinygltf::Parameter >
+		{
+			const auto& itter { materials.values.find( name ) };
+
+			if ( itter == materials.values.end() )
+				return std::nullopt;
+			else
+				return { itter->second };
+		};
+
+		const auto albedo { findParameter( "baseColorTexture" ) };
+		const auto normal { findParameter( "normalTexture" ) };
+		const auto occlusion_texture { findParameter( "occlusionTexture" ) };
+
+		PrimitiveTextures textures {};
+
+		if ( albedo.has_value() )
+		{
+			textures.albedo = getTextureForParameter( *albedo, root );
+		}
+
+		if ( normal.has_value() )
+		{
+			textures.normal = getTextureForParameter( *normal, root );
+		}
+
+		return textures;
 	}
 
 	std::vector< std::shared_ptr< Model > > SceneBuilder::getModels()
@@ -281,9 +341,10 @@ namespace fgl::engine
 						m_vertex_buffer,
 						m_index_buffer ) };
 
+					// If we have a texcoord then we have a UV map. Meaning we likely have textures to use
 					if ( !has_texcoord ) return primitive_mesh;
 
-					primitive_mesh.m_texture = loadTexture( prim, root );
+					primitive_mesh.m_textures = loadTextures( prim, root );
 
 					return primitive_mesh;
 				}
@@ -368,6 +429,7 @@ namespace fgl::engine
 	{
 		ZoneScoped;
 		if ( !std::filesystem::exists( path ) ) throw std::runtime_error( "Failed to find scene at filepath" );
+		m_root = path.parent_path();
 
 		tinygltf::TinyGLTF loader {};
 		tinygltf::Model gltf_model {};

@@ -1,16 +1,15 @@
 #include "SwapChain.hpp"
 
-#include "Attachment.hpp"
-#include "RenderPass.hpp"
-#include "Subpass.hpp"
-
-// std
 #include <array>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
+
+#include "Attachment.hpp"
+#include "RenderPass.hpp"
+#include "Subpass.hpp"
 
 namespace fgl::engine
 {
@@ -73,18 +72,20 @@ namespace fgl::engine
 
 		vk::SubmitInfo submitInfo {};
 
-		vk::Semaphore waitSemaphores[] = { imageAvailableSemaphores[ currentFrame ] };
-		vk::PipelineStageFlags waitStages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
-		submitInfo.waitSemaphoreCount = 1;
-		submitInfo.pWaitSemaphores = waitSemaphores;
-		submitInfo.pWaitDstStageMask = waitStages;
+		std::vector< vk::Semaphore > wait_sems { imageAvailableSemaphores[ currentFrame ],
+			                                     TransferManager::getInstance().getFinishedSem() };
+
+		std::vector< vk::PipelineStageFlags > wait_stages { vk::PipelineStageFlagBits::eColorAttachmentOutput,
+			                                                vk::PipelineStageFlagBits::eTopOfPipe };
+
+		submitInfo.setWaitSemaphores( wait_sems );
+		submitInfo.setWaitDstStageMask( wait_stages );
 
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &( *buffers );
 
-		vk::Semaphore signalSemaphores[] = { renderFinishedSemaphores[ currentFrame ] };
-		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = signalSemaphores;
+		std::vector< vk::Semaphore > signaled_semaphores { renderFinishedSemaphores[ currentFrame ] };
+		submitInfo.setSignalSemaphores( signaled_semaphores );
 
 		Device::getInstance().device().resetFences( fences );
 
@@ -94,12 +95,10 @@ namespace fgl::engine
 
 		vk::PresentInfoKHR presentInfo = {};
 
-		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = signalSemaphores;
+		presentInfo.setWaitSemaphores( signaled_semaphores );
 
-		vk::SwapchainKHR swapChains[] = { swapChain };
-		presentInfo.swapchainCount = 1;
-		presentInfo.pSwapchains = swapChains;
+		std::vector< vk::SwapchainKHR > swapchains { swapChain };
+		presentInfo.setSwapchains( swapchains );
 
 		std::array< std::uint32_t, 1 > indicies { { imageIndex } };
 		presentInfo.setImageIndices( indicies );
@@ -311,21 +310,10 @@ namespace fgl::engine
 				1, depthAttachment, g_buffer_composite, g_buffer_position, g_buffer_normal, g_buffer_albedo
 			};
 
-		// To prevent the composite buffer from getting obliterated by the gui pass and so we can use it to render to the GUI in certian areas, We need to keep them seperate and the composite image to be unmodified.
-		Subpass<
-			vk::PipelineBindPoint::eGraphics,
-			UsedAttachment< DepthAttachment, vk::ImageLayout::eDepthStencilAttachmentOptimal >,
-			UsedAttachment< ColoredPresentAttachment, vk::ImageLayout::eColorAttachmentOptimal >,
-			InputAttachment< ColorAttachment, vk::ImageLayout::eShaderReadOnlyOptimal > >
-			gui_subpass { 2, depthAttachment, colorAttachment, g_buffer_composite };
+		composite_subpass.registerDependencyFromExternal(
+			vk::AccessFlagBits::eColorAttachmentWrite, vk::PipelineStageFlagBits::eColorAttachmentOutput );
 
-		/*
-
-		g_buffer_subpass -> composite_subpass -> gui_subpass
-
-		*/
-
-		// Register a dependency for the composite subpass that prevents it from working until the g_buffer_subpass has finished writing it's color attachments
+		// For color attachments
 		composite_subpass.registerDependencyFrom(
 			g_buffer_subpass,
 			vk::AccessFlagBits::eColorAttachmentWrite,
@@ -334,16 +322,61 @@ namespace fgl::engine
 			vk::PipelineStageFlagBits::eFragmentShader,
 			vk::DependencyFlagBits::eByRegion );
 
+		// For depth attachment
+		composite_subpass.registerDependencyFrom(
+			g_buffer_subpass,
+			vk::AccessFlagBits::eDepthStencilAttachmentWrite,
+			vk::PipelineStageFlagBits::eEarlyFragmentTests | vk::PipelineStageFlagBits::eLateFragmentTests,
+			vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite,
+			vk::PipelineStageFlagBits::eEarlyFragmentTests | vk::PipelineStageFlagBits::eLateFragmentTests,
+			vk::DependencyFlagBits::eByRegion );
+
+		/*
+		composite_subpass.registerDependencyFrom(
+			g_buffer_subpass,
+			vk::AccessFlagBits::eColorAttachmentWrite,
+			vk::PipelineStageFlagBits::eColorAttachmentOutput,
+			vk::AccessFlagBits::eTransferWrite,
+			vk::PipelineStageFlagBits::eTopOfPipe,
+			vk::DependencyFlagBits::eByRegion );
+		*/
+
+		// To prevent the composite buffer from getting obliterated by the gui pass and so we can use it to render to the GUI in certian areas, We need to keep them seperate and the composite image to be unmodified.
+		Subpass<
+			vk::PipelineBindPoint::eGraphics,
+			UsedAttachment< DepthAttachment, vk::ImageLayout::eDepthStencilAttachmentOptimal >,
+			UsedAttachment< ColoredPresentAttachment, vk::ImageLayout::eColorAttachmentOptimal >,
+			InputAttachment< ColorAttachment, vk::ImageLayout::eShaderReadOnlyOptimal > >
+			gui_subpass { 2, depthAttachment, colorAttachment, g_buffer_composite };
+
+		gui_subpass.registerDependencyFromExternal(
+			vk::AccessFlagBits::eColorAttachmentWrite, vk::PipelineStageFlagBits::eColorAttachmentOutput );
+
+		/*
+		g_buffer_subpass -> composite_subpass -> gui_subpass
+		*/
+
 		gui_subpass.registerDependencyFrom(
 			composite_subpass,
 			vk::AccessFlagBits::eColorAttachmentWrite,
 			vk::PipelineStageFlagBits::eColorAttachmentOutput,
-			vk::AccessFlagBits::eInputAttachmentRead,
+			vk::AccessFlagBits::eShaderRead,
 			vk::PipelineStageFlagBits::eFragmentShader,
 			vk::DependencyFlagBits::eByRegion );
 
+		//composite_subpass.registerFullDependency( g_buffer_subpass );
+		//gui_subpass.registerFullDependency( composite_subpass );
+
+		gui_subpass.registerDependencyFrom(
+			composite_subpass,
+			vk::AccessFlagBits::eColorAttachmentWrite,
+			vk::PipelineStageFlagBits::eColorAttachmentOutput,
+			vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eColorAttachmentRead,
+			vk::PipelineStageFlagBits::eColorAttachmentOutput,
+			vk::DependencyFlagBits::eByRegion );
+
 		gui_subpass.registerDependencyToExternal(
-			vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite,
+			vk::AccessFlagBits::eColorAttachmentWrite,
 			vk::PipelineStageFlagBits::eColorAttachmentOutput,
 			vk::AccessFlagBits::eMemoryRead,
 			vk::PipelineStageFlagBits::eBottomOfPipe,

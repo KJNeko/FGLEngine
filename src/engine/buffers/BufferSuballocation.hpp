@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "BufferSuballocationHandle.hpp"
 #include "engine/concepts/is_suballocation.hpp"
 #include "engine/rendering/Device.hpp"
 
@@ -18,6 +19,8 @@ namespace fgl::engine
 	class BufferSuballocation
 	{
 		std::shared_ptr< BufferSuballocationHandle > m_handle;
+
+		friend class TransferManager;
 
 	  protected:
 
@@ -43,6 +46,8 @@ namespace fgl::engine
 
 		SuballocationView view( const vk::DeviceSize offset, const vk::DeviceSize size ) const;
 
+		bool ready() const { return m_handle->ready(); }
+
 		void* ptr() const;
 
 		vk::DeviceSize bytesize() const noexcept { return m_byte_size; }
@@ -55,6 +60,8 @@ namespace fgl::engine
 
 		vk::DescriptorBufferInfo descriptorInfo() const;
 
+		const std::shared_ptr< BufferSuballocationHandle >& getHandle() { return m_handle; }
+
 		~BufferSuballocation() = default;
 	};
 
@@ -62,6 +69,8 @@ namespace fgl::engine
 	template < typename T >
 	struct HostSingleT final : public BufferSuballocation
 	{
+		friend class TransferData;
+
 		using value_type = T;
 
 		HostSingleT() = delete;

@@ -21,20 +21,9 @@ namespace fgl::engine
 	template < typename T >
 	struct AssetInterface
 	{
-		//! Stages the asset to the device (GPU)
-		virtual void stage( vk::raii::CommandBuffer& buffer ) = 0;
-
 		friend class AssetStore< T >;
 
-		bool m_been_staged { false };
-
-	  public:
-
-		//! Is the Asset ready to be used. (Returns false if not staged)
-		inline bool isReady() const { return m_been_staged; }
-
-		inline void setReady() { m_been_staged = true; };
-
+		AssetInterface() = default;
 		virtual ~AssetInterface() = default;
 	};
 

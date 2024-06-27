@@ -357,23 +357,6 @@ namespace fgl::engine
 		return allocator;
 	}
 
-	void Device::copyBuffer(
-		vk::Buffer dst, vk::Buffer src, vk::DeviceSize dst_offset, vk::DeviceSize src_offset, vk::DeviceSize size )
-	{
-		vk::raii::CommandBuffer commandBuffer { beginSingleTimeCommands() };
-
-		vk::BufferCopy copyRegion {};
-		copyRegion.size = size;
-		copyRegion.srcOffset = src_offset;
-		copyRegion.dstOffset = dst_offset;
-
-		std::vector< vk::BufferCopy > copy_regions { copyRegion };
-
-		commandBuffer.copyBuffer( src, dst, copy_regions );
-
-		endSingleTimeCommands( commandBuffer );
-	}
-
 	vk::Result Device::setDebugUtilsObjectName( const vk::DebugUtilsObjectNameInfoEXT& nameInfo )
 	{
 #ifndef NDEBUG

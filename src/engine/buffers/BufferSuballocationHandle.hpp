@@ -6,6 +6,11 @@
 
 #include <vulkan/vulkan.hpp>
 
+namespace vk::raii
+{
+	class CommandBuffer;
+}
+
 namespace fgl::engine
 {
 	class Buffer;
@@ -22,18 +27,29 @@ namespace fgl::engine
 
 		void* mapped { nullptr };
 
-	  public:
+		bool m_staged { false };
 
 		BufferSuballocationHandle() = delete;
 		BufferSuballocationHandle( const BufferSuballocationHandle& ) = delete;
 		BufferSuballocationHandle& operator=( const BufferSuballocationHandle& ) = delete;
+
+		vk::Buffer getBuffer();
+
 		BufferSuballocationHandle( BufferSuballocationHandle&& ) = delete;
 		BufferSuballocationHandle& operator=( BufferSuballocationHandle&& ) = delete;
 
 		BufferSuballocationHandle( Buffer& buffer, vk::DeviceSize memory_size, vk::DeviceSize offset );
 		~BufferSuballocationHandle();
 
+		vk::BufferCopy copyRegion( BufferSuballocationHandle& target );
+
+		void copyTo( vk::raii::CommandBuffer& cmd_buffer, BufferSuballocationHandle& other );
+
 		vk::Buffer getVkBuffer() const;
+
+		bool ready() const { return m_staged; }
+
+		void setReady( const bool value ) { m_staged = value; }
 
 		vk::DeviceSize getOffset() const { return m_offset; }
 	};

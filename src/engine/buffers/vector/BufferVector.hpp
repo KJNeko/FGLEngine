@@ -30,7 +30,8 @@ namespace fgl::engine
 		  BufferSuballocation( buffer.suballocate( count * stride ) ),
 		  m_count( count ),
 		  m_stride( stride )
-		{}
+		{
+		}
 
 		BufferVector( const BufferVector& ) = delete;
 
@@ -42,47 +43,10 @@ namespace fgl::engine
 
 	  public:
 
-		//! Returns the offset count from the start of the buffer to the first element
-		[[nodiscard]] std::uint32_t getOffsetCount() const
-		{
-			assert( !std::isnan( m_count ) );
-			assert( !std::isnan( m_stride ) );
-			assert( m_count * m_stride == this->bytesize() );
-			assert( m_offset % m_stride == 0 && "Offset must be aligned from the stride" );
-
-			return static_cast< std::uint32_t >( this->m_offset / m_stride );
-		}
-
-		[[nodiscard]] std::uint32_t stride() const noexcept
-		{
-			assert( !std::isnan( m_stride ) );
-			assert( m_count * m_stride <= this->bytesize() );
-			return m_stride;
-		}
-
-		[[nodiscard]] std::uint32_t size() const noexcept
-		{
-			assert( !std::isnan( m_count ) );
-			assert( m_count * m_stride <= this->bytesize() );
-			return m_count;
-		}
-
-		void resize( const std::uint32_t count )
-		{
-			assert( count > 0 );
-			assert( !std::isnan( m_stride ) );
-			assert( !std::isnan( m_count ) );
-
-			//If the capacity is higher then what we are requesting then we simply just ignore the request.
-			// TODO: Maybe this is bad? I'm unsure. But reducing the number of allocations is always good
-			if ( count < m_count ) return;
-
-			BufferVector other { this->getBuffer(), count, m_stride };
-
-			Device::getInstance().copyBuffer( this->getBuffer(), other.getBuffer(), 0, 0, this->size() );
-
-			*this = std::move( other );
-		}
+		std::uint32_t getOffsetCount() const;
+		std::uint32_t stride() const noexcept;
+		std::uint32_t size() const noexcept;
+		void resize( std::uint32_t count );
 	};
 
 } // namespace fgl::engine

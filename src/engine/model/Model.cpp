@@ -52,6 +52,16 @@ namespace fgl::engine
 		return box;
 	}
 
+	bool Model::ready()
+	{
+		//Return true if even a single primitive is ready
+		for ( auto& primitive : this->m_primitives )
+		{
+			if ( primitive.ready() ) return true;
+		}
+		return false;
+	}
+
 	std::vector< vk::DrawIndexedIndirectCommand > Model::getDrawCommand( const std::uint32_t index ) const
 	{
 		ZoneScoped;
@@ -130,16 +140,6 @@ namespace fgl::engine
 		auto model_ptr { std::make_shared< Model >( builder, bounding_box ) };
 
 		return model_ptr;
-	}
-
-	void Model::stage( vk::raii::CommandBuffer& cmd_buffer )
-	{
-		assert( !m_primitives.empty() );
-		for ( auto& primitive : m_primitives )
-		{
-			primitive.m_vertex_buffer.stage( cmd_buffer );
-			primitive.m_index_buffer.stage( cmd_buffer );
-		}
 	}
 
 } // namespace fgl::engine

@@ -40,7 +40,7 @@ namespace fgl::engine
 		using QueueIndex = std::uint32_t;
 
 		//! Returns a unique list of indexes with the matching flags
-		QueueIndex getIndex( const vk::QueueFlags flags );
+		QueueIndex getIndex( const vk::QueueFlags flags, const vk::QueueFlags anti_flags = vk::QueueFlags( 0 ) );
 
 		std::uint32_t getPresentIndex();
 	};

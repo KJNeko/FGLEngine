@@ -22,13 +22,6 @@ namespace fgl::engine
 		}
 		else
 			throw std::runtime_error( "Unknown model file extension" );
-
-		//Stage
-		for ( auto& prim : m_primitives )
-		{
-			prim.m_index_buffer.stage();
-			prim.m_vertex_buffer.stage();
-		}
 	}
 
 	void ModelBuilder::loadVerts( std::vector< Vertex > verts, std::vector< std::uint32_t > indicies )

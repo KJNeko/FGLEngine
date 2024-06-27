@@ -35,6 +35,29 @@ namespace fgl::engine
 		TRI_FAN = TINYGLTF_MODE_TRIANGLE_FAN
 	};
 
+	struct PrimitiveTextures
+	{
+		std::shared_ptr< Texture > albedo { nullptr };
+		std::shared_ptr< Texture > normal { nullptr };
+
+		inline bool hasTextures() const { return albedo || normal; }
+
+		inline bool ready() const
+		{
+			if ( albedo )
+			{
+				if ( !albedo->ready() ) return false;
+			}
+
+			if ( normal )
+			{
+				if ( !normal->ready() ) return false;
+			}
+
+			return true;
+		}
+	};
+
 	struct Primitive
 	{
 		VertexBufferSuballocation m_vertex_buffer;
@@ -42,7 +65,13 @@ namespace fgl::engine
 		OrientedBoundingBox< CoordinateSpace::Model > m_bounding_box;
 		PrimitiveMode m_mode;
 
-		std::shared_ptr< Texture > m_texture;
+		PrimitiveTextures m_textures {};
+
+		//! Returns true if the primitive is ready to be rendered (must have all textures, vertex buffer, and index buffer ready)
+		bool ready() const
+		{
+			return m_textures.ready() && m_vertex_buffer.ready() && m_index_buffer.ready();
+		}
 
 		Primitive(
 			VertexBufferSuballocation&& vertex_buffer,
@@ -52,21 +81,20 @@ namespace fgl::engine
 		  m_vertex_buffer( std::move( vertex_buffer ) ),
 		  m_index_buffer( std::move( index_buffer ) ),
 		  m_bounding_box( bounding_box ),
-		  m_mode( mode ),
-		  m_texture( nullptr )
+		  m_mode( mode )
 		{}
 
 		Primitive(
 			VertexBufferSuballocation&& vertex_buffer,
 			IndexBufferSuballocation&& index_buffer,
 			const OrientedBoundingBox< CoordinateSpace::Model >& bounding_box,
-			std::shared_ptr< Texture >&& texture,
+			PrimitiveTextures&& textures,
 			const PrimitiveMode mode ) :
 		  m_vertex_buffer( std::move( vertex_buffer ) ),
 		  m_index_buffer( std::move( index_buffer ) ),
 		  m_bounding_box( bounding_box ),
 		  m_mode( mode ),
-		  m_texture( std::forward< decltype( m_texture ) >( texture ) )
+		  m_textures( std::forward< decltype( m_textures ) >( textures ) )
 		{}
 
 		Primitive() = delete;
@@ -80,7 +108,7 @@ namespace fgl::engine
 			Buffer& vertex_buffer,
 			Buffer& index_buffer );
 
-		TextureID getTextureID() const;
+		TextureID getAlbedoTextureID() const;
 	};
 
 } // namespace fgl::engine

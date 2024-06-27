@@ -14,7 +14,6 @@
 #include "engine/buffers/Buffer.hpp"
 #include "engine/primitives/TransformComponent.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"
-#include "engine/rendering/Device.hpp"
 
 namespace fgl::engine
 {
@@ -44,6 +43,8 @@ namespace fgl::engine
 
 	  public:
 
+		bool ready();
+
 		//! Returns the bounding box in model space
 		const OrientedBoundingBox< CoordinateSpace::Model >& getBoundingBox() const { return m_bounding_box; }
 
@@ -63,8 +64,6 @@ namespace fgl::engine
 
 		static std::vector< std::shared_ptr< Model > >
 			createModelsFromScene( const std::filesystem::path& path, Buffer& vertex_buffer, Buffer& index_buffer );
-
-		void stage( vk::raii::CommandBuffer& cmd_buffer );
 
 		const std::string& getName() const { return m_name; }
 

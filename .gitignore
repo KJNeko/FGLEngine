@@ -40,3 +40,7 @@ read.lock
 *.psess
 *.vsp
 *.vspx
+
+#Hide log files
+*.log
+/vklog

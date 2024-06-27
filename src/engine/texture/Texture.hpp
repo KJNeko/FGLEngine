@@ -9,6 +9,7 @@
 #include <filesystem>
 
 #include "engine/assets/AssetManager.hpp"
+#include "engine/image/ImageView.hpp"
 #include "engine/image/Sampler.hpp"
 
 namespace fgl::engine
@@ -32,38 +33,33 @@ namespace fgl::engine
 		template < typename T >
 		friend class AssetStore;
 
+		friend class TransferManager;
+
 		//TODO: Implement reusing texture ids
 		TextureID m_texture_id;
 
 		std::shared_ptr< ImageView > m_image_view {};
 
-		std::unique_ptr< BufferSuballocation > m_staging { nullptr };
-
 		vk::Extent2D m_extent;
 
 		vk::DescriptorSet m_imgui_set { VK_NULL_HANDLE };
 
-		[[nodiscard]] Texture( const std::tuple< std::vector< std::byte >, int, int, vk::Format >& );
+		[[nodiscard]] Texture( std::tuple< std::vector< std::byte >, int, int, vk::Format > );
 
 		[[nodiscard]]
-		Texture( const std::vector< std::byte >& data, const int x, const int y, const vk::Format texture_format );
+		Texture( std::vector< std::byte >&& data, const int x, const int y, const vk::Format texture_format );
 
 		[[nodiscard]]
-		Texture( const std::vector< std::byte >& data, const vk::Extent2D extent, const vk::Format texture_format );
+		Texture( std::vector< std::byte >&& data, const vk::Extent2D extent, const vk::Format texture_format );
 
 		[[nodiscard]] Texture( const std::filesystem::path& path, const vk::Format format );
 		[[nodiscard]] Texture( const std::filesystem::path& path );
-
-		void stage( vk::raii::CommandBuffer& cmd ) override;
-		void dropStaging();
 
 	  public:
 
 		Texture() = delete;
 
 		~Texture();
-
-		void stage();
 
 		Texture( const Texture& ) = delete;
 		Texture& operator=( const Texture& ) = delete;
@@ -72,6 +68,8 @@ namespace fgl::engine
 		Texture& operator=( Texture&& ) = delete;
 
 		Texture( Image& image, Sampler sampler = Sampler() );
+
+		bool ready() const;
 
 		[[nodiscard]] TextureID getID() const;
 

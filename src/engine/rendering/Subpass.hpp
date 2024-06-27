@@ -136,6 +136,20 @@ namespace fgl::engine
 		}
 
 		template < is_subpass SrcT >
+		void registerFullDependency( SrcT& parent )
+		{
+			log::critical( "!!!!!!!!!!!! Performance risk !!!!!!!!!!!!!" );
+			log::critical(
+				"Rendering pass using a full dependency. THIS IS MOST LIKELY NOT WHAT YOU WANT UNLESS DEBUGGING" );
+			constexpr vk::AccessFlags all_access { vk::AccessFlagBits::eMemoryWrite | vk::AccessFlagBits::eMemoryRead };
+			constexpr vk::PipelineStageFlags all_stages { vk::PipelineStageFlagBits::eAllCommands
+				                                          | vk::PipelineStageFlagBits::eAllGraphics };
+
+			registerDependencyFrom(
+				parent, all_access, all_stages, all_access, all_stages, vk::DependencyFlagBits::eByRegion );
+		}
+
+		template < is_subpass SrcT >
 		void registerDependencyFrom(
 			SrcT& parent,
 			const vk::AccessFlags src_access_flags,
@@ -154,18 +168,31 @@ namespace fgl::engine
 				dependency_flags );
 		}
 
+		void registerSelfDependency(
+			const vk::AccessFlags src_access_flags,
+			const vk::PipelineStageFlags src_stage_flags,
+			const vk::AccessFlags dst_access_flags,
+			const vk::PipelineStageFlags dst_stage_flags,
+			const vk::DependencyFlags dependency_flags )
+		{
+			registerDependencyFrom(
+				*this, src_access_flags, src_stage_flags, dst_access_flags, dst_stage_flags, dependency_flags );
+		}
+
 		void registerDependencyFromExternal(
-			const vk::AccessFlags access_flags,
-			const vk::PipelineStageFlags stage_flags,
+			const vk::AccessFlags src_access_flags,
+			const vk::PipelineStageFlags src_stage_flags,
+			const vk::AccessFlags dst_access_flags = vk::AccessFlagBits::eNone,
+			const vk::PipelineStageFlags dst_stage_flags = vk::PipelineStageFlagBits::eNone,
 			const vk::DependencyFlags dependency_flags = {} )
 		{
 			registerDependency(
 				VK_SUBPASS_EXTERNAL,
 				this->index,
-				access_flags,
-				stage_flags,
-				access_flags,
-				stage_flags,
+				src_access_flags,
+				src_stage_flags,
+				dst_access_flags == vk::AccessFlagBits::eNone ? src_access_flags : dst_access_flags,
+				dst_stage_flags == vk::PipelineStageFlagBits::eNone ? src_stage_flags : dst_stage_flags,
 				dependency_flags );
 		}
 
