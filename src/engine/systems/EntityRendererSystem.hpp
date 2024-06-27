@@ -6,7 +6,7 @@
 
 #include <memory>
 
-#include "engine/descriptors/DescriptorSetCollection.hpp"
+#include "engine/buffers/vector/HostVector.hpp"
 #include "engine/model/Model.hpp"
 #include "engine/pipeline/PipelineT.hpp"
 #include "engine/rendering/SwapChain.hpp"

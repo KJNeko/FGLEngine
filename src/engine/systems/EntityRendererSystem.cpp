@@ -7,12 +7,9 @@
 #include <tracy/TracyC.h>
 #include <vulkan/vulkan.hpp>
 
-#include <set>
-
 #include "DrawPair.hpp"
 #include "engine/literals/size.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
-#include "spdlog/fmt/bundled/compile.h"
 
 namespace fgl::engine
 {
@@ -68,48 +65,7 @@ namespace fgl::engine
 		TracyVkZone( info.tracy_ctx, *command_buffer, "Render entities" );
 
 		texturelessPass( info );
-		//texturedPass( info );
-
-		/*
-		auto [ draw_commands, model_matricies ] =
-			getDrawCallsFromTree( info.game_objects, info.camera_frustum, IS_VISIBLE | IS_ENTITY );
-
-		if ( draw_commands.size() == 0 ) return;
-
-		//Setup model matrix info buffers
-		auto& model_matrix_info_buffer { m_model_matrix_info_buffers[ info.frame_idx ] };
-
-		model_matrix_info_buffer =
-			std::make_unique< ModelMatrixInfoBufferSuballocation >( info.model_matrix_info_buffer, model_matricies );
-
-		assert( model_matrix_info_buffer->size() == model_matricies.size() );
-
-		// Setup draw parameter buffer
-		TracyCZoneN( draw_zone_TRACY, "Submit draw data", true );
-		auto& draw_parameter_buffer { m_draw_parameter_buffers[ info.frame_idx ] };
-
-		draw_parameter_buffer =
-			std::make_unique< DrawParameterBufferSuballocation >( info.draw_parameter_buffer, draw_commands );
-
-		const auto& draw_params { draw_parameter_buffer };
-		assert( draw_params->size() == draw_commands.size() );
-		assert( draw_params->stride() == sizeof( vk::DrawIndexedIndirectCommand ) );
-
-		TracyCZoneEnd( draw_zone_TRACY );
-
-		const std::vector< vk::Buffer > vertex_buffers { m_vertex_buffer->getVkBuffer(),
-			                                             model_matrix_info_buffer->getVkBuffer() };
-
-		command_buffer.bindVertexBuffers( 0, vertex_buffers, { 0, model_matrix_info_buffer->getOffset() } );
-		command_buffer.bindIndexBuffer( m_index_buffer->getVkBuffer(), 0, vk::IndexType::eUint32 );
-
-#if ENABLE_IMGUI
-		ImGui::Text( "Indirect draws: %lu", static_cast< std::size_t >( draw_params->size() ) );
-#endif
-
-		command_buffer.drawIndexedIndirect(
-			draw_params->getVkBuffer(), draw_params->getOffset(), draw_params->size(), draw_params->stride() );
-		*/
+		texturedPass( info );
 	}
 
 	void EntityRendererSystem::texturelessPass( FrameInfo& info )
@@ -155,5 +111,45 @@ namespace fgl::engine
 			draw_parameter_buffer->size(),
 			draw_parameter_buffer->stride() );
 	}
+
+	void EntityRendererSystem::texturedPass( FrameInfo& info )
+	{
+		ZoneScopedN( "Textured pass" );
+		auto& command_buffer { info.command_buffer };
+		TracyVkZone( info.tracy_ctx, *command_buffer, "Render textured entities" );
+
+		m_textured_pipeline->bind( command_buffer );
+
+		m_textured_pipeline
+			->bindDescriptor( command_buffer, GlobalDescriptorSet::m_set_idx, info.global_descriptor_set );
+
+		m_textured_pipeline
+			->bindDescriptor( command_buffer, TextureDescriptorSet::m_set_idx, Texture::getTextureDescriptorSet() );
+
+		auto [ draw_commands, model_matricies ] =
+			getDrawCallsFromTree( info.game_objects, info.camera_frustum, IS_VISIBLE | IS_ENTITY );
+
+		if ( draw_commands.empty() ) return;
+
+		auto& model_matrix_info_buffer { m_textured_model_matrix_info_buffers[ info.frame_idx ] };
+		model_matrix_info_buffer =
+			std::make_unique< ModelMatrixInfoBufferSuballocation >( info.model_matrix_info_buffer, model_matricies );
+
+		auto& draw_parameter_buffer { m_draw_textured_parameter_buffers[ info.frame_idx ] };
+		draw_parameter_buffer =
+			std::make_unique< DrawParameterBufferSuballocation >( info.draw_parameter_buffer, draw_commands );
+
+		const std::vector< vk::Buffer > vert_buffers { info.model_vertex_buffer.getVkBuffer(),
+			                                           model_matrix_info_buffer->getVkBuffer() };
+
+		command_buffer.bindVertexBuffers( 0, vert_buffers, { 0, model_matrix_info_buffer->getOffset() } );
+		command_buffer.bindIndexBuffer( info.model_index_buffer.getVkBuffer(), 0, vk::IndexType::eUint32 );
+
+		command_buffer.drawIndexedIndirect(
+			draw_parameter_buffer->getVkBuffer(),
+			draw_parameter_buffer->getOffset(),
+			draw_parameter_buffer->size(),
+			draw_parameter_buffer->stride() );
+	};
 
 } // namespace fgl::engine

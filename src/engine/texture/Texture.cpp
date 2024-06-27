@@ -18,8 +18,8 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #pragma GCC diagnostic ignored "-Wconversion"
-#include "objectloaders/stb_image.h"
 #include "imgui/backends/imgui_impl_vulkan.h"
+#include "objectloaders/stb_image.h"
 #pragma GCC diagnostic pop
 
 namespace fgl::engine

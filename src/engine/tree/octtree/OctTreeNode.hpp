@@ -117,7 +117,7 @@ namespace fgl::engine
 		[[nodiscard]] inline std::vector< OctTreeNodeLeaf* > getAllLeafs()
 		{
 			ZoneScoped;
-			std::vector< OctTreeNodeLeaf* > leafs;
+			std::vector< OctTreeNodeLeaf* > leafs {};
 			leafs.reserve( LEAF_RESERVE_SIZE );
 			this->getAllLeafs( leafs );
 			return leafs;

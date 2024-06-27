@@ -208,8 +208,8 @@ namespace fgl::engine
 			}
 			else
 			{
+				log::debug( "Added game object" );
 				objects.emplace_back( std::move( obj ) );
-				log::info( "Added object" );
 				return this;
 			}
 		}

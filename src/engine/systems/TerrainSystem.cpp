@@ -7,6 +7,7 @@
 #include <tracy/Tracy.hpp>
 
 #include "DrawPair.hpp"
+#include "engine/literals/size.hpp"
 
 namespace fgl::engine
 {

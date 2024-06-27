@@ -24,7 +24,9 @@ namespace fgl::engine
 		ZoneScoped;
 		std::unordered_map< DrawKey, DrawPair > draw_pairs {};
 
-		for ( auto* node : root.getAllLeafsInFrustum( frustum ) )
+		const auto nodes { root.getAllLeafsInFrustum( frustum ) };
+
+		for ( auto* node : nodes )
 		{
 			ZoneScopedN( "Process leaf" );
 			for ( const auto& obj : *node )
@@ -39,19 +41,21 @@ namespace fgl::engine
 
 				for ( const Primitive& primitive : obj.getModel()->m_primitives )
 				{
+					if ( !primitive.ready() ) continue;
+
 					//assert( primitive.m_texture );
 					const ModelMatrixInfo matrix_info { .model_matrix = obj.getTransform().mat4(),
-						                                .texture_idx = primitive.getTextureID() };
+						                                .texture_idx = primitive.getAlbedoTextureID() };
 
 					// If the textureless flag is on and we have a texture then skip the primitive.c
 					if ( options & TEXTURELESS )
 					{
-						if ( primitive.m_texture ) continue;
+						if ( primitive.m_textures.hasTextures() ) continue;
 					}
 					else
 					{
 						// Flag is not present
-						if ( !primitive.m_texture ) continue;
+						if ( !primitive.m_textures.hasTextures() ) continue;
 					}
 
 					const auto key { std::make_pair( matrix_info.texture_idx, primitive.m_index_buffer.getOffset() ) };
