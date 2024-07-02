@@ -7,6 +7,9 @@
 #include "engine/buffers/exceptions.hpp"
 #include "engine/buffers/vector/HostVector.hpp"
 #include "engine/image/ImageHandle.hpp"
+#include "engine/literals/size.hpp"
+#include "engine/logging/logging.hpp"
+#include "engine/utils.hpp"
 
 namespace fgl::engine::memory
 {
@@ -22,7 +25,7 @@ namespace fgl::engine::memory
 		const std::size_t hash_b { BufferHasher {}( std::get< 1 >( pair ) ) };
 
 		std::size_t seed { 0 };
-		fgl::engine::hashCombine( seed, hash_a, hash_b );
+		hashCombine( seed, hash_a, hash_b );
 		return seed;
 	}
 
@@ -218,6 +221,62 @@ namespace fgl::engine::memory
 			case IMAGE_FROM_BUFFER:
 				std::get< TransferImageHandle >( m_target )->setReady( true );
 		}
+	}
+
+	// Constructors
+
+	//! BUFFER_FROM_BUFFER
+	TransferData::TransferData(
+		const std::shared_ptr< BufferSuballocationHandle >& source,
+		const std::shared_ptr< BufferSuballocationHandle >& target ) :
+	  m_type( BUFFER_FROM_BUFFER ),
+	  m_source( source ),
+	  m_target( target )
+	{
+		log::debug(
+			"[TransferManager]: Queued buffer -> buffer transfer: {}",
+			fgl::literals::size_literals::to_string( source->m_size ) );
+		markBad();
+	}
+
+	//! BUFFER_FROM_RAW
+	TransferData::
+		TransferData( std::vector< std::byte >&& source, const std::shared_ptr< BufferSuballocationHandle >& target ) :
+	  m_type( BUFFER_FROM_RAW ),
+	  m_source( std::forward< std::vector< std::byte > >( source ) ),
+	  m_target( target )
+	{
+		log::debug(
+			"[TransferManager]: Queued raw -> buffer transfer: {}",
+			literals::size_literals::to_string( std::get< RawData >( m_source ).size() ) );
+		assert( std::get< RawData >( m_source ).size() > 0 );
+		markBad();
+	}
+
+	//! IMAGE_FROM_BUFFER
+	TransferData::TransferData(
+		const std::shared_ptr< BufferSuballocationHandle >& source, const std::shared_ptr< ImageHandle >& target ) :
+	  m_type( IMAGE_FROM_BUFFER ),
+	  m_source( source ),
+	  m_target( target )
+	{
+		log::debug(
+			"[TransferManager]: Queued image -> image transfer: {}",
+			fgl::literals::size_literals::to_string( source->m_size ) );
+		markBad();
+	}
+
+	//! IMAGE_FROM_RAW
+	TransferData::TransferData( std::vector< std::byte >&& source, const std::shared_ptr< ImageHandle >& target ) :
+	  m_type( IMAGE_FROM_RAW ),
+	  m_source( std::forward< std::vector< std::byte > >( source ) ),
+	  m_target( target )
+	{
+		log::debug(
+			"[TransferManager]: Queued raw -> image transfer: {}",
+			literals::size_literals::to_string( std::get< RawData >( m_source ).size() ) );
+		assert( std::get< RawData >( m_source ).size() > 0 );
+		markBad();
 	}
 
 } // namespace fgl::engine::memory

@@ -8,11 +8,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "engine/buffers/BufferSuballocationHandle.hpp"
-#include "engine/literals/size.hpp"
-#include "engine/logging/logging.hpp"
-#include "engine/utils.hpp"
-
 namespace vk
 {
 	namespace raii
@@ -32,6 +27,7 @@ namespace fgl::engine
 
 namespace fgl::engine::memory
 {
+	struct BufferSuballocationHandle;
 	class Buffer;
 
 	//! <Source, Target>
@@ -108,59 +104,6 @@ namespace fgl::engine::memory
 		TransferData( TransferData&& other ) = default;
 		TransferData& operator=( TransferData&& ) = default;
 
-		//! BUFFER_FROM_BUFFER
-		TransferData(
-			const std::shared_ptr< BufferSuballocationHandle >& source,
-			const std::shared_ptr< BufferSuballocationHandle >& target ) :
-		  m_type( BUFFER_FROM_BUFFER ),
-		  m_source( source ),
-		  m_target( target )
-		{
-			log::debug(
-				"[TransferManager]: Queued buffer -> buffer transfer: {}",
-				fgl::literals::size_literals::to_string( source->m_size ) );
-			markBad();
-		}
-
-		//! BUFFER_FROM_RAW
-		TransferData( std::vector< std::byte >&& source, const std::shared_ptr< BufferSuballocationHandle >& target ) :
-		  m_type( BUFFER_FROM_RAW ),
-		  m_source( std::forward< std::vector< std::byte > >( source ) ),
-		  m_target( target )
-		{
-			log::debug(
-				"[TransferManager]: Queued raw -> buffer transfer: {}",
-				literals::size_literals::to_string( std::get< RawData >( m_source ).size() ) );
-			assert( std::get< RawData >( m_source ).size() > 0 );
-			markBad();
-		}
-
-		//! IMAGE_FROM_BUFFER
-		TransferData(
-			const std::shared_ptr< BufferSuballocationHandle >& source, const std::shared_ptr< ImageHandle >& target ) :
-		  m_type( IMAGE_FROM_BUFFER ),
-		  m_source( source ),
-		  m_target( target )
-		{
-			log::debug(
-				"[TransferManager]: Queued image -> image transfer: {}",
-				fgl::literals::size_literals::to_string( source->m_size ) );
-			markBad();
-		}
-
-		//! IMAGE_FROM_RAW
-		TransferData( std::vector< std::byte >&& source, const std::shared_ptr< ImageHandle >& target ) :
-		  m_type( IMAGE_FROM_RAW ),
-		  m_source( std::forward< std::vector< std::byte > >( source ) ),
-		  m_target( target )
-		{
-			log::debug(
-				"[TransferManager]: Queued raw -> image transfer: {}",
-				literals::size_literals::to_string( std::get< RawData >( m_source ).size() ) );
-			assert( std::get< RawData >( m_source ).size() > 0 );
-			markBad();
-		}
-
 		bool stage(
 			vk::raii::CommandBuffer& buffer,
 			Buffer& staging_buffer,
@@ -173,6 +116,18 @@ namespace fgl::engine::memory
 
 		//! Marks the target as staged/ready
 		void markGood();
+
+		//BUFFER_FROM_X
+		TransferData(
+			const std::shared_ptr< BufferSuballocationHandle >& source,
+			const std::shared_ptr< BufferSuballocationHandle >& target );
+		TransferData( std::vector< std::byte >&& source, const std::shared_ptr< BufferSuballocationHandle >& target );
+
+		//IMAGE_FROM_X
+		TransferData(
+			const std::shared_ptr< BufferSuballocationHandle >& source, const std::shared_ptr< ImageHandle >& target );
+
+		TransferData( std::vector< std::byte >&& source, const std::shared_ptr< ImageHandle >& target );
 	};
 
 } // namespace fgl::engine::memory
