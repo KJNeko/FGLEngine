@@ -10,7 +10,7 @@
 #include "align.hpp"
 #include "engine/logging/logging.hpp"
 
-namespace fgl::engine
+namespace fgl::engine::memory
 {
 
 	BufferSuballocation& BufferSuballocation::operator=( BufferSuballocation&& other )

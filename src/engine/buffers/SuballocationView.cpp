@@ -7,7 +7,7 @@
 #include "BufferSuballocation.hpp"
 #include "BufferSuballocationHandle.hpp"
 
-namespace fgl::engine
+namespace fgl::engine::memory
 {
 
 	vk::Buffer SuballocationView::getVkBuffer()

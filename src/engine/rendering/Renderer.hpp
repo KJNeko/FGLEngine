@@ -41,12 +41,12 @@ namespace fgl::engine
 
 	  public:
 
-		DescriptorSet& getGBufferDescriptor( std::uint16_t frame_idx ) const
+		descriptors::DescriptorSet& getGBufferDescriptor( std::uint16_t frame_idx ) const
 		{
 			return m_swapchain->getGBufferDescriptor( frame_idx );
 		}
 
-		DescriptorSet& getGBufferCompositeDescriptor( std::uint16_t frame_idx ) const
+		descriptors::DescriptorSet& getGBufferCompositeDescriptor( std::uint16_t frame_idx ) const
 		{
 			return m_swapchain->getGBufferCompositeDescriptor( frame_idx );
 		}

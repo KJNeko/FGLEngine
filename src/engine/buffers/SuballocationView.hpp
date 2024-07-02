@@ -8,7 +8,7 @@
 
 #include <memory>
 
-namespace fgl::engine
+namespace fgl::engine::memory
 {
 
 	struct BufferSuballocationHandle;

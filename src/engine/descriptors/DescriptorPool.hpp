@@ -13,6 +13,10 @@
 namespace fgl::engine
 {
 	class Device;
+}
+
+namespace fgl::engine::descriptors
+{
 
 	static const std::unordered_map< vk::DescriptorType, float > descriptor_allocation_ratios {
 		{ vk::DescriptorType::eUniformBuffer, 2.0f }, { vk::DescriptorType::eCombinedImageSampler, 2.0f }
@@ -40,4 +44,9 @@ namespace fgl::engine
 
 		[[nodiscard]] vk::raii::DescriptorSet allocateSet( vk::raii::DescriptorSetLayout& layout );
 	};
-} // namespace fgl::engine
+} // namespace fgl::engine::descriptors
+
+namespace fgl::engine
+{
+	using descriptors::DescriptorPool;
+}

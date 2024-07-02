@@ -8,7 +8,7 @@
 #include "engine/concepts/is_valid_pipeline_input.hpp"
 #include "engine/descriptors/createDescriptorSets.hpp"
 
-namespace fgl::engine
+namespace fgl::engine::descriptors
 {
 
 	template < is_descriptor_set Current, is_valid_pipeline_input... Sets >

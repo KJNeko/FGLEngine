@@ -39,11 +39,11 @@ namespace fgl::engine
 		//GameObject::Map game_objects {};
 		OctTreeNode m_game_objects_root { WorldCoordinate( constants::WORLD_CENTER ) };
 
-		std::unique_ptr< Buffer > m_vertex_buffer { std::make_unique< Buffer >(
+		std::unique_ptr< memory::Buffer > m_vertex_buffer { std::make_unique< memory::Buffer >(
 			256_MiB,
 			vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst,
 			vk::MemoryPropertyFlagBits::eDeviceLocal ) };
-		std::unique_ptr< Buffer > m_index_buffer { std::make_unique< Buffer >(
+		std::unique_ptr< memory::Buffer > m_index_buffer { std::make_unique< memory::Buffer >(
 			32_MiB,
 			vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
 			vk::MemoryPropertyFlagBits::eDeviceLocal ) };

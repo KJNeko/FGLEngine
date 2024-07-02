@@ -15,7 +15,8 @@ namespace fgl::engine
 	using TexturedPipelineFragShader = FragmentShaderT< "shaders/textured-gbuffer.frag.spv" >;
 	using TexturedPipelineShaders = ShaderCollection< TexturedPipelineVertexShader, TexturedPipelineFragShader >;
 
-	using TexturedPipelineDescriptorSets = DescriptorSetCollection< GlobalDescriptorSet, TextureDescriptorSet >;
+	using TexturedPipelineDescriptorSets =
+		descriptors::DescriptorSetCollection< GlobalDescriptorSet, TextureDescriptorSet >;
 
 	//! The standard pipeline is used for models without any form of texturing. They instead rely on Vertex coloring. A UV map is **NOT** expected
 	using TexturedPipeline = PipelineT< TexturedPipelineShaders, TexturedPipelineDescriptorSets >;

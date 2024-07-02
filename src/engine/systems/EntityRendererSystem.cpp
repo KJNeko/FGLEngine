@@ -13,11 +13,11 @@
 
 namespace fgl::engine
 {
-	std::unique_ptr< Buffer > m_global_draw_parameter_buffer { nullptr };
+	std::unique_ptr< memory::Buffer > m_global_draw_parameter_buffer { nullptr };
 
 	void initDrawParameterBuffer( std::uint32_t size )
 	{
-		m_global_draw_parameter_buffer = std::make_unique< Buffer >(
+		m_global_draw_parameter_buffer = std::make_unique< memory::Buffer >(
 			size,
 			vk::BufferUsageFlagBits::eIndirectBuffer,
 			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eDeviceLocal );

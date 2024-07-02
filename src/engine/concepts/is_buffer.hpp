@@ -8,10 +8,10 @@
 
 #include "engine/buffers/Buffer.hpp"
 
-namespace fgl::engine
+namespace fgl::engine::memory
 {
 	template < typename T > concept is_buffer = std::same_as< T, Buffer >;
 
 	template < typename T > concept is_buffer_ref = is_buffer< std::remove_reference_t< T > >;
 
-} // namespace fgl::engine
+} // namespace fgl::engine::memory

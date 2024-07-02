@@ -10,7 +10,7 @@
 #include "engine/concepts/is_bindable.hpp"
 #include "engine/concepts/is_descriptor.hpp"
 
-namespace fgl::engine
+namespace fgl::engine::descriptors
 {
 
 	template <
@@ -81,4 +81,4 @@ namespace fgl::engine
 		}
 	}
 
-} // namespace fgl::engine
+} // namespace fgl::engine::descriptors

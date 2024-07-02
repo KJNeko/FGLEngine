@@ -11,7 +11,7 @@
 #include "engine/concepts/is_empty_descriptor_set.hpp"
 #include "engine/rendering/Device.hpp"
 
-namespace fgl::engine
+namespace fgl::engine::descriptors
 {
 
 	template < std::uint16_t set_idx, is_descriptor... Descriptors >
@@ -184,4 +184,4 @@ namespace fgl::engine
 	static_assert( is_descriptor_set< EmptyDescriptorSet< 0 > > && is_empty_descriptor_set< EmptyDescriptorSet< 0 > > );
 	static_assert( is_descriptor_set< internal::TestSet > && !is_empty_descriptor_set< internal::TestSet > );
 
-} // namespace fgl::engine
+} // namespace fgl::engine::descriptors

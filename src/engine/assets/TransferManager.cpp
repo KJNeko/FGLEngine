@@ -12,7 +12,7 @@
 #include "engine/literals/size.hpp"
 #include "engine/texture/Texture.hpp"
 
-namespace fgl::engine
+namespace fgl::engine::memory
 {
 	void TransferManager::recordCommands( vk::raii::CommandBuffer& command_buffer )
 	{

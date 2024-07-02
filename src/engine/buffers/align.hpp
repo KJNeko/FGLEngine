@@ -6,9 +6,10 @@
 
 #include <type_traits>
 
-namespace fgl::engine
+namespace fgl::engine::memory
 {
 
+	//! Aligns a memory region to a given alignment
 	template < typename T1, typename T2 >
 		requires std::is_integral_v< T1 > && std::is_integral_v< T2 >
 	constexpr inline T1 align( const T1 operand, const T2 alignment )
@@ -27,6 +28,7 @@ namespace fgl::engine
 		}
 	}
 
+	//! Aligns the operand to multiple alignments
 	template < typename T1, typename T2, typename... T2s >
 	constexpr inline T1 align( const T1 operand, const T2 alignment, const T2s... alignments )
 	{
@@ -39,4 +41,4 @@ namespace fgl::engine
 	static_assert( align( 6, 32, 128 ) == 128 );
 	static_assert( align( 6, 1, 1, 6 ) == 6 );
 
-} // namespace fgl::engine
+} // namespace fgl::engine::memory

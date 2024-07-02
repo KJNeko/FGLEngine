@@ -6,7 +6,7 @@
 
 #include "engine/rendering/Device.hpp"
 
-namespace fgl::engine
+namespace fgl::engine::descriptors
 {
 
 	vk::raii::DescriptorPool createPool( Device& device, std::uint32_t set_count )
@@ -61,4 +61,4 @@ namespace fgl::engine
 		return *s_pool;
 	}
 
-} // namespace fgl::engine
+} // namespace fgl::engine::descriptors

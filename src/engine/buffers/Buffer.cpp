@@ -10,7 +10,7 @@
 #include "engine/literals/size.hpp"
 #include "engine/rendering/Device.hpp"
 
-namespace fgl::engine
+namespace fgl::engine::memory
 {
 	BufferHandle::BufferHandle(
 		vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties ) :

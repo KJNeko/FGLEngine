@@ -10,7 +10,7 @@
 namespace fgl::engine
 {
 
-	std::shared_ptr< Model > generateTerrainModel( Buffer& vertex_buffer, Buffer& index_buffer )
+	std::shared_ptr< Model > generateTerrainModel( memory::Buffer& vertex_buffer, memory::Buffer& index_buffer )
 	{
 		std::vector< Vertex > verts {};
 

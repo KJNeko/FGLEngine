@@ -12,12 +12,20 @@
 
 namespace fgl::engine
 {
+	namespace memory
+	{
+		class Buffer;
+	}
+}
+
+namespace fgl::engine
+{
 	template < typename T >
-	class DeviceVector final : public BufferVector, public DeviceVectorBase
+	class DeviceVector final : public memory::BufferVector, public memory::DeviceVectorBase
 	{
 	  public:
 
-		DeviceVector( Buffer& buffer, const std::uint32_t count = 1 ) : BufferVector( buffer, count, sizeof( T ) )
+		DeviceVector( memory::Buffer& buffer, const std::uint32_t count = 1 ) : BufferVector( buffer, count, sizeof( T ) )
 		{
 			log::debug(
 				"Creating DeviceVector of size {}", fgl::literals::size_literals::to_string( count * sizeof( T ) ) );
@@ -29,10 +37,10 @@ namespace fgl::engine
 		 * @param buffer buffer to suballocate from
 		 * @param data
 		 */
-		DeviceVector( Buffer& buffer, const std::vector< T >& data ) :
+		DeviceVector( memory::Buffer& buffer, const std::vector< T >& data ) :
 		  DeviceVector( buffer, static_cast< std::uint32_t >( data.size() ) )
 		{
-			TransferManager::getInstance().copyToVector( data, *this );
+			memory::TransferManager::getInstance().copyToVector( data, *this );
 		}
 	};
 

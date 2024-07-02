@@ -15,7 +15,7 @@ namespace fgl::engine
 	using StandardPipelineFragShader = FragmentShaderT< "shaders/textureless-gbuffer.frag.spv" >;
 	using StandardPipelineShaders = ShaderCollection< StandardPipelineVertexShader, StandardPipelineFragShader >;
 
-	using StandardPipelineDescriptorSets = DescriptorSetCollection< GlobalDescriptorSet >;
+	using StandardPipelineDescriptorSets = descriptors::DescriptorSetCollection< GlobalDescriptorSet >;
 
 	//! The standard pipeline is used for models without any form of texturing. They instead rely on Vertex coloring. A UV map is **NOT** expected
 	using StandardPipeline = PipelineT< StandardPipelineShaders, StandardPipelineDescriptorSets >;

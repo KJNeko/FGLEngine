@@ -15,7 +15,7 @@ namespace fgl::engine
 
 	class CompositionSystem
 	{
-		using DescriptorSets = DescriptorSetCollection< GBufferDescriptorSet >;
+		using DescriptorSets = descriptors::DescriptorSetCollection< GBufferDescriptorSet >;
 
 		using VertexShader = VertexShaderT< "shaders/fullscreen.vert.spv" >;
 		using FragmentShader = FragmentShaderT< "shaders/composition.frag.spv" >;

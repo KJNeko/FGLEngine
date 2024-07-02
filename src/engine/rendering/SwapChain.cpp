@@ -73,7 +73,7 @@ namespace fgl::engine
 		vk::SubmitInfo submitInfo {};
 
 		std::vector< vk::Semaphore > wait_sems { imageAvailableSemaphores[ currentFrame ],
-			                                     TransferManager::getInstance().getFinishedSem() };
+			                                     memory::TransferManager::getInstance().getFinishedSem() };
 
 		std::vector< vk::PipelineStageFlags > wait_stages { vk::PipelineStageFlagBits::eColorAttachmentOutput,
 			                                                vk::PipelineStageFlagBits::eTopOfPipe };
@@ -238,7 +238,7 @@ namespace fgl::engine
 		for ( int i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
 		{
 			{
-				auto set { std::make_unique< DescriptorSet >( GBufferDescriptorSet::createLayout() ) };
+				auto set { std::make_unique< descriptors::DescriptorSet >( GBufferDescriptorSet::createLayout() ) };
 
 				set->setMaxIDX( 2 );
 
@@ -264,7 +264,7 @@ namespace fgl::engine
 
 			{
 				auto composite_set {
-					std::make_unique< DescriptorSet >( GBufferCompositeDescriptorSet::createLayout() )
+					std::make_unique< descriptors::DescriptorSet >( GBufferCompositeDescriptorSet::createLayout() )
 				};
 
 				composite_set->setMaxIDX( 2 );

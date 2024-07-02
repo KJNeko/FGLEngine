@@ -43,31 +43,35 @@ namespace fgl::engine
 		alignas( 16 ) int num_lights { 0 };
 	};
 
-	using CameraDescriptor = Descriptor< 0, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eAllGraphics >;
-	using LightDescriptor = Descriptor< 2, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eAllGraphics >;
+	using CameraDescriptor =
+		descriptors::Descriptor< 0, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eAllGraphics >;
+	using LightDescriptor =
+		descriptors::Descriptor< 2, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eAllGraphics >;
 
-	using GlobalDescriptorSet = DescriptorSetLayout< 0, CameraDescriptor, EmptyDescriptor< 1 >, LightDescriptor >;
+	using GlobalDescriptorSet =
+		descriptors::DescriptorSetLayout< 0, CameraDescriptor, descriptors::EmptyDescriptor< 1 >, LightDescriptor >;
 
-	using TextureDescriptor = Descriptor<
+	using TextureDescriptor = descriptors::Descriptor<
 		0,
 		vk::DescriptorType::eCombinedImageSampler,
 		vk::ShaderStageFlagBits::eAllGraphics,
 		512,
 		vk::DescriptorBindingFlagBits::eUpdateAfterBind | vk::DescriptorBindingFlagBits::ePartiallyBound >;
 
-	using TextureDescriptorSet = DescriptorSetLayout< 1, TextureDescriptor >;
+	using TextureDescriptorSet = descriptors::DescriptorSetLayout< 1, TextureDescriptor >;
 
-	using PositionDescriptor = AttachmentDescriptor< 0, vk::ShaderStageFlagBits::eFragment >;
-	using NormalDescriptor = AttachmentDescriptor< 1, vk::ShaderStageFlagBits::eFragment >;
-	using AlbedoDescriptor = AttachmentDescriptor< 2, vk::ShaderStageFlagBits::eFragment >;
+	using PositionDescriptor = descriptors::AttachmentDescriptor< 0, vk::ShaderStageFlagBits::eFragment >;
+	using NormalDescriptor = descriptors::AttachmentDescriptor< 1, vk::ShaderStageFlagBits::eFragment >;
+	using AlbedoDescriptor = descriptors::AttachmentDescriptor< 2, vk::ShaderStageFlagBits::eFragment >;
 
 	static_assert( is_descriptor< PositionDescriptor > );
 
-	using GBufferDescriptorSet = DescriptorSetLayout< 0, PositionDescriptor, NormalDescriptor, AlbedoDescriptor >;
+	using GBufferDescriptorSet =
+		descriptors::DescriptorSetLayout< 0, PositionDescriptor, NormalDescriptor, AlbedoDescriptor >;
 
-	using CompositeDescriptor = AttachmentDescriptor< 0, vk::ShaderStageFlagBits::eFragment >;
+	using CompositeDescriptor = descriptors::AttachmentDescriptor< 0, vk::ShaderStageFlagBits::eFragment >;
 
-	using GBufferCompositeDescriptorSet = DescriptorSetLayout< 0, CompositeDescriptor >;
+	using GBufferCompositeDescriptorSet = descriptors::DescriptorSetLayout< 0, CompositeDescriptor >;
 
 	class OctTreeNode;
 
@@ -85,19 +89,19 @@ namespace fgl::engine
 			TransformComponent& camera_transform;
 		} camera_data;
 
-		DescriptorSet& global_descriptor_set;
+		descriptors::DescriptorSet& global_descriptor_set;
 		OctTreeNode& game_objects;
 		TracyVkCtx tracy_ctx;
 
 		//Buffers
-		Buffer& model_matrix_info_buffer;
-		Buffer& draw_parameter_buffer;
+		memory::Buffer& model_matrix_info_buffer;
+		memory::Buffer& draw_parameter_buffer;
 
-		Buffer& model_vertex_buffer;
-		Buffer& model_index_buffer;
+		memory::Buffer& model_vertex_buffer;
+		memory::Buffer& model_index_buffer;
 
-		DescriptorSet& gbuffer_descriptor_set;
-		DescriptorSet& gbuffer_composite_set;
+		descriptors::DescriptorSet& gbuffer_descriptor_set;
+		descriptors::DescriptorSet& gbuffer_composite_set;
 
 		const Frustum< CoordinateSpace::World >& camera_frustum;
 		SwapChain& swap_chain;

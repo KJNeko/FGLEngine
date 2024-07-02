@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <tracy/Tracy.hpp>
+
 #include <memory>
 
 #include "engine/logging/logging.hpp"

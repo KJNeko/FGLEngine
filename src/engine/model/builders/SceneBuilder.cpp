@@ -21,7 +21,7 @@
 namespace fgl::engine
 {
 
-	SceneBuilder::SceneBuilder( Buffer& vertex_buffer, Buffer& index_buffer ) :
+	SceneBuilder::SceneBuilder( memory::Buffer& vertex_buffer, memory::Buffer& index_buffer ) :
 	  m_vertex_buffer( vertex_buffer ),
 	  m_index_buffer( index_buffer )
 	{}

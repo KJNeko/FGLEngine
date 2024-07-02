@@ -17,7 +17,12 @@ namespace fgl::engine
 	class Model;
 	struct Primitive;
 	class Texture;
-	class Buffer;
+
+	namespace memory
+	{
+		class Buffer;
+	}
+
 } // namespace fgl::engine
 
 namespace tinygltf
@@ -35,8 +40,8 @@ namespace fgl::engine
 	{
 		//! Root path. Set by 'load' functions
 		std::filesystem::path m_root {};
-		Buffer& m_vertex_buffer;
-		Buffer& m_index_buffer;
+		memory::Buffer& m_vertex_buffer;
+		memory::Buffer& m_index_buffer;
 
 		std::vector< std::shared_ptr< Model > > models {};
 
@@ -73,7 +78,7 @@ namespace fgl::engine
 
 		SceneBuilder() = delete;
 
-		SceneBuilder( Buffer& vertex_buffer, Buffer& index_buffer );
+		SceneBuilder( memory::Buffer& vertex_buffer, memory::Buffer& index_buffer );
 
 		void loadScene( const std::filesystem::path path );
 	};

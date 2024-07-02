@@ -6,7 +6,7 @@
 
 #include "engine/assets/TransferManager.hpp"
 
-namespace fgl::engine
+namespace fgl::engine::memory
 {
 
 	//! Returns the offset count from the start of the buffer to the first element

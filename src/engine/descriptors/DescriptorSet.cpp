@@ -11,7 +11,7 @@
 #include "engine/image/ImageView.hpp"
 #include "engine/texture/Texture.hpp"
 
-namespace fgl::engine
+namespace fgl::engine::descriptors
 {
 
 	DescriptorSet::DescriptorSet( vk::raii::DescriptorSetLayout&& layout ) :
@@ -42,7 +42,7 @@ namespace fgl::engine
 		return *this;
 	}
 
-	void DescriptorSet::bindUniformBuffer( std::uint32_t binding_idx, BufferSuballocation& buffer )
+	void DescriptorSet::bindUniformBuffer( std::uint32_t binding_idx, memory::BufferSuballocation& buffer )
 	{
 		assert( binding_idx < m_infos.size() && "Binding index out of range" );
 

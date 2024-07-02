@@ -6,7 +6,7 @@
 
 #include "engine/concepts/is_valid_pipeline_input.hpp"
 
-namespace fgl::engine
+namespace fgl::engine::descriptors
 {
 
 	template < is_valid_pipeline_input CurrentSet, is_valid_pipeline_input... Sets >

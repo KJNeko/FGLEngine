@@ -11,8 +11,8 @@ namespace fgl::engine
 		const std::vector< Vertex >&& verts,
 		const PrimitiveMode mode,
 		const std::vector< std::uint32_t >&& indicies,
-		Buffer& vertex_buffer,
-		Buffer& index_buffer )
+		memory::Buffer& vertex_buffer,
+		memory::Buffer& index_buffer )
 	{
 		const auto bounds { generateBoundingFromVerts( verts ) };
 		VertexBufferSuballocation vertex_buffer_suballoc { vertex_buffer, std::move( verts ) };

@@ -19,6 +19,11 @@
 
 namespace fgl::engine
 {
+	class Device;
+}
+
+namespace fgl::engine::memory
+{
 
 	class BufferHandle;
 	class BufferSuballocation;
@@ -26,8 +31,6 @@ namespace fgl::engine
 
 	//TODO: Dynamic/onDemand resizing of Buffer for suballocations
 	//TODO: Defragmentation
-
-	class Device;
 
 	class BufferHandle
 	{
@@ -170,4 +173,4 @@ namespace fgl::engine
 		void setDebugName( const std::string str );
 	};
 
-} // namespace fgl::engine
+} // namespace fgl::engine::memory

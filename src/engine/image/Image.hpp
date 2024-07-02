@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <vulkan/vulkan_core.h>
-
 #include <memory>
 
 #include "engine/image/ImageHandle.hpp"
@@ -13,6 +11,11 @@
 
 namespace fgl::engine
 {
+	namespace memory
+	{
+		class TransferManager;
+	}
+
 	class ImageView;
 
 	class Image
@@ -20,7 +23,7 @@ namespace fgl::engine
 		std::shared_ptr< ImageHandle > m_handle;
 		std::weak_ptr< ImageView > view {};
 
-		friend class TransferManager;
+		friend class memory::TransferManager;
 
 	  public:
 

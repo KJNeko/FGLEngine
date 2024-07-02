@@ -16,9 +16,19 @@ namespace fgl::engine
 {
 	class Sampler;
 	class Image;
-	class BufferSuballocation;
+
+	namespace memory
+	{
+		class BufferSuballocation;
+	}
+
 	class ImageView;
-	class DescriptorSet;
+
+	namespace descriptors
+	{
+		class DescriptorSet;
+	}
+
 	class TextureHandle;
 
 	using TextureID = std::uint32_t;
@@ -99,7 +109,7 @@ namespace fgl::engine
 		void drawImGui( vk::Extent2D extent = {} );
 		bool drawImGuiButton( vk::Extent2D extent = {} );
 
-		static DescriptorSet& getTextureDescriptorSet();
+		static descriptors::DescriptorSet& getTextureDescriptorSet();
 	};
 
 } // namespace fgl::engine

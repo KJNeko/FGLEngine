@@ -68,10 +68,7 @@ namespace fgl::engine
 		PrimitiveTextures m_textures {};
 
 		//! Returns true if the primitive is ready to be rendered (must have all textures, vertex buffer, and index buffer ready)
-		bool ready() const
-		{
-			return m_textures.ready() && m_vertex_buffer.ready() && m_index_buffer.ready();
-		}
+		bool ready() const { return m_textures.ready() && m_vertex_buffer.ready() && m_index_buffer.ready(); }
 
 		Primitive(
 			VertexBufferSuballocation&& vertex_buffer,
@@ -105,8 +102,8 @@ namespace fgl::engine
 			const std::vector< Vertex >&& verts,
 			const PrimitiveMode mode,
 			const std::vector< std::uint32_t >&& indicies,
-			Buffer& vertex_buffer,
-			Buffer& index_buffer );
+			memory::Buffer& vertex_buffer,
+			memory::Buffer& index_buffer );
 
 		TextureID getAlbedoTextureID() const;
 	};

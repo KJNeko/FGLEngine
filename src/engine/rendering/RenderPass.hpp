@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <unordered_map>
-
 #include "Subpass.hpp"
 #include "engine/image/ImageView.hpp"
 
@@ -31,8 +29,6 @@ namespace fgl::engine
 
 			return views;
 		}
-
-		~RenderPassResources() { std::cout << "Cleaing resources" << std::endl; }
 	};
 
 	class RenderPass

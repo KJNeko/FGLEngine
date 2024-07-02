@@ -8,7 +8,7 @@
 #include "BufferSuballocation.hpp"
 #include "engine/logging/logging.hpp"
 
-namespace fgl::engine
+namespace fgl::engine::memory
 {
 	vk::Buffer BufferSuballocationHandle::getBuffer()
 	{

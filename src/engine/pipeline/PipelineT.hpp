@@ -105,7 +105,8 @@ namespace fgl::engine
 
 	  public:
 
-		void bindDescriptor( vk::raii::CommandBuffer& cmd_buffer, std::uint16_t set_idx, DescriptorSet& descriptor )
+		void bindDescriptor(
+			vk::raii::CommandBuffer& cmd_buffer, std::uint16_t set_idx, descriptors::DescriptorSet& descriptor )
 		{
 			const std::vector< vk::DescriptorSet > sets { *descriptor };
 			const std::vector< std::uint32_t > offsets {};

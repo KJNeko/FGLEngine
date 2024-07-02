@@ -23,14 +23,14 @@ namespace fgl::engine
 		using TessEShader = TesselationEvaluationShaderT< "shaders/terrain/terrain.tese.spv" >;
 
 		using Shaders = ShaderCollection< VertexShader, FragmentShader, TessCShader, TessEShader >;
-		using DescriptorSets = DescriptorSetCollection< GlobalDescriptorSet, TextureDescriptorSet >;
+		using DescriptorSets = descriptors::DescriptorSetCollection< GlobalDescriptorSet, TextureDescriptorSet >;
 
 		using Pipeline = PipelineT< Shaders, DescriptorSets >;
 
 		std::unique_ptr< Pipeline > m_pipeline { nullptr };
 
-		std::unique_ptr< Buffer > m_vertex_buffer { nullptr };
-		std::unique_ptr< Buffer > m_index_buffer { nullptr };
+		std::unique_ptr< memory::Buffer > m_vertex_buffer { nullptr };
+		std::unique_ptr< memory::Buffer > m_index_buffer { nullptr };
 
 		using DrawParameterBufferSuballocation = HostVector< vk::DrawIndexedIndirectCommand >;
 
@@ -46,7 +46,7 @@ namespace fgl::engine
 
 		void initVertexBuffer( std::uint32_t size )
 		{
-			m_vertex_buffer = std::make_unique< Buffer >(
+			m_vertex_buffer = std::make_unique< memory::Buffer >(
 				size,
 				vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst,
 				vk::MemoryPropertyFlagBits::eDeviceLocal );
@@ -54,7 +54,7 @@ namespace fgl::engine
 
 		void initIndexBuffer( std::uint32_t size )
 		{
-			m_index_buffer = std::make_unique< Buffer >(
+			m_index_buffer = std::make_unique< memory::Buffer >(
 				size,
 				vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
 				vk::MemoryPropertyFlagBits::eDeviceLocal );
@@ -62,9 +62,9 @@ namespace fgl::engine
 
 	  public:
 
-		inline Buffer& getVertexBuffer() { return *m_vertex_buffer; }
+		inline memory::Buffer& getVertexBuffer() { return *m_vertex_buffer; }
 
-		inline Buffer& getIndexBuffer() { return *m_index_buffer; }
+		inline memory::Buffer& getIndexBuffer() { return *m_index_buffer; }
 
 		TerrainSystem( Device& device, vk::raii::RenderPass& render_pass );
 		~TerrainSystem() = default;

@@ -6,7 +6,7 @@
 
 #include "is_buffer.hpp"
 
-namespace fgl::engine
+namespace fgl::engine::memory
 {
 
 	template < typename T >
@@ -29,4 +29,4 @@ namespace fgl::engine
 			t.descriptorInfo()
 		} -> std::same_as< vk::DescriptorBufferInfo >;
 	};
-}
+} // namespace fgl::engine::memory

@@ -8,7 +8,7 @@
 #include "engine/concepts/is_suballocation.hpp"
 #include "engine/rendering/Device.hpp"
 
-namespace fgl::engine
+namespace fgl::engine::memory
 {
 	class Buffer;
 	class BufferHandle;
@@ -65,32 +65,7 @@ namespace fgl::engine
 		~BufferSuballocation() = default;
 	};
 
-	//! Single element allocation of T
-	template < typename T >
-	struct HostSingleT final : public BufferSuballocation
-	{
-		friend class TransferData;
 
-		using value_type = T;
-
-		HostSingleT() = delete;
-		HostSingleT( const HostSingleT& ) = delete;
-		HostSingleT( HostSingleT&& ) = delete;
-		HostSingleT& operator=( const HostSingleT& ) = delete;
-
-		HostSingleT( Buffer& buffer ) : BufferSuballocation( buffer.suballocate( sizeof( T ), alignof( T ) ) ) {}
-
-		HostSingleT& operator=( T& t )
-		{
-			*static_cast< T* >( this->ptr() ) = t;
-
-			flush();
-
-			return *this;
-		}
-
-		void flush() { BufferSuballocation::flush( 0, this->m_byte_size ); }
-	};
 
 	template < typename T >
 	concept is_typed_suballocation = requires( T t ) {

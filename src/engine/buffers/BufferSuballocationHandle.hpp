@@ -11,7 +11,7 @@ namespace vk::raii
 	class CommandBuffer;
 }
 
-namespace fgl::engine
+namespace fgl::engine::memory
 {
 	class Buffer;
 
@@ -54,4 +54,4 @@ namespace fgl::engine
 		vk::DeviceSize getOffset() const { return m_offset; }
 	};
 
-} // namespace fgl::engine
+} // namespace fgl::engine::memory

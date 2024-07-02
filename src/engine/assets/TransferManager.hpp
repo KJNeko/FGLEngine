@@ -19,12 +19,17 @@
 
 namespace fgl::engine
 {
-	class BufferVector;
 	class Texture;
 	class ImageHandle;
+	class Image;
+} // namespace fgl::engine
+
+namespace fgl::engine::memory
+{
+	class BufferVector;
+
 	struct BufferSuballocationHandle;
 
-	class Image;
 	class BufferSuballocation;
 
 	//! <Source, Target>
@@ -290,4 +295,4 @@ namespace fgl::engine
 		void submitNow();
 	};
 
-} // namespace fgl::engine
+} // namespace fgl::engine::memory

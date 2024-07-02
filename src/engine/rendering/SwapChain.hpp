@@ -65,15 +65,17 @@ namespace fgl::engine
 		vk::PresentModeKHR chooseSwapPresentMode( const std::vector< vk::PresentModeKHR >& availablePresentModes );
 		vk::Extent2D chooseSwapExtent( const vk::SurfaceCapabilitiesKHR& capabilities );
 
-		std::array< std::unique_ptr< DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT > m_gbuffer_descriptor_set {};
-		std::array< std::unique_ptr< DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
+		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
+			m_gbuffer_descriptor_set {};
+
+		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
 			m_gbuffer_composite_descriptor_set {};
 
 	  public:
 
 		std::vector< vk::ClearValue > getClearValues() const { return m_clear_values; }
 
-		DescriptorSet& getGBufferDescriptor( std::uint16_t frame_idx ) const
+		descriptors::DescriptorSet& getGBufferDescriptor( std::uint16_t frame_idx ) const
 		{
 			assert( frame_idx < SwapChain::MAX_FRAMES_IN_FLIGHT && "Frame index out of range" );
 			assert(
@@ -82,7 +84,7 @@ namespace fgl::engine
 			return *m_gbuffer_descriptor_set[ frame_idx ];
 		}
 
-		fgl::engine::DescriptorSet& getGBufferCompositeDescriptor( uint16_t frame_idx ) const
+		descriptors::DescriptorSet& getGBufferCompositeDescriptor( uint16_t frame_idx ) const
 		{
 			assert( frame_idx < SwapChain::MAX_FRAMES_IN_FLIGHT && "Frame index out of range" );
 

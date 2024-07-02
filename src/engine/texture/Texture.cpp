@@ -127,7 +127,7 @@ namespace fgl::engine
 
 		m_image_view = image->getView();
 
-		TransferManager::getInstance().copyToImage( std::forward< std::vector< std::byte > >( data ), *image );
+		memory::TransferManager::getInstance().copyToImage( std::forward< std::vector< std::byte > >( data ), *image );
 	}
 
 	Texture::Texture( const std::filesystem::path& path, const vk::Format format ) :
@@ -219,9 +219,9 @@ namespace fgl::engine
 		this->getImageView().setName( str );
 	}
 
-	DescriptorSet& Texture::getTextureDescriptorSet()
+	descriptors::DescriptorSet& Texture::getTextureDescriptorSet()
 	{
-		static std::unique_ptr< DescriptorSet > set { nullptr };
+		static std::unique_ptr< descriptors::DescriptorSet > set { nullptr };
 		static std::optional< vk::raii::DescriptorSetLayout > set_layout { std::nullopt };
 
 		if ( set )
@@ -232,7 +232,7 @@ namespace fgl::engine
 
 			if ( !set_layout.has_value() ) throw std::runtime_error( "No set layout made" );
 
-			set = std::make_unique< DescriptorSet >( std::move( set_layout.value() ) );
+			set = std::make_unique< descriptors::DescriptorSet >( std::move( set_layout.value() ) );
 			set->setMaxIDX( 1 );
 			set->setName( "Texture descriptor set" );
 			return *set;

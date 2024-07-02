@@ -8,22 +8,29 @@
 
 #include <variant>
 
-#include "engine/buffers/Buffer.hpp"
 #include "engine/buffers/BufferSuballocation.hpp"
 
 namespace fgl::engine
 {
 
-	class BufferSuballocation;
+	namespace memory
+	{
+		class BufferSuballocation;
+	}
+
 	class Texture;
 	class ImageView;
+} // namespace fgl::engine
+
+namespace fgl::engine::descriptors
+{
 
 	class DescriptorSet
 	{
 		std::vector< std::variant< std::monostate, vk::DescriptorImageInfo, vk::DescriptorBufferInfo > > m_infos {};
 		std::vector< vk::WriteDescriptorSet > descriptor_writes {};
 
-		std::vector< std::variant< std::shared_ptr< ImageView >, std::shared_ptr< BufferSuballocation > > >
+		std::vector< std::variant< std::shared_ptr< ImageView >, std::shared_ptr< memory::BufferSuballocation > > >
 			m_resources {};
 
 		vk::raii::DescriptorSetLayout m_layout;
@@ -60,7 +67,7 @@ namespace fgl::engine
 			vk::ImageLayout layout,
 			vk::raii::Sampler sampler = VK_NULL_HANDLE );
 
-		void bindUniformBuffer( std::uint32_t binding_idx, BufferSuballocation& buffer );
+		void bindUniformBuffer( std::uint32_t binding_idx, memory::BufferSuballocation& buffer );
 
 		void bindAttachment(
 			std::uint32_t binding_idx,
@@ -73,4 +80,4 @@ namespace fgl::engine
 		void setName( const std::string str );
 	};
 
-} // namespace fgl::engine
+} // namespace fgl::engine::descriptors

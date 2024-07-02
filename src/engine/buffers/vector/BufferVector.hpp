@@ -6,8 +6,10 @@
 
 #include "engine/buffers/BufferSuballocation.hpp"
 
-namespace fgl::engine
+namespace fgl::engine::memory
 {
+	class Buffer;
+
 	//! Number of spares to allocate when resizing beyond the current capacity + current spare
 	constexpr std::uint32_t SPARE_ALLOCATION_COUNT { 16 };
 
@@ -30,8 +32,7 @@ namespace fgl::engine
 		  BufferSuballocation( buffer.suballocate( count * stride ) ),
 		  m_count( count ),
 		  m_stride( stride )
-		{
-		}
+		{}
 
 		BufferVector( const BufferVector& ) = delete;
 
@@ -49,4 +50,4 @@ namespace fgl::engine
 		void resize( std::uint32_t count );
 	};
 
-} // namespace fgl::engine
+} // namespace fgl::engine::memory

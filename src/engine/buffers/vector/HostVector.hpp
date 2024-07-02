@@ -18,7 +18,7 @@ namespace fgl::engine
 	 * @tparam Buffer
 	 */
 	template < typename T >
-	class HostVector final : public BufferVector
+	class HostVector final : public memory::BufferVector
 	{
 	  public:
 
@@ -30,9 +30,10 @@ namespace fgl::engine
 		HostVector& operator=( HostVector&& ) = delete;
 		HostVector( HostVector&& other ) = delete;
 
-		HostVector( Buffer& buffer, const std::uint32_t count = 1 ) : BufferVector( buffer, count, sizeof( T ) ) {}
+		HostVector( memory::Buffer& buffer, const std::uint32_t count = 1 ) : BufferVector( buffer, count, sizeof( T ) )
+		{}
 
-		HostVector( Buffer& buffer, const std::vector< T >& vec ) :
+		HostVector( memory::Buffer& buffer, const std::vector< T >& vec ) :
 		  HostVector( buffer, static_cast< std::uint32_t >( vec.size() ) )
 		{
 			if ( this->m_stride == sizeof( T ) )

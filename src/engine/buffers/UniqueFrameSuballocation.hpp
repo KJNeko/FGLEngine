@@ -8,15 +8,15 @@ namespace fgl::engine
 {
 
 	//! Wrapper class to allow for easy per-frame suballocation
-	template < is_suballocation Suballocation >
+	template < memory::is_suballocation Suballocation >
 	class PerFrameSuballocation
 	{
-		Buffer& m_buffer;
+		memory::Buffer& m_buffer;
 		std::vector< std::unique_ptr< Suballocation > > m_suballocations {};
 
 	  public:
 
-		PerFrameSuballocation( Buffer& buffer, const std::uint32_t frames_in_flight ) : m_buffer( buffer )
+		PerFrameSuballocation( memory::Buffer& buffer, const std::uint32_t frames_in_flight ) : m_buffer( buffer )
 		{
 			m_suballocations.reserve( frames_in_flight );
 			for ( std::uint16_t i = 0; i < frames_in_flight; ++i )

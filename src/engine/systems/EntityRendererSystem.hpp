@@ -16,7 +16,12 @@
 namespace fgl::engine
 {
 	class Device;
-	class Buffer;
+
+	namespace memory
+	{
+		class Buffer;
+	}
+
 	struct FrameInfo;
 
 	class EntityRendererSystem

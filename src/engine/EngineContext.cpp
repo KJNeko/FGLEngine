@@ -13,6 +13,7 @@
 
 #include "KeyboardMovementController.hpp"
 #include "assets/stores.hpp"
+#include "buffers/HostSingleT.hpp"
 #include "engine/Average.hpp"
 #include "engine/assets/TransferManager.hpp"
 #include "engine/buffers/UniqueFrameSuballocation.hpp"
@@ -33,7 +34,7 @@ namespace fgl::engine
 		ZoneScoped;
 		using namespace fgl::literals::size_literals;
 
-		TransferManager::createInstance( device, 512_MiB );
+		memory::TransferManager::createInstance( device, 512_MiB );
 
 #if ENABLE_IMGUI
 		initImGui();
@@ -48,9 +49,9 @@ namespace fgl::engine
 		TracyCZoneN( TRACY_PrepareEngine, "Inital Run", true );
 		std::cout << "Starting main loop run" << std::endl;
 		using namespace fgl::literals::size_literals;
-		Buffer global_ubo_buffer { 512_KiB,
-			                       vk::BufferUsageFlagBits::eUniformBuffer,
-			                       vk::MemoryPropertyFlagBits::eHostVisible }; // 512 KB
+		memory::Buffer global_ubo_buffer { 512_KiB,
+			                               vk::BufferUsageFlagBits::eUniformBuffer,
+			                               vk::MemoryPropertyFlagBits::eHostVisible }; // 512 KB
 
 		PerFrameSuballocation< HostSingleT< CameraInfo > > camera_info { global_ubo_buffer,
 			                                                             SwapChain::MAX_FRAMES_IN_FLIGHT };
@@ -65,11 +66,11 @@ namespace fgl::engine
 		constexpr std::uint32_t matrix_default_size { 64_MiB };
 		constexpr std::uint32_t draw_parameter_default_size { 64_MiB };
 
-		std::vector< Buffer > matrix_info_buffers {};
+		std::vector< memory::Buffer > matrix_info_buffers {};
 
-		std::vector< Buffer > draw_parameter_buffers {};
+		std::vector< memory::Buffer > draw_parameter_buffers {};
 
-		std::vector< DescriptorSet > global_descriptor_sets {};
+		std::vector< descriptors::DescriptorSet > global_descriptor_sets {};
 
 		for ( int i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
 		{
@@ -117,7 +118,7 @@ namespace fgl::engine
 
 		while ( !m_window.shouldClose() )
 		{
-			TransferManager::getInstance().submitNow();
+			memory::TransferManager::getInstance().submitNow();
 
 			ZoneScopedN( "Poll" );
 			glfwPollEvents();
@@ -185,7 +186,7 @@ namespace fgl::engine
 				m_culling_system.startPass( frame_info );
 				TracyVkCollect( frame_info.tracy_ctx, *command_buffer );
 
-				TransferManager::getInstance().recordOwnershipTransferDst( command_buffer );
+				memory::TransferManager::getInstance().recordOwnershipTransferDst( command_buffer );
 
 				m_culling_system.wait();
 
@@ -203,7 +204,7 @@ namespace fgl::engine
 
 				m_renderer.endFrame();
 
-				TransferManager::getInstance().dump();
+				memory::TransferManager::getInstance().dump();
 
 				FrameMark;
 			}
