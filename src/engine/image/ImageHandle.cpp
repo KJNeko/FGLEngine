@@ -7,8 +7,10 @@
 namespace fgl::engine
 {
 
+	//! Creates an image handle from a pre-existing vk::Image object
 	ImageHandle::ImageHandle(
-		const vk::Extent2D extent, const vk::Format format, vk::Image image, vk::ImageUsageFlags usage ) noexcept :
+		const vk::Extent2D extent, const vk::Format format, vk::Image image, const vk::ImageUsageFlags usage ) noexcept
+	  :
 	  m_extent( extent ),
 	  m_format( format ),
 	  m_usage( usage ),
@@ -18,8 +20,12 @@ namespace fgl::engine
 		assert( std::get< vk::Image >( m_image ) != VK_NULL_HANDLE );
 	}
 
+	//! Creates an image using the Device
 	vk::raii::Image createImage(
-		const vk::Extent2D extent, const vk::Format format, vk::ImageLayout inital_layout, vk::ImageUsageFlags usage )
+		const vk::Extent2D extent,
+		const vk::Format format,
+		const vk::ImageLayout inital_layout,
+		const vk::ImageUsageFlags usage )
 	{
 		vk::ImageCreateInfo image_info {};
 
@@ -43,12 +49,13 @@ namespace fgl::engine
 		return Device::getInstance()->createImage( image_info );
 	}
 
+	//! Constructs a new image allocated from memory.
 	ImageHandle::ImageHandle(
 		const vk::Extent2D extent,
 		const vk::Format format,
-		vk::ImageUsageFlags usage,
-		vk::ImageLayout inital_layout,
-		vk::ImageLayout final_layout ) :
+		const vk::ImageUsageFlags usage,
+		const vk::ImageLayout inital_layout,
+		const vk::ImageLayout final_layout ) :
 	  m_extent( extent ),
 	  m_format( format ),
 	  m_usage( usage ),

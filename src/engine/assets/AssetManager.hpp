@@ -28,10 +28,7 @@ namespace fgl::engine
 		virtual ~AssetInterface() = default;
 	};
 
-	//! Concept for ensuring that the args given can extract a key
-	/**
-	 * @anchor CanExtractKeyAnchor
-	 */
+	//! Concept for ensuring that the args given can extract a key for use in @ref AssetStore AssetStore<T>
 	template < typename T, typename... TArgs >
 	concept can_extract_key = requires( TArgs&&... args ) {
 		{
@@ -72,7 +69,7 @@ namespace fgl::engine
 		std::shared_ptr< T > load( T_Args&&... args )
 		{
 			ZoneScoped;
-			const auto key { T::extractKey( args... ) };
+			const auto key { T::extractKey( std::forward< T_Args >( args )... ) };
 
 			std::lock_guard guard { map_mtx };
 

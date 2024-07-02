@@ -41,17 +41,16 @@ namespace fgl::engine
 
 		FGL_DELETE_ALL_Ro5( ImageHandle );
 
-		ImageHandle(
-			const vk::Extent2D extent, const vk::Format format, vk::Image image, vk::ImageUsageFlags usage ) noexcept;
+		ImageHandle( vk::Extent2D extent, vk::Format format, vk::Image image, vk::ImageUsageFlags usage ) noexcept;
 
 		ImageHandle(
-			const vk::Extent2D extent,
-			const vk::Format format,
+			vk::Extent2D extent,
+			vk::Format format,
 			vk::ImageUsageFlags usage,
 			vk::ImageLayout inital_layout,
 			vk::ImageLayout final_layout );
 
-		void setName( const std::string str );
+		void setName( std::string str );
 
 		VkImage operator*()
 		{
@@ -60,8 +59,8 @@ namespace fgl::engine
 			{
 				return *std::get< vk::raii::Image >( m_image );
 			}
-			else
-				return std::get< vk::Image >( m_image );
+
+			return std::get< vk::Image >( m_image );
 		}
 
 		VkImage getVkImage() { return **this; }
