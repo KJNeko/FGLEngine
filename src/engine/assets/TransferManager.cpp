@@ -233,9 +233,6 @@ namespace fgl::engine
 		copy_regions.clear();
 	}
 
-	void TransferManager::prepareStaging()
-	{}
-
 	void TransferManager::createInstance( Device& device, std::uint64_t buffer_size )
 	{
 		log::info(
@@ -250,7 +247,7 @@ namespace fgl::engine
 		return *global_transfer_manager;
 	}
 
-	void TransferManager::copyToBuffer( BufferVector& source, BufferVector& target )
+	void TransferManager::copyToVector( BufferVector& source, BufferVector& target )
 	{
 		TransferData transfer_data { source.getHandle(), target.getHandle() };
 

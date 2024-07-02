@@ -89,14 +89,16 @@ namespace fgl::engine
 			extent = getExtent();
 		}
 
-		const ImVec2 imgui_size { static_cast< float >( extent.width ), static_cast< float >( extent.height ) };
-
 		if ( !ready() )
 		{
 			//TODO: Render placeholder
 			log::warn( "Attempted to render texture {} but texture was not ready!", this->m_texture_id );
 			return ImGui::Button( "No texture :(" );
 		}
+
+		assert( *m_image_view->getSampler() != VK_NULL_HANDLE );
+
+		const ImVec2 imgui_size { static_cast< float >( extent.width ), static_cast< float >( extent.height ) };
 
 		return ImGui::ImageButton( static_cast< ImTextureID >( getImGuiDescriptorSet() ), imgui_size );
 	}
@@ -130,19 +132,18 @@ namespace fgl::engine
 
 	Texture::Texture( const std::filesystem::path& path, const vk::Format format ) :
 	  Texture( loadTexture( path, format ) )
-	{}
+	{
+		setName( path.filename() );
+	}
 
 	Texture::Texture( const std::filesystem::path& path ) : Texture( loadTexture( path ) )
-	{}
+	{
+		setName( path.filename() );
+	}
 
 	Texture::~Texture()
 	{
-		//TODO: Implement deffered destruction
 		if ( m_imgui_set != VK_NULL_HANDLE ) ImGui_ImplVulkan_RemoveTexture( m_imgui_set );
-		if ( m_image_view.use_count() == 1 )
-		{
-			log::info( "Destroying texture {}", getID() );
-		}
 	}
 
 	vk::DescriptorImageInfo Texture::getDescriptor() const
@@ -204,12 +205,18 @@ namespace fgl::engine
 
 	bool Texture::ready() const
 	{
+		assert( m_image_view );
 		return this->m_image_view->ready();
 	}
 
 	TextureID Texture::getID() const
 	{
 		return m_texture_id;
+	}
+
+	void Texture::setName( const std::string& str )
+	{
+		this->getImageView().setName( str );
 	}
 
 	DescriptorSet& Texture::getTextureDescriptorSet()

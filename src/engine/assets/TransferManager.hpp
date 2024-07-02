@@ -27,7 +27,7 @@ namespace fgl::engine
 	class Image;
 	class BufferSuballocation;
 
-	// <Source,Target>
+	//! <Source, Target>
 	using CopyRegionKey = std::pair< vk::Buffer, vk::Buffer >;
 
 	struct BufferHasher
@@ -53,8 +53,10 @@ namespace fgl::engine
 
 	using CopyRegionMap = std::unordered_map< CopyRegionKey, std::vector< vk::BufferCopy >, CopyRegionKeyHasher >;
 
+	//! Data store for staging operations
 	class TransferData
 	{
+		//! Type of transfer this data represents
 		enum TransferType
 		{
 			IMAGE_FROM_RAW,
@@ -70,12 +72,21 @@ namespace fgl::engine
 		using SourceData = std::variant< RawData, TransferBufferHandle, TransferImageHandle >;
 		using TargetData = std::variant< TransferBufferHandle, TransferImageHandle >;
 
+		//! Source data. Data type depends on m_type
 		SourceData m_source;
+
+		//! Target data. Data type depends on m_type
 		TargetData m_target;
+
+		//! Performs copy of raw data to the staging buffer
+		bool convertRawToBuffer( Buffer& staging_buffer );
 
 		bool performImageStage(
 			vk::raii::CommandBuffer& cmd_buffer, std::uint32_t transfer_idx, std::uint32_t graphics_idx );
 
+		//! Same as @ref performImageStage Performs extra step of copying data to a staging buffer
+		/** @note After calling this function m_type will be `IMAGE_FROM_BUFFER`
+		 */
 		bool performRawImageStage(
 			vk::raii::CommandBuffer& buffer,
 			Buffer& staging_buffer,
@@ -84,9 +95,10 @@ namespace fgl::engine
 
 		bool performBufferStage( CopyRegionMap& copy_regions );
 
+		//! Same as @ref performBufferStage Performs extra step of copying data to a staging buffer
+		/** @note After calling this function m_type will be `BUFFER_FROM_BUFFER`
+		 */
 		bool performRawBufferStage( Buffer& staging_buffer, CopyRegionMap& copy_regions );
-
-		bool convertRawToBuffer( Buffer& );
 
 		friend class TransferManager;
 
@@ -100,6 +112,7 @@ namespace fgl::engine
 		TransferData( TransferData&& other ) = default;
 		TransferData& operator=( TransferData&& ) = default;
 
+		//! BUFFER_FROM_BUFFER
 		TransferData(
 			const std::shared_ptr< BufferSuballocationHandle >& source,
 			const std::shared_ptr< BufferSuballocationHandle >& target ) :
@@ -113,6 +126,7 @@ namespace fgl::engine
 			markBad();
 		}
 
+		//! BUFFER_FROM_RAW
 		TransferData( std::vector< std::byte >&& source, const std::shared_ptr< BufferSuballocationHandle >& target ) :
 		  m_type( BUFFER_FROM_RAW ),
 		  m_source( std::forward< std::vector< std::byte > >( source ) ),
@@ -125,6 +139,7 @@ namespace fgl::engine
 			markBad();
 		}
 
+		//! IMAGE_FROM_BUFFER
 		TransferData(
 			const std::shared_ptr< BufferSuballocationHandle >& source, const std::shared_ptr< ImageHandle >& target ) :
 		  m_type( IMAGE_FROM_BUFFER ),
@@ -137,6 +152,7 @@ namespace fgl::engine
 			markBad();
 		}
 
+		//! IMAGE_FROM_RAW
 		TransferData( std::vector< std::byte >&& source, const std::shared_ptr< ImageHandle >& target ) :
 		  m_type( IMAGE_FROM_RAW ),
 		  m_source( std::forward< std::vector< std::byte > >( source ) ),
@@ -163,14 +179,15 @@ namespace fgl::engine
 		void markGood();
 	};
 
+	//! Manages transfers from HOST (CPU) to DEVICE (GPU)
 	class TransferManager
 	{
 		//TODO: Ring Buffer
+		//! Queue of data needing to be transfered and submitted.
 		std::queue< TransferData > queue {};
 
+		//! Data actively in flight (Submitted to the DEVICE transfer queue)
 		std::vector< TransferData > processing {};
-
-		// std::thread transfer_thread;
 
 		//! Buffer used for any raw -> buffer transfers
 		std::unique_ptr< Buffer > staging_buffer {};
@@ -215,15 +232,14 @@ namespace fgl::engine
 
 		vk::raii::Semaphore& getFinishedSem() { return transfer_semaphore; }
 
+		//! Takes ownership of memory regions from the graphics queue via memory barriers.
 		void takeOwnership( vk::raii::CommandBuffer& buffer );
+
 		//! Records the barriers required for transfering queue ownership
 		void recordOwnershipTransferDst( vk::raii::CommandBuffer& command_buffer );
 
 		//! Drops the processed items
 		void dump();
-
-		//! Prepares the staging buffer. Filling it as much as possible
-		void prepareStaging();
 
 		static void createInstance( Device& device, std::uint64_t buffer_size );
 		static TransferManager& getInstance();
@@ -232,6 +248,7 @@ namespace fgl::engine
 
 		FGL_DELETE_ALL_Ro5( TransferManager );
 
+		//! Resizes the staging buffer.
 		void resizeBuffer( const std::uint64_t size )
 		{
 			staging_buffer = std::make_unique< Buffer >(
@@ -240,20 +257,21 @@ namespace fgl::engine
 				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent );
 		}
 
-		//! Queues an buffer to be transfered
-		template < typename BufferT >
-			requires is_device_vector< BufferT >
-		void copyToBuffer( std::vector< std::byte >&& data, BufferT& buffer )
+		//! Queues a buffer to be transfered
+		template < typename DeviceVectorT >
+			requires is_device_vector< DeviceVectorT >
+		void copyToVector( std::vector< std::byte >&& data, DeviceVectorT& device_vector )
 		{
 			assert( data.size() > 0 );
-			TransferData transfer_data { std::forward< std::vector< std::byte > >( data ), buffer.m_handle };
+			TransferData transfer_data { std::forward< std::vector< std::byte > >( data ), device_vector.m_handle };
 
 			queue.emplace( std::move( transfer_data ) );
 		}
 
-		template < typename T, typename BufferT >
-			requires is_device_vector< BufferT >
-		void copyToBuffer( const std::vector< T >& data, BufferT& buffer )
+		//! Queues a data copy from a STL vector to a device vector
+		template < typename T, typename DeviceVectorT >
+			requires is_device_vector< DeviceVectorT >
+		void copyToVector( const std::vector< T >& data, DeviceVectorT& device_vector )
 		{
 			assert( data.size() > 0 );
 			std::vector< std::byte > punned_data {};
@@ -261,10 +279,10 @@ namespace fgl::engine
 
 			std::memcpy( punned_data.data(), data.data(), sizeof( T ) * data.size() );
 
-			copyToBuffer( std::move( punned_data ), buffer );
+			copyToVector( std::move( punned_data ), device_vector );
 		}
 
-		void copyToBuffer( BufferVector& source, BufferVector& target );
+		void copyToVector( BufferVector& source, BufferVector& target );
 
 		void copyToImage( std::vector< std::byte >&& data, Image& image );
 

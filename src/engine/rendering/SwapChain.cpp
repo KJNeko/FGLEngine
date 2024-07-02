@@ -197,8 +197,6 @@ namespace fgl::engine
 			auto& image { m_swap_chain_images[ i ] };
 
 			image.setName( "SwapChainImage: " + std::to_string( i ) );
-
-			auto texture { std::make_unique< Texture >( image ) };
 		}
 
 		colorAttachment.linkImages( m_swap_chain_images );

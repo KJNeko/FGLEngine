@@ -62,7 +62,7 @@ namespace fgl::engine
 		return m_resource->extent();
 	}
 
-	void ImageView::setName( const std::string str )
+	void ImageView::setName( const std::string& str )
 	{
 		m_resource->setName( str );
 	}

@@ -5,9 +5,7 @@
 #include "GuiSystem.hpp"
 
 #include "engine/FrameInfo.hpp"
-#include "engine/debug_defines.hpp"
 #include "engine/gui/core.hpp"
-#include "engine/rendering/Device.hpp"
 
 namespace fgl::engine
 {

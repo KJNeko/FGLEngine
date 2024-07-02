@@ -8,16 +8,18 @@
 #include <vulkan/vulkan_raii.hpp>
 
 #include "engine/FGL_DEFINES.hpp"
+#include "engine/logging/logging.hpp"
 
 namespace fgl::engine
 {
 
 	class Sampler
 	{
-		bool valid;
-		vk::raii::Sampler m_sampler;
+		vk::raii::Sampler m_sampler { VK_NULL_HANDLE };
 
 	  public:
+
+		FGL_DELETE_COPY( Sampler )
 
 		Sampler() :
 		  Sampler(
@@ -56,12 +58,17 @@ namespace fgl::engine
 
 		VkSampler operator*() { return *m_sampler; }
 
-		Sampler( const Sampler& ) = delete;
-		Sampler& operator=( const Sampler& ) = delete;
 		Sampler( Sampler&& other );
 		Sampler& operator=( Sampler&& );
 
+		~Sampler()
+		{
+			if ( *m_sampler != VK_NULL_HANDLE ) log::debug( "Sampler destroyed" );
+		}
+
 		vk::raii::Sampler& getVkSampler() { return m_sampler; }
+
+		void setName( const std::string str );
 	};
 
 } // namespace fgl::engine

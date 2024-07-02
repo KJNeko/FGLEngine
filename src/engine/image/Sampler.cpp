@@ -45,7 +45,6 @@ namespace fgl::engine
 		const vk::SamplerAddressMode sampler_wrap_u,
 		const vk::SamplerAddressMode sampler_wrap_v,
 		const vk::SamplerAddressMode sampler_wrap_w ) :
-	  valid( true ),
 	  m_sampler( createSampler( mag_filter, min_filter, mipmap_mode, sampler_wrap_u, sampler_wrap_v, sampler_wrap_w ) )
 	{}
 
@@ -105,17 +104,26 @@ namespace fgl::engine
 		  gl::wrappingToVk( wrapt ) )
 	{}
 
-	Sampler::Sampler( Sampler&& other ) : valid( other.valid ), m_sampler( std::move( other.m_sampler ) )
+	Sampler::Sampler( Sampler&& other ) : m_sampler( std::move( other.m_sampler ) )
 	{
-		other.valid = false;
+		other.m_sampler = VK_NULL_HANDLE;
 	}
 
 	Sampler& Sampler::operator=( Sampler&& other )
 	{
-		this->valid = other.valid;
-		other.valid = false;
-		if ( valid ) m_sampler = std::move( other.m_sampler );
+		m_sampler = std::move( other.m_sampler );
+		other.m_sampler = VK_NULL_HANDLE;
 		return *this;
+	}
+
+	void Sampler::setName( const std::string str )
+	{
+		vk::DebugUtilsObjectNameInfoEXT info {};
+		info.objectType = vk::ObjectType::eSampler;
+		info.pObjectName = str.c_str();
+		info.setObjectHandle( reinterpret_cast< std::uint64_t >( static_cast< VkSampler >( *m_sampler ) ) );
+
+		Device::getInstance().setDebugUtilsObjectName( info );
 	}
 
 } // namespace fgl::engine

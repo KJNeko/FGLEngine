@@ -24,7 +24,7 @@ namespace fgl::engine
 
 	  public:
 
-		void setName( const std::string str );
+		void setName( const std::string& str );
 
 		//! Returns true if the resource has been staged
 		bool ready();

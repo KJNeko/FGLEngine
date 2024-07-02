@@ -10,8 +10,6 @@
 #pragma GCC diagnostic ignored "-Wconversion"
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
-#include <imgui/misc/cpp/imgui_stdlib.h>
-
 #include <imgui.h>
 #pragma GCC diagnostic pop
 

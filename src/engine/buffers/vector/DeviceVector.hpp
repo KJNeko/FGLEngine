@@ -32,7 +32,7 @@ namespace fgl::engine
 		DeviceVector( Buffer& buffer, const std::vector< T >& data ) :
 		  DeviceVector( buffer, static_cast< std::uint32_t >( data.size() ) )
 		{
-			TransferManager::getInstance().copyToBuffer( data, *this );
+			TransferManager::getInstance().copyToVector( data, *this );
 		}
 	};
 
