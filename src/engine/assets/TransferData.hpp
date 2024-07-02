@@ -23,13 +23,16 @@ namespace fgl::engine
 	class Texture;
 	class ImageHandle;
 	class Image;
+
+	namespace memory
+	{
+		struct BufferSuballocationHandle;
+		class Buffer;
+	} // namespace memory
 } // namespace fgl::engine
 
 namespace fgl::engine::memory
 {
-	struct BufferSuballocationHandle;
-	class Buffer;
-
 	//! <Source, Target>
 	using CopyRegionKey = std::pair< vk::Buffer, vk::Buffer >;
 
