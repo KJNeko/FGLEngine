@@ -5,9 +5,16 @@
 #include "BufferVector.hpp"
 
 #include "engine/assets/TransferManager.hpp"
+#include "engine/buffers/Buffer.hpp"
 
 namespace fgl::engine::memory
 {
+
+	[[nodiscard]] BufferVector::BufferVector( Buffer& buffer, std::uint32_t count, std::uint32_t stride ) :
+	  BufferSuballocation( buffer.suballocate( count * stride ) ),
+	  m_count( count ),
+	  m_stride( stride )
+	{}
 
 	//! Returns the offset count from the start of the buffer to the first element
 	[[nodiscard]] std::uint32_t BufferVector::getOffsetCount() const
@@ -51,4 +58,4 @@ namespace fgl::engine::memory
 		*this = std::move( other );
 	}
 
-} // namespace fgl::engine
+} // namespace fgl::engine::memory

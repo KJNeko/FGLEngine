@@ -102,9 +102,9 @@ namespace fgl::engine
 			return std::atan2( siny_cosp, cosy_cosp );
 		}
 
-		Rotation& operator=( const Rotation other );
+		Rotation& operator=( const Rotation& rotation );
 
-		Rotation& operator+=( const Rotation vec );
+		Rotation& operator+=( const Rotation& rotation );
 
 		NormalVector forward() const;
 

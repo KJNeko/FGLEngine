@@ -39,7 +39,7 @@ namespace fgl::engine::filesystem
 		current = std::make_unique< DirInfo >( test_path );
 	}
 
-	void FileBrowser::drawGui( FrameInfo& info )
+	void FileBrowser::drawGui( [[maybe_unused]] FrameInfo& info )
 	{
 		ZoneScoped;
 		std::call_once( flag, prepareFileGUI );
@@ -166,7 +166,7 @@ namespace fgl::engine::filesystem
 		}
 	}
 
-	void drawBinary( const FileInfo& info )
+	void drawBinary( [[maybe_unused]] const FileInfo& info )
 	{
 		// file_texture->drawImGui( { 128, 128 } );
 		file_texture->drawImGuiButton( { desired_size, desired_size } );
@@ -242,15 +242,15 @@ namespace fgl::engine::filesystem
 		current = current->up();
 	}
 
-	void FileBrowser::openFolder( DirInfo dir )
+	void FileBrowser::openFolder( const DirInfo& dir )
 	{
 		file_textures.clear();
 		current = std::make_unique< DirInfo >( dir.path );
 	}
 
-	void FileBrowser::drawUp( const std::unique_ptr< DirInfo >& data )
+	void FileBrowser::drawUp( const std::unique_ptr< DirInfo >& current_dir )
 	{
-		auto up { data->up() };
+		auto up { current_dir->up() };
 
 		ImGui::PushID( up->path.c_str() );
 

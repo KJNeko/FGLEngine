@@ -9,7 +9,6 @@
 #include "engine/FGL_DEFINES.hpp"
 #include "engine/constants.hpp"
 #include "engine/primitives/CoordinateSpace.hpp"
-#include "engine/primitives/points/concepts.hpp"
 
 namespace fgl::engine
 {
@@ -33,11 +32,6 @@ namespace fgl::engine
 		constexpr explicit Vector( const float value ) : glm::vec3( value ) {}
 
 		constexpr explicit Vector( const glm::vec3 i_vec ) : glm::vec3( i_vec ) {}
-
-		template < typename T >
-			requires is_coordinate< T >
-		explicit Vector( const T coord ) : glm::vec3( coord.vec() )
-		{}
 
 		explicit Vector( const NormalVector normal_vector );
 

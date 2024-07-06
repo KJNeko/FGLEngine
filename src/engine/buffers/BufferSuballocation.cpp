@@ -13,7 +13,7 @@
 namespace fgl::engine::memory
 {
 
-	BufferSuballocation& BufferSuballocation::operator=( BufferSuballocation&& other )
+	BufferSuballocation& BufferSuballocation::operator=( BufferSuballocation&& other ) noexcept
 	{
 		m_handle = std::move( other.m_handle );
 
@@ -34,7 +34,7 @@ namespace fgl::engine::memory
 	  m_byte_size( m_handle->m_size )
 	{}
 
-	BufferSuballocation::BufferSuballocation( BufferSuballocation&& other ) :
+	BufferSuballocation::BufferSuballocation( BufferSuballocation&& other ) noexcept :
 	  m_handle( std::move( other.m_handle ) ),
 	  m_offset( m_handle->m_offset ),
 	  m_byte_size( m_handle->m_size )

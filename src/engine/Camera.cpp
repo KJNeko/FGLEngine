@@ -93,8 +93,8 @@ namespace fgl::engine
 		const ModelCoordinate far_forward { constants::WORLD_FORWARD * far };
 		const ModelCoordinate right_half { constants::WORLD_RIGHT * half_width };
 
-		const Vector right_forward { far_forward + right_half };
-		const Vector left_forward { far_forward - right_half };
+		const Vector right_forward { ( far_forward + right_half ).vec() };
+		const Vector left_forward { ( far_forward - right_half ).vec() };
 
 		const Plane< CoordinateSpace::Model > right_plane {
 			ModelCoordinate( constants::WORLD_CENTER ),
@@ -107,8 +107,8 @@ namespace fgl::engine
 
 		const ModelCoordinate top_half { constants::WORLD_UP * half_height };
 
-		const Vector top_forward { far_forward + top_half };
-		const Vector bottom_forward { far_forward - top_half };
+		const Vector top_forward { ( far_forward + top_half ).vec() };
+		const Vector bottom_forward { ( far_forward - top_half ).vec() };
 
 		const Plane< CoordinateSpace::Model > top_plane {
 			ModelCoordinate( constants::WORLD_CENTER ),
@@ -131,26 +131,16 @@ namespace fgl::engine
 
 	Matrix< MatrixType::ModelToWorld > Camera::frustumTranslationMatrix() const
 	{
-		if ( update_using_alt )
-			return frustum_alt_transform.mat();
-		else [[likely]]
-		{
-			TransformComponent comp {};
-			comp.translation = getPosition();
-			comp.rotation = current_rotation;
+		TransformComponent comp {};
+		comp.translation = getPosition();
+		comp.rotation = current_rotation;
 
-			return comp.mat();
-		}
+		return comp.mat();
 	}
 
 	WorldCoordinate Camera::getFrustumPosition() const
 	{
-		if ( update_using_alt ) [[unlikely]]
-			return frustum_alt_transform.translation;
-		else if ( update_frustums ) [[likely]]
-			return getPosition();
-		else
-			return last_frustum_pos;
+		return last_frustum_pos;
 	}
 
 } // namespace fgl::engine

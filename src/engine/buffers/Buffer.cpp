@@ -214,12 +214,14 @@ namespace fgl::engine::memory
 		if ( aligned_offset != offset )
 		{
 			//Insert the space left over before the block starts back into the free blocks
-			m_free_blocks.emplace_back( std::make_pair( offset, aligned_offset - offset ) );
+			const std::size_t leftover_start_size { aligned_offset - offset };
+
+			m_free_blocks.emplace_back( std::make_pair( offset, leftover_start_size ) );
 
 			mergeFreeBlocks();
 
 			offset = aligned_offset;
-			size -= aligned_offset - offset;
+			size -= leftover_start_size;
 		}
 
 		//Add the suballocation
@@ -263,11 +265,14 @@ namespace fgl::engine::memory
 		auto itter { m_free_blocks.begin() };
 		auto next_block { std::next( itter ) };
 
+		// Search through all free blocks
 		while ( next_block != m_free_blocks.end() && itter != m_free_blocks.end() )
 		{
 			//Is the next block adjacent to the current block?
 			auto& [ offset, size ] = *itter;
 			const auto& [ next_offset, next_size ] = *next_block;
+
+			// Is the next block ajacent to us?
 			const bool is_adjacent { offset + size == next_offset };
 
 			if ( is_adjacent )
@@ -289,8 +294,6 @@ namespace fgl::engine::memory
 				continue;
 			}
 		}
-
-		return;
 	}
 
 	void Buffer::setDebugName( const std::string str )
@@ -357,4 +360,4 @@ namespace fgl::engine::memory
 		assert( m_suballocations.size() == 0 && "Buffer destructed while allocations still present" );
 	}
 
-} // namespace fgl::engine
+} // namespace fgl::engine::memory

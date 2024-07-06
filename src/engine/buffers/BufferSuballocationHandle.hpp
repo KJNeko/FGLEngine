@@ -30,28 +30,28 @@ namespace fgl::engine::memory
 		bool m_staged { false };
 
 		BufferSuballocationHandle() = delete;
-		BufferSuballocationHandle( const BufferSuballocationHandle& ) = delete;
-		BufferSuballocationHandle& operator=( const BufferSuballocationHandle& ) = delete;
-
-		vk::Buffer getBuffer();
-
-		BufferSuballocationHandle( BufferSuballocationHandle&& ) = delete;
-		BufferSuballocationHandle& operator=( BufferSuballocationHandle&& ) = delete;
 
 		BufferSuballocationHandle( Buffer& buffer, vk::DeviceSize memory_size, vk::DeviceSize offset );
 		~BufferSuballocationHandle();
 
+		BufferSuballocationHandle( const BufferSuballocationHandle& ) = delete;
+		BufferSuballocationHandle& operator=( const BufferSuballocationHandle& ) = delete;
+
+		BufferSuballocationHandle( BufferSuballocationHandle&& ) = delete;
+		BufferSuballocationHandle& operator=( BufferSuballocationHandle&& ) = delete;
+
+		vk::Buffer getBuffer();
+		vk::Buffer getVkBuffer() const;
+
 		vk::BufferCopy copyRegion( BufferSuballocationHandle& target );
 
-		void copyTo( vk::raii::CommandBuffer& cmd_buffer, BufferSuballocationHandle& other );
+		vk::DeviceSize getOffset() const { return m_offset; }
 
-		vk::Buffer getVkBuffer() const;
+		void copyTo( vk::raii::CommandBuffer& cmd_buffer, BufferSuballocationHandle& other );
 
 		bool ready() const { return m_staged; }
 
 		void setReady( const bool value ) { m_staged = value; }
-
-		vk::DeviceSize getOffset() const { return m_offset; }
 	};
 
 } // namespace fgl::engine::memory

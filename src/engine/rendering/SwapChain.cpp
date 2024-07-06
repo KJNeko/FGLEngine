@@ -48,8 +48,6 @@ namespace fgl::engine
 		     != vk::Result::eSuccess )
 			throw std::runtime_error( "failed to wait for fences!" );
 
-		std::uint32_t image_idx { 0 };
-
 		auto result { swapChain.acquireNextImage(
 			std::numeric_limits< uint64_t >::max(),
 			imageAvailableSemaphores[ currentFrame ] // must be a not signaled semaphore

@@ -77,6 +77,18 @@ namespace fgl::engine
 		return Coordinate< CType >( vec() - other );
 	}
 
+	template < CoordinateSpace CType >
+	FGL_FLATTEN NormalVector Coordinate< CType >::normalTo( const Coordinate< CType >& target ) const
+	{
+		return NormalVector( ( *this - target ).vec() );
+	}
+
+	template < CoordinateSpace CType >
+	FGL_FLATTEN Vector Coordinate< CType >::vectorTo( const Coordinate< CType >& target ) const
+	{
+		return Vector( ( *this - target ).vec() );
+	}
+
 	template class Coordinate< CoordinateSpace::Model >;
 	template class Coordinate< CoordinateSpace::World >;
 	template class Coordinate< CoordinateSpace::Screen >;

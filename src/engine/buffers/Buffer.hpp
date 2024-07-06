@@ -166,6 +166,7 @@ namespace fgl::engine::memory
 		std::shared_ptr< BufferSuballocationHandle >
 			suballocate( vk::DeviceSize memory_size, std::uint32_t alignment = 1 );
 
+		//! Frees a given suballocation. After calling this the handle is invalid and accessing it is UB
 		void free( BufferSuballocationHandle& info );
 
 		void mergeFreeBlocks();

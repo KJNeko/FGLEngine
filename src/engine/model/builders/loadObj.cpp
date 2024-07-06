@@ -111,6 +111,6 @@ namespace fgl::engine
 			bounding_box,
 			PrimitiveMode::TRIS );
 
-		std::cout << unique_verts.size() << " unique verts" << std::endl;
+		log::debug( "{} unique verts loading model {}", unique_verts.size(), filepath );
 	}
 } // namespace fgl::engine

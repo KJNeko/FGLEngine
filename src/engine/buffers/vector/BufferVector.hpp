@@ -28,11 +28,7 @@ namespace fgl::engine::memory
 
 		BufferVector() = delete;
 
-		BufferVector( Buffer& buffer, std::uint32_t count, std::uint32_t stride ) :
-		  BufferSuballocation( buffer.suballocate( count * stride ) ),
-		  m_count( count ),
-		  m_stride( stride )
-		{}
+		BufferVector( Buffer& buffer, std::uint32_t count, std::uint32_t stride );
 
 		BufferVector( const BufferVector& ) = delete;
 

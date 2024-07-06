@@ -13,9 +13,8 @@ namespace fgl::engine
 	class DeviceVector;
 
 	/**
-	 * A vector device with the ability to flush to the device.
+	 * A vector allocated with HOST memory.
 	 * @tparam T
-	 * @tparam Buffer
 	 */
 	template < typename T >
 	class HostVector final : public memory::BufferVector

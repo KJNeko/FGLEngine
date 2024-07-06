@@ -21,7 +21,7 @@ namespace fgl::engine
 		}
 	}
 
-	Image& Image::setName( const std::string str )
+	Image& Image::setName( const std::string& str )
 	{
 		m_handle->setName( str );
 		return *this;

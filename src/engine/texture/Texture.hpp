@@ -51,6 +51,7 @@ namespace fgl::engine
 		//TODO: Implement reusing texture ids
 		TextureID m_texture_id;
 
+		std::shared_ptr< Image > m_image;
 		std::shared_ptr< ImageView > m_image_view;
 
 		vk::Extent2D m_extent;
@@ -78,7 +79,10 @@ namespace fgl::engine
 
 		inline static UIDKeyT extractKey( const std::filesystem::path& path ) { return path; }
 
-		inline static UIDKeyT extractKey( const std::filesystem::path& path, const vk::Format format ) { return path; }
+		inline static UIDKeyT extractKey( const std::filesystem::path& path, [[maybe_unused]] const vk::Format format )
+		{
+			return path;
+		}
 
 		Texture() = delete;
 

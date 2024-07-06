@@ -54,7 +54,7 @@ namespace fgl::engine
 		using KeyT = typename T::UIDKeyT;
 
 		std::unordered_map< KeyT, std::weak_ptr< T > > active_map {};
-		std::mutex map_mtx;
+		std::mutex map_mtx {};
 
 	  public:
 

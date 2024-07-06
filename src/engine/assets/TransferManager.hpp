@@ -7,21 +7,27 @@
 
 #include <functional>
 #include <queue>
-#include <thread>
 
 #include "TransferData.hpp"
 #include "engine/FGL_DEFINES.hpp"
-#include "engine/buffers/Buffer.hpp"
 #include "engine/buffers/vector/concepts.hpp"
-#include "engine/image/ImageHandle.hpp"
+
+namespace fgl::engine
+{
+	class Device;
+
+	namespace memory
+	{
+		class BufferVector;
+
+		struct BufferSuballocationHandle;
+
+		class BufferSuballocation;
+	} // namespace memory
+} // namespace fgl::engine
 
 namespace fgl::engine::memory
 {
-	class BufferVector;
-
-	struct BufferSuballocationHandle;
-
-	class BufferSuballocation;
 
 	//! Manages transfers from HOST (CPU) to DEVICE (GPU)
 	class TransferManager
@@ -48,9 +54,7 @@ namespace fgl::engine::memory
 		//! Signaled once a transfer completes
 		vk::raii::Semaphore transfer_semaphore;
 
-		vk::CommandBufferAllocateInfo cmd_buffer_allocinfo { Device::getInstance().getCommandPool(),
-			                                                 vk::CommandBufferLevel::ePrimary,
-			                                                 1 };
+		vk::CommandBufferAllocateInfo cmd_buffer_allocinfo;
 
 		std::vector< vk::raii::CommandBuffer > transfer_buffers;
 
@@ -74,6 +78,10 @@ namespace fgl::engine::memory
 
 	  public:
 
+		TransferManager( Device& device, std::uint64_t buffer_size );
+
+		FGL_DELETE_ALL_Ro5( TransferManager );
+
 		vk::raii::Semaphore& getFinishedSem() { return transfer_semaphore; }
 
 		//! Takes ownership of memory regions from the graphics queue via memory barriers.
@@ -88,18 +96,8 @@ namespace fgl::engine::memory
 		static void createInstance( Device& device, std::uint64_t buffer_size );
 		static TransferManager& getInstance();
 
-		TransferManager( Device& device, std::uint64_t buffer_size );
-
-		FGL_DELETE_ALL_Ro5( TransferManager );
-
 		//! Resizes the staging buffer.
-		void resizeBuffer( const std::uint64_t size )
-		{
-			staging_buffer = std::make_unique< Buffer >(
-				size,
-				vk::BufferUsageFlagBits::eTransferSrc,
-				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent );
-		}
+		void resizeBuffer( std::uint64_t size );
 
 		//! Queues a buffer to be transfered
 		template < typename DeviceVectorT >

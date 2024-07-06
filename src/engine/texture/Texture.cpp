@@ -114,20 +114,17 @@ namespace fgl::engine
 
 	Texture::Texture( std::vector< std::byte >&& data, const vk::Extent2D extent, const vk::Format format ) :
 	  m_texture_id( getNextID() ),
-	  m_extent( extent )
+	  m_extent( extent ),
+	  m_image( std::make_shared< Image >(
+		  extent,
+		  format,
+		  vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+		  vk::ImageLayout::eUndefined,
+		  vk::ImageLayout::eShaderReadOnlyOptimal ) ),
+	  m_image_view( m_image->getView() )
 	{
-		ZoneScoped;
-
-		auto image = std::make_shared< Image >(
-			extent,
-			format,
-			vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
-			vk::ImageLayout::eUndefined,
-			vk::ImageLayout::eShaderReadOnlyOptimal );
-
-		m_image_view = image->getView();
-
-		memory::TransferManager::getInstance().copyToImage( std::forward< std::vector< std::byte > >( data ), *image );
+		memory::TransferManager::getInstance()
+			.copyToImage( std::forward< std::vector< std::byte > >( data ), *m_image );
 	}
 
 	Texture::Texture( const std::filesystem::path& path, const vk::Format format ) :

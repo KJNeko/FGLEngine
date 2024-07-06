@@ -54,12 +54,14 @@ namespace fgl::engine::descriptors
 				std::array< vk::DescriptorSetLayoutBinding, used_descriptor_count > data {};
 
 				for ( std::uint16_t i = 0; i < used_descriptor_count; ++i )
+				{
 					data[ i ] = vk::DescriptorSetLayoutBinding(
 						std::numeric_limits< std::uint32_t >::max(),
 						vk::DescriptorType::eUniformBuffer,
 						1,
 						vk::ShaderStageFlagBits::eAll,
 						nullptr );
+				}
 
 				return data;
 			}

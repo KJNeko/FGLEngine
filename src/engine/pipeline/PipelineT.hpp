@@ -85,11 +85,11 @@ namespace fgl::engine
 
 		vk::raii::PipelineLayout createLayout( [[maybe_unused]] Device& device )
 		{
-			std::vector< vk::raii::DescriptorSetLayout > layouts { DescriptorSetCollection::createDescriptorSets() };
+			const auto layouts { DescriptorSetCollection::createDescriptorSets() };
 			std::vector< vk::DescriptorSetLayout > vk_layouts {};
 			vk_layouts.reserve( layouts.size() );
 
-			for ( vk::raii::DescriptorSetLayout& layout : layouts )
+			for ( const vk::raii::DescriptorSetLayout& layout : layouts )
 			{
 				vk_layouts.emplace_back( *layout );
 			}

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "engine/concepts/is_suballocation.hpp"
+
 namespace fgl::engine
 {
 

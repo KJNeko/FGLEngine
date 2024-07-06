@@ -16,11 +16,9 @@ namespace fgl::engine::filesystem
 
 	struct FileBrowser
 	{
-		static FileBrowser& getInstance();
-
 		static void goUp();
 
-		static void openFolder( DirInfo dir );
+		static void openFolder( const DirInfo& dir );
 
 		static void drawUp( const std::unique_ptr< DirInfo >& up );
 		static void drawGui( FrameInfo& info );

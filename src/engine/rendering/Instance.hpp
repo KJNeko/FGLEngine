@@ -36,18 +36,16 @@ namespace fgl::engine
 
 	  public:
 
-		FGL_DELETE_DEFAULT_CTOR( Instance )
-		FGL_DELETE_COPY( Instance )
-		FGL_DELETE_MOVE( Instance )
+		FGL_DELETE_ALL_Ro5( Instance );
 
-		Instance( vk::raii::Context& ctx );
+		explicit Instance( vk::raii::Context& ctx );
 
 		~Instance();
 
-		inline vk::raii::Instance& handle() { return m_instance; }
+		vk::raii::Instance& handle() { return m_instance; }
 
-		inline operator vk::Instance() { return m_instance; }
+		operator vk::Instance() { return m_instance; }
 
-		inline operator VkInstance() { return *m_instance; }
+		operator VkInstance() const { return *m_instance; }
 	};
 } // namespace fgl::engine

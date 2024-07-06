@@ -35,7 +35,7 @@ namespace fgl::engine
 
 		operator vk::raii::PhysicalDevice() { return m_phy_device; }
 
-		VkPhysicalDevice operator*() { return *m_phy_device; }
+		VkPhysicalDevice operator*() const { return *m_phy_device; }
 
 		vk::raii::PhysicalDevice* operator->() { return &m_phy_device; }
 	};

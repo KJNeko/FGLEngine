@@ -6,6 +6,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include <iostream>
+
 #include "DescriptorPool.hpp"
 #include "engine/buffers/BufferSuballocation.hpp"
 #include "engine/image/ImageView.hpp"
@@ -19,7 +21,7 @@ namespace fgl::engine::descriptors
 	  m_set( DescriptorPool::getInstance().allocateSet( m_layout ) )
 	{}
 
-	DescriptorSet::DescriptorSet( DescriptorSet&& other ) :
+	DescriptorSet::DescriptorSet( DescriptorSet&& other ) noexcept :
 	  m_infos( std::move( other.m_infos ) ),
 	  descriptor_writes( std::move( other.descriptor_writes ) ),
 	  m_resources( std::move( other.m_resources ) ),
@@ -30,7 +32,7 @@ namespace fgl::engine::descriptors
 		other.m_set = VK_NULL_HANDLE;
 	}
 
-	DescriptorSet& DescriptorSet::operator=( DescriptorSet&& other )
+	DescriptorSet& DescriptorSet::operator=( DescriptorSet&& other ) noexcept
 	{
 		m_infos = std::move( other.m_infos );
 		descriptor_writes = std::move( other.descriptor_writes );
@@ -134,8 +136,11 @@ namespace fgl::engine::descriptors
 		m_infos.resize( max_idx + 1 );
 	}
 
-	void DescriptorSet::
-		bindAttachment( std::uint32_t binding_idx, ImageView& view, vk::ImageLayout layout, vk::raii::Sampler sampler )
+	void DescriptorSet::bindAttachment(
+		const std::uint32_t binding_idx,
+		const ImageView& view,
+		const vk::ImageLayout layout,
+		const vk::raii::Sampler& sampler )
 	{
 		assert( binding_idx < m_infos.size() && "Binding index out of range" );
 
@@ -155,7 +160,7 @@ namespace fgl::engine::descriptors
 		descriptor_writes.push_back( write );
 	}
 
-	void DescriptorSet::setName( const std::string str )
+	void DescriptorSet::setName( const std::string& str )
 	{
 		vk::DebugUtilsObjectNameInfoEXT info {};
 		info.objectType = vk::ObjectType::eDescriptorSet;
@@ -164,4 +169,4 @@ namespace fgl::engine::descriptors
 
 		Device::getInstance().setDebugUtilsObjectName( info );
 	}
-} // namespace fgl::engine
+} // namespace fgl::engine::descriptors

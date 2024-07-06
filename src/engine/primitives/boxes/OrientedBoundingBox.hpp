@@ -4,14 +4,13 @@
 
 #pragma once
 
-#include <glm/vec3.hpp>
-
 #include <array>
 #include <vector>
 
 #include "BoundingBox.hpp"
 #include "engine/constants.hpp"
 #include "engine/primitives/Rotation.hpp"
+#include "engine/primitives/Scale.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 

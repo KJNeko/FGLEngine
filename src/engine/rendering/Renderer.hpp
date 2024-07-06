@@ -32,12 +32,12 @@ namespace fgl::engine
 
 		std::optional< TracyVkCtx > m_tracy_ctx { std::nullopt };
 
-		void createCommandBuffers();
-		void recreateSwapchain();
-
 		uint32_t current_image_idx { std::numeric_limits< std::uint32_t >::max() };
 		std::uint16_t current_frame_idx { 0 };
 		bool is_frame_started { false };
+
+		void createCommandBuffers();
+		void recreateSwapchain();
 
 	  public:
 

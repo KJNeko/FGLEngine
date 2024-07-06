@@ -56,11 +56,14 @@ namespace fgl::engine::descriptors
 
 		static std::vector< vk::raii::DescriptorSetLayout > createDescriptorSets()
 		{
-			auto vec { createDescriptorSetsT< DescriptorSets... >() };
-			assert( vec.size() > 0 );
-			assert( vec.size() == binding_sets );
+			std::vector< vk::raii::DescriptorSetLayout > layouts {};
+			layouts.reserve( binding_sets );
+			createDescriptorSetsT< DescriptorSets... >( layouts );
 
-			return vec;
+			assert( layouts.size() > 0 );
+			assert( layouts.size() == binding_sets );
+
+			return layouts;
 		}
 
 		template < std::uint64_t IDX >
@@ -73,4 +76,4 @@ namespace fgl::engine::descriptors
 		using PushConstantT = BindingSet< 0 >;
 	};
 
-} // namespace fgl::engine
+} // namespace fgl::engine::descriptors

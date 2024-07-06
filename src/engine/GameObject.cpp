@@ -32,7 +32,9 @@ namespace fgl::engine
 		gui::dragFloat3( "Scale", scale );
 
 		for ( const GameObjectComponentBase* component : components )
-		{}
+		{
+			//TODO: Draw components
+		}
 	}
 
 	OrientedBoundingBox< CoordinateSpace::World > GameObject::getBoundingBox() const

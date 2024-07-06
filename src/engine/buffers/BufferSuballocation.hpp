@@ -5,7 +5,6 @@
 #pragma once
 
 #include "BufferSuballocationHandle.hpp"
-#include "engine/concepts/is_suballocation.hpp"
 #include "engine/rendering/Device.hpp"
 
 namespace fgl::engine::memory
@@ -41,15 +40,21 @@ namespace fgl::engine::memory
 		BufferSuballocation( const BufferSuballocation& ) = delete;
 		BufferSuballocation& operator=( const BufferSuballocation& ) = delete;
 
-		BufferSuballocation( BufferSuballocation&& other );
-		BufferSuballocation& operator=( BufferSuballocation&& other );
+		BufferSuballocation( BufferSuballocation&& other ) noexcept;
+		BufferSuballocation& operator=( BufferSuballocation&& other ) noexcept;
 
 		SuballocationView view( const vk::DeviceSize offset, const vk::DeviceSize size ) const;
 
+		//! Returns true when the buffer has been staged by the StagingManager
 		bool ready() const { return m_handle->ready(); }
 
+		//! Returns a mapped pointer.
+		/**
+		 * @note If the buffer this suballocation is from is unable to be mapped then this function will return nullptr
+		 */
 		void* ptr() const;
 
+		//! Returns the total byte size of the allocation
 		vk::DeviceSize bytesize() const noexcept { return m_byte_size; }
 
 		Buffer& getBuffer() const;
@@ -65,14 +70,4 @@ namespace fgl::engine::memory
 		~BufferSuballocation() = default;
 	};
 
-
-
-	template < typename T >
-	concept is_typed_suballocation = requires( T t ) {
-		{
-			t.operator->()
-		} -> std::same_as< typename T::value_type* >;
-		requires is_buffer< typename T::BufferT >;
-	};
-
-} // namespace fgl::engine
+} // namespace fgl::engine::memory

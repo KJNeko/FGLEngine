@@ -36,8 +36,6 @@ namespace fgl::engine
 		static OrientedBoundingBox< CoordinateSpace::Model > buildBoundingBox( const std::vector< Primitive >&
 		                                                                           primitives );
 
-		TransformComponent m_model_transform;
-
 		std::vector< vk::DrawIndexedIndirectCommand > m_draw_parameters;
 
 		std::string m_name { "Unnamed model" };

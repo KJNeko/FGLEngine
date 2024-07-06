@@ -6,16 +6,12 @@
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
-#include <set>
-
 #include "engine/FGL_DEFINES.hpp"
 
 namespace fgl::engine
 {
 	class Surface;
 	class PhysicalDevice;
-
-	class Queue;
 
 	class QueuePool
 	{
@@ -34,13 +30,10 @@ namespace fgl::engine
 
 		FGL_DELETE_ALL_Ro5( QueuePool );
 
-		Queue allocate();
-		Queue allocateIndex( const std::uint32_t idx );
-
 		using QueueIndex = std::uint32_t;
 
 		//! Returns a unique list of indexes with the matching flags
-		QueueIndex getIndex( const vk::QueueFlags flags, const vk::QueueFlags anti_flags = vk::QueueFlags( 0 ) );
+		QueueIndex getIndex( vk::QueueFlags flags, vk::QueueFlags anti_flags = vk::QueueFlags( 0 ) );
 
 		std::uint32_t getPresentIndex();
 	};

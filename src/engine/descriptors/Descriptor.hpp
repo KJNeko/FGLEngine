@@ -7,12 +7,19 @@
 #include <cstdint>
 
 #include "engine/buffers/Buffer.hpp"
-#include "engine/concepts/is_bindable.hpp"
 #include "engine/concepts/is_descriptor.hpp"
 
 namespace fgl::engine::descriptors
 {
 
+	/**
+	 *
+	 * @tparam binding_idx Index of the descriptor
+	 * @tparam descriptor_type Descriptor flags
+	 * @tparam stage_flags
+	 * @tparam binding_count Number of descriptors to have
+	 * @tparam binding_flags Flags to bind with
+	 */
 	template <
 		std::uint16_t binding_idx,
 		vk::DescriptorType descriptor_type,

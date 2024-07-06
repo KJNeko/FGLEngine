@@ -12,14 +12,18 @@
 namespace fgl::engine
 {
 
+	//! Converts 3-axis rotation (euler) to a quaternion
 	glm::quat toQuat( const float pitch, const float roll, const float yaw )
 	{
-		const float cr { glm::cos( roll * 0.5f ) };
-		const float sr { glm::sin( roll * 0.5f ) };
-		const float cp { glm::cos( pitch * 0.5f ) };
-		const float sp { glm::sin( pitch * 0.5f ) };
-		const float cy { glm::cos( yaw * 0.5f ) };
-		const float sy { glm::sin( yaw * 0.5f ) };
+		const glm::vec3 rotation { glm::vec3( pitch, roll, yaw ) * glm::vec3( 0.5f ) };
+		const glm::vec3 rot_cos { glm::cos( rotation ) };
+		const glm::vec3 rot_sin { glm::sin( rotation ) };
+
+		auto extractFloats = []( const glm::vec3& vec ) -> std::tuple< const float&, const float&, const float >
+		{ return std::make_tuple( vec.x, vec.y, vec.z ); };
+
+		const auto& [ cp, cr, cy ] = extractFloats( rot_cos );
+		const auto& [ sp, sr, sy ] = extractFloats( rot_sin );
 
 		return { sr * cp * sy - cr * sp * sy,
 			     cr * sp * cy + sr * cp * sy,
@@ -34,15 +38,15 @@ namespace fgl::engine
 	  glm::quat( glm::toQuat( taitBryanMatrix( pitch_r, roll_r, yaw_r ) ) )
 	{}
 
-	Rotation& Rotation::operator=( const Rotation other )
+	Rotation& Rotation::operator=( const Rotation& rotation )
 	{
-		glm::quat::operator=( other );
+		glm::quat::operator=( rotation );
 		return *this;
 	}
 
-	Rotation& Rotation::operator+=( const Rotation i_vec )
+	Rotation& Rotation::operator+=( const Rotation& rotation )
 	{
-		glm::quat::operator+=( i_vec );
+		glm::quat::operator+=( rotation );
 		return *this;
 	}
 

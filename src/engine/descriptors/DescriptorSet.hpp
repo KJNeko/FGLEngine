@@ -46,9 +46,9 @@ namespace fgl::engine::descriptors
 
 		void setMaxIDX( std::uint32_t max_idx );
 
-		VkDescriptorSet operator*() { return *m_set; }
+		VkDescriptorSet operator*() const { return *m_set; }
 
-		VkDescriptorSet getVkDescriptorSet() { return *m_set; }
+		VkDescriptorSet getVkDescriptorSet() const { return *m_set; }
 
 		DescriptorSet() = delete;
 		DescriptorSet( vk::raii::DescriptorSetLayout&& layout );
@@ -58,8 +58,8 @@ namespace fgl::engine::descriptors
 		DescriptorSet& operator=( const DescriptorSet& other ) = delete;
 
 		//Move
-		DescriptorSet( DescriptorSet&& other );
-		DescriptorSet& operator=( DescriptorSet&& other );
+		DescriptorSet( DescriptorSet&& other ) noexcept;
+		DescriptorSet& operator=( DescriptorSet&& other ) noexcept;
 
 		void bindImage(
 			std::uint32_t binding_idx,
@@ -71,13 +71,13 @@ namespace fgl::engine::descriptors
 
 		void bindAttachment(
 			std::uint32_t binding_idx,
-			ImageView& view,
+			const ImageView& view,
 			vk::ImageLayout layout,
-			vk::raii::Sampler sampler = VK_NULL_HANDLE );
+			const vk::raii::Sampler& sampler = VK_NULL_HANDLE );
 
 		void bindTexture( std::uint32_t binding_idx, std::shared_ptr< Texture >& tex_ptr );
 
-		void setName( const std::string str );
+		void setName( const std::string& str );
 	};
 
 } // namespace fgl::engine::descriptors

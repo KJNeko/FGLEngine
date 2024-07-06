@@ -370,6 +370,32 @@ namespace fgl::engine
 		return box;
 	}
 
+	glm::vec3 convertToVec3( const std::vector< double >& data )
+	{
+		return { static_cast< float >( data[ 0 ] ),
+			     static_cast< float >( data[ 1 ] ),
+			     static_cast< float >( data[ 2 ] ) };
+	}
+
+	TransformComponent SceneBuilder::loadTransform( int node_idx, const tinygltf::Model& root )
+	{
+		const auto node { root.nodes[ node_idx ] };
+
+		const glm::vec3 translation { convertToVec3( node.translation ) };
+		const glm::quat rotation { static_cast< float >( node.rotation[ 0 ] ),
+			                       static_cast< float >( node.rotation[ 1 ] ),
+			                       static_cast< float >( node.rotation[ 2 ] ),
+			                       static_cast< float >( node.rotation[ 3 ] ) };
+		const glm::vec3 scale { convertToVec3( node.scale ) };
+
+		TransformComponent transform_component {};
+		transform_component.rotation = rotation;
+		transform_component.scale = scale;
+		transform_component.translation = WorldCoordinate( translation );
+
+		return transform_component;
+	}
+
 	std::shared_ptr< Model > SceneBuilder::loadModel( const int mesh_idx, const tinygltf::Model& root )
 	{
 		ZoneScoped;

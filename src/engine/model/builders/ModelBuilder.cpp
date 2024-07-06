@@ -16,10 +16,6 @@ namespace fgl::engine
 		{
 			loadObj( filepath );
 		}
-		else if ( filepath.extension() == ".gltf" )
-		{
-			loadGltf( filepath );
-		}
 		else
 			throw std::runtime_error( "Unknown model file extension" );
 	}

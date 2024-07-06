@@ -6,6 +6,9 @@
 
 #include <cstddef>
 #include <cstdlib>
+
+// In order to monitor memory we need to overload the new and delete operators
+
 #if TRACY_ENABLE
 
 void* operator new( std::size_t count )

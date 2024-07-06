@@ -10,10 +10,14 @@
 #include <cstdint>
 #include <string>
 
-#include "rendering/Surface.hpp"
+namespace vk::raii
+{
+	class SurfaceKHR;
+}
 
 namespace fgl::engine
 {
+	class Instance;
 
 	class Window
 	{

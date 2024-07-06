@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "engine/buffers/BufferSuballocation.hpp"
+
 namespace fgl::engine::memory
 {
 	struct DeviceVectorBase
@@ -15,4 +17,4 @@ namespace fgl::engine::memory
 		requires std::is_base_of_v< BufferSuballocation, T >;
 	};
 
-} // namespace fgl::engine
+} // namespace fgl::engine::memory

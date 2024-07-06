@@ -22,8 +22,7 @@ namespace fgl::engine
 {
 	class Camera;
 
-	Frustum< CoordinateSpace::Model >
-		createFrustum( const float aspect, const float fovy, const float near, const float far );
+	Frustum< CoordinateSpace::Model > createFrustum( float aspect, float fovy, float near, float far );
 
 	class Camera
 	{
@@ -52,60 +51,53 @@ namespace fgl::engine
 
 	  public:
 
-		inline Rotation getRotation() const { return current_rotation; }
-
-		inline static TransformComponent frustum_alt_transform { WorldCoordinate( constants::WORLD_CENTER ),
-			                                                     glm::vec3( 1.0f ),
-			                                                     Rotation() };
-
-		inline static bool update_frustums { true };
-		inline static bool update_using_alt { false };
-
 		Camera()
 		{
 			this->setPerspectiveProjection( 90.0f, 16.0f / 9.0f, constants::NEAR_PLANE, constants::FAR_PLANE );
 			this->setView( WorldCoordinate( constants::CENTER ), Rotation( 0.0f, 0.0f, 0.0f ) );
 		}
 
+		Rotation getRotation() const { return current_rotation; }
+
 		WorldCoordinate getFrustumPosition() const;
 
-		inline const Frustum< CoordinateSpace::Model >& getBaseFrustum() const { return base_frustum; }
+		const Frustum< CoordinateSpace::Model >& getBaseFrustum() const { return base_frustum; }
 
 		//! Returns the frustum of the camera in world space
-		inline const Frustum< CoordinateSpace::World >& getFrustumBounds() const { return frustum; }
+		const Frustum< CoordinateSpace::World >& getFrustumBounds() const { return frustum; }
 
-		inline const Matrix< MatrixType::CameraToScreen >& getProjectionMatrix() const { return projection_matrix; }
+		const Matrix< MatrixType::CameraToScreen >& getProjectionMatrix() const { return projection_matrix; }
 
-		inline const Matrix< MatrixType::WorldToCamera >& getViewMatrix() const { return view_matrix; }
+		const Matrix< MatrixType::WorldToCamera >& getViewMatrix() const { return view_matrix; }
 
-		inline Matrix< MatrixType::WorldToScreen > getProjectionViewMatrix() const
+		Matrix< MatrixType::WorldToScreen > getProjectionViewMatrix() const
 		{
 			assert( projection_matrix != constants::MAT4_IDENTITY );
 			return projection_matrix * view_matrix;
 		}
 
-		inline glm::mat4 getInverseViewMatrix() const { return glm::inverse( view_matrix ); }
+		glm::mat4 getInverseViewMatrix() const { return glm::inverse( view_matrix ); }
 
 		void setOrthographicProjection( float left, float right, float top, float bottom, float near, float far );
 		void setPerspectiveProjection( float fovy, float aspect, float near, float far );
 
-		inline Coordinate< CoordinateSpace::World > getPosition() const
+		Coordinate< CoordinateSpace::World > getPosition() const
 		{
 			//Should maybe store the inverse view matrix
 			return WorldCoordinate( inverse_view_matrix[ 3 ] );
 		}
 
-		inline Vector getUp() const { return -getDown(); }
+		Vector getUp() const { return -getDown(); }
 
-		inline Vector getRight() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 0 ] ) ) ); }
+		Vector getRight() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 0 ] ) ) ); }
 
-		inline Vector getForward() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 2 ] ) ) ); }
+		Vector getForward() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 2 ] ) ) ); }
 
-		inline Vector getLeft() const { return -getRight(); }
+		Vector getLeft() const { return -getRight(); }
 
-		inline Vector getBackward() const { return -getForward(); }
+		Vector getBackward() const { return -getForward(); }
 
-		inline Vector getDown() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 1 ] ) ) ); }
+		Vector getDown() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 1 ] ) ) ); }
 
 		enum ViewMode
 		{

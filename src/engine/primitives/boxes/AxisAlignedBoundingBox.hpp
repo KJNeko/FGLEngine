@@ -5,7 +5,7 @@
 #pragma once
 
 #include "BoundingBox.hpp"
-#include "engine/math/midpoint.hpp"
+#include "engine/primitives/Scale.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 #include "engine/primitives/vectors/NormalVector.hpp"
 
@@ -55,7 +55,7 @@ namespace fgl::engine
 
 		virtual Coordinate< CType > getPosition() const final
 		{
-			return fgl::midpoint( m_top_right_forward, m_bottom_left_back );
+			return midpoint( m_top_right_forward, m_bottom_left_back );
 		}
 
 		virtual inline Coordinate< CType > topLeftForward() const final { return m_top_right_forward; }

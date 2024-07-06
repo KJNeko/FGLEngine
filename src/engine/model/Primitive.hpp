@@ -74,7 +74,7 @@ namespace fgl::engine
 			VertexBufferSuballocation&& vertex_buffer,
 			IndexBufferSuballocation&& index_buffer,
 			const OrientedBoundingBox< CoordinateSpace::Model >& bounding_box,
-			const PrimitiveMode mode ) :
+			const PrimitiveMode mode ) noexcept :
 		  m_vertex_buffer( std::move( vertex_buffer ) ),
 		  m_index_buffer( std::move( index_buffer ) ),
 		  m_bounding_box( bounding_box ),

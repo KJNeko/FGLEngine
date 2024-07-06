@@ -25,4 +25,4 @@ namespace fgl::engine::memory
 		m_offset = offset;
 	}
 
-} // namespace fgl::engine
+} // namespace fgl::engine::memory

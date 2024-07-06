@@ -7,7 +7,6 @@
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
-#include <cstdint>
 #include <unordered_map>
 
 namespace fgl::engine

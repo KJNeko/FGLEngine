@@ -8,7 +8,6 @@
 #include <glm/vec3.hpp>
 
 #include "engine/primitives/CoordinateSpace.hpp"
-#include "engine/primitives/points/concepts.hpp"
 
 namespace fgl::engine
 {
@@ -18,6 +17,7 @@ namespace fgl::engine
 
 	class Vector;
 
+	//! A vector that must be a distance of 1
 	class NormalVector : private glm::vec3
 	{
 		constexpr explicit NormalVector( const glm::vec3 point, [[maybe_unused]] const bool ) : glm::vec3( point ) {}
@@ -36,11 +36,6 @@ namespace fgl::engine
 		NormalVector( const Vector vec );
 
 		explicit NormalVector( const glm::vec3 vec );
-
-		template < typename T >
-			requires is_coordinate< T >
-		explicit NormalVector( const T vec ) : NormalVector( vec.vec() )
-		{}
 
 		Vector operator*( const float scalar ) const;
 

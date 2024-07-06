@@ -4,6 +4,7 @@
 
 #include "TransferManager.hpp"
 
+#include "engine/buffers/Buffer.hpp"
 #include "engine/buffers/BufferSuballocation.hpp"
 #include "engine/buffers/vector/HostVector.hpp"
 #include "engine/image/Image.hpp"
@@ -68,6 +69,14 @@ namespace fgl::engine::memory
 			{},
 			to_buffer_memory_barriers,
 			{} );
+	}
+
+	void TransferManager::resizeBuffer( const std::uint64_t size )
+	{
+		staging_buffer = std::make_unique< Buffer >(
+			size,
+			vk::BufferUsageFlagBits::eTransferSrc,
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent );
 	}
 
 	void TransferManager::submitBuffer( vk::raii::CommandBuffer& command_buffer )
@@ -272,6 +281,7 @@ namespace fgl::engine::memory
 	  graphics_queue_index( device.phyDevice().queueInfo().getIndex( vk::QueueFlagBits::eGraphics ) ),
 	  transfer_queue( device->getQueue( transfer_queue_index, 0 ) ),
 	  transfer_semaphore( device->createSemaphore( {} ) ),
+	  cmd_buffer_allocinfo( Device::getInstance().getCommandPool(), vk::CommandBufferLevel::ePrimary, 1 ),
 	  transfer_buffers( Device::getInstance().device().allocateCommandBuffers( cmd_buffer_allocinfo ) ),
 	  completion_fence( device->createFence( {} ) )
 	{
@@ -304,5 +314,4 @@ namespace fgl::engine::memory
 		processing.clear();
 	}
 
-
-} // namespace fgl::engine
+} // namespace fgl::engine::memory

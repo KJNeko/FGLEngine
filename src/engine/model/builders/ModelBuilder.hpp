@@ -7,6 +7,8 @@
 #include <filesystem>
 #include <vector>
 
+#include "engine/primitives/TransformComponent.hpp"
+
 namespace fgl::engine
 {
 	struct Vertex;

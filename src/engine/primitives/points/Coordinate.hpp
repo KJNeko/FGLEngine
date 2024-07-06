@@ -10,7 +10,6 @@
 
 #include "engine/constants.hpp"
 #include "engine/primitives/CoordinateSpace.hpp"
-#include "engine/primitives/Scale.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
 
 namespace fgl::engine
@@ -75,6 +74,9 @@ namespace fgl::engine
 		Coordinate& operator=( Coordinate&& other ) = default;
 
 		bool operator==( const Coordinate& other ) const = default;
+
+		NormalVector normalTo( const Coordinate& target ) const;
+		Vector vectorTo( const Coordinate& target ) const;
 	};
 
 	using ModelCoordinate = Coordinate< CoordinateSpace::Model >;
@@ -83,15 +85,20 @@ namespace fgl::engine
 	static_assert( sizeof( glm::vec3 ) == sizeof( ModelCoordinate ) );
 
 	template < CoordinateSpace CType >
-	inline ::std::ostream& operator<<( ::std::ostream& os, const Coordinate< CType > coordinate )
-	{
-		return os << "(" << coordinate.x << ", " << coordinate.y << ", " << coordinate.z << ")";
-	}
-
-	template < CoordinateSpace CType >
 	inline double distance( const Coordinate< CType >& p1, const Coordinate< CType >& p2 )
 	{
 		return length( p1.vec() - p2.vec() );
+	}
+
+	template < engine::CoordinateSpace CType >
+	inline engine::Coordinate< CType >
+		midpoint( const engine::Coordinate< CType > left, const engine::Coordinate< CType > right )
+	{
+		const auto x { ( left.vec().x + right.vec().x ) / 2.0f };
+		const auto y { ( left.vec().y + right.vec().y ) / 2.0f };
+		const auto z { ( left.vec().z + right.vec().z ) / 2.0f };
+
+		return Coordinate< CType >( x, y, z );
 	}
 
 } // namespace fgl::engine

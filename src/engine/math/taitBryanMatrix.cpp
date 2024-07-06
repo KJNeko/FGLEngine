@@ -4,8 +4,6 @@
 
 #include "taitBryanMatrix.hpp"
 
-#include <glm/mat4x4.hpp>
-
 #include <stdexcept>
 #include <tuple>
 #include <utility>
@@ -58,13 +56,11 @@ namespace fgl::engine
 	{
 		glm::mat3 mat { 1.0f };
 
-		//TODO: Debug with Entry, There has got to be a better fix then this.
-
 		const auto [ p1, p2, p3 ] = extract( rotation, order );
 
-		const auto [ c1, s1 ] = p1;
-		const auto [ c2, s2 ] = p2;
-		const auto [ c3, s3 ] = p3;
+		const auto& [ c1, s1 ] = p1;
+		const auto& [ c2, s2 ] = p2;
+		const auto& [ c3, s3 ] = p3;
 
 		switch ( order )
 		{

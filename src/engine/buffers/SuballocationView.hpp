@@ -21,14 +21,14 @@ namespace fgl::engine::memory
 
 	  public:
 
-		void setOffset( vk::DeviceSize offset );
-
 		SuballocationView(
 			std::shared_ptr< BufferSuballocationHandle > handle, vk::DeviceSize offset, vk::DeviceSize size ) :
 		  m_suballocation( handle ),
 		  m_offset( offset ),
 		  m_size( size )
 		{}
+
+		void setOffset( vk::DeviceSize offset );
 
 		//! Returns the buffer
 		vk::Buffer getVkBuffer();
@@ -37,4 +37,4 @@ namespace fgl::engine::memory
 		vk::DeviceSize getOffset();
 	};
 
-} // namespace fgl::engine
+} // namespace fgl::engine::memory
