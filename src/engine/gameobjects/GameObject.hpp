@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "components/GameObjectComponent.hpp"
 #include "engine/primitives/TransformComponent.hpp"
 
 namespace fgl::engine
@@ -35,48 +36,6 @@ namespace fgl::engine
 		NONE = 0,
 		//! Only find objects with no texture
 		TEXTURELESS = 1 << 0,
-	};
-
-	struct ComponentImGuiInterface
-	{
-		virtual void drawImGui() = 0;
-		virtual ~ComponentImGuiInterface() = default;
-	};
-
-	struct GameObjectComponentBase
-	{
-		using ComponentID = std::uint8_t;
-		virtual ComponentID id() const = 0;
-		virtual std::string_view name() const = 0;
-
-		virtual ~GameObjectComponentBase() = default;
-	};
-
-	template < GameObjectComponentBase::ComponentID T_ID >
-	struct GameObjectComponent : ComponentImGuiInterface, GameObjectComponentBase
-	{
-		constexpr static ComponentID ID { T_ID };
-
-		virtual ComponentID id() const override final { return ID; }
-	};
-
-	template < typename T >
-	concept is_component = requires( T t ) {
-		std::is_base_of_v< T, GameObjectComponentBase >;
-		{
-			t.ID
-		} -> std::same_as< GameObjectComponentBase::ComponentID >;
-	};
-
-	class ModelComponent final : public GameObjectComponent< 1 >
-	{
-		std::shared_ptr< Model > m_model;
-
-	  public:
-
-		void drawImGui() override;
-		std::string_view name() const override;
-		~ModelComponent() override;
 	};
 
 	class GameObject
