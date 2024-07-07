@@ -36,12 +36,12 @@ namespace fgl::engine
 
 		float distanceFrom( const Coordinate< CType > coord ) const;
 
-		bool FGL_FORCE_INLINE_FLATTEN isForward( const Coordinate< CType > coord ) const
+		FGL_FORCE_INLINE_FLATTEN bool isForward( const Coordinate< CType > coord ) const
 		{
 			return distanceFrom( coord ) > 0.0f;
 		}
 
-		bool FGL_FORCE_INLINE_FLATTEN isBehind( const Coordinate< CType > coord ) const { return !isForward( coord ); }
+		FGL_FORCE_INLINE_FLATTEN bool isBehind( const Coordinate< CType > coord ) const { return !isForward( coord ); }
 
 		//! Returns a normalized Vector
 		NormalVector direction() const { return m_direction; }

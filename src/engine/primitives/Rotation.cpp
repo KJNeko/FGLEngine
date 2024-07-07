@@ -7,6 +7,8 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
+#include <tuple>
+
 #include "engine/math/taitBryanMatrix.hpp"
 
 namespace fgl::engine
@@ -19,7 +21,7 @@ namespace fgl::engine
 		const glm::vec3 rot_cos { glm::cos( rotation ) };
 		const glm::vec3 rot_sin { glm::sin( rotation ) };
 
-		auto extractFloats = []( const glm::vec3& vec ) -> std::tuple< const float&, const float&, const float >
+		auto extractFloats = []( const glm::vec3& vec ) -> std::tuple< const float&, const float&, const float& >
 		{ return std::make_tuple( vec.x, vec.y, vec.z ); };
 
 		const auto& [ cp, cr, cy ] = extractFloats( rot_cos );

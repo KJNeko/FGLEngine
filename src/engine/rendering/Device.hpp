@@ -101,9 +101,7 @@ namespace fgl::engine
 	  public:
 
 		// Not copyable or movable
-		FGL_DELETE_DEFAULT_CTOR( Device )
-		FGL_DELETE_COPY( Device )
-		FGL_DELETE_MOVE( Device )
+		FGL_DELETE_ALL_Ro5( Device );
 
 		vk::CommandPool getCommandPool() { return m_commandPool; }
 

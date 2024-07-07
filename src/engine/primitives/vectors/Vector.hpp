@@ -55,13 +55,13 @@ namespace fgl::engine
 
 		//Coordinate has an operator for vector that's much easier to define. So we just invert the order and use that one.
 		template < CoordinateSpace CType >
-		Vector FGL_FLATTEN operator+( const Coordinate< CType > coord )
+		FGL_FLATTEN Vector operator+( const Coordinate< CType > coord )
 		{
 			return coord + *this;
 		}
 
 		template < CoordinateSpace CType >
-		Vector FGL_FLATTEN operator-( const Coordinate< CType > coord )
+		FGL_FLATTEN Vector operator-( const Coordinate< CType > coord )
 		{
 			return coord - *this;
 		}

@@ -21,14 +21,14 @@ namespace fgl::engine
 		//TODO: Figure out frustum culling for orthographic projection. (If we even wanna use it)
 	}
 
-	void FGL_FLATTEN_HOT Camera::setPerspectiveProjection( float fovy, float aspect, float near, float far )
+	FGL_FLATTEN_HOT void Camera::setPerspectiveProjection( float fovy, float aspect, float near, float far )
 	{
 		projection_matrix = Matrix< MatrixType::CameraToScreen >( glm::perspectiveLH_ZO( fovy, aspect, near, far ) );
 
 		base_frustum = createFrustum( aspect, fovy, near, far );
 	}
 
-	void FGL_FLATTEN_HOT Camera::setView( WorldCoordinate pos, const Rotation rotation, const ViewMode mode )
+	FGL_FLATTEN_HOT void Camera::setView( WorldCoordinate pos, const Rotation rotation, const ViewMode mode )
 	{
 		switch ( mode )
 		{
@@ -66,17 +66,11 @@ namespace fgl::engine
 
 	void Camera::updateFrustum()
 	{
-		if ( update_frustums ) [[likely]]
-		{
-			last_frustum_pos = getPosition();
+		last_frustum_pos = getPosition();
 
-			const Matrix< MatrixType::ModelToWorld > translation_matrix { frustumTranslationMatrix() };
+		const Matrix< MatrixType::ModelToWorld > translation_matrix { frustumTranslationMatrix() };
 
-			frustum = translation_matrix * base_frustum;
-			return;
-		}
-		else [[unlikely]]
-			return;
+		frustum = translation_matrix * base_frustum;
 	}
 
 	Frustum< CoordinateSpace::Model >

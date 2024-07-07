@@ -26,15 +26,15 @@ namespace fgl::engine
 
 		PointPlane();
 
-		PointPlane( const Coordinate< CType > pos, const Vector vec );
+		PointPlane( Coordinate< CType > pos, Vector vec );
 
-		PointPlane( const Coordinate< CType > pos, const NormalVector vec );
+		PointPlane( Coordinate< CType > pos, NormalVector vec );
 
-		NormalVector FGL_FORCE_INLINE getDirection() const { return vector; }
+		FGL_FORCE_INLINE NormalVector getDirection() const { return vector; }
 
 		float distance() const;
 
-		Coordinate< CType > FGL_FORCE_INLINE getPosition() const { return coordinate; }
+		FGL_FORCE_INLINE Coordinate< CType > getPosition() const { return coordinate; }
 
 		float distanceFrom( const Coordinate< CType > coord ) const;
 

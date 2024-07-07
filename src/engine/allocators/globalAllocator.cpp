@@ -9,6 +9,10 @@
 
 // In order to monitor memory we need to overload the new and delete operators
 
+#ifndef TRACY_ENABLE
+#define TRACY_ENABLE 0
+#endif
+
 #if TRACY_ENABLE
 
 void* operator new( std::size_t count )

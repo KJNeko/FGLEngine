@@ -38,6 +38,8 @@ namespace fgl::engine::gui
 					{
 						default:
 							[[fallthrough]];
+						case filesystem::BINARY:
+							[[fallthrough]];
 						case filesystem::UNKNOWN:
 							spdlog::warn( "Unknown filetype dropped into rendering view acceptor" );
 							break;

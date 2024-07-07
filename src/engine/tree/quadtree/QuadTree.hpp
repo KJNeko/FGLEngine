@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "engine/GameObject.hpp"
 #include <vector>
+
+#include "engine/GameObject.hpp"
 
 namespace fgl::engine
 {
@@ -27,13 +28,13 @@ namespace fgl::engine
 		Scale m_node_bounds { std::numeric_limits< float >::infinity() };
 		std::variant< QuadTreeNodeArray, QuadTreeNodeLeaf > m_node_data { QuadTreeNodeLeaf() };
 
-		bool contains( const WorldCoordinate coord ) const;
+		bool contains( WorldCoordinate coord ) const;
 
 	  public:
 
-		QuadTreeNode& operator[]( const WorldCoordinate pos );
+		QuadTreeNode& operator[]( WorldCoordinate pos );
 
-		void split( const int depth = 1 );
+		void split( int depth = 1 );
 
 		void addGameObject( GameObject&& obj );
 	};

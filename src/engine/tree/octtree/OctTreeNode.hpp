@@ -7,7 +7,6 @@
 #include <tracy/Tracy.hpp>
 
 #include <bitset>
-#include <functional>
 
 #include "engine/GameObject.hpp"
 #include "engine/primitives/boxes/AxisAlignedBoundingCube.hpp"
@@ -59,7 +58,7 @@ namespace fgl::engine
 	  public:
 
 		OctTreeNode() = delete;
-		OctTreeNode( const WorldCoordinate center, float span = ROOT_SPAN, OctTreeNode* parent = nullptr );
+		OctTreeNode( WorldCoordinate center, float span = ROOT_SPAN, OctTreeNode* parent = nullptr );
 
 		OctTreeNode( const OctTreeNode& other ) = delete;
 		OctTreeNode( OctTreeNode&& other ) = delete;
@@ -70,10 +69,10 @@ namespace fgl::engine
 	  private:
 
 		//! Returns the node of a given ID (Searches down)
-		OctTreeNode* findID( const GameObject::GameObjectID id );
+		OctTreeNode* findID( GameObject::GameObjectID id );
 
 		//! Returns true if the node contains a given ID
-		inline bool contains( const GameObject::GameObjectID id ) { return findID( id ) != nullptr; }
+		bool contains( const GameObject::GameObjectID id ) { return findID( id ) != nullptr; }
 
 		//! Splits a node. Does nothing if node is not a leaf.
 		void split( int depth = 1 );
@@ -83,9 +82,9 @@ namespace fgl::engine
 		//! returns true if this node should contain the given object
 		bool canContain( const GameObject& obj );
 
-		GameObject extract( const GameObject::GameObjectID id );
+		GameObject extract( GameObject::GameObjectID id );
 
-		inline GameObject extract( const GameObject& obj ) { return this->extract( obj.getId() ); }
+		GameObject extract( const GameObject& obj ) { return this->extract( obj.getId() ); }
 
 		bool isInFrustum( const Frustum< CoordinateSpace::World >& frustum ) const;
 
@@ -95,13 +94,13 @@ namespace fgl::engine
 			    && std::get< OctTreeNodeLeaf >( m_node_data ).empty();
 		}
 
-		auto getGameObjectItter( const GameObject::GameObjectID id );
+		auto getGameObjectItter( GameObject::GameObjectID id );
 
 		void getAllLeafs( std::vector< OctTreeNodeLeaf* >& out_leafs );
 		void getAllLeafsInFrustum(
 			const Frustum< CoordinateSpace::World >& frustum, std::vector< OctTreeNodeLeaf* >& out_leafs );
 
-		bool contains( const WorldCoordinate coord ) const;
+		bool contains( WorldCoordinate coord ) const;
 
 		OctTreeNode& operator[]( const WorldCoordinate coord );
 
@@ -114,7 +113,7 @@ namespace fgl::engine
 
 		constexpr static std::size_t LEAF_RESERVE_SIZE { 1024 };
 
-		[[nodiscard]] inline std::vector< OctTreeNodeLeaf* > getAllLeafs()
+		[[nodiscard]] std::vector< OctTreeNodeLeaf* > getAllLeafs()
 		{
 			ZoneScoped;
 			std::vector< OctTreeNodeLeaf* > leafs {};
@@ -123,8 +122,8 @@ namespace fgl::engine
 			return leafs;
 		}
 
-		[[nodiscard]] inline std::vector< OctTreeNodeLeaf* > getAllLeafsInFrustum( const Frustum<
-																				   CoordinateSpace::World >& frustum )
+		[[nodiscard]] std::vector< OctTreeNodeLeaf* > getAllLeafsInFrustum( const Frustum< CoordinateSpace::World >&
+		                                                                        frustum )
 		{
 			ZoneScoped;
 			std::vector< OctTreeNodeLeaf* > leafs {};

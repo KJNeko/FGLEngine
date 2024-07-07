@@ -100,8 +100,6 @@ namespace fgl::engine
 		std::shared_ptr< Model > m_model { nullptr };
 		std::string name {};
 
-	  private:
-
 		GameObject( GameObjectID obj_id ) : m_id( obj_id ) {}
 
 		FGL_DELETE_DEFAULT_CTOR( GameObject );
@@ -153,10 +151,10 @@ namespace fgl::engine
 		//Misc
 		static GameObject createGameObject();
 
-		inline GameObjectID getId() const { return m_id; }
+		GameObjectID getId() const { return m_id; }
 
 		//! Returns the name of the game object. If no name is set then the name of the model is used.
-		inline std::string& getName()
+		std::string& getName()
 		{
 			if ( name.empty() && m_model )
 			{

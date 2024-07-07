@@ -10,6 +10,7 @@
 #pragma GCC diagnostic ignored "-Wconversion"
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
+
 #include <imgui.h>
 #pragma GCC diagnostic pop
 
@@ -89,7 +90,6 @@ namespace fgl::engine::gui
 		//ImGui::UpdatePlatformWindows();
 		//ImGui::RenderPlatformWindowsDefault();
 	}
-
 
 	/*
 	ImGui DockBuilder is still very much not ready for use.
@@ -176,7 +176,7 @@ namespace fgl::engine::gui
 		ImGui::End();
 	}
 
-	void drawEntityInfo( FrameInfo& info )
+	void drawEntityInfo( [[maybe_unused]] FrameInfo& info )
 	{
 		ZoneScoped;
 		ImGui::Begin( "Entity info" );

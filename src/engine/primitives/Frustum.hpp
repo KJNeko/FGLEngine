@@ -55,11 +55,9 @@ namespace fgl::engine
 		  m_position( position )
 		{}
 
-		Vector FGL_FORCE_INLINE forwardVec() const;
-
-		Vector FGL_FORCE_INLINE upVec() const;
-
-		Vector FGL_FORCE_INLINE rightVec() const;
+		FGL_FORCE_INLINE Vector forwardVec() const;
+		FGL_FORCE_INLINE Vector upVec() const;
+		FGL_FORCE_INLINE Vector rightVec() const;
 
 		Coordinate< CType > getPosition() const { return m_position; }
 

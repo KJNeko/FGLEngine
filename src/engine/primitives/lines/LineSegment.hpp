@@ -44,7 +44,7 @@ namespace fgl::engine
 
 		template < typename T >
 			requires is_plane< T >
-		bool FGL_FLATTEN intersects( const T plane ) const
+		FGL_FLATTEN bool intersects( const T plane ) const
 		{
 			return plane.isForward( start ) != plane.isForward( end );
 		}
@@ -54,7 +54,7 @@ namespace fgl::engine
 
 		template < typename T >
 			requires is_plane< T >
-		Coordinate< CType > FGL_FLATTEN intersection( const T plane ) const
+		FGL_FLATTEN Coordinate< CType > intersection( const T plane ) const
 		{
 			return Coordinate< CType >( planeIntersection( plane.getDirection().vec(), plane.distance() ) );
 		}

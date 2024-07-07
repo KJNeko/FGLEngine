@@ -50,7 +50,7 @@ namespace fgl::engine
 
 		GLFWwindow* window() const { return m_window; }
 
-		Window( const int w, const int h, std::string window_name );
+		Window( int w, int h, std::string window_name );
 		Window() = delete;
 		Window( const Window& other ) = delete;
 		Window( Window&& other ) = delete;

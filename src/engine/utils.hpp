@@ -10,7 +10,7 @@ namespace fgl::engine
 {
 
 	template < typename T, typename... Ts >
-	inline void hashCombine( std::size_t& seed, const T& v, const Ts&... ts )
+	void hashCombine( std::size_t& seed, const T& v, const Ts&... ts )
 	{
 		std::hash< T > hasher;
 		seed ^= hasher( v ) + 0x9e3779b9 + ( seed << 6 ) + ( seed >> 2 );

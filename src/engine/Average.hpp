@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <concepts>
 #include <numeric>
 
 template < typename T, std::uint64_t max_count = 100 >
@@ -18,7 +17,7 @@ class Average
 
 	consteval std::uint64_t count() const { return max_count; }
 
-	void FGL_FLATTEN push( const T t )
+	FGL_FLATTEN void push( const T t )
 	{
 		std::call_once( flag, [ this, t ]() { std::fill( data.begin(), data.end(), t ); } );
 		std::shift_right( data.begin(), data.end(), 1 );
