@@ -8,7 +8,6 @@
 
 #include <unordered_map>
 
-#include "engine/GameObject.hpp"
 #include "engine/model/Model.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
 

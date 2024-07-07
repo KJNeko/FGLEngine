@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <vector>
 
+#include "engine/gameobjects/GameObject.hpp"
 #include "engine/primitives/TransformComponent.hpp"
 
 namespace fgl::engine
@@ -44,6 +45,8 @@ namespace fgl::engine
 		std::filesystem::path m_root {};
 		memory::Buffer& m_vertex_buffer;
 		memory::Buffer& m_index_buffer;
+
+		std::vector< GameObject > game_objects {};
 
 		std::vector< std::shared_ptr< Model > > models {};
 

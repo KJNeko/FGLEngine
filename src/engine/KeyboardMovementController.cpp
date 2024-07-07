@@ -9,6 +9,7 @@
 #include <iostream>
 
 #include "engine/primitives/vectors/Vector.hpp"
+#include "gameobjects/GameObject.hpp"
 
 namespace fgl::engine
 {

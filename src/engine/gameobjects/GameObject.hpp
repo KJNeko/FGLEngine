@@ -9,7 +9,6 @@
 #include <vector>
 
 #include "engine/primitives/TransformComponent.hpp"
-#include "model/Model.hpp"
 
 namespace fgl::engine
 {
@@ -100,7 +99,7 @@ namespace fgl::engine
 		std::shared_ptr< Model > m_model { nullptr };
 		std::string name {};
 
-		GameObject( GameObjectID obj_id ) : m_id( obj_id ) {}
+		explicit GameObject( GameObjectID obj_id ) : m_id( obj_id ) {}
 
 		FGL_DELETE_DEFAULT_CTOR( GameObject );
 		FGL_DELETE_COPY( GameObject );
@@ -154,15 +153,7 @@ namespace fgl::engine
 		GameObjectID getId() const { return m_id; }
 
 		//! Returns the name of the game object. If no name is set then the name of the model is used.
-		std::string& getName()
-		{
-			if ( name.empty() && m_model )
-			{
-				name = m_model->getName();
-			}
-
-			return name;
-		}
+		std::string& getName() { return name; }
 
 		void drawImGui();
 	};

@@ -8,7 +8,7 @@
 
 #include <bitset>
 
-#include "engine/GameObject.hpp"
+#include "engine/gameobjects/GameObject.hpp"
 #include "engine/primitives/boxes/AxisAlignedBoundingCube.hpp"
 
 namespace fgl::engine

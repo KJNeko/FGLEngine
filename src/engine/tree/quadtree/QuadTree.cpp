@@ -4,6 +4,8 @@
 
 #include "QuadTree.hpp"
 
+#include "engine/gameobjects/GameObject.hpp"
+
 namespace fgl::engine
 {
 	bool QuadTreeNode::contains( const WorldCoordinate coord ) const

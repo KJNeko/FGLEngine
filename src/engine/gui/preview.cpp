@@ -17,6 +17,7 @@
 #include "engine/FrameInfo.hpp"
 #include "engine/filesystem/scanner/FileScanner.hpp"
 #include "engine/filesystem/types.hpp"
+#include "engine/model/Model.hpp"
 #include "engine/model/builders/SceneBuilder.hpp"
 #include "engine/rendering/SwapChain.hpp"
 

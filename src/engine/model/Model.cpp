@@ -10,7 +10,6 @@
 #include "builders/ModelBuilder.hpp"
 #include "builders/SceneBuilder.hpp"
 #include "engine/buffers/Buffer.hpp"
-#include "engine/buffers/SuballocationView.hpp"
 #include "engine/image/ImageView.hpp"
 
 namespace fgl::engine

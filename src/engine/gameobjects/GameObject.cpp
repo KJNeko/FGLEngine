@@ -14,7 +14,7 @@ namespace fgl::engine
 	GameObject GameObject::createGameObject()
 	{
 		static GameObjectID current_id { 0 };
-		return { current_id++ };
+		return GameObject( current_id++ );
 	}
 
 	void GameObject::drawImGui()

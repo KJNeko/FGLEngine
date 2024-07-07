@@ -16,6 +16,7 @@
 
 #include "engine/assets/stores.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
+#include "engine/gameobjects/GameObject.hpp"
 #include "engine/image/ImageView.hpp"
 
 namespace fgl::engine
@@ -430,6 +431,8 @@ namespace fgl::engine
 
 		log::debug( "Mesh IDX: {}", mesh_idx );
 		log::debug( "Skin IDX: {}", skin_idx );
+
+		GameObject obj { GameObject::createGameObject() };
 
 		std::shared_ptr< Model > model { loadModel( mesh_idx, root ) };
 

@@ -6,10 +6,12 @@
 
 #include <vector>
 
-#include "engine/GameObject.hpp"
+#include "engine/primitives/Scale.hpp"
+#include "engine/primitives/points/Coordinate.hpp"
 
 namespace fgl::engine
 {
+	class GameObject;
 
 	enum class CoordinateSpace;
 	class QuadTreeNode;

@@ -4,8 +4,6 @@
 
 #include "Camera.hpp"
 
-#include "GameObject.hpp"
-
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 #include <tracy/Tracy.hpp>

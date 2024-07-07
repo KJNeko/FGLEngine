@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "GameObject.hpp"
 #include "Window.hpp"
 
 namespace fgl::engine
 {
+	class GameObject;
 
 	class KeyboardMovementController
 	{

@@ -11,8 +11,6 @@
 //clang-format: on
 
 #include "Camera.hpp"
-#include "GameObject.hpp"
-#include "PushConstant.hpp"
 #include "engine/descriptors/Descriptor.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/descriptors/DescriptorSetLayout.hpp"

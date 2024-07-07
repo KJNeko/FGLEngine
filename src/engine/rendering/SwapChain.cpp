@@ -10,6 +10,7 @@
 #include "Attachment.hpp"
 #include "RenderPass.hpp"
 #include "Subpass.hpp"
+#include "engine/assets/TransferManager.hpp"
 
 namespace fgl::engine
 {
