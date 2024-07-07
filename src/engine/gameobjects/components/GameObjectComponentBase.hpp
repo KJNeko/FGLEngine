@@ -7,7 +7,6 @@
 namespace fgl::engine
 {
 
-
 	struct GameObjectComponentBase
 	{
 		using ComponentID = std::uint8_t;
@@ -17,5 +16,4 @@ namespace fgl::engine
 		virtual ~GameObjectComponentBase() = default;
 	};
 
-
-}
+} // namespace fgl::engine

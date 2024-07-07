@@ -13,6 +13,4 @@ namespace fgl::engine
 		virtual ~ComponentImGuiInterface() = default;
 	};
 
-
-}
-
+} // namespace fgl::engine
