@@ -83,7 +83,7 @@ namespace fgl::engine
 
 		//Get all commands for drawing anything without a texture
 		auto [ draw_commands, model_matricies ] =
-			getDrawCallsFromTree( info.game_objects, info.camera_frustum, IS_VISIBLE | IS_ENTITY, TEXTURELESS );
+			getDrawCallsFromTree( info.game_objects, info.camera_frustum, IS_VISIBLE | IS_ENTITY, IS_TEXTURELESS );
 
 		//TODO: Filter Textureless models (#6)
 

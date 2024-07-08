@@ -55,8 +55,10 @@ namespace fgl::engine
 		auto& command_buffer { setupSystem( info ) };
 		TracyVkZone( info.tracy_ctx, *command_buffer, "Render terrain" );
 
+		return;
+
 		auto [ draw_commands, model_matricies ] =
-			getDrawCallsFromTree( info.game_objects, info.camera_frustum, IS_VISIBLE | IS_TERRAIN );
+			getDrawCallsFromTree( info.game_objects, info.camera_frustum, IS_VISIBLE );
 
 		if ( draw_commands.size() == 0 ) return;
 

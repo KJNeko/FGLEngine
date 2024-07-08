@@ -8,6 +8,7 @@
 
 #include <unordered_map>
 
+#include "engine/gameobjects/components/ModelComponent.hpp"
 #include "engine/model/Model.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
 
@@ -17,8 +18,9 @@ namespace fgl::engine
 	std::pair< std::vector< vk::DrawIndexedIndirectCommand >, std::vector< ModelMatrixInfo > > getDrawCallsFromTree(
 		OctTreeNode& root,
 		const Frustum< CoordinateSpace::World >& frustum,
-		const GameObjectFlagType flags,
-		const GameObjectFilterOptions options )
+		const GameObjectFlagType game_object_flags,
+		const TreeFilterFlags tree_flags,
+		std::function< bool( const GameObject& ) > filterFunc )
 	{
 		ZoneScoped;
 		std::unordered_map< DrawKey, DrawPair > draw_pairs {};
@@ -32,60 +34,68 @@ namespace fgl::engine
 			{
 				ZoneScopedN( "Process object" );
 
-				if ( !( ( obj.flags() & flags ) == flags ) ) continue;
+				if ( ( obj.flags() & game_object_flags ) != game_object_flags ) continue;
+				if ( !filterFunc( obj ) ) continue;
 
-				assert( obj.hasModel() );
+				//Check if we have a renderable component
+				if ( !obj.hasComponent< ModelComponent >() ) continue;
 
-				// debug::world::drawBoundingBox( obj.getBoundingBox() );
+				const auto model_components { obj.getComponents< ModelComponent >() };
 
-				for ( const Primitive& primitive : obj.getModel()->m_primitives )
+				for ( const auto* model_component_ptr : model_components )
 				{
-					if ( !primitive.ready() ) continue;
-
-					//assert( primitive.m_texture );
-					const ModelMatrixInfo matrix_info { .model_matrix = obj.getTransform().mat4(),
-						                                .texture_idx = primitive.getAlbedoTextureID() };
-
-					// If the textureless flag is on and we have a texture then skip the primitive.c
-					if ( options & TEXTURELESS )
+					const auto& comp { *model_component_ptr };
+					for ( const Primitive& primitive : comp->m_primitives )
 					{
-						if ( primitive.m_textures.hasTextures() ) continue;
-					}
-					else
-					{
-						// Flag is not present
-						if ( !primitive.m_textures.hasTextures() ) continue;
-					}
+						if ( !primitive.ready() ) continue;
 
-					const auto key { std::make_pair( matrix_info.texture_idx, primitive.m_index_buffer.getOffset() ) };
+						//assert( primitive.m_texture );
+						const ModelMatrixInfo matrix_info { .model_matrix = obj.getTransform().mat4(),
+							                                .texture_idx = primitive.getAlbedoTextureID() };
 
-					assert( primitive.m_index_buffer.size() > 0 );
+						// If the textureless flag is on and we have a texture then skip the primitive.c
+						if ( tree_flags & IS_TEXTURELESS )
+						{
+							if ( primitive.m_textures.hasTextures() ) continue;
+						}
+						else
+						{
+							// Flag is not present
+							if ( !primitive.m_textures.hasTextures() ) continue;
+						}
 
-					if ( auto itter = draw_pairs.find( key ); itter != draw_pairs.end() )
-					{
-						//Draw command for this mesh already exists. Simply add a count to it
-						auto& [ itter_key, pair ] = *itter;
-						auto& [ existing_cmd, model_matrix ] = pair;
+						const auto key {
+							std::make_pair( matrix_info.texture_idx, primitive.m_index_buffer.getOffset() )
+						};
 
-						existing_cmd.instanceCount += 1;
-						model_matrix.emplace_back( matrix_info );
-						assert( model_matrix.size() == existing_cmd.instanceCount );
-					}
-					else
-					{
-						vk::DrawIndexedIndirectCommand cmd {};
+						assert( primitive.m_index_buffer.size() > 0 );
 
-						cmd.firstIndex = primitive.m_index_buffer.getOffsetCount();
-						cmd.indexCount = primitive.m_index_buffer.size();
+						if ( auto itter = draw_pairs.find( key ); itter != draw_pairs.end() )
+						{
+							//Draw command for this mesh already exists. Simply add a count to it
+							auto& [ itter_key, pair ] = *itter;
+							auto& [ existing_cmd, model_matrix ] = pair;
 
-						cmd.vertexOffset = static_cast< int32_t >( primitive.m_vertex_buffer.getOffsetCount() );
+							existing_cmd.instanceCount += 1;
+							model_matrix.emplace_back( matrix_info );
+							assert( model_matrix.size() == existing_cmd.instanceCount );
+						}
+						else
+						{
+							vk::DrawIndexedIndirectCommand cmd {};
 
-						cmd.instanceCount = 1;
+							cmd.firstIndex = primitive.m_index_buffer.getOffsetCount();
+							cmd.indexCount = primitive.m_index_buffer.size();
 
-						std::vector< ModelMatrixInfo > matrix_infos {};
-						matrix_infos.reserve( 128 );
-						matrix_infos.emplace_back( matrix_info );
-						draw_pairs.emplace( key, std::make_pair( cmd, std::move( matrix_infos ) ) );
+							cmd.vertexOffset = static_cast< int32_t >( primitive.m_vertex_buffer.getOffsetCount() );
+
+							cmd.instanceCount = 1;
+
+							std::vector< ModelMatrixInfo > matrix_infos {};
+							matrix_infos.reserve( 128 );
+							matrix_infos.emplace_back( matrix_info );
+							draw_pairs.emplace( key, std::make_pair( cmd, std::move( matrix_infos ) ) );
+						}
 					}
 				}
 			}

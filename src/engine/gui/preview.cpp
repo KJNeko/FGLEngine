@@ -17,6 +17,7 @@
 #include "engine/FrameInfo.hpp"
 #include "engine/filesystem/scanner/FileScanner.hpp"
 #include "engine/filesystem/types.hpp"
+#include "engine/gameobjects/components/ModelComponent.hpp"
 #include "engine/model/Model.hpp"
 #include "engine/model/builders/SceneBuilder.hpp"
 #include "engine/rendering/SwapChain.hpp"
@@ -58,7 +59,11 @@ namespace fgl::engine::gui
 
 								obj.addFlag( IS_ENTITY | IS_VISIBLE );
 
-								obj.getModel() = std::move( model );
+								std::unique_ptr< ModelComponent > component {
+									std::make_unique< ModelComponent >( std::move( model ) )
+								};
+
+								obj.addComponent( std::move( component ) );
 
 								info.game_objects.addGameObject( std::move( obj ) );
 
@@ -77,7 +82,12 @@ namespace fgl::engine::gui
 								{
 									GameObject obj { GameObject::createGameObject() };
 
-									obj.getModel() = std::move( model );
+									std::unique_ptr< ModelComponent > component {
+										std::make_unique< ModelComponent >( std::move( model ) )
+									};
+
+									obj.addComponent( std::move( component ) );
+
 									obj.addFlag( IS_ENTITY | IS_VISIBLE );
 
 									objs.emplace_back( std::move( obj ) );

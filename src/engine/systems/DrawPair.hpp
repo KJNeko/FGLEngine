@@ -27,11 +27,23 @@ namespace fgl::engine
 		return left.first.firstIndex == right.first.firstIndex && left.first.indexCount && right.first.indexCount;
 	}
 
+	inline bool defaultTrueFunc( [[maybe_unused]] const GameObject& )
+	{
+		return true;
+	}
+
+	enum TreeFilterFlags
+	{
+		IS_TEXTURELESS = 1 << 0,
+		DEFAULT_FLAGS = 0,
+	};
+
 	std::pair< std::vector< vk::DrawIndexedIndirectCommand >, std::vector< ModelMatrixInfo > > getDrawCallsFromTree(
 		OctTreeNode& root,
 		const Frustum< CoordinateSpace::World >& frustum,
-		const GameObjectFlagType flags,
-		const GameObjectFilterOptions options = NONE );
+		GameObjectFlagType game_object_flags,
+		TreeFilterFlags tree_flags = DEFAULT_FLAGS,
+		std::function< bool( const GameObject& ) > filterFunc = &defaultTrueFunc );
 
 } // namespace fgl::engine
 

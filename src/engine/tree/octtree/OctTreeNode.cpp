@@ -201,22 +201,18 @@ namespace fgl::engine
 		{
 			auto& objects { std::get< OctTreeNodeLeaf >( m_node_data ) };
 			assert( objects.capacity() == MAX_NODES_IN_LEAF );
-			if ( objects.size() + 1 >= MAX_NODES_IN_LEAF )
+			if ( objects.size() + 1 > MAX_NODES_IN_LEAF )
 			{
 				split();
 				return this->addGameObject( std::move( obj ) );
 			}
-			else
-			{
-				log::debug( "Added game object" );
-				objects.emplace_back( std::move( obj ) );
-				return this;
-			}
+
+			log::debug( "Added game object" );
+			objects.emplace_back( std::move( obj ) );
+			return this;
 		}
-		else
-		{
-			return ( *this )[ obj.getPosition() ].addGameObject( std::forward< GameObject >( obj ) );
-		}
+
+		return ( *this )[ obj.getPosition() ].addGameObject( std::forward< GameObject >( obj ) );
 	}
 
 	bool OctTreeNode::isInFrustum( const Frustum< CoordinateSpace::World >& frustum ) const
@@ -307,10 +303,9 @@ namespace fgl::engine
 
 	OctTreeNode* OctTreeNode::getRoot()
 	{
-		if ( m_parent == nullptr )
-			return this;
-		else
-			return m_parent->getRoot();
+		if ( m_parent == nullptr ) return this;
+
+		return m_parent->getRoot();
 	}
 
 	void OctTreeNode::getAllLeafs( std::vector< OctTreeNodeLeaf* >& objects )
@@ -340,6 +335,7 @@ namespace fgl::engine
 		}
 	}
 
+	/*
 	bool OctTreeNode::recalculateBoundingBoxes()
 	{
 		ZoneScoped;
@@ -399,7 +395,7 @@ namespace fgl::engine
 
 			if ( game_objects.size() == 0 ) return false;
 
-			AxisAlignedBoundingBox< CoordinateSpace::World > new_bounds { game_objects[ 0 ].getBoundingBox() };
+			AxisAlignedBoundingBox< CoordinateSpace::World > new_bounds { game_objects[ 0 ].getPosition() };
 
 			[[assume( game_objects.size() <= MAX_NODES_IN_LEAF )]];
 
@@ -422,6 +418,7 @@ namespace fgl::engine
 
 		std::unreachable();
 	}
+	*/
 
 	std::size_t OctTreeNode::reorganize()
 	{

@@ -286,7 +286,13 @@ namespace fgl::engine
 			for ( auto& model : assets )
 			{
 				GameObject object { GameObject::createGameObject() };
-				object.getModel() = std::move( model );
+
+				std::unique_ptr< ModelComponent > component {
+					std::make_unique< ModelComponent >( std::move( model ) )
+				};
+
+				object.addComponent( std::move( component ) );
+
 				object.getTransform().translation = WorldCoordinate( 0.0f );
 				object.addFlag( IS_VISIBLE | IS_ENTITY );
 
@@ -384,9 +390,7 @@ namespace fgl::engine
 		 */
 
 		Device::getInstance().endSingleTimeCommands( command_buffer );
-		std::cout << "Finished loading game objects" << std::endl;
-
-		m_game_objects_root.recalculateBoundingBoxes();
+		log::info( "Finished loading game object" );
 	}
 
 	void EngineContext::initImGui()

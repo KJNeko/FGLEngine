@@ -15,6 +15,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #pragma GCC diagnostic ignored "-Weffc++"
+#include "engine/primitives/TransformComponent.hpp"
 #include "objectloaders/tiny_gltf.h"
 #pragma GCC diagnostic pop
 
@@ -40,9 +41,9 @@ namespace fgl::engine
 		std::shared_ptr< Texture > albedo { nullptr };
 		std::shared_ptr< Texture > normal { nullptr };
 
-		inline bool hasTextures() const { return albedo || normal; }
+		bool hasTextures() const { return albedo || normal; }
 
-		inline bool ready() const
+		bool ready() const
 		{
 			if ( albedo )
 			{
@@ -66,6 +67,8 @@ namespace fgl::engine
 		PrimitiveMode m_mode;
 
 		PrimitiveTextures m_textures {};
+
+		std::optional< TransformComponent > m_transform;
 
 		//! Returns true if the primitive is ready to be rendered (must have all textures, vertex buffer, and index buffer ready)
 		bool ready() const { return m_textures.ready() && m_vertex_buffer.ready() && m_index_buffer.ready(); }
@@ -100,7 +103,7 @@ namespace fgl::engine
 
 		static Primitive fromVerts(
 			const std::vector< Vertex >&& verts,
-			const PrimitiveMode mode,
+			PrimitiveMode mode,
 			const std::vector< std::uint32_t >&& indicies,
 			memory::Buffer& vertex_buffer,
 			memory::Buffer& index_buffer );

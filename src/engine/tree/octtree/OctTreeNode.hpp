@@ -109,8 +109,6 @@ namespace fgl::engine
 		//! Rebuilds the tree checking if nodes have moved.
 		std::size_t reorganize();
 
-		bool recalculateBoundingBoxes();
-
 		constexpr static std::size_t LEAF_RESERVE_SIZE { 1024 };
 
 		[[nodiscard]] std::vector< OctTreeNodeLeaf* > getAllLeafs()

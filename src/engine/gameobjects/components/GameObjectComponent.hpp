@@ -23,7 +23,7 @@ namespace fgl::engine
 		std::is_base_of_v< T, GameObjectComponentBase >;
 		{
 			t.ID
-		} -> std::same_as< GameObjectComponentBase::ComponentID >;
+		} -> std::same_as< const GameObjectComponentBase::ComponentID& >;
 	};
 
 } // namespace fgl::engine

@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include <memory>
 #include <unordered_map>
 #include <vector>
 
 #include "components/GameObjectComponent.hpp"
+#include "components/ModelComponent.hpp"
 #include "engine/primitives/TransformComponent.hpp"
 
 namespace fgl::engine
@@ -24,18 +24,9 @@ namespace fgl::engine
 	{
 		NONE_FLAG = 0,
 		IS_STATIC = 1 << 0, //! Object can not move
-		IS_VISIBLE = 1 << 1, //! Object is visible
-		IS_TERRAIN = 1 << 2, //! Object is a part of the terrain
-		HAS_MODEL = 1 << 3,
-		IS_ENTITY = 1 << 4,
+		IS_VISIBLE = 1 << 1, //! Only return visible objects
+		IS_ENTITY = 1 << 2,
 		MASK_DEFAULT = IS_VISIBLE,
-	};
-
-	enum GameObjectFilterOptions
-	{
-		NONE = 0,
-		//! Only find objects with no texture
-		TEXTURELESS = 1 << 0,
 	};
 
 	class GameObject
@@ -55,7 +46,6 @@ namespace fgl::engine
 
 		std::vector< GameObjectComponentBase* > components {};
 
-		std::shared_ptr< Model > m_model { nullptr };
 		std::string name {};
 
 		explicit GameObject( GameObjectID obj_id ) : m_id( obj_id ) {}
@@ -66,11 +56,19 @@ namespace fgl::engine
 	  public:
 
 		GameObject& operator=( GameObject&& other ) = default;
+
+		template < typename T >
+			requires is_component< T >
+		void addComponent( std::unique_ptr< T >&& ptr )
+		{
+			components.emplace_back( ptr.release() );
+		}
+
 		GameObject( GameObject&& other ) = default;
 
 		template < typename T >
 			requires is_component< T >
-		bool hasComponent()
+		bool hasComponent() const
 		{
 			for ( const GameObjectComponentBase* comp : components )
 			{
@@ -80,19 +78,40 @@ namespace fgl::engine
 			return false;
 		}
 
+		template < typename T >
+			requires is_component< T >
+		std::vector< const T* > getComponents() const
+		{
+			std::vector< const T* > temp {};
+
+			for ( const GameObjectComponentBase* comp : components )
+			{
+				if ( comp->id() == T::ID ) temp.emplace_back( static_cast< const T* >( comp ) );
+			}
+
+			return temp;
+		}
+
+		template < typename T >
+			requires is_component< T >
+		std::vector< T* > getComponents()
+		{
+			std::vector< T* > temp {};
+
+			for ( GameObjectComponentBase* comp : components )
+			{
+				if ( comp->id() == T::ID ) temp.emplace_back( comp );
+			}
+
+			return temp;
+		}
+
 		//Flags
 		GameObjectFlagType flags() const { return object_flags; }
 
 		void addFlag( GameObjectFlagType flag ) { object_flags |= flag; }
 
 		void removeFlag( GameObjectFlagType flag ) { object_flags &= ( ~flag ); }
-
-		//Model
-		bool hasModel() const { return m_model != nullptr; }
-
-		const std::shared_ptr< Model >& getModel() const { return m_model; }
-
-		std::shared_ptr< Model >& getModel() { return m_model; }
 
 		//Transform
 		TransformComponent& getTransform() { return m_transform; }
@@ -102,9 +121,6 @@ namespace fgl::engine
 		const WorldCoordinate& getPosition() const { return m_transform.translation; }
 
 		const Rotation& getRotation() const { return m_transform.rotation; }
-
-		//Bounding Box
-		OrientedBoundingBox< CoordinateSpace::World > getBoundingBox() const;
 
 		//Misc
 		static GameObject createGameObject();
