@@ -111,19 +111,6 @@ namespace fgl::engine
 		return model_ptr;
 	}
 
-	std::vector< std::shared_ptr< Model > > Model::createModelsFromScene(
-		const std::filesystem::path& path, memory::Buffer& vertex_buffer, memory::Buffer& index_buffer )
-	{
-		ZoneScoped;
-		std::cout << "Loading scene: " << path << std::endl;
-		SceneBuilder builder { vertex_buffer, index_buffer };
-		builder.loadScene( path );
-
-		std::cout << "Finished loading scene: " << path << std::endl;
-
-		return builder.getModels();
-	}
-
 	std::shared_ptr< Model > Model::createModelFromVerts(
 		std::vector< Vertex > verts,
 		std::vector< std::uint32_t > indicies,

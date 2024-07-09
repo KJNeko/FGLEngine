@@ -64,9 +64,6 @@ namespace fgl::engine
 			memory::Buffer& vertex_buffer,
 			memory::Buffer& index_buffer );
 
-		static std::vector< std::shared_ptr< Model > > createModelsFromScene(
-			const std::filesystem::path& path, memory::Buffer& vertex_buffer, memory::Buffer& index_buffer );
-
 		const std::string& getName() const { return m_name; }
 
 		Model(

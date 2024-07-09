@@ -48,8 +48,6 @@ namespace fgl::engine
 
 		std::vector< GameObject > game_objects {};
 
-		std::vector< std::shared_ptr< Model > > models {};
-
 		void handleScene( const tinygltf::Scene& scene, const tinygltf::Model& root );
 		void handleNode( const int node_idx, const tinygltf::Model& root );
 
@@ -81,7 +79,7 @@ namespace fgl::engine
 
 	  public:
 
-		std::vector< std::shared_ptr< Model > > getModels();
+		std::vector< GameObject > getGameObjects();
 
 		SceneBuilder() = delete;
 

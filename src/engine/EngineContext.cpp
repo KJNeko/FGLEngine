@@ -279,21 +279,13 @@ namespace fgl::engine
 
 		{
 			ZoneScopedN( "Load phyiscs test" );
-			std::vector< std::shared_ptr< Model > > assets {
-				Model::createModelsFromScene( "assets/PhysicsTest.glb", *m_vertex_buffer, *m_index_buffer )
-			};
+			SceneBuilder builder { *m_vertex_buffer, *m_index_buffer };
+			builder.loadScene( "assets/PhysicsTest.glb" );
 
-			for ( auto& model : assets )
+			auto objects { builder.getGameObjects() };
+
+			for ( auto& object : objects )
 			{
-				GameObject object { GameObject::createGameObject() };
-
-				std::unique_ptr< ModelComponent > component {
-					std::make_unique< ModelComponent >( std::move( model ) )
-				};
-
-				object.addComponent( std::move( component ) );
-
-				object.getTransform().translation = WorldCoordinate( 0.0f );
 				object.addFlag( IS_VISIBLE | IS_ENTITY );
 
 				m_game_objects_root.addGameObject( std::move( object ) );

@@ -213,12 +213,11 @@ namespace fgl::engine
 		return textures;
 	}
 
-	std::vector< std::shared_ptr< Model > > SceneBuilder::getModels()
+	std::vector< GameObject > SceneBuilder::getGameObjects()
 	{
-		ZoneScoped;
-		std::vector< std::shared_ptr< Model > > new_models { std::move( models ) };
+		std::vector< GameObject > objects { std::move( this->game_objects ) };
 
-		return new_models;
+		return objects;
 	}
 
 	std::vector< glm::vec3 > SceneBuilder::
@@ -438,8 +437,27 @@ namespace fgl::engine
 
 		assert( model );
 
-		//TODO: Material.
-		this->models.emplace_back( std::move( model ) );
+		std::unique_ptr< ModelComponent > component { std::make_unique< ModelComponent >( std::move( model ) ) };
+		obj.addComponent( std::move( component ) );
+
+		obj.addFlag( IS_VISIBLE | IS_ENTITY );
+
+		//TODO: Set transform from node
+		const std::vector< double > translation { node.translation };
+		const std::vector< double > rotation { node.rotation };
+		const std::vector< double > scale { node.scale };
+
+		if ( rotation.size() == 4 )
+			obj.getTransform().rotation = glm::quat( rotation[ 0 ], rotation[ 1 ], rotation[ 2 ], rotation[ 3 ] );
+
+		if ( scale.size() == 3 ) obj.getTransform().scale = glm::vec3( scale[ 0 ], scale[ 1 ], scale[ 2 ] );
+
+		if ( translation.size() == 3 )
+			obj.getTransform().translation = WorldCoordinate( translation[ 0 ], translation[ 1 ], translation[ 2 ] );
+
+		obj.getName() = node.name;
+
+		this->game_objects.emplace_back( std::move( obj ) );
 	}
 
 	void SceneBuilder::handleScene( const tinygltf::Scene& scene, const tinygltf::Model& root )

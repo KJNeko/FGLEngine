@@ -75,23 +75,7 @@ namespace fgl::engine::gui
 
 								builder.loadScene( data->path );
 
-								std::vector< GameObject > objs {};
-								auto models { builder.getModels() };
-								objs.reserve( models.size() );
-								for ( auto& model : models )
-								{
-									GameObject obj { GameObject::createGameObject() };
-
-									std::unique_ptr< ModelComponent > component {
-										std::make_unique< ModelComponent >( std::move( model ) )
-									};
-
-									obj.addComponent( std::move( component ) );
-
-									obj.addFlag( IS_ENTITY | IS_VISIBLE );
-
-									objs.emplace_back( std::move( obj ) );
-								}
+								std::vector< GameObject > objs { builder.getGameObjects() };
 
 								for ( auto& obj : objs )
 								{
