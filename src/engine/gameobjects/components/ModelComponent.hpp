@@ -22,7 +22,7 @@ namespace fgl::engine
 
 		ModelComponent( std::shared_ptr< Model >&& model ) : m_model( std::forward< decltype( m_model ) >( model ) ) {}
 
-		void drawImGui() override {}
+		void drawImGui() override;
 
 		std::string_view name() const override {}
 

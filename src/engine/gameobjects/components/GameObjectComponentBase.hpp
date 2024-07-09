@@ -7,13 +7,13 @@
 namespace fgl::engine
 {
 
-	struct GameObjectComponentBase
+	struct GameObjectComponentBase : public ComponentImGuiInterface
 	{
 		using ComponentID = std::uint8_t;
 		virtual ComponentID id() const = 0;
 		virtual std::string_view name() const = 0;
 
-		virtual ~GameObjectComponentBase() = default;
+		virtual ~GameObjectComponentBase() override = default;
 	};
 
 } // namespace fgl::engine

@@ -31,9 +31,10 @@ namespace fgl::engine
 		auto& scale { this->m_transform.scale };
 		gui::dragFloat3( "Scale", scale );
 
-		for ( [[maybe_unused]] const GameObjectComponentBase* component : components )
+		for ( ComponentImGuiInterface* component : components )
 		{
-			//TODO: Draw components
+			ImGui::Separator();
+			component->drawImGui();
 		}
 	}
 

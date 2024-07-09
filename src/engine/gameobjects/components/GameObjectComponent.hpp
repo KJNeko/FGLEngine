@@ -11,7 +11,7 @@ namespace fgl::engine
 {
 
 	template < GameObjectComponentBase::ComponentID T_ID >
-	struct GameObjectComponent : ComponentImGuiInterface, GameObjectComponentBase
+	struct GameObjectComponent : public GameObjectComponentBase
 	{
 		constexpr static ComponentID ID { T_ID };
 
