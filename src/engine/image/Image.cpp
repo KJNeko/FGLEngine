@@ -15,6 +15,7 @@ namespace fgl::engine
 			return view.lock();
 		else
 		{
+			assert( m_handle );
 			auto ptr { std::make_shared< ImageView >( m_handle ) };
 			view = ptr;
 			return ptr;

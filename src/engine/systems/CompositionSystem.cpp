@@ -25,6 +25,9 @@ namespace fgl::engine
 	vk::raii::CommandBuffer& CompositionSystem::setupSystem( FrameInfo& info )
 	{
 		auto& command_buffer { info.command_buffer };
+
+		command_buffer.nextSubpass( vk::SubpassContents::eInline );
+
 		m_composite_pipeline->bind( command_buffer );
 
 		m_composite_pipeline
@@ -35,8 +38,8 @@ namespace fgl::engine
 
 	void CompositionSystem::pass( FrameInfo& info )
 	{
-		info.command_buffer.nextSubpass( vk::SubpassContents::eInline );
 		auto& command_buffer { setupSystem( info ) };
+		TracyVkZone( info.tracy_ctx, *command_buffer, "Composition Pass" );
 
 		command_buffer.draw( 3, 1, 0, 0 );
 	}

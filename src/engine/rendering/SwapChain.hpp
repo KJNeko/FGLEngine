@@ -27,26 +27,14 @@ namespace fgl::engine
 		SwapChainSupportDetails m_swapchain_support;
 		vk::SurfaceFormatKHR m_surface_format;
 
-		vk::Format m_swap_chain_format { vk::Format::eUndefined };
-		vk::Format m_swap_chain_depth_format { findDepthFormat() };
-		vk::Extent2D m_swap_chain_extent { 0, 0 };
+		vk::Format m_swap_chain_format;
+		vk::Format m_swap_chain_depth_format;
+		vk::Extent2D m_swap_chain_extent;
 
-		std::vector< std::vector< vk::raii::Framebuffer > > m_swap_chain_buffers {};
-		vk::raii::RenderPass m_render_pass { VK_NULL_HANDLE };
+		vk::Extent2D m_swapchain_extent;
 
-		std::vector< Image > m_swap_chain_images {};
-
-		vk::Extent2D windowExtent;
-
-		vk::raii::SwapchainKHR swapChain { VK_NULL_HANDLE };
-
-		std::vector< vk::raii::Semaphore > imageAvailableSemaphores {};
-		std::vector< vk::raii::Semaphore > renderFinishedSemaphores {};
-		std::vector< vk::raii::Fence > in_flight_fences {};
-		std::vector< vk::Fence > images_in_flight {};
-		size_t current_frame_index { 0 };
-
-		std::vector< vk::ClearValue > m_clear_values {};
+		vk::raii::SwapchainKHR m_swapchain;
+		std::vector< std::shared_ptr< Image > > m_swap_chain_images;
 
 		//! Attachments for the final render target
 		struct
@@ -63,17 +51,51 @@ namespace fgl::engine
 			ColorAttachment composite { vk::Format::eR8G8B8A8Unorm };
 		} m_gbuffer_attachments {};
 
+		vk::raii::RenderPass m_render_pass;
+
+		std::vector< std::vector< vk::raii::Framebuffer > > m_swap_chain_buffers;
+
+		std::vector< vk::raii::Semaphore > imageAvailableSemaphores {};
+		std::vector< vk::raii::Semaphore > renderFinishedSemaphores {};
+		std::vector< vk::raii::Fence > in_flight_fences {};
+		std::vector< vk::Fence > images_in_flight {};
+		FrameIndex current_frame_index { 0 };
+
+		std::vector< vk::ClearValue > m_clear_values {};
+
+		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
+			m_gbuffer_descriptor_set;
+
+		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
+			m_gbuffer_composite_descriptor_set;
+
 		void init();
-		void createSwapChain();
-		void createRenderPass();
-		void createFramebuffers();
+		[[nodiscard]] vk::raii::SwapchainKHR createSwapChain();
+		[[nodiscard]] std::vector< std::shared_ptr< Image > > createSwapchainImages();
+		[[nodiscard]] vk::raii::RenderPass createRenderPass();
+		[[nodiscard]] std::vector< std::vector< vk::raii::Framebuffer > > createFramebuffers();
 		void createSyncObjects();
 
-		template < is_attachment... Attachments >
-		void populateAttachmentClearValues( Attachments&... attachments )
+		std::vector< vk::ClearValue > populateAttachmentClearValues()
 		{
-			m_clear_values.resize( sizeof...( Attachments ) );
-			( ( m_clear_values[ attachments.getIndex() ] = attachments.m_clear_value ), ... );
+			return populateAttachmentClearValues(
+				m_render_attachments.color,
+				m_render_attachments.depth,
+				m_gbuffer_attachments.position,
+				m_gbuffer_attachments.normal,
+				m_gbuffer_attachments.albedo,
+				m_gbuffer_attachments.composite );
+		}
+
+		template < is_attachment... Attachments >
+		std::vector< vk::ClearValue > populateAttachmentClearValues( Attachments&... attachments )
+		{
+			std::vector< vk::ClearValue > values {};
+
+			values.resize( sizeof...( Attachments ) );
+			( ( values[ attachments.getIndex() ] = attachments.m_clear_value ), ... );
+
+			return values;
 		}
 
 		// Helper functions
@@ -82,10 +104,10 @@ namespace fgl::engine
 		vk::Extent2D chooseSwapExtent( const vk::SurfaceCapabilitiesKHR& capabilities );
 
 		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
-			m_gbuffer_descriptor_set {};
+			createGBufferDescriptors();
 
 		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
-			m_gbuffer_composite_descriptor_set {};
+			createGBufferCompositeDescriptors();
 
 	  public:
 
@@ -94,16 +116,12 @@ namespace fgl::engine
 		descriptors::DescriptorSet& getGBufferDescriptor( std::uint16_t frame_idx ) const
 		{
 			assert( frame_idx < SwapChain::MAX_FRAMES_IN_FLIGHT && "Frame index out of range" );
-			assert(
-				m_gbuffer_descriptor_set.size() == SwapChain::MAX_FRAMES_IN_FLIGHT
-				&& "GBuffer descriptor set not initialized" );
 			return *m_gbuffer_descriptor_set[ frame_idx ];
 		}
 
 		descriptors::DescriptorSet& getGBufferCompositeDescriptor( uint16_t frame_idx ) const
 		{
 			assert( frame_idx < SwapChain::MAX_FRAMES_IN_FLIGHT && "Frame index out of range" );
-
 			return *m_gbuffer_composite_descriptor_set[ frame_idx ];
 		}
 
@@ -117,7 +135,11 @@ namespace fgl::engine
 
 		vk::raii::RenderPass& getRenderPass() { return m_render_pass; }
 
-		std::uint16_t imageCount() const { return m_swap_chain_images.size(); }
+		std::uint16_t imageCount() const
+		{
+			assert( m_swap_chain_images.size() > 0 );
+			return m_swap_chain_images.size();
+		}
 
 		vk::Format getSwapChainImageFormat() const
 		{
@@ -127,9 +149,15 @@ namespace fgl::engine
 
 		vk::Extent2D getSwapChainExtent() const { return m_swap_chain_extent; }
 
-		uint32_t width() const { return m_swap_chain_extent.width; }
+		uint32_t width() const
+		{
+			return m_swap_chain_extent.width;
+		}
 
-		uint32_t height() const { return m_swap_chain_extent.height; }
+		uint32_t height() const
+		{
+			return m_swap_chain_extent.height;
+		}
 
 		bool compareSwapFormats( const SwapChain& other ) const
 		{

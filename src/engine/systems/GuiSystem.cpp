@@ -24,7 +24,9 @@ namespace fgl::engine
 
 	vk::raii::CommandBuffer& GuiSystem::setupSystem( FrameInfo& info )
 	{
-		auto& command_buffer { info.gui_command_buffer };
+		auto& command_buffer { info.command_buffer };
+
+		command_buffer.nextSubpass( vk::SubpassContents::eInline );
 
 		m_pipeline
 			->bindDescriptor( command_buffer, GBufferCompositeDescriptorSet::m_set_idx, info.gbuffer_composite_set );
@@ -37,16 +39,12 @@ namespace fgl::engine
 	void GuiSystem::pass( FrameInfo& info )
 	{
 		auto& command_buffer { setupSystem( info ) };
+		TracyVkZone( info.tracy_ctx, *command_buffer, "Debug GUI Pass" );
 
 		command_buffer.draw( 3, 1, 0, 0 );
 
 		//Handle GUI
 		gui::drawMainGUI( info );
-
-		command_buffer.end();
-
-		info.command_buffer.nextSubpass( vk::SubpassContents::eSecondaryCommandBuffers );
-		info.command_buffer.executeCommands( { info.gui_command_buffer } );
 	}
 
 } // namespace fgl::engine

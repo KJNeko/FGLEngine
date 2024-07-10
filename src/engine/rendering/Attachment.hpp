@@ -79,23 +79,19 @@ namespace fgl::engine
 			description.finalLayout = final_layout;
 		}
 
-		void attachImageView( std::uint16_t frame_idx, std::shared_ptr< ImageView > image_view )
+		void linkImage( std::shared_ptr< Image > image )
 		{
-			auto& image_views = m_attachment_resources.m_image_views;
-			if ( image_views.size() <= frame_idx ) image_views.resize( frame_idx + 1 );
-			image_views[ frame_idx ] = std::move( image_view );
+			auto& itter { m_attachment_resources.m_images.emplace_back( std::move( image ) ) };
+			m_attachment_resources.m_image_views.emplace_back( itter->getView() );
 		}
 
-		void linkImage( std::uint16_t frame_idx, Image& image ) { attachImageView( frame_idx, image.getView() ); }
-
-		void linkImages( std::vector< Image >& images )
+		void linkImages( std::vector< std::shared_ptr< Image > >& images )
 		{
-			for ( std::uint16_t i = 0; i < images.size(); ++i )
+			for ( auto image : images )
 			{
-				linkImage( i, images[ i ] );
+				auto& itter { m_attachment_resources.m_images.emplace_back( std::move( image ) ) };
+				m_attachment_resources.m_image_views.emplace_back( itter->getView() );
 			}
-
-			log::info( "Linked {} images to the swapchain color", images.size() );
 		}
 
 		void createResources( const std::uint32_t count, vk::Extent2D extent )
@@ -132,8 +128,6 @@ namespace fgl::engine
 			}
 		}
 
-		AttachmentResources& resources() { return m_attachment_resources; }
-
 		vk::AttachmentDescription& desc() { return description; }
 
 		std::uint32_t getIndex() const
@@ -144,9 +138,17 @@ namespace fgl::engine
 			return m_index;
 		}
 
-		ImageView& view( const FrameIndex index ) { return *m_attachment_resources.m_image_views[ index ]; }
+		ImageView& view( const FrameIndex index )
+		{
+			assert( index < m_attachment_resources.m_image_views.size() );
+			return *m_attachment_resources.m_image_views[ index ];
+		}
 
-		Image& image( const FrameIndex index ) { return *m_attachment_resources.m_images[ index ]; }
+		Image& image( const FrameIndex index )
+		{
+			assert( index < m_attachment_resources.m_images.size() );
+			return *m_attachment_resources.m_images[ index ];
+		}
 
 		void setName( const std::string str )
 		{
@@ -154,6 +156,7 @@ namespace fgl::engine
 			auto& image_views { m_attachment_resources.m_image_views };
 
 			assert( images.size() == image_views.size() );
+			assert( images.size() > 0 );
 
 			for ( std::size_t i = 0; i < images.size(); ++i )
 			{

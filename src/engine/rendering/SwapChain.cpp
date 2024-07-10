@@ -20,9 +20,17 @@ namespace fgl::engine
 	  m_swapchain_support( Device::getInstance().getSwapChainSupport() ),
 	  m_surface_format( chooseSwapSurfaceFormat( m_swapchain_support.formats ) ),
 	  m_swap_chain_format( m_surface_format.format ),
+	  m_swap_chain_depth_format( findDepthFormat() ),
 	  m_swap_chain_extent( chooseSwapExtent( m_swapchain_support.capabilities ) ),
-	  windowExtent( extent ),
-	  m_render_attachments( getSwapChainImageFormat(), findDepthFormat() )
+	  m_swapchain_extent( extent ),
+	  m_swapchain( createSwapChain() ),
+	  m_swap_chain_images( createSwapchainImages() ),
+	  m_render_attachments( getSwapChainImageFormat(), findDepthFormat() ),
+	  m_render_pass( createRenderPass() ),
+	  m_swap_chain_buffers( createFramebuffers() ),
+	  m_clear_values( populateAttachmentClearValues() ),
+	  m_gbuffer_descriptor_set( createGBufferDescriptors() ),
+	  m_gbuffer_composite_descriptor_set( createGBufferCompositeDescriptors() )
 	{
 		init();
 	}
@@ -33,9 +41,17 @@ namespace fgl::engine
 	  m_swapchain_support( Device::getInstance().getSwapChainSupport() ),
 	  m_surface_format( chooseSwapSurfaceFormat( m_swapchain_support.formats ) ),
 	  m_swap_chain_format( m_surface_format.format ),
+	  m_swap_chain_depth_format( findDepthFormat() ),
 	  m_swap_chain_extent( chooseSwapExtent( m_swapchain_support.capabilities ) ),
-	  windowExtent( extent ),
-	  m_render_attachments( getSwapChainImageFormat(), findDepthFormat() )
+	  m_swapchain_extent( extent ),
+	  m_swapchain( createSwapChain() ),
+	  m_swap_chain_images( createSwapchainImages() ),
+	  m_render_attachments( getSwapChainImageFormat(), findDepthFormat() ),
+	  m_render_pass( createRenderPass() ),
+	  m_swap_chain_buffers( createFramebuffers() ),
+	  m_clear_values( populateAttachmentClearValues() ),
+	  m_gbuffer_descriptor_set( createGBufferDescriptors() ),
+	  m_gbuffer_composite_descriptor_set( createGBufferCompositeDescriptors() )
 	{
 		init();
 		old_swap_chain.reset();
@@ -50,9 +66,6 @@ namespace fgl::engine
 
 	void SwapChain::init()
 	{
-		createSwapChain();
-		createRenderPass();
-		createFramebuffers();
 		createSyncObjects();
 	}
 
@@ -66,7 +79,7 @@ namespace fgl::engine
 		     != vk::Result::eSuccess )
 			throw std::runtime_error( "failed to wait for fences!" );
 
-		auto result { swapChain.acquireNextImage(
+		auto result { m_swapchain.acquireNextImage(
 			std::numeric_limits< uint64_t >::max(),
 			imageAvailableSemaphores[ current_frame_index ] // must be a not signaled semaphore
 			) };
@@ -114,7 +127,7 @@ namespace fgl::engine
 
 		presentInfo.setWaitSemaphores( signaled_semaphores );
 
-		std::vector< vk::SwapchainKHR > swapchains { swapChain };
+		std::vector< vk::SwapchainKHR > swapchains { m_swapchain };
 		presentInfo.setSwapchains( swapchains );
 
 		std::array< std::uint32_t, 1 > indicies { { current_present_index } };
@@ -133,31 +146,31 @@ namespace fgl::engine
 		return vk::Result::eSuccess;
 	}
 
-	void SwapChain::createSwapChain()
+	vk::raii::SwapchainKHR SwapChain::createSwapChain()
 	{
 		ZoneScoped;
 
-		const vk::PresentModeKHR presentMode { chooseSwapPresentMode( m_swapchain_support.presentModes ) };
+		const vk::PresentModeKHR present_mode { chooseSwapPresentMode( m_swapchain_support.presentModes ) };
 
-		uint32_t imageCount = m_swapchain_support.capabilities.minImageCount + 1;
+		uint32_t image_count = m_swapchain_support.capabilities.minImageCount + 1;
 		if ( m_swapchain_support.capabilities.maxImageCount > 0
-		     && imageCount > m_swapchain_support.capabilities.maxImageCount )
+		     && image_count > m_swapchain_support.capabilities.maxImageCount )
 		{
-			imageCount = m_swapchain_support.capabilities.maxImageCount;
+			image_count = m_swapchain_support.capabilities.maxImageCount;
 		}
 
-		vk::SwapchainCreateInfoKHR createInfo = {};
-		createInfo.surface = Device::getInstance().surface();
+		vk::SwapchainCreateInfoKHR create_info = {};
+		create_info.surface = Device::getInstance().surface();
 
-		createInfo.minImageCount = imageCount;
-		createInfo.imageFormat = m_surface_format.format;
-		createInfo.imageColorSpace = m_surface_format.colorSpace;
-		createInfo.imageExtent = m_swap_chain_extent;
-		createInfo.imageArrayLayers = 1;
-		createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
+		create_info.minImageCount = image_count;
+		create_info.imageFormat = m_surface_format.format;
+		create_info.imageColorSpace = m_surface_format.colorSpace;
+		create_info.imageExtent = m_swap_chain_extent;
+		create_info.imageArrayLayers = 1;
+		create_info.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
 
-		std::uint32_t graphics_family { m_phy_device.queueInfo().getIndex( vk::QueueFlagBits::eGraphics ) };
-		std::uint32_t present_family { m_phy_device.queueInfo().getPresentIndex() };
+		const std::uint32_t graphics_family { m_phy_device.queueInfo().getIndex( vk::QueueFlagBits::eGraphics ) };
+		const std::uint32_t present_family { m_phy_device.queueInfo().getPresentIndex() };
 
 		const uint32_t queueFamilyIndices[] = { graphics_family, present_family };
 
@@ -165,38 +178,49 @@ namespace fgl::engine
 		{
 			// If the familys are not the same then the swapchain must be shared between
 			// both queues.
-			createInfo.imageSharingMode = vk::SharingMode::eConcurrent;
-			createInfo.queueFamilyIndexCount = 2;
-			createInfo.pQueueFamilyIndices = queueFamilyIndices;
+			create_info.imageSharingMode = vk::SharingMode::eConcurrent;
+			create_info.queueFamilyIndexCount = 2;
+			create_info.pQueueFamilyIndices = queueFamilyIndices;
 		}
 		else
 		{
-			createInfo.imageSharingMode = vk::SharingMode::eExclusive;
-			createInfo.queueFamilyIndexCount = 0; // Optional
-			createInfo.pQueueFamilyIndices = nullptr; // Optional
+			create_info.imageSharingMode = vk::SharingMode::eExclusive;
+			create_info.queueFamilyIndexCount = 0; // Optional
+			create_info.pQueueFamilyIndices = nullptr; // Optional
 		}
 
-		createInfo.preTransform = m_swapchain_support.capabilities.currentTransform;
-		createInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
+		create_info.preTransform = m_swapchain_support.capabilities.currentTransform;
+		create_info.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
 
-		createInfo.presentMode = presentMode;
-		createInfo.clipped = VK_TRUE;
+		create_info.presentMode = present_mode;
+		create_info.clipped = VK_TRUE;
 
-		createInfo.oldSwapchain = old_swap_chain == nullptr ? VK_NULL_HANDLE : *old_swap_chain->swapChain;
+		create_info.oldSwapchain = ( old_swap_chain == nullptr ? VK_NULL_HANDLE : *old_swap_chain->m_swapchain );
 
-		swapChain = Device::getInstance()->createSwapchainKHR( createInfo );
-
-		std::vector< vk::Image > swap_chain_images { swapChain.getImages() };
-
-		for ( std::uint64_t i = 0; i < swap_chain_images.size(); i++ )
-		{
-			auto& itter = m_swap_chain_images.emplace_back(
-				m_swap_chain_extent, m_surface_format.format, swap_chain_images[ i ], createInfo.imageUsage );
-			itter.setName( "Swapchain image: " + std::to_string( i ) );
-		}
+		return Device::getInstance()->createSwapchainKHR( create_info );
 	}
 
-	void SwapChain::createRenderPass()
+	std::vector< std::shared_ptr< Image > > SwapChain::createSwapchainImages()
+	{
+		std::vector< vk::Image > swap_chain_images { m_swapchain.getImages() };
+		std::vector< std::shared_ptr< Image > > images {};
+		images.reserve( swap_chain_images.size() );
+
+		for ( std::uint64_t i = 0; i < swap_chain_images.size(); ++i )
+		{
+			images.emplace_back( std::make_shared< Image >(
+				m_swap_chain_extent,
+				m_surface_format.format,
+				swap_chain_images[ i ],
+				vk::ImageUsageFlagBits::eColorAttachment ) );
+		}
+
+		assert( swap_chain_images.size() == images.size() );
+
+		return images;
+	}
+
+	vk::raii::RenderPass SwapChain::createRenderPass()
 	{
 		ZoneScoped;
 
@@ -235,21 +259,19 @@ namespace fgl::engine
 		Subpass<
 			vk::PipelineBindPoint::eGraphics,
 			UsedAttachment< DepthAttachment, vk::ImageLayout::eDepthStencilAttachmentOptimal >,
-			UsedAttachment< ColoredPresentAttachment, vk::ImageLayout::eColorAttachmentOptimal >,
+			UsedAttachment< ColorAttachment, vk::ImageLayout::eColorAttachmentOptimal >,
 			InputAttachment< ColorAttachment, vk::ImageLayout::eShaderReadOnlyOptimal >,
 			InputAttachment< ColorAttachment, vk::ImageLayout::eShaderReadOnlyOptimal >,
 			InputAttachment< ColorAttachment, vk::ImageLayout::eShaderReadOnlyOptimal > >
 			composite_subpass { 1,
 			                    m_render_attachments.depth,
-			                    m_render_attachments.color,
+			                    m_gbuffer_attachments.composite,
 			                    m_gbuffer_attachments.position,
 			                    m_gbuffer_attachments.normal,
 			                    m_gbuffer_attachments.albedo };
 
 		composite_subpass.registerDependencyFromExternal(
 			vk::AccessFlagBits::eColorAttachmentWrite, vk::PipelineStageFlagBits::eColorAttachmentOutput );
-
-		composite_subpass.registerFullDependency( g_buffer_subpass );
 
 		// For color attachments
 		composite_subpass.registerDependencyFrom(
@@ -288,7 +310,7 @@ namespace fgl::engine
 			composite_subpass,
 			vk::AccessFlagBits::eColorAttachmentWrite,
 			vk::PipelineStageFlagBits::eColorAttachmentOutput,
-			vk::AccessFlagBits::eShaderRead,
+			vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eInputAttachmentRead,
 			vk::PipelineStageFlagBits::eFragmentShader,
 			vk::DependencyFlagBits::eByRegion );
 
@@ -311,13 +333,14 @@ namespace fgl::engine
 		render_pass_builder.registerSubpass( composite_subpass );
 		render_pass_builder.registerSubpass( gui_subpass );
 
-		m_render_pass = render_pass_builder.create();
+		return render_pass_builder.create();
 	}
 
 	template < is_attachment... Attachments >
-	std::vector< vk::ImageView > fillViewsFromAttachments( uint8_t frame_idx, Attachments&&... attachments )
+	std::vector< std::shared_ptr< ImageView > >
+		fillViewsFromAttachments( uint8_t frame_idx, Attachments&&... attachments )
 	{
-		std::vector< vk::ImageView > views {};
+		std::vector< std::shared_ptr< ImageView > > views {};
 
 		views.resize( sizeof...( Attachments ) );
 
@@ -326,17 +349,11 @@ namespace fgl::engine
 		return views;
 	}
 
-	void SwapChain::createFramebuffers()
+	std::vector< std::vector< vk::raii::Framebuffer > > SwapChain::createFramebuffers()
 	{
 		ZoneScoped;
 
-		// Render target resource management
-		for ( int i = 0; i < imageCount(); ++i )
-		{
-			auto& image { m_swap_chain_images[ i ] };
-
-			image.setName( "SwapChainImage: " + std::to_string( i ) );
-		}
+		assert( imageCount() > 0 );
 
 		m_render_attachments.color.linkImages( m_swap_chain_images );
 
@@ -361,54 +378,13 @@ namespace fgl::engine
 			{ 0.0f, 0.0f, 0.0f, 0.0f } } ) );
 		m_gbuffer_attachments.composite.setClear( vk::ClearColorValue( std::array< float, 4 > {
 			{ 0.0f, 0.0f, 0.0f, 0.0f } } ) );
+		;
 
-		populateAttachmentClearValues(
-			m_render_attachments.color,
-			m_render_attachments.depth,
-			m_gbuffer_attachments.position,
-			m_gbuffer_attachments.normal,
-			m_gbuffer_attachments.albedo,
-			m_gbuffer_attachments.composite );
-
-		for ( FrameIndex i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
-		{
-			auto gbuffer_set { std::make_unique< descriptors::DescriptorSet >( GBufferDescriptorSet::createLayout() ) };
-
-			gbuffer_set->setMaxIDX( 2 );
-
-			gbuffer_set->bindAttachment(
-				0, m_gbuffer_attachments.position.view( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
-
-			gbuffer_set
-				->bindAttachment( 1, m_gbuffer_attachments.normal.view( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
-
-			gbuffer_set
-				->bindAttachment( 2, m_gbuffer_attachments.albedo.view( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
-
-			gbuffer_set->update();
-
-			m_gbuffer_descriptor_set.at( i ) = std::move( gbuffer_set );
-
-			auto composite_set {
-				std::make_unique< descriptors::DescriptorSet >( GBufferCompositeDescriptorSet::createLayout() )
-			};
-
-			composite_set->setMaxIDX( 0 );
-			composite_set->bindAttachment(
-				0, m_gbuffer_attachments.composite.view( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
-
-			composite_set->update();
-
-			m_gbuffer_composite_descriptor_set.at( i ) = std::move( composite_set );
-		}
-
-		m_swap_chain_buffers.clear();
-		m_swap_chain_buffers.reserve( imageCount() );
+		std::vector< std::vector< vk::raii::Framebuffer > > framebuffers {};
 
 		for ( std::uint16_t present_idx = 0; present_idx < imageCount(); ++present_idx )
 		{
 			std::vector< vk::raii::Framebuffer > temp {};
-			temp.reserve( SwapChain::MAX_FRAMES_IN_FLIGHT );
 
 			for ( FrameIndex frame_idx = 0; frame_idx < SwapChain::MAX_FRAMES_IN_FLIGHT; frame_idx++ )
 			{
@@ -434,8 +410,10 @@ namespace fgl::engine
 				temp.emplace_back( Device::getInstance()->createFramebuffer( framebufferInfo ) );
 			}
 
-			m_swap_chain_buffers.emplace_back( std::move( temp ) );
+			framebuffers.emplace_back( std::move( temp ) );
 		}
+
+		return framebuffers;
 	}
 
 	void SwapChain::createSyncObjects()
@@ -534,7 +512,7 @@ namespace fgl::engine
 		}
 		else
 		{
-			vk::Extent2D actualExtent = windowExtent;
+			vk::Extent2D actualExtent = m_swapchain_extent;
 			actualExtent.width = std::
 				max( capabilities.minImageExtent.width,
 			         std::min( capabilities.maxImageExtent.width, actualExtent.width ) );
@@ -544,6 +522,57 @@ namespace fgl::engine
 
 			return actualExtent;
 		}
+	}
+
+	std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT > SwapChain::
+		createGBufferDescriptors()
+	{
+		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT > descriptors {};
+
+		for ( FrameIndex frame_idx = 0; frame_idx < SwapChain::MAX_FRAMES_IN_FLIGHT; ++frame_idx )
+		{
+			auto gbuffer_set { std::make_unique< descriptors::DescriptorSet >( GBufferDescriptorSet::createLayout() ) };
+
+			gbuffer_set->setMaxIDX( 2 );
+
+			gbuffer_set->bindAttachment(
+				0, m_gbuffer_attachments.position.view( frame_idx ), vk::ImageLayout::eShaderReadOnlyOptimal );
+
+			gbuffer_set->bindAttachment(
+				1, m_gbuffer_attachments.normal.view( frame_idx ), vk::ImageLayout::eShaderReadOnlyOptimal );
+
+			gbuffer_set->bindAttachment(
+				2, m_gbuffer_attachments.albedo.view( frame_idx ), vk::ImageLayout::eShaderReadOnlyOptimal );
+
+			gbuffer_set->update();
+
+			descriptors.at( frame_idx ) = std::move( gbuffer_set );
+		}
+
+		return descriptors;
+	}
+
+	std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT > SwapChain::
+		createGBufferCompositeDescriptors()
+	{
+		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT > descriptors {};
+
+		for ( FrameIndex frame_idx = 0; frame_idx < SwapChain::MAX_FRAMES_IN_FLIGHT; ++frame_idx )
+		{
+			auto composite_set {
+				std::make_unique< descriptors::DescriptorSet >( GBufferCompositeDescriptorSet::createLayout() )
+			};
+
+			composite_set->setMaxIDX( 0 );
+			composite_set->bindAttachment(
+				0, m_gbuffer_attachments.composite.view( frame_idx ), vk::ImageLayout::eShaderReadOnlyOptimal );
+
+			composite_set->update();
+
+			m_gbuffer_composite_descriptor_set.at( frame_idx ) = std::move( composite_set );
+		}
+
+		return descriptors;
 	}
 
 	vk::Format SwapChain::findDepthFormat()

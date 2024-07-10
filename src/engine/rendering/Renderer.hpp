@@ -11,7 +11,6 @@
 
 #include "Device.hpp"
 #include "SwapChain.hpp"
-#include "engine/Window.hpp"
 
 //clang-format: off
 #include <tracy/TracyVulkan.hpp>
@@ -81,7 +80,7 @@ namespace fgl::engine
 
 		float getAspectRatio() const { return m_swapchain->extentAspectRatio(); }
 
-		std::pair< vk::raii::CommandBuffer&, vk::raii::CommandBuffer& > beginFrame();
+		vk::raii::CommandBuffer& beginFrame();
 		void endFrame();
 
 		void setViewport( const vk::raii::CommandBuffer& buffer );

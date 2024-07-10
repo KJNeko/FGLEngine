@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <memory>
-
 namespace fgl::engine
 {
 	class ImageView;
@@ -24,14 +22,11 @@ namespace fgl::engine
 			a.setIndex( std::declval< std::uint32_t >() )
 		};
 		{
-			a.attachImageView( std::declval< std::uint16_t >(), std::declval< std::shared_ptr< ImageView > >() )
+			a.linkImages( std::declval< std::vector< std::shared_ptr< Image > >& >() )
 		};
 		{
-			a.linkImage( std::declval< std::uint16_t >(), std::declval< Image& >() )
-		};
-		{
-			a.resources()
-		} -> std::same_as< AttachmentResources& >;
+			a.view( std::declval< std::uint32_t >() )
+		} -> std::same_as< ImageView& >;
 		{
 			a.m_clear_value
 		} -> std::same_as< vk::ClearValue& >;

@@ -79,7 +79,6 @@ namespace fgl::engine
 		float frame_time;
 
 		vk::raii::CommandBuffer& command_buffer;
-		vk::raii::CommandBuffer& gui_command_buffer;
 
 		struct
 		{

@@ -74,7 +74,7 @@ namespace fgl::engine
 	void Renderer::recreateSwapchain()
 	{
 		ZoneScoped;
-		std::cout << "Rebuilding swap chain" << std::endl;
+		log::info( "Rebuilding swapchain" );
 		auto extent { m_window.getExtent() };
 
 		while ( extent.width == 0 || extent.height == 0 )
@@ -97,7 +97,7 @@ namespace fgl::engine
 		}
 	}
 
-	std::pair< vk::raii::CommandBuffer&, vk::raii::CommandBuffer& > Renderer::beginFrame()
+	vk::raii::CommandBuffer& Renderer::beginFrame()
 	{
 		assert( !is_frame_started && "Cannot begin frame while frame is already in progress" );
 		auto [ result, present_index ] = m_swapchain->acquireNextImage();
@@ -113,7 +113,6 @@ namespace fgl::engine
 
 		is_frame_started = true;
 		auto& command_buffer { getCurrentCommandbuffer() };
-		auto& gui_command_buffer { getCurrentGuiCommandBuffer() };
 
 		vk::CommandBufferBeginInfo begin_info {};
 		begin_info.pNext = VK_NULL_HANDLE;
@@ -122,22 +121,7 @@ namespace fgl::engine
 
 		command_buffer.begin( begin_info );
 
-		vk::CommandBufferInheritanceInfo inheritance_info {};
-		inheritance_info.framebuffer =
-			this->getSwapChain().getFrameBuffer( current_frame_index, current_present_index );
-		inheritance_info.renderPass = this->getSwapChainRenderPass();
-		inheritance_info.subpass = 2;
-
-		vk::CommandBufferBeginInfo gui_begin_info {};
-		gui_begin_info.pInheritanceInfo = &inheritance_info;
-		gui_begin_info.flags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
-
-		gui_command_buffer.begin( gui_begin_info );
-
-		setViewport( gui_command_buffer );
-		setScissor( gui_command_buffer );
-
-		return { command_buffer, gui_command_buffer };
+		return command_buffer;
 	}
 
 	void Renderer::endFrame()
