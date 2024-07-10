@@ -31,7 +31,7 @@ namespace fgl::engine
 		};
 		{
 			a.resources()
-		} -> std::same_as< AttachmentResources >;
+		} -> std::same_as< AttachmentResources& >;
 		{
 			a.m_clear_value
 		} -> std::same_as< vk::ClearValue& >;

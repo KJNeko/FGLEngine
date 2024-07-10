@@ -32,8 +32,8 @@ namespace fgl::engine
 
 		std::optional< TracyVkCtx > m_tracy_ctx { std::nullopt };
 
-		uint32_t current_image_idx { std::numeric_limits< std::uint32_t >::max() };
-		std::uint16_t current_frame_idx { 0 };
+		PresentIndex current_present_index { std::numeric_limits< PresentIndex >::max() };
+		FrameIndex current_frame_index { 0 };
 		bool is_frame_started { false };
 
 		void createCommandBuffers();
@@ -54,7 +54,7 @@ namespace fgl::engine
 		std::uint16_t getFrameIndex() const
 		{
 			assert( is_frame_started && "Cannot get frame index while frame not in progress" );
-			return current_frame_idx;
+			return current_frame_index;
 		}
 
 		bool isFrameInProgress() const { return is_frame_started; }
@@ -62,10 +62,10 @@ namespace fgl::engine
 		vk::raii::CommandBuffer& getCurrentCommandbuffer()
 		{
 			assert( is_frame_started && "Cannot get command buffer while frame not in progress" );
-			return m_command_buffer[ current_frame_idx ];
+			return m_command_buffer[ current_frame_index ];
 		}
 
-		vk::raii::CommandBuffer& getCurrentGuiCommandBuffer() { return m_gui_command_buffer[ current_frame_idx ]; }
+		vk::raii::CommandBuffer& getCurrentGuiCommandBuffer() { return m_gui_command_buffer[ current_frame_index ]; }
 
 		TracyVkCtx getCurrentTracyCTX() const
 		{

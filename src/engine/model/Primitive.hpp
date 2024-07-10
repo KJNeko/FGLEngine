@@ -66,7 +66,7 @@ namespace fgl::engine
 		OrientedBoundingBox< CoordinateSpace::Model > m_bounding_box;
 		PrimitiveMode m_mode;
 
-		PrimitiveTextures m_textures {};
+		PrimitiveTextures m_textures;
 
 		std::optional< TransformComponent > m_transform;
 
@@ -81,7 +81,9 @@ namespace fgl::engine
 		  m_vertex_buffer( std::move( vertex_buffer ) ),
 		  m_index_buffer( std::move( index_buffer ) ),
 		  m_bounding_box( bounding_box ),
-		  m_mode( mode )
+		  m_mode( mode ),
+		  m_textures(),
+		  m_transform()
 		{}
 
 		Primitive(
@@ -94,7 +96,8 @@ namespace fgl::engine
 		  m_index_buffer( std::move( index_buffer ) ),
 		  m_bounding_box( bounding_box ),
 		  m_mode( mode ),
-		  m_textures( std::forward< decltype( m_textures ) >( textures ) )
+		  m_textures( std::forward< decltype( m_textures ) >( textures ) ),
+		  m_transform()
 		{}
 
 		Primitive() = delete;

@@ -6,8 +6,9 @@
 #include <vector>
 
 #include "Device.hpp"
-#include "RenderPass.hpp"
+#include "RenderPassBuilder.hpp"
 #include "engine/FrameInfo.hpp"
+#include "engine/rendering/types.hpp"
 #include "engine/texture/Texture.hpp"
 
 namespace fgl::engine
@@ -16,43 +17,51 @@ namespace fgl::engine
 	{
 	  public:
 
-		static constexpr std::uint16_t MAX_FRAMES_IN_FLIGHT = 2;
+		static constexpr FrameIndex MAX_FRAMES_IN_FLIGHT { 2 };
 
 	  private:
 
 		PhysicalDevice& m_phy_device;
+		std::shared_ptr< SwapChain > old_swap_chain {};
+
+		SwapChainSupportDetails m_swapchain_support;
+		vk::SurfaceFormatKHR m_surface_format;
 
 		vk::Format m_swap_chain_format { vk::Format::eUndefined };
 		vk::Format m_swap_chain_depth_format { findDepthFormat() };
 		vk::Extent2D m_swap_chain_extent { 0, 0 };
 
-		std::vector< vk::raii::Framebuffer > m_swap_chain_buffers {};
+		std::vector< std::vector< vk::raii::Framebuffer > > m_swap_chain_buffers {};
 		vk::raii::RenderPass m_render_pass { VK_NULL_HANDLE };
-		std::unique_ptr< RenderPassResources > m_render_pass_resources { nullptr };
 
 		std::vector< Image > m_swap_chain_images {};
 
 		vk::Extent2D windowExtent;
 
 		vk::raii::SwapchainKHR swapChain { VK_NULL_HANDLE };
-		std::shared_ptr< SwapChain > old_swap_chain {};
 
 		std::vector< vk::raii::Semaphore > imageAvailableSemaphores {};
 		std::vector< vk::raii::Semaphore > renderFinishedSemaphores {};
-		std::vector< vk::raii::Fence > inFlightFences {};
-		std::vector< vk::Fence > imagesInFlight {};
-		size_t currentFrame { 0 };
+		std::vector< vk::raii::Fence > in_flight_fences {};
+		std::vector< vk::Fence > images_in_flight {};
+		size_t current_frame_index { 0 };
 
 		std::vector< vk::ClearValue > m_clear_values {};
 
-	  public:
+		//! Attachments for the final render target
+		struct
+		{
+			ColoredPresentAttachment color; // Present attachment
+			DepthAttachment depth;
+		} m_render_attachments;
 
-		std::unique_ptr< Texture > g_buffer_position_img { nullptr };
-		std::unique_ptr< Texture > g_buffer_normal_img { nullptr };
-		std::unique_ptr< Texture > g_buffer_albedo_img { nullptr };
-		std::unique_ptr< Texture > g_buffer_composite_img { nullptr };
-
-	  private:
+		struct
+		{
+			ColorAttachment position { vk::Format::eR16G16B16A16Sfloat };
+			ColorAttachment normal { vk::Format::eR16G16B16A16Sfloat };
+			ColorAttachment albedo { vk::Format::eR8G8B8A8Unorm };
+			ColorAttachment composite { vk::Format::eR8G8B8A8Unorm };
+		} m_gbuffer_attachments {};
 
 		void init();
 		void createSwapChain();
@@ -60,9 +69,16 @@ namespace fgl::engine
 		void createFramebuffers();
 		void createSyncObjects();
 
+		template < is_attachment... Attachments >
+		void populateAttachmentClearValues( Attachments&... attachments )
+		{
+			m_clear_values.resize( sizeof...( Attachments ) );
+			( ( m_clear_values[ attachments.getIndex() ] = attachments.m_clear_value ), ... );
+		}
+
 		// Helper functions
-		vk::SurfaceFormatKHR chooseSwapSurfaceFormat( const std::vector< vk::SurfaceFormatKHR >& availableFormats );
-		vk::PresentModeKHR chooseSwapPresentMode( const std::vector< vk::PresentModeKHR >& availablePresentModes );
+		vk::SurfaceFormatKHR chooseSwapSurfaceFormat( const std::vector< vk::SurfaceFormatKHR >& available_formats );
+		vk::PresentModeKHR chooseSwapPresentMode( const std::vector< vk::PresentModeKHR >& available_present_modes );
 		vk::Extent2D chooseSwapExtent( const vk::SurfaceCapabilitiesKHR& capabilities );
 
 		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
@@ -97,16 +113,17 @@ namespace fgl::engine
 		SwapChain( const SwapChain& ) = delete;
 		SwapChain& operator=( const SwapChain& ) = delete;
 
-		vk::raii::Framebuffer& getFrameBuffer( std::uint32_t index )
-		{
-			return m_swap_chain_buffers[ static_cast< std::size_t >( index ) ];
-		}
+		vk::raii::Framebuffer& getFrameBuffer( const FrameIndex frame_index, const std::uint16_t present_idx );
 
 		vk::raii::RenderPass& getRenderPass() { return m_render_pass; }
 
-		std::uint16_t imageCount() const { return static_cast< std::uint16_t >( m_swap_chain_images.size() ); }
+		std::uint16_t imageCount() const { return m_swap_chain_images.size(); }
 
-		vk::Format getSwapChainImageFormat() const { return m_swap_chain_format; }
+		vk::Format getSwapChainImageFormat() const
+		{
+			assert( m_swap_chain_format != vk::Format::eUndefined );
+			return m_swap_chain_format;
+		}
 
 		vk::Extent2D getSwapChainExtent() const { return m_swap_chain_extent; }
 
@@ -130,7 +147,7 @@ namespace fgl::engine
 
 		[[nodiscard]] std::pair< vk::Result, std::uint32_t > acquireNextImage();
 		[[nodiscard]] vk::Result
-			submitCommandBuffers( const vk::raii::CommandBuffer& buffers, std::uint32_t imageIndex );
+			submitCommandBuffers( const vk::raii::CommandBuffer& buffers, PresentIndex current_present_index );
 	};
 
 } // namespace fgl::engine

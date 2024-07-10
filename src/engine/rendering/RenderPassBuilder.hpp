@@ -31,7 +31,7 @@ namespace fgl::engine
 		}
 	};
 
-	class RenderPass
+	class RenderPassBuilder
 	{
 		std::vector< vk::AttachmentDescription > attachment_descriptions {};
 		std::vector< vk::ClearValue > m_clear_values {};
@@ -67,10 +67,6 @@ namespace fgl::engine
 			    attachment_descriptions.push_back( attachments.desc() ),
 			    m_clear_values.push_back( attachments.m_clear_value ) ),
 			  ... );
-
-			m_attachment_resources.reserve( sizeof...( Attachments ) );
-
-			( ( m_attachment_resources.emplace_back( attachments.m_attachment_resources ) ), ... );
 		}
 
 		std::unique_ptr< RenderPassResources > resources( std::uint16_t frame_count )

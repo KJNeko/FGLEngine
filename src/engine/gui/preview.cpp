@@ -139,6 +139,7 @@ namespace fgl::engine::gui
 				current = Composite;
 			}
 
+			/*
 			info.swap_chain.g_buffer_albedo_img->drawImGui( { v_size, h_size } );
 			ImGui::SameLine();
 			if ( ImGui::Selectable( options[ Albedo ], current == Albedo ) )
@@ -162,14 +163,17 @@ namespace fgl::engine::gui
 				log::debug( "Changing output to Position" );
 				current = Position;
 			}
+			*/
 
 			ImGui::EndCombo();
 		}
 
+		/*
 		switch ( current )
 		{
 			default:
 				[[fallthrough]];
+
 			case Composite:
 				info.swap_chain.g_buffer_composite_img->drawImGui();
 				break;
@@ -182,7 +186,7 @@ namespace fgl::engine::gui
 			case Position:
 				info.swap_chain.g_buffer_position_img->drawImGui();
 				break;
-		}
+		}*/
 
 		handleDragDrop( info );
 

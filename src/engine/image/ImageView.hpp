@@ -31,34 +31,25 @@ namespace fgl::engine
 
 		ImageView() = delete;
 
+		ImageView( std::shared_ptr< ImageHandle >& img );
+
 		ImageView( const ImageView& ) = delete;
 		ImageView& operator=( const ImageView& ) = delete;
 
-		ImageView( ImageView&& other ) noexcept :
-		  m_resource( std::move( other.m_resource ) ),
-		  m_descriptor_info( std::move( other.m_descriptor_info ) ),
-		  m_image_view( std::move( other.m_image_view ) ),
-		  m_sampler(
-			  vk::Filter::eLinear,
-			  vk::Filter::eLinear,
-			  vk::SamplerMipmapMode::eLinear,
-			  vk::SamplerAddressMode::eClampToEdge )
-		{
-			other.m_image_view = VK_NULL_HANDLE;
-		}
+		ImageView( ImageView&& other ) = default;
+		ImageView& operator=( ImageView&& other ) = default;
 
-		vk::raii::ImageView createImageView( const std::shared_ptr< ImageHandle >& img );
-		ImageView( std::shared_ptr< ImageHandle >& img );
+		[[nodiscard]] static vk::raii::ImageView createImageView( const std::shared_ptr< ImageHandle >& img );
 
-		vk::Extent2D getExtent() const;
+		[[nodiscard]] vk::Extent2D getExtent() const;
 
-		vk::raii::ImageView& getVkView();
+		[[nodiscard]] vk::ImageView getVkView();
 
-		VkImageView operator*() { return *m_image_view; }
+		[[nodiscard]] VkImageView operator*() { return *m_image_view; }
 
-		VkImage getVkImage() { return m_resource->getVkImage(); }
+		[[nodiscard]] VkImage getVkImage() { return m_resource->getVkImage(); }
 
-		Sampler& getSampler() { return m_sampler; };
+		[[nodiscard]] Sampler& getSampler() { return m_sampler; };
 
 		vk::DescriptorImageInfo descriptorInfo( vk::Sampler sampler, vk::ImageLayout layout ) const;
 		vk::DescriptorImageInfo descriptorInfo( vk::ImageLayout layout ) const;

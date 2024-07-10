@@ -52,9 +52,9 @@ namespace fgl::engine
 		return info;
 	}
 
-	vk::raii::ImageView& ImageView::getVkView()
+	vk::ImageView ImageView::getVkView()
 	{
-		return m_image_view;
+		return *m_image_view;
 	}
 
 	vk::Extent2D ImageView::getExtent() const

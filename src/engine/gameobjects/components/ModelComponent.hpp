@@ -24,7 +24,11 @@ namespace fgl::engine
 
 		void drawImGui() override;
 
-		std::string_view name() const override {}
+		std::string_view name() const override
+		{
+			//TODO: Get name of component
+			return "TEST NAME";
+		}
 
 		virtual ~ModelComponent() override {}
 

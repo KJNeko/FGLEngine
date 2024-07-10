@@ -61,10 +61,7 @@ namespace fgl::engine
 		Sampler( Sampler&& other );
 		Sampler& operator=( Sampler&& );
 
-		~Sampler()
-		{
-			if ( *m_sampler != VK_NULL_HANDLE ) log::debug( "Sampler destroyed" );
-		}
+		~Sampler() {}
 
 		vk::raii::Sampler& getVkSampler() { return m_sampler; }
 

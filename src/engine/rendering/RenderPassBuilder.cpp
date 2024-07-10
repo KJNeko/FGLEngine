@@ -2,14 +2,13 @@
 // Created by kj16609 on 12/31/23.
 //
 
-#include "RenderPass.hpp"
-
 #include "Device.hpp"
+#include "RenderPassBuilder.hpp"
 
 namespace fgl::engine
 {
 
-	vk::raii::RenderPass RenderPass::create()
+	vk::raii::RenderPass RenderPassBuilder::create()
 	{
 		auto& device { Device::getInstance() };
 

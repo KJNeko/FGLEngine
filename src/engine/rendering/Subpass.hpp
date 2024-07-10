@@ -109,7 +109,7 @@ namespace fgl::engine
 
 		vk::SubpassDescription description() { return subpass_description; }
 
-		friend class RenderPass;
+		friend class RenderPassBuilder;
 
 		void registerDependency(
 			std::uint32_t src_subpass,
@@ -142,8 +142,7 @@ namespace fgl::engine
 			log::critical(
 				"Rendering pass using a full dependency. THIS IS MOST LIKELY NOT WHAT YOU WANT UNLESS DEBUGGING" );
 			constexpr vk::AccessFlags all_access { vk::AccessFlagBits::eMemoryWrite | vk::AccessFlagBits::eMemoryRead };
-			constexpr vk::PipelineStageFlags all_stages { vk::PipelineStageFlagBits::eAllCommands
-				                                          | vk::PipelineStageFlagBits::eAllGraphics };
+			constexpr vk::PipelineStageFlags all_stages { vk::PipelineStageFlagBits::eAllGraphics };
 
 			registerDependencyFrom(
 				parent, all_access, all_stages, all_access, all_stages, vk::DependencyFlagBits::eByRegion );

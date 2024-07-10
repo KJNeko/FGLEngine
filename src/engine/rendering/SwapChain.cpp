@@ -8,27 +8,44 @@
 #include <stdexcept>
 
 #include "Attachment.hpp"
-#include "RenderPass.hpp"
+#include "RenderPassBuilder.hpp"
 #include "Subpass.hpp"
 #include "engine/assets/TransferManager.hpp"
 
 namespace fgl::engine
 {
 
-	SwapChain::SwapChain( vk::Extent2D extent, PhysicalDevice& phy_device ) :
+	SwapChain::SwapChain( const vk::Extent2D extent, PhysicalDevice& phy_device ) :
 	  m_phy_device( phy_device ),
-	  windowExtent( extent )
+	  m_swapchain_support( Device::getInstance().getSwapChainSupport() ),
+	  m_surface_format( chooseSwapSurfaceFormat( m_swapchain_support.formats ) ),
+	  m_swap_chain_format( m_surface_format.format ),
+	  m_swap_chain_extent( chooseSwapExtent( m_swapchain_support.capabilities ) ),
+	  windowExtent( extent ),
+	  m_render_attachments( getSwapChainImageFormat(), findDepthFormat() )
 	{
 		init();
 	}
 
-	SwapChain::SwapChain( vk::Extent2D extent, std::shared_ptr< SwapChain > previous ) :
+	SwapChain::SwapChain( const vk::Extent2D extent, std::shared_ptr< SwapChain > previous ) :
 	  m_phy_device( previous->m_phy_device ),
+	  old_swap_chain( previous ),
+	  m_swapchain_support( Device::getInstance().getSwapChainSupport() ),
+	  m_surface_format( chooseSwapSurfaceFormat( m_swapchain_support.formats ) ),
+	  m_swap_chain_format( m_surface_format.format ),
+	  m_swap_chain_extent( chooseSwapExtent( m_swapchain_support.capabilities ) ),
 	  windowExtent( extent ),
-	  old_swap_chain( previous )
+	  m_render_attachments( getSwapChainImageFormat(), findDepthFormat() )
 	{
 		init();
 		old_swap_chain.reset();
+	}
+
+	vk::raii::Framebuffer& SwapChain::getFrameBuffer( const FrameIndex frame_idx, const PresentIndex present_idx )
+	{
+		assert( present_idx < m_swap_chain_buffers.size() );
+		assert( frame_idx < SwapChain::MAX_FRAMES_IN_FLIGHT );
+		return m_swap_chain_buffers[ present_idx ][ frame_idx ];
 	}
 
 	void SwapChain::init()
@@ -43,7 +60,7 @@ namespace fgl::engine
 	{
 		ZoneScoped;
 
-		std::vector< vk::Fence > fences { inFlightFences[ currentFrame ] };
+		std::vector< vk::Fence > fences { in_flight_fences[ current_frame_index ] };
 
 		if ( Device::getInstance().device().waitForFences( fences, VK_TRUE, std::numeric_limits< uint64_t >::max() )
 		     != vk::Result::eSuccess )
@@ -51,19 +68,20 @@ namespace fgl::engine
 
 		auto result { swapChain.acquireNextImage(
 			std::numeric_limits< uint64_t >::max(),
-			imageAvailableSemaphores[ currentFrame ] // must be a not signaled semaphore
+			imageAvailableSemaphores[ current_frame_index ] // must be a not signaled semaphore
 			) };
 
 		return result;
 	}
 
-	vk::Result SwapChain::submitCommandBuffers( const vk::raii::CommandBuffer& buffers, std::uint32_t imageIndex )
+	vk::Result SwapChain::
+		submitCommandBuffers( const vk::raii::CommandBuffer& buffers, const PresentIndex current_present_index )
 	{
 		ZoneScoped;
 
-		imagesInFlight[ imageIndex ] = inFlightFences[ currentFrame ];
+		images_in_flight[ current_present_index ] = in_flight_fences[ current_frame_index ];
 
-		std::vector< vk::Fence > fences { imagesInFlight[ imageIndex ] };
+		std::vector< vk::Fence > fences { images_in_flight[ current_present_index ] };
 
 		if ( Device::getInstance().device().waitForFences( fences, VK_TRUE, std::numeric_limits< uint64_t >::max() )
 		     != vk::Result::eSuccess )
@@ -71,7 +89,7 @@ namespace fgl::engine
 
 		vk::SubmitInfo submitInfo {};
 
-		std::vector< vk::Semaphore > wait_sems { imageAvailableSemaphores[ currentFrame ],
+		std::vector< vk::Semaphore > wait_sems { imageAvailableSemaphores[ current_frame_index ],
 			                                     memory::TransferManager::getInstance().getFinishedSem() };
 
 		std::vector< vk::PipelineStageFlags > wait_stages { vk::PipelineStageFlagBits::eColorAttachmentOutput,
@@ -83,14 +101,14 @@ namespace fgl::engine
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &( *buffers );
 
-		std::vector< vk::Semaphore > signaled_semaphores { renderFinishedSemaphores[ currentFrame ] };
+		std::vector< vk::Semaphore > signaled_semaphores { renderFinishedSemaphores[ current_frame_index ] };
 		submitInfo.setSignalSemaphores( signaled_semaphores );
 
 		Device::getInstance().device().resetFences( fences );
 
 		std::vector< vk::SubmitInfo > submit_infos { submitInfo };
 
-		Device::getInstance().graphicsQueue().submit( submitInfo, inFlightFences[ currentFrame ] );
+		Device::getInstance().graphicsQueue().submit( submitInfo, in_flight_fences[ current_frame_index ] );
 
 		vk::PresentInfoKHR presentInfo = {};
 
@@ -99,7 +117,7 @@ namespace fgl::engine
 		std::vector< vk::SwapchainKHR > swapchains { swapChain };
 		presentInfo.setSwapchains( swapchains );
 
-		std::array< std::uint32_t, 1 > indicies { { imageIndex } };
+		std::array< std::uint32_t, 1 > indicies { { current_present_index } };
 		presentInfo.setImageIndices( indicies );
 
 		if ( auto present_result = Device::getInstance().presentQueue().presentKHR( presentInfo );
@@ -110,7 +128,7 @@ namespace fgl::engine
 			throw std::runtime_error( "failed to present swap chain image!" );
 		}
 
-		currentFrame = ( currentFrame + 1 ) % MAX_FRAMES_IN_FLIGHT;
+		current_frame_index = ( current_frame_index + 1 ) % MAX_FRAMES_IN_FLIGHT;
 
 		return vk::Result::eSuccess;
 	}
@@ -118,26 +136,23 @@ namespace fgl::engine
 	void SwapChain::createSwapChain()
 	{
 		ZoneScoped;
-		SwapChainSupportDetails swapChainSupport { Device::getInstance().getSwapChainSupport() };
 
-		vk::SurfaceFormatKHR surfaceFormat { chooseSwapSurfaceFormat( swapChainSupport.formats ) };
-		vk::PresentModeKHR presentMode { chooseSwapPresentMode( swapChainSupport.presentModes ) };
-		vk::Extent2D extent { chooseSwapExtent( swapChainSupport.capabilities ) };
+		const vk::PresentModeKHR presentMode { chooseSwapPresentMode( m_swapchain_support.presentModes ) };
 
-		uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
-		if ( swapChainSupport.capabilities.maxImageCount > 0
-		     && imageCount > swapChainSupport.capabilities.maxImageCount )
+		uint32_t imageCount = m_swapchain_support.capabilities.minImageCount + 1;
+		if ( m_swapchain_support.capabilities.maxImageCount > 0
+		     && imageCount > m_swapchain_support.capabilities.maxImageCount )
 		{
-			imageCount = swapChainSupport.capabilities.maxImageCount;
+			imageCount = m_swapchain_support.capabilities.maxImageCount;
 		}
 
 		vk::SwapchainCreateInfoKHR createInfo = {};
 		createInfo.surface = Device::getInstance().surface();
 
 		createInfo.minImageCount = imageCount;
-		createInfo.imageFormat = surfaceFormat.format;
-		createInfo.imageColorSpace = surfaceFormat.colorSpace;
-		createInfo.imageExtent = extent;
+		createInfo.imageFormat = m_surface_format.format;
+		createInfo.imageColorSpace = m_surface_format.colorSpace;
+		createInfo.imageExtent = m_swap_chain_extent;
 		createInfo.imageArrayLayers = 1;
 		createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
 
@@ -161,7 +176,7 @@ namespace fgl::engine
 			createInfo.pQueueFamilyIndices = nullptr; // Optional
 		}
 
-		createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
+		createInfo.preTransform = m_swapchain_support.capabilities.currentTransform;
 		createInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
 
 		createInfo.presentMode = presentMode;
@@ -175,108 +190,25 @@ namespace fgl::engine
 
 		for ( std::uint64_t i = 0; i < swap_chain_images.size(); i++ )
 		{
-			auto& itter =
-				m_swap_chain_images
-					.emplace_back( extent, surfaceFormat.format, swap_chain_images[ i ], createInfo.imageUsage );
+			auto& itter = m_swap_chain_images.emplace_back(
+				m_swap_chain_extent, m_surface_format.format, swap_chain_images[ i ], createInfo.imageUsage );
 			itter.setName( "Swapchain image: " + std::to_string( i ) );
 		}
-
-		m_swap_chain_format = surfaceFormat.format;
-		m_swap_chain_extent = extent;
 	}
 
 	void SwapChain::createRenderPass()
 	{
 		ZoneScoped;
-		//Present attachment
-		ColoredPresentAttachment colorAttachment { getSwapChainImageFormat() };
 
-		for ( int i = 0; i < imageCount(); ++i )
-		{
-			auto& image { m_swap_chain_images[ i ] };
+		RenderPassBuilder render_pass_builder {};
 
-			image.setName( "SwapChainImage: " + std::to_string( i ) );
-		}
-
-		colorAttachment.linkImages( m_swap_chain_images );
-
-		// G-Buffer
-		ColorAttachment g_buffer_position { vk::Format::eR16G16B16A16Sfloat };
-		ColorAttachment g_buffer_normal { vk::Format::eR16G16B16A16Sfloat };
-		ColorAttachment g_buffer_albedo { vk::Format::eR8G8B8A8Unorm };
-		ColorAttachment g_buffer_composite { vk::Format::eR8G8B8A8Unorm };
-
-		g_buffer_position.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
-		g_buffer_normal.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
-		g_buffer_albedo.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
-		g_buffer_composite.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
-
-		g_buffer_position.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
-		g_buffer_normal.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
-		g_buffer_albedo.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
-		g_buffer_composite.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
-
-		g_buffer_position_img = std::make_unique< Texture >( g_buffer_position.m_attachment_resources.m_images[ 0 ]
-		                                                         ->setName( "GBufferPosition" ) );
-		g_buffer_normal_img = std::make_unique< Texture >( g_buffer_normal.m_attachment_resources.m_images[ 0 ]
-		                                                       ->setName( "GBufferNormal" ) );
-		g_buffer_albedo_img = std::make_unique< Texture >( g_buffer_albedo.m_attachment_resources.m_images[ 0 ]
-		                                                       ->setName( "GBufferAlbedo" ) );
-		g_buffer_composite_img = std::make_unique< Texture >( g_buffer_composite.m_attachment_resources.m_images[ 0 ]
-		                                                          ->setName( "GBufferComposite" ) );
-
-		RenderPass render_pass {};
-
-		DepthAttachment depthAttachment { findDepthFormat() };
-		depthAttachment.createResources( imageCount(), getSwapChainExtent() );
-		depthAttachment.setClear( vk::ClearDepthStencilValue( 1.0f, 0 ) );
-
-		render_pass.registerAttachments(
-			colorAttachment, depthAttachment, g_buffer_position, g_buffer_normal, g_buffer_albedo, g_buffer_composite );
-
-		for ( int i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
-		{
-			{
-				auto set { std::make_unique< descriptors::DescriptorSet >( GBufferDescriptorSet::createLayout() ) };
-
-				set->setMaxIDX( 2 );
-
-				set->bindAttachment(
-					0,
-					*( g_buffer_position.resources().m_image_views[ i ].get() ),
-					vk::ImageLayout::eShaderReadOnlyOptimal );
-
-				set->bindAttachment(
-					1,
-					*( g_buffer_normal.resources().m_image_views[ i ].get() ),
-					vk::ImageLayout::eShaderReadOnlyOptimal );
-
-				set->bindAttachment(
-					2,
-					*( g_buffer_albedo.resources().m_image_views[ i ].get() ),
-					vk::ImageLayout::eShaderReadOnlyOptimal );
-
-				set->update();
-
-				m_gbuffer_descriptor_set[ i ] = std::move( set );
-			}
-
-			{
-				auto composite_set {
-					std::make_unique< descriptors::DescriptorSet >( GBufferCompositeDescriptorSet::createLayout() )
-				};
-
-				composite_set->setMaxIDX( 2 );
-				composite_set->bindAttachment(
-					0,
-					*( g_buffer_composite.resources().m_image_views[ 0 ].get() ),
-					vk::ImageLayout::eShaderReadOnlyOptimal );
-
-				composite_set->update();
-
-				m_gbuffer_composite_descriptor_set[ i ] = std::move( composite_set );
-			}
-		}
+		render_pass_builder.registerAttachments(
+			m_render_attachments.color,
+			m_render_attachments.depth,
+			m_gbuffer_attachments.position,
+			m_gbuffer_attachments.normal,
+			m_gbuffer_attachments.albedo,
+			m_gbuffer_attachments.composite );
 
 		static_assert( is_attachment< ColoredPresentAttachment > );
 		static_assert( is_attachment< DepthAttachment > );
@@ -287,7 +219,11 @@ namespace fgl::engine
 			UsedAttachment< ColorAttachment, vk::ImageLayout::eColorAttachmentOptimal >,
 			UsedAttachment< ColorAttachment, vk::ImageLayout::eColorAttachmentOptimal >,
 			UsedAttachment< ColorAttachment, vk::ImageLayout::eColorAttachmentOptimal > >
-			g_buffer_subpass { 0, depthAttachment, g_buffer_position, g_buffer_normal, g_buffer_albedo };
+			g_buffer_subpass { 0,
+			                   m_render_attachments.depth,
+			                   m_gbuffer_attachments.position,
+			                   m_gbuffer_attachments.normal,
+			                   m_gbuffer_attachments.albedo };
 
 		g_buffer_subpass.registerDependencyFromExternal(
 			vk::AccessFlagBits::eDepthStencilAttachmentWrite,
@@ -299,16 +235,21 @@ namespace fgl::engine
 		Subpass<
 			vk::PipelineBindPoint::eGraphics,
 			UsedAttachment< DepthAttachment, vk::ImageLayout::eDepthStencilAttachmentOptimal >,
-			UsedAttachment< ColorAttachment, vk::ImageLayout::eColorAttachmentOptimal >,
+			UsedAttachment< ColoredPresentAttachment, vk::ImageLayout::eColorAttachmentOptimal >,
 			InputAttachment< ColorAttachment, vk::ImageLayout::eShaderReadOnlyOptimal >,
 			InputAttachment< ColorAttachment, vk::ImageLayout::eShaderReadOnlyOptimal >,
 			InputAttachment< ColorAttachment, vk::ImageLayout::eShaderReadOnlyOptimal > >
-			composite_subpass {
-				1, depthAttachment, g_buffer_composite, g_buffer_position, g_buffer_normal, g_buffer_albedo
-			};
+			composite_subpass { 1,
+			                    m_render_attachments.depth,
+			                    m_render_attachments.color,
+			                    m_gbuffer_attachments.position,
+			                    m_gbuffer_attachments.normal,
+			                    m_gbuffer_attachments.albedo };
 
 		composite_subpass.registerDependencyFromExternal(
 			vk::AccessFlagBits::eColorAttachmentWrite, vk::PipelineStageFlagBits::eColorAttachmentOutput );
+
+		composite_subpass.registerFullDependency( g_buffer_subpass );
 
 		// For color attachments
 		composite_subpass.registerDependencyFrom(
@@ -328,23 +269,13 @@ namespace fgl::engine
 			vk::PipelineStageFlagBits::eEarlyFragmentTests | vk::PipelineStageFlagBits::eLateFragmentTests,
 			vk::DependencyFlagBits::eByRegion );
 
-		/*
-		composite_subpass.registerDependencyFrom(
-			g_buffer_subpass,
-			vk::AccessFlagBits::eColorAttachmentWrite,
-			vk::PipelineStageFlagBits::eColorAttachmentOutput,
-			vk::AccessFlagBits::eTransferWrite,
-			vk::PipelineStageFlagBits::eTopOfPipe,
-			vk::DependencyFlagBits::eByRegion );
-		*/
-
 		// To prevent the composite buffer from getting obliterated by the gui pass and so we can use it to render to the GUI in certian areas, We need to keep them seperate and the composite image to be unmodified.
 		Subpass<
 			vk::PipelineBindPoint::eGraphics,
 			UsedAttachment< DepthAttachment, vk::ImageLayout::eDepthStencilAttachmentOptimal >,
 			UsedAttachment< ColoredPresentAttachment, vk::ImageLayout::eColorAttachmentOptimal >,
 			InputAttachment< ColorAttachment, vk::ImageLayout::eShaderReadOnlyOptimal > >
-			gui_subpass { 2, depthAttachment, colorAttachment, g_buffer_composite };
+			gui_subpass { 2, m_render_attachments.depth, m_render_attachments.color, m_gbuffer_attachments.composite };
 
 		gui_subpass.registerDependencyFromExternal(
 			vk::AccessFlagBits::eColorAttachmentWrite, vk::PipelineStageFlagBits::eColorAttachmentOutput );
@@ -361,9 +292,6 @@ namespace fgl::engine
 			vk::PipelineStageFlagBits::eFragmentShader,
 			vk::DependencyFlagBits::eByRegion );
 
-		//composite_subpass.registerFullDependency( g_buffer_subpass );
-		//gui_subpass.registerFullDependency( composite_subpass );
-
 		gui_subpass.registerDependencyFrom(
 			composite_subpass,
 			vk::AccessFlagBits::eColorAttachmentWrite,
@@ -379,36 +307,134 @@ namespace fgl::engine
 			vk::PipelineStageFlagBits::eBottomOfPipe,
 			vk::DependencyFlagBits::eByRegion );
 
-		render_pass.registerSubpass( g_buffer_subpass );
-		render_pass.registerSubpass( composite_subpass );
-		render_pass.registerSubpass( gui_subpass );
+		render_pass_builder.registerSubpass( g_buffer_subpass );
+		render_pass_builder.registerSubpass( composite_subpass );
+		render_pass_builder.registerSubpass( gui_subpass );
 
-		m_render_pass = render_pass.create();
+		m_render_pass = render_pass_builder.create();
+	}
 
-		m_render_pass_resources = render_pass.resources( imageCount() );
-		m_clear_values = render_pass.getClearValues();
+	template < is_attachment... Attachments >
+	std::vector< vk::ImageView > fillViewsFromAttachments( uint8_t frame_idx, Attachments&&... attachments )
+	{
+		std::vector< vk::ImageView > views {};
+
+		views.resize( sizeof...( Attachments ) );
+
+		( ( attachments.fillVec( frame_idx, views ) ), ... );
+
+		return views;
 	}
 
 	void SwapChain::createFramebuffers()
 	{
 		ZoneScoped;
+
+		// Render target resource management
+		for ( int i = 0; i < imageCount(); ++i )
+		{
+			auto& image { m_swap_chain_images[ i ] };
+
+			image.setName( "SwapChainImage: " + std::to_string( i ) );
+		}
+
+		m_render_attachments.color.linkImages( m_swap_chain_images );
+
+		m_render_attachments.depth.createResources( imageCount(), getSwapChainExtent() );
+		m_render_attachments.depth.setClear( vk::ClearDepthStencilValue( 1.0f, 0 ) );
+
+		// GBuffer resource management
+		m_gbuffer_attachments.position.createResourceSpread(
+			SwapChain::MAX_FRAMES_IN_FLIGHT, getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
+		m_gbuffer_attachments.normal.createResourceSpread(
+			SwapChain::MAX_FRAMES_IN_FLIGHT, getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
+		m_gbuffer_attachments.albedo.createResourceSpread(
+			SwapChain::MAX_FRAMES_IN_FLIGHT, getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
+		m_gbuffer_attachments.composite.createResourceSpread(
+			SwapChain::MAX_FRAMES_IN_FLIGHT, getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
+
+		m_gbuffer_attachments.position.setClear( vk::ClearColorValue( std::array< float, 4 > {
+			{ 0.0f, 0.0f, 0.0f, 0.0f } } ) );
+		m_gbuffer_attachments.normal.setClear( vk::ClearColorValue( std::array< float, 4 > {
+			{ 0.0f, 0.0f, 0.0f, 0.0f } } ) );
+		m_gbuffer_attachments.albedo.setClear( vk::ClearColorValue( std::array< float, 4 > {
+			{ 0.0f, 0.0f, 0.0f, 0.0f } } ) );
+		m_gbuffer_attachments.composite.setClear( vk::ClearColorValue( std::array< float, 4 > {
+			{ 0.0f, 0.0f, 0.0f, 0.0f } } ) );
+
+		populateAttachmentClearValues(
+			m_render_attachments.color,
+			m_render_attachments.depth,
+			m_gbuffer_attachments.position,
+			m_gbuffer_attachments.normal,
+			m_gbuffer_attachments.albedo,
+			m_gbuffer_attachments.composite );
+
+		for ( FrameIndex i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
+		{
+			auto gbuffer_set { std::make_unique< descriptors::DescriptorSet >( GBufferDescriptorSet::createLayout() ) };
+
+			gbuffer_set->setMaxIDX( 2 );
+
+			gbuffer_set->bindAttachment(
+				0, m_gbuffer_attachments.position.view( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
+
+			gbuffer_set
+				->bindAttachment( 1, m_gbuffer_attachments.normal.view( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
+
+			gbuffer_set
+				->bindAttachment( 2, m_gbuffer_attachments.albedo.view( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
+
+			gbuffer_set->update();
+
+			m_gbuffer_descriptor_set.at( i ) = std::move( gbuffer_set );
+
+			auto composite_set {
+				std::make_unique< descriptors::DescriptorSet >( GBufferCompositeDescriptorSet::createLayout() )
+			};
+
+			composite_set->setMaxIDX( 0 );
+			composite_set->bindAttachment(
+				0, m_gbuffer_attachments.composite.view( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
+
+			composite_set->update();
+
+			m_gbuffer_composite_descriptor_set.at( i ) = std::move( composite_set );
+		}
+
 		m_swap_chain_buffers.clear();
 		m_swap_chain_buffers.reserve( imageCount() );
-		for ( uint8_t i = 0; i < imageCount(); i++ )
+
+		for ( std::uint16_t present_idx = 0; present_idx < imageCount(); ++present_idx )
 		{
-			std::vector< vk::ImageView > attachments { m_render_pass_resources->forFrame( i ) };
+			std::vector< vk::raii::Framebuffer > temp {};
+			temp.reserve( SwapChain::MAX_FRAMES_IN_FLIGHT );
 
-			//Fill attachments for this frame
-			const vk::Extent2D swapChainExtent { getSwapChainExtent() };
-			vk::FramebufferCreateInfo framebufferInfo {};
-			framebufferInfo.renderPass = m_render_pass;
-			framebufferInfo.attachmentCount = static_cast< uint32_t >( attachments.size() );
-			framebufferInfo.pAttachments = attachments.data();
-			framebufferInfo.width = swapChainExtent.width;
-			framebufferInfo.height = swapChainExtent.height;
-			framebufferInfo.layers = 1;
+			for ( FrameIndex frame_idx = 0; frame_idx < SwapChain::MAX_FRAMES_IN_FLIGHT; frame_idx++ )
+			{
+				std::vector< vk::ImageView > attachments {};
 
-			m_swap_chain_buffers.push_back( Device::getInstance()->createFramebuffer( framebufferInfo ) );
+				attachments.emplace_back( *m_render_attachments.color.view( present_idx ) );
+				attachments.emplace_back( *m_render_attachments.depth.view( present_idx ) );
+				attachments.emplace_back( *m_gbuffer_attachments.position.view( frame_idx ) );
+				attachments.emplace_back( *m_gbuffer_attachments.normal.view( frame_idx ) );
+				attachments.emplace_back( *m_gbuffer_attachments.albedo.view( frame_idx ) );
+				attachments.emplace_back( *m_gbuffer_attachments.composite.view( frame_idx ) );
+
+				//Fill attachments for this frame
+				const vk::Extent2D swapchain_extent { getSwapChainExtent() };
+				vk::FramebufferCreateInfo framebufferInfo {};
+				framebufferInfo.renderPass = m_render_pass;
+				framebufferInfo.attachmentCount = static_cast< uint32_t >( attachments.size() );
+				framebufferInfo.pAttachments = attachments.data();
+				framebufferInfo.width = swapchain_extent.width;
+				framebufferInfo.height = swapchain_extent.height;
+				framebufferInfo.layers = 1;
+
+				temp.emplace_back( Device::getInstance()->createFramebuffer( framebufferInfo ) );
+			}
+
+			m_swap_chain_buffers.emplace_back( std::move( temp ) );
 		}
 	}
 
@@ -417,8 +443,8 @@ namespace fgl::engine
 		ZoneScoped;
 		imageAvailableSemaphores.reserve( MAX_FRAMES_IN_FLIGHT );
 		renderFinishedSemaphores.reserve( MAX_FRAMES_IN_FLIGHT );
-		inFlightFences.reserve( MAX_FRAMES_IN_FLIGHT );
-		imagesInFlight.resize( imageCount(), VK_NULL_HANDLE );
+		in_flight_fences.reserve( MAX_FRAMES_IN_FLIGHT );
+		images_in_flight.resize( imageCount(), VK_NULL_HANDLE );
 
 		vk::SemaphoreCreateInfo semaphoreInfo {};
 
@@ -431,31 +457,30 @@ namespace fgl::engine
 
 			imageAvailableSemaphores.push_back( device->createSemaphore( semaphoreInfo ) );
 			renderFinishedSemaphores.push_back( device->createSemaphore( semaphoreInfo ) );
-			inFlightFences.push_back( device->createFence( fenceInfo ) );
+			in_flight_fences.push_back( device->createFence( fenceInfo ) );
 		}
 	}
 
 	vk::SurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat( const std::vector< vk::SurfaceFormatKHR >&
-	                                                             availableFormats )
+	                                                             available_formats )
 	{
 		ZoneScoped;
-		for ( const auto& availableFormat : availableFormats )
+		for ( const auto& format : available_formats )
 		{
-			if ( availableFormat.format == vk::Format::eB8G8R8A8Srgb
-			     && availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear )
+			if ( format.format == vk::Format::eB8G8R8A8Srgb && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear )
 			{
-				return availableFormat;
+				return format;
 			}
 		}
 
-		return availableFormats[ 0 ];
+		return available_formats[ 0 ];
 	}
 
 	vk::PresentModeKHR SwapChain::chooseSwapPresentMode( const std::vector< vk::PresentModeKHR >&
-	                                                         availablePresentModes )
+	                                                         available_present_modes )
 	{
 		ZoneScoped;
-		for ( const auto& availablePresentMode : availablePresentModes )
+		for ( const auto& availablePresentMode : available_present_modes )
 		{
 			switch ( availablePresentMode )
 			{
@@ -480,12 +505,12 @@ namespace fgl::engine
 			}
 		}
 
-		for ( const auto& availablePresentMode : availablePresentModes )
+		for ( const auto& present_mode_khr : available_present_modes )
 		{
-			if ( availablePresentMode == vk::PresentModeKHR::eMailbox )
+			if ( present_mode_khr == vk::PresentModeKHR::eMailbox )
 			{
 				std::cout << "Present mode: Mailbox: ACTIVE" << std::endl;
-				return availablePresentMode;
+				return present_mode_khr;
 			}
 		}
 

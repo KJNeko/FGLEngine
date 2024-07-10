@@ -13,7 +13,8 @@
 
 #include "engine/concepts/is_attachment.hpp"
 #include "engine/image/Image.hpp"
-#include "engine/rendering/Device.hpp"
+#include "engine/image/ImageView.hpp"
+#include "types.hpp"
 
 namespace fgl::engine
 {
@@ -33,7 +34,7 @@ namespace fgl::engine
 	class Attachment
 	{
 		vk::AttachmentDescription description {};
-		std::uint32_t index { std::numeric_limits< std::uint32_t >::max() };
+		std::uint32_t m_index { std::numeric_limits< std::uint32_t >::max() };
 
 	  public:
 
@@ -43,9 +44,22 @@ namespace fgl::engine
 
 		void setClear( vk::ClearDepthStencilValue value ) { m_clear_value = value; }
 
+		//! Fills out with the resource image view for the given frame index
+		void fillVec( const std::uint16_t frame_idx, std::vector< vk::ImageView >& out )
+		{
+			auto& resource { m_attachment_resources.m_image_views.at( frame_idx ) };
+			assert( resource );
+
+			assert( out.size() > m_index );
+
+			vk::ImageView view { resource->getVkView() };
+
+			out.at( m_index ) = view;
+		}
+
 		AttachmentResources m_attachment_resources {};
 
-		void setIndex( const std::uint32_t idx ) { index = idx; }
+		void setIndex( const std::uint32_t idx ) { m_index = idx; }
 
 		constexpr static vk::AttachmentLoadOp loadOp = load_op;
 		constexpr static vk::AttachmentStoreOp storeOp = store_op;
@@ -80,6 +94,8 @@ namespace fgl::engine
 			{
 				linkImage( i, images[ i ] );
 			}
+
+			log::info( "Linked {} images to the swapchain color", images.size() );
 		}
 
 		void createResources( const std::uint32_t count, vk::Extent2D extent )
@@ -98,36 +114,55 @@ namespace fgl::engine
 			}
 		}
 
-		//! Creates a resource that is used across all frames
+		//! Creates resources required for this attachment
 		void createResourceSpread(
 			const std::uint32_t count, vk::Extent2D extent, vk::ImageUsageFlags extra_flags = vk::ImageUsageFlags( 0 ) )
 		{
-			auto image { std::make_shared< Image >(
-				extent,
-				description.format,
-				usage | vk::ImageUsageFlagBits::eInputAttachment | extra_flags,
-				inital_layout,
-				final_layout ) };
 			for ( std::uint32_t i = 0; i < count; ++i )
 			{
+				auto image { std::make_shared< Image >(
+					extent,
+					description.format,
+					usage | vk::ImageUsageFlagBits::eInputAttachment | extra_flags,
+					inital_layout,
+					final_layout ) };
+
 				m_attachment_resources.m_images.emplace_back( image );
 				m_attachment_resources.m_image_views.emplace_back( image->getView() );
 			}
 		}
 
-		AttachmentResources resources() { return m_attachment_resources; }
+		AttachmentResources& resources() { return m_attachment_resources; }
 
 		vk::AttachmentDescription& desc() { return description; }
 
 		std::uint32_t getIndex() const
 		{
 			assert(
-				index != std::numeric_limits< std::uint32_t >::max()
+				m_index != std::numeric_limits< std::uint32_t >::max()
 				&& "Attachment must be registered in RenderPass before use" );
-			return index;
+			return m_index;
 		}
 
-		friend class RenderPass;
+		ImageView& view( const FrameIndex index ) { return *m_attachment_resources.m_image_views[ index ]; }
+
+		Image& image( const FrameIndex index ) { return *m_attachment_resources.m_images[ index ]; }
+
+		void setName( const std::string str )
+		{
+			auto& images { m_attachment_resources.m_images };
+			auto& image_views { m_attachment_resources.m_image_views };
+
+			assert( images.size() == image_views.size() );
+
+			for ( std::size_t i = 0; i < images.size(); ++i )
+			{
+				images[ i ]->setName( str );
+				image_views[ i ]->setName( str );
+			}
+		}
+
+		friend class RenderPassBuilder;
 	};
 
 	template < is_attachment AttachmentT, vk::ImageLayout layout >
