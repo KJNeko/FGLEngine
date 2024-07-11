@@ -30,8 +30,8 @@ namespace fgl::engine
 			a.linkImage( std::declval< std::uint16_t >(), std::declval< Image& >() )
 		};
 		{
-			a.resources()
-		} -> std::same_as< AttachmentResources >;
+			a.getView( std::declval< std::uint8_t >() )
+		} -> std::same_as< ImageView& >;
 		{
 			a.m_clear_value
 		} -> std::same_as< vk::ClearValue& >;

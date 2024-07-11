@@ -76,6 +76,7 @@ namespace fgl::engine
 
 		void linkImages( std::vector< Image >& images )
 		{
+			assert( images.size() > 0 );
 			for ( std::uint16_t i = 0; i < images.size(); ++i )
 			{
 				linkImage( i, images[ i ] );
@@ -115,7 +116,11 @@ namespace fgl::engine
 			}
 		}
 
-		AttachmentResources resources() { return m_attachment_resources; }
+		ImageView& getView( std::uint8_t frame_idx )
+		{
+			assert( frame_idx < m_attachment_resources.m_image_views.size() );
+			return *m_attachment_resources.m_image_views[ frame_idx ];
+		}
 
 		vk::AttachmentDescription& desc() { return description; }
 
@@ -127,7 +132,7 @@ namespace fgl::engine
 			return index;
 		}
 
-		friend class RenderPass;
+		friend class RenderPassBuilder;
 	};
 
 	template < is_attachment AttachmentT, vk::ImageLayout layout >

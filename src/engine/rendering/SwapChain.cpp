@@ -8,7 +8,7 @@
 #include <stdexcept>
 
 #include "Attachment.hpp"
-#include "RenderPass.hpp"
+#include "RenderPassBuilder.hpp"
 #include "Subpass.hpp"
 #include "engine/assets/TransferManager.hpp"
 
@@ -26,7 +26,18 @@ namespace fgl::engine
 	  old_swap_chain( nullptr ),
 	  m_swapchain( createSwapChain() ),
 	  m_swap_chain_images( createSwapchainImages() ),
-	  render_attachments( getSwapChainImageFormat(), findDepthFormat() )
+	  render_attachments( getSwapChainImageFormat(), findDepthFormat() ),
+	  m_render_pass( createRenderPass() ),
+	  m_swap_chain_buffers( createFramebuffers() ),
+	  m_clear_values( gatherClearValues(
+		  render_attachments.color,
+		  render_attachments.depth,
+		  gbuffer.position,
+		  gbuffer.normal,
+		  gbuffer.albedo,
+		  gbuffer.composite ) ),
+	  m_gbuffer_descriptor_set( createGBufferDescriptors() ),
+	  m_gbuffer_composite_descriptor_set( createCompositeDescriptors() )
 	{
 		init();
 	}
@@ -42,7 +53,18 @@ namespace fgl::engine
 	  old_swap_chain( previous ),
 	  m_swapchain( createSwapChain() ),
 	  m_swap_chain_images( createSwapchainImages() ),
-	  render_attachments( getSwapChainImageFormat(), findDepthFormat() )
+	  render_attachments( getSwapChainImageFormat(), findDepthFormat() ),
+	  m_render_pass( createRenderPass() ),
+	  m_swap_chain_buffers( createFramebuffers() ),
+	  m_clear_values( gatherClearValues(
+		  render_attachments.color,
+		  render_attachments.depth,
+		  gbuffer.position,
+		  gbuffer.normal,
+		  gbuffer.albedo,
+		  gbuffer.composite ) ),
+	  m_gbuffer_descriptor_set( createGBufferDescriptors() ),
+	  m_gbuffer_composite_descriptor_set( createCompositeDescriptors() )
 	{
 		init();
 		old_swap_chain.reset();
@@ -50,8 +72,6 @@ namespace fgl::engine
 
 	void SwapChain::init()
 	{
-		createRenderPass();
-		createFramebuffers();
 		createSyncObjects();
 	}
 
@@ -67,7 +87,7 @@ namespace fgl::engine
 
 		auto result { m_swapchain.acquireNextImage(
 			std::numeric_limits< uint64_t >::max(),
-			imageAvailableSemaphores[ m_current_frame_index ] // must be a not signaled semaphore
+			image_available_sem[ m_current_frame_index ] // must be a not signaled semaphore
 			) };
 
 		return result;
@@ -87,7 +107,7 @@ namespace fgl::engine
 
 		vk::SubmitInfo m_submit_info {};
 
-		std::vector< vk::Semaphore > wait_sems { imageAvailableSemaphores[ m_current_frame_index ],
+		std::vector< vk::Semaphore > wait_sems { image_available_sem[ m_current_frame_index ],
 			                                     memory::TransferManager::getInstance().getFinishedSem() };
 
 		std::vector< vk::PipelineStageFlags > wait_stages { vk::PipelineStageFlagBits::eColorAttachmentOutput,
@@ -99,7 +119,7 @@ namespace fgl::engine
 		m_submit_info.commandBufferCount = 1;
 		m_submit_info.pCommandBuffers = &( *buffers );
 
-		std::vector< vk::Semaphore > signaled_semaphores { renderFinishedSemaphores[ m_current_frame_index ] };
+		std::vector< vk::Semaphore > signaled_semaphores { render_finished_sem[ m_current_frame_index ] };
 		m_submit_info.setSignalSemaphores( signaled_semaphores );
 
 		Device::getInstance().device().resetFences( fences );
@@ -201,95 +221,24 @@ namespace fgl::engine
 		return images;
 	}
 
-	void SwapChain::createRenderPass()
+	vk::raii::RenderPass SwapChain::createRenderPass()
 	{
 		ZoneScoped;
 		//Present attachment
 
-		for ( int i = 0; i < imageCount(); ++i )
-		{
-			auto& image { m_swap_chain_images[ i ] };
-
-			image.setName( "SwapChainImage: " + std::to_string( i ) );
-		}
-
-		render_attachments.color.linkImages( m_swap_chain_images );
-
-		gbuffer.position.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
-		gbuffer.normal.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
-		gbuffer.albedo.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
-		gbuffer.composite.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
-
+		render_attachments.depth.setClear( vk::ClearDepthStencilValue( 1.0f, 0 ) );
 		gbuffer.position.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
 		gbuffer.normal.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
 		gbuffer.albedo.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
 		gbuffer.composite.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
 
-		g_buffer_position_img = std::make_unique< Texture >( gbuffer.position.m_attachment_resources.m_images[ 0 ]
-		                                                         ->setName( "GBufferPosition" ) );
-		g_buffer_normal_img = std::make_unique< Texture >( gbuffer.normal.m_attachment_resources.m_images[ 0 ]
-		                                                       ->setName( "GBufferNormal" ) );
-		g_buffer_albedo_img = std::make_unique< Texture >( gbuffer.albedo.m_attachment_resources.m_images[ 0 ]
-		                                                       ->setName( "GBufferAlbedo" ) );
-		g_buffer_composite_img = std::make_unique< Texture >( gbuffer.composite.m_attachment_resources.m_images[ 0 ]
-		                                                          ->setName( "GBufferComposite" ) );
-
-		RenderPass render_pass {};
-
-		render_attachments.depth.createResources( imageCount(), getSwapChainExtent() );
-		render_attachments.depth.setClear( vk::ClearDepthStencilValue( 1.0f, 0 ) );
-
-		render_pass.registerAttachments(
+		render_pass_builder.registerAttachments(
 			render_attachments.color,
 			render_attachments.depth,
 			gbuffer.position,
 			gbuffer.normal,
 			gbuffer.albedo,
 			gbuffer.composite );
-
-		for ( int i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
-		{
-			{
-				auto set { std::make_unique< descriptors::DescriptorSet >( GBufferDescriptorSet::createLayout() ) };
-
-				set->setMaxIDX( 2 );
-
-				set->bindAttachment(
-					0,
-					*( gbuffer.position.resources().m_image_views[ i ].get() ),
-					vk::ImageLayout::eShaderReadOnlyOptimal );
-
-				set->bindAttachment(
-					1,
-					*( gbuffer.normal.resources().m_image_views[ i ].get() ),
-					vk::ImageLayout::eShaderReadOnlyOptimal );
-
-				set->bindAttachment(
-					2,
-					*( gbuffer.albedo.resources().m_image_views[ i ].get() ),
-					vk::ImageLayout::eShaderReadOnlyOptimal );
-
-				set->update();
-
-				m_gbuffer_descriptor_set[ i ] = std::move( set );
-			}
-
-			{
-				auto composite_set {
-					std::make_unique< descriptors::DescriptorSet >( GBufferCompositeDescriptorSet::createLayout() )
-				};
-
-				composite_set->setMaxIDX( 1 );
-				composite_set->bindAttachment(
-					0,
-					*( gbuffer.composite.resources().m_image_views[ i ].get() ),
-					vk::ImageLayout::eShaderReadOnlyOptimal );
-
-				composite_set->update();
-
-				m_gbuffer_composite_descriptor_set[ i ] = std::move( composite_set );
-			}
-		}
 
 		static_assert( is_attachment< ColoredPresentAttachment > );
 		static_assert( is_attachment< DepthAttachment > );
@@ -341,16 +290,6 @@ namespace fgl::engine
 			vk::PipelineStageFlagBits::eEarlyFragmentTests | vk::PipelineStageFlagBits::eLateFragmentTests,
 			vk::DependencyFlagBits::eByRegion );
 
-		/*
-		composite_subpass.registerDependencyFrom(
-			g_buffer_subpass,
-			vk::AccessFlagBits::eColorAttachmentWrite,
-			vk::PipelineStageFlagBits::eColorAttachmentOutput,
-			vk::AccessFlagBits::eTransferWrite,
-			vk::PipelineStageFlagBits::eTopOfPipe,
-			vk::DependencyFlagBits::eByRegion );
-		*/
-
 		// To prevent the composite buffer from getting obliterated by the gui pass and so we can use it to render to the GUI in certian areas, We need to keep them seperate and the composite image to be unmodified.
 		Subpass<
 			vk::PipelineBindPoint::eGraphics,
@@ -362,10 +301,6 @@ namespace fgl::engine
 		gui_subpass.registerDependencyFromExternal(
 			vk::AccessFlagBits::eColorAttachmentWrite, vk::PipelineStageFlagBits::eColorAttachmentOutput );
 
-		/*
-		g_buffer_subpass -> composite_subpass -> gui_subpass
-		*/
-
 		gui_subpass.registerDependencyFrom(
 			composite_subpass,
 			vk::AccessFlagBits::eColorAttachmentWrite,
@@ -373,9 +308,6 @@ namespace fgl::engine
 			vk::AccessFlagBits::eShaderRead,
 			vk::PipelineStageFlagBits::eFragmentShader,
 			vk::DependencyFlagBits::eByRegion );
-
-		//composite_subpass.registerFullDependency( g_buffer_subpass );
-		//gui_subpass.registerFullDependency( composite_subpass );
 
 		gui_subpass.registerDependencyFrom(
 			composite_subpass,
@@ -392,24 +324,51 @@ namespace fgl::engine
 			vk::PipelineStageFlagBits::eBottomOfPipe,
 			vk::DependencyFlagBits::eByRegion );
 
-		render_pass.registerSubpass( g_buffer_subpass );
-		render_pass.registerSubpass( composite_subpass );
-		render_pass.registerSubpass( gui_subpass );
+		render_pass_builder.registerSubpass( g_buffer_subpass );
+		render_pass_builder.registerSubpass( composite_subpass );
+		render_pass_builder.registerSubpass( gui_subpass );
 
-		m_render_pass = render_pass.create();
+		m_clear_values = render_pass_builder.getClearValues();
 
-		m_render_pass_resources = render_pass.resources( imageCount() );
-		m_clear_values = render_pass.getClearValues();
+		return render_pass_builder.create();
 	}
 
-	void SwapChain::createFramebuffers()
+	std::vector< vk::raii::Framebuffer > SwapChain::createFramebuffers()
 	{
 		ZoneScoped;
-		m_swap_chain_buffers.clear();
-		m_swap_chain_buffers.reserve( imageCount() );
+
+		render_attachments.depth.createResources( imageCount(), getSwapChainExtent() );
+
+		render_attachments.color.linkImages( m_swap_chain_images );
+
+		gbuffer.position.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
+		gbuffer.normal.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
+		gbuffer.albedo.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
+		gbuffer.composite.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
+
+		g_buffer_position_img = std::make_unique< Texture >( gbuffer.position.m_attachment_resources.m_images[ 0 ]
+		                                                         ->setName( "GBufferPosition" ) );
+		g_buffer_normal_img = std::make_unique< Texture >( gbuffer.normal.m_attachment_resources.m_images[ 0 ]
+		                                                       ->setName( "GBufferNormal" ) );
+		g_buffer_albedo_img = std::make_unique< Texture >( gbuffer.albedo.m_attachment_resources.m_images[ 0 ]
+		                                                       ->setName( "GBufferAlbedo" ) );
+		g_buffer_composite_img = std::make_unique< Texture >( gbuffer.composite.m_attachment_resources.m_images[ 0 ]
+		                                                          ->setName( "GBufferComposite" ) );
+
+		std::vector< vk::raii::Framebuffer > framebuffers {};
+
+		framebuffers.reserve( imageCount() );
+
 		for ( uint8_t i = 0; i < imageCount(); i++ )
 		{
-			std::vector< vk::ImageView > attachments { m_render_pass_resources->forFrame( i ) };
+			std::vector< vk::ImageView > attachments { getViewsForFrame(
+				i,
+				render_attachments.color,
+				render_attachments.depth,
+				gbuffer.position,
+				gbuffer.normal,
+				gbuffer.albedo,
+				gbuffer.composite ) };
 
 			//Fill attachments for this frame
 			const vk::Extent2D swapChainExtent { getSwapChainExtent() };
@@ -421,15 +380,17 @@ namespace fgl::engine
 			framebufferInfo.height = swapChainExtent.height;
 			framebufferInfo.layers = 1;
 
-			m_swap_chain_buffers.push_back( Device::getInstance()->createFramebuffer( framebufferInfo ) );
+			framebuffers.push_back( Device::getInstance()->createFramebuffer( framebufferInfo ) );
 		}
+
+		return framebuffers;
 	}
 
 	void SwapChain::createSyncObjects()
 	{
 		ZoneScoped;
-		imageAvailableSemaphores.reserve( MAX_FRAMES_IN_FLIGHT );
-		renderFinishedSemaphores.reserve( MAX_FRAMES_IN_FLIGHT );
+		image_available_sem.reserve( MAX_FRAMES_IN_FLIGHT );
+		render_finished_sem.reserve( MAX_FRAMES_IN_FLIGHT );
 		in_flight_fence.reserve( MAX_FRAMES_IN_FLIGHT );
 		images_in_flight.resize( imageCount(), VK_NULL_HANDLE );
 
@@ -442,8 +403,8 @@ namespace fgl::engine
 		{
 			auto& device { Device::getInstance() };
 
-			imageAvailableSemaphores.push_back( device->createSemaphore( semaphoreInfo ) );
-			renderFinishedSemaphores.push_back( device->createSemaphore( semaphoreInfo ) );
+			image_available_sem.push_back( device->createSemaphore( semaphoreInfo ) );
+			render_finished_sem.push_back( device->createSemaphore( semaphoreInfo ) );
 			in_flight_fence.push_back( device->createFence( fenceInfo ) );
 		}
 	}
@@ -532,6 +493,53 @@ namespace fgl::engine
 
 			return actualExtent;
 		}
+	}
+
+	std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT > SwapChain::
+		createGBufferDescriptors()
+	{
+		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT > data;
+
+		for ( int i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
+		{
+			auto set { std::make_unique< descriptors::DescriptorSet >( GBufferDescriptorSet::createLayout() ) };
+
+			set->setMaxIDX( 2 );
+
+			set->bindAttachment( 0, gbuffer.position.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
+
+			set->bindAttachment( 1, gbuffer.normal.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
+
+			set->bindAttachment( 2, gbuffer.albedo.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
+
+			set->update();
+
+			data[ i ] = std::move( set );
+		}
+
+		return data;
+	}
+
+	std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT > SwapChain::
+		createCompositeDescriptors()
+	{
+		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT > data;
+
+		for ( int i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
+		{
+			auto composite_set {
+				std::make_unique< descriptors::DescriptorSet >( GBufferCompositeDescriptorSet::createLayout() )
+			};
+
+			composite_set->setMaxIDX( 1 );
+			composite_set->bindAttachment( 0, gbuffer.composite.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
+
+			composite_set->update();
+
+			data[ i ] = std::move( composite_set );
+		}
+
+		return data;
 	}
 
 	vk::Format SwapChain::findDepthFormat()

@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "Device.hpp"
-#include "RenderPass.hpp"
+#include "RenderPassBuilder.hpp"
 #include "engine/FrameInfo.hpp"
 #include "engine/texture/Texture.hpp"
 
@@ -49,18 +49,6 @@ namespace fgl::engine
 			ColorAttachment composite { vk::Format::eR8G8B8A8Unorm };
 		} gbuffer {};
 
-		std::vector< vk::raii::Framebuffer > m_swap_chain_buffers {};
-		vk::raii::RenderPass m_render_pass { VK_NULL_HANDLE };
-		std::unique_ptr< RenderPassResources > m_render_pass_resources { nullptr };
-
-		std::vector< vk::raii::Semaphore > imageAvailableSemaphores {};
-		std::vector< vk::raii::Semaphore > renderFinishedSemaphores {};
-		std::vector< vk::raii::Fence > in_flight_fence {};
-		std::vector< vk::Fence > images_in_flight {};
-		size_t m_current_frame_index { 0 };
-
-		std::vector< vk::ClearValue > m_clear_values {};
-
 	  public:
 
 		std::unique_ptr< Texture > g_buffer_position_img { nullptr };
@@ -70,11 +58,31 @@ namespace fgl::engine
 
 	  private:
 
+		RenderPassBuilder render_pass_builder {};
+
+		vk::raii::RenderPass m_render_pass;
+
+		std::vector< vk::raii::Framebuffer > m_swap_chain_buffers;
+
+		std::vector< vk::ClearValue > m_clear_values;
+
+		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
+			m_gbuffer_descriptor_set;
+
+		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
+			m_gbuffer_composite_descriptor_set;
+
+		std::vector< vk::raii::Semaphore > image_available_sem {};
+		std::vector< vk::raii::Semaphore > render_finished_sem {};
+		std::vector< vk::raii::Fence > in_flight_fence {};
+		std::vector< vk::Fence > images_in_flight {};
+		size_t m_current_frame_index { 0 };
+
 		void init();
 		[[nodiscard]] vk::raii::SwapchainKHR createSwapChain();
 		[[nodiscard]] std::vector< Image > createSwapchainImages();
-		void createRenderPass();
-		void createFramebuffers();
+		[[nodiscard]] vk::raii::RenderPass createRenderPass();
+		[[nodiscard]] std::vector< vk::raii::Framebuffer > createFramebuffers();
 		void createSyncObjects();
 
 		// Helper functions
@@ -82,11 +90,32 @@ namespace fgl::engine
 		vk::PresentModeKHR chooseSwapPresentMode( const std::vector< vk::PresentModeKHR >& availablePresentModes );
 		vk::Extent2D chooseSwapExtent( const vk::SurfaceCapabilitiesKHR& capabilities );
 
-		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
-			m_gbuffer_descriptor_set {};
+		template < is_attachment... Attachments >
+		static std::vector< vk::ImageView > getViewsForFrame( const std::uint8_t frame_idx, Attachments... attachments )
+		{
+			std::vector< vk::ImageView > view {};
+			view.resize( sizeof...( Attachments ) );
+
+			( ( view[ attachments.getIndex() ] = *attachments.getView( frame_idx ) ), ... );
+
+			return view;
+		}
+
+		template < is_attachment... Attachments >
+		static std::vector< vk::ClearValue > gatherClearValues( Attachments... attachments )
+		{
+			std::vector< vk::ClearValue > clear_values {};
+			clear_values.resize( sizeof...( Attachments ) );
+
+			( ( clear_values[ attachments.getIndex() ] = attachments.m_clear_value ), ... );
+
+			return clear_values;
+		}
 
 		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
-			m_gbuffer_composite_descriptor_set {};
+			createGBufferDescriptors();
+		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
+			createCompositeDescriptors();
 
 	  public:
 

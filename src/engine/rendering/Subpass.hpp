@@ -109,7 +109,7 @@ namespace fgl::engine
 
 		vk::SubpassDescription description() { return subpass_description; }
 
-		friend class RenderPass;
+		friend class RenderPassBuilder;
 
 		void registerDependency(
 			std::uint32_t src_subpass,
