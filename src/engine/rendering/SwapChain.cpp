@@ -226,12 +226,6 @@ namespace fgl::engine
 		ZoneScoped;
 		//Present attachment
 
-		render_attachments.depth.setClear( vk::ClearDepthStencilValue( 1.0f, 0 ) );
-		gbuffer.position.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
-		gbuffer.normal.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
-		gbuffer.albedo.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
-		gbuffer.composite.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
-
 		render_pass_builder.registerAttachments(
 			render_attachments.color,
 			render_attachments.depth,
@@ -337,21 +331,28 @@ namespace fgl::engine
 	{
 		ZoneScoped;
 
-		render_attachments.depth.createResources( imageCount(), getSwapChainExtent() );
-
 		render_attachments.color.linkImages( m_swap_chain_images );
 
-		gbuffer.position.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
-		gbuffer.normal.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
-		gbuffer.albedo.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
-		gbuffer.composite.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
+		render_attachments.depth.createResources( imageCount(), getSwapChainExtent() );
+		render_attachments.depth.setClear( vk::ClearDepthStencilValue( 1.0f, 0 ) );
 
+		gbuffer.position.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
+		gbuffer.position.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
 		g_buffer_position_img = std::make_unique< Texture >( gbuffer.position.m_attachment_resources.m_images[ 0 ]
 		                                                         ->setName( "GBufferPosition" ) );
+
+		gbuffer.normal.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
+		gbuffer.normal.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
 		g_buffer_normal_img = std::make_unique< Texture >( gbuffer.normal.m_attachment_resources.m_images[ 0 ]
 		                                                       ->setName( "GBufferNormal" ) );
+
+		gbuffer.albedo.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
+		gbuffer.albedo.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
 		g_buffer_albedo_img = std::make_unique< Texture >( gbuffer.albedo.m_attachment_resources.m_images[ 0 ]
 		                                                       ->setName( "GBufferAlbedo" ) );
+
+		gbuffer.composite.createResourceSpread( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eSampled );
+		gbuffer.composite.setClear( vk::ClearColorValue( std::array< float, 4 > { { 0.0f, 0.0f, 0.0f, 0.0f } } ) );
 		g_buffer_composite_img = std::make_unique< Texture >( gbuffer.composite.m_attachment_resources.m_images[ 0 ]
 		                                                          ->setName( "GBufferComposite" ) );
 
@@ -410,28 +411,26 @@ namespace fgl::engine
 	}
 
 	vk::SurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat( const std::vector< vk::SurfaceFormatKHR >&
-	                                                             availableFormats )
+	                                                             available_formats )
 	{
 		ZoneScoped;
-		for ( const auto& availableFormat : availableFormats )
+		for ( const auto& format : available_formats )
 		{
-			if ( availableFormat.format == vk::Format::eB8G8R8A8Srgb
-			     && availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear )
+			if ( format.format == vk::Format::eB8G8R8A8Srgb && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear )
 			{
-				return availableFormat;
+				return format;
 			}
 		}
 
-		return availableFormats[ 0 ];
+		return available_formats[ 0 ];
 	}
 
-	vk::PresentModeKHR SwapChain::chooseSwapPresentMode( const std::vector< vk::PresentModeKHR >&
-	                                                         availablePresentModes )
+	vk::PresentModeKHR SwapChain::chooseSwapPresentMode( const std::vector< vk::PresentModeKHR >& present_modes )
 	{
 		ZoneScoped;
-		for ( const auto& availablePresentMode : availablePresentModes )
+		for ( const auto& mode : present_modes )
 		{
-			switch ( availablePresentMode )
+			switch ( mode )
 			{
 				case vk::PresentModeKHR::eImmediate:
 					std::cout << "Present mode: Immediate" << std::endl;
@@ -454,27 +453,20 @@ namespace fgl::engine
 			}
 		}
 
-		for ( const auto& availablePresentMode : availablePresentModes )
+		for ( const auto& mode : present_modes )
 		{
-			if ( availablePresentMode == vk::PresentModeKHR::eMailbox )
+			if ( mode == vk::PresentModeKHR::eMailbox )
 			{
 				std::cout << "Present mode: Mailbox: ACTIVE" << std::endl;
-				return availablePresentMode;
+				return mode;
 			}
 		}
-
-		// for (const auto &availablePresentMode : availablePresentModes) {
-		//   if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
-		//     std::cout << "Present mode: Immediate" << std::endl;
-		//     return availablePresentMode;
-		//   }
-		// }
 
 		std::cout << "Present mode: V-Sync: ACTIVE" << std::endl;
 		return vk::PresentModeKHR::eFifo;
 	}
 
-	vk::Extent2D SwapChain::chooseSwapExtent( const vk::SurfaceCapabilitiesKHR& capabilities )
+	vk::Extent2D SwapChain::chooseSwapExtent( const vk::SurfaceCapabilitiesKHR& capabilities ) const
 	{
 		ZoneScoped;
 		if ( capabilities.currentExtent.width != std::numeric_limits< uint32_t >::max() )
@@ -483,15 +475,16 @@ namespace fgl::engine
 		}
 		else
 		{
-			vk::Extent2D actualExtent = m_swapchain_extent;
-			actualExtent.width = std::
-				max( capabilities.minImageExtent.width,
-			         std::min( capabilities.maxImageExtent.width, actualExtent.width ) );
-			actualExtent.height = std::
-				max( capabilities.minImageExtent.height,
-			         std::min( capabilities.maxImageExtent.height, actualExtent.height ) );
+			vk::Extent2D actual_extent { m_swapchain_extent };
 
-			return actualExtent;
+			const auto [ min_height, min_width ] = capabilities.minImageExtent;
+			const auto [ max_height, max_width ] = capabilities.maxImageExtent;
+
+			actual_extent.width = std::clamp( actual_extent.width, min_width, max_width );
+
+			actual_extent.height = std::clamp( actual_extent.height, min_height, max_height );
+
+			return actual_extent;
 		}
 	}
 

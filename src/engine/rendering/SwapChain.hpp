@@ -86,9 +86,9 @@ namespace fgl::engine
 		void createSyncObjects();
 
 		// Helper functions
-		vk::SurfaceFormatKHR chooseSwapSurfaceFormat( const std::vector< vk::SurfaceFormatKHR >& availableFormats );
-		vk::PresentModeKHR chooseSwapPresentMode( const std::vector< vk::PresentModeKHR >& availablePresentModes );
-		vk::Extent2D chooseSwapExtent( const vk::SurfaceCapabilitiesKHR& capabilities );
+		static vk::SurfaceFormatKHR chooseSwapSurfaceFormat( const std::vector< vk::SurfaceFormatKHR >& available_formats );
+		static vk::PresentModeKHR chooseSwapPresentMode( const std::vector< vk::PresentModeKHR >& present_modes );
+		vk::Extent2D chooseSwapExtent( const vk::SurfaceCapabilitiesKHR& capabilities ) const;
 
 		template < is_attachment... Attachments >
 		static std::vector< vk::ImageView > getViewsForFrame( const std::uint8_t frame_idx, Attachments... attachments )
@@ -171,7 +171,7 @@ namespace fgl::engine
 			return static_cast< float >( m_swapchain_extent.width ) / static_cast< float >( m_swapchain_extent.height );
 		}
 
-		vk::Format findDepthFormat();
+		static vk::Format findDepthFormat();
 
 		[[nodiscard]] std::pair< vk::Result, std::uint32_t > acquireNextImage();
 		[[nodiscard]] vk::Result
