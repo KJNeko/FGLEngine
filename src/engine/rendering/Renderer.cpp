@@ -97,11 +97,11 @@ namespace fgl::engine
 		}
 	}
 
-	std::pair< vk::raii::CommandBuffer&, vk::raii::CommandBuffer& > Renderer::beginFrame()
+	vk::raii::CommandBuffer& Renderer::beginFrame()
 	{
 		assert( !is_frame_started && "Cannot begin frame while frame is already in progress" );
-		auto [ result, image_idx ] = m_swapchain->acquireNextImage();
-		current_image_idx = image_idx;
+		auto [ result, present_index ] = m_swapchain->acquireNextImage();
+		current_present_index = present_index;
 
 		if ( result == vk::Result::eErrorOutOfDateKHR )
 		{
@@ -113,7 +113,6 @@ namespace fgl::engine
 
 		is_frame_started = true;
 		auto& command_buffer { getCurrentCommandbuffer() };
-		auto& gui_command_buffer { getCurrentGuiCommandBuffer() };
 
 		vk::CommandBufferBeginInfo begin_info {};
 		begin_info.pNext = VK_NULL_HANDLE;
@@ -122,21 +121,7 @@ namespace fgl::engine
 
 		command_buffer.begin( begin_info );
 
-		vk::CommandBufferInheritanceInfo inheritance_info {};
-		inheritance_info.framebuffer = this->getSwapChain().getFrameBuffer( current_image_idx );
-		inheritance_info.renderPass = this->getSwapChainRenderPass();
-		inheritance_info.subpass = 2;
-
-		vk::CommandBufferBeginInfo gui_begin_info {};
-		gui_begin_info.pInheritanceInfo = &inheritance_info;
-		gui_begin_info.flags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
-
-		gui_command_buffer.begin( gui_begin_info );
-
-		setViewport( gui_command_buffer );
-		setScissor( gui_command_buffer );
-
-		return { command_buffer, gui_command_buffer };
+		return command_buffer;
 	}
 
 	void Renderer::endFrame()
@@ -148,7 +133,7 @@ namespace fgl::engine
 
 		command_buffer.end();
 
-		const auto result { m_swapchain->submitCommandBuffers( command_buffer, current_image_idx ) };
+		const auto result { m_swapchain->submitCommandBuffers( command_buffer, current_present_index ) };
 
 		if ( result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR
 		     || m_window.wasWindowResized() )
@@ -196,7 +181,7 @@ namespace fgl::engine
 		vk::RenderPassBeginInfo render_pass_info {};
 		render_pass_info.pNext = VK_NULL_HANDLE;
 		render_pass_info.renderPass = m_swapchain->getRenderPass();
-		render_pass_info.framebuffer = m_swapchain->getFrameBuffer( static_cast< int >( current_image_idx ) );
+		render_pass_info.framebuffer = m_swapchain->getFrameBuffer( current_present_index );
 		render_pass_info.renderArea = { .offset = { 0, 0 }, .extent = m_swapchain->getSwapChainExtent() };
 		render_pass_info.clearValueCount = static_cast< std::uint32_t >( clear_values.size() );
 		render_pass_info.pClearValues = clear_values.data();

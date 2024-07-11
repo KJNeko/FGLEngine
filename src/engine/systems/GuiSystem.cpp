@@ -24,12 +24,14 @@ namespace fgl::engine
 
 	vk::raii::CommandBuffer& GuiSystem::setupSystem( FrameInfo& info )
 	{
-		auto& command_buffer { info.gui_command_buffer };
+		auto& command_buffer { info.command_buffer };
+
+		command_buffer.nextSubpass( vk::SubpassContents::eInline );
+
+		m_pipeline->bind( command_buffer );
 
 		m_pipeline
 			->bindDescriptor( command_buffer, GBufferCompositeDescriptorSet::m_set_idx, info.gbuffer_composite_set );
-
-		m_pipeline->bind( command_buffer );
 
 		return command_buffer;
 	}
@@ -42,11 +44,6 @@ namespace fgl::engine
 
 		//Handle GUI
 		gui::drawMainGUI( info );
-
-		command_buffer.end();
-
-		info.command_buffer.nextSubpass( vk::SubpassContents::eSecondaryCommandBuffers );
-		info.command_buffer.executeCommands( { info.gui_command_buffer } );
 	}
 
 } // namespace fgl::engine

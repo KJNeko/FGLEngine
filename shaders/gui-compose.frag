@@ -11,5 +11,3 @@ void main() {
 
     out_color = composite;
 }
-
-

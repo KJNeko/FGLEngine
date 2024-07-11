@@ -32,8 +32,8 @@ namespace fgl::engine
 
 		std::optional< TracyVkCtx > m_tracy_ctx { std::nullopt };
 
-		uint32_t current_image_idx { std::numeric_limits< std::uint32_t >::max() };
-		std::uint16_t current_frame_idx { 0 };
+		PresentIndex current_present_index { std::numeric_limits< PresentIndex >::max() };
+		FrameIndex current_frame_idx { 0 };
 		bool is_frame_started { false };
 
 		void createCommandBuffers();
@@ -51,10 +51,16 @@ namespace fgl::engine
 			return m_swapchain->getGBufferCompositeDescriptor( frame_idx );
 		}
 
-		std::uint16_t getFrameIndex() const
+		FrameIndex getFrameIndex() const
 		{
 			assert( is_frame_started && "Cannot get frame index while frame not in progress" );
 			return current_frame_idx;
+		}
+
+		PresentIndex getPresentIndex() const
+		{
+			assert( current_present_index != std::numeric_limits< PresentIndex >::max() );
+			return current_present_index;
 		}
 
 		bool isFrameInProgress() const { return is_frame_started; }
@@ -81,7 +87,7 @@ namespace fgl::engine
 
 		float getAspectRatio() const { return m_swapchain->extentAspectRatio(); }
 
-		std::pair< vk::raii::CommandBuffer&, vk::raii::CommandBuffer& > beginFrame();
+		vk::raii::CommandBuffer& beginFrame();
 		void endFrame();
 
 		void setViewport( const vk::raii::CommandBuffer& buffer );

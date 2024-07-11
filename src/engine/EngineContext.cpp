@@ -148,18 +148,18 @@ namespace fgl::engine
 			camera_controller.moveInPlaneXZ( m_window.window(), delta_time, viewer );
 			camera.setView( viewer.getPosition(), viewer.getRotation() );
 
-			if ( auto [ command_buffer, gui_command_buffer ] = m_renderer.beginFrame(); *command_buffer )
+			if ( auto& command_buffer = m_renderer.beginFrame(); *command_buffer )
 			{
 				ZoneScopedN( "Render" );
-				//Update
-				const std::uint16_t frame_index { m_renderer.getFrameIndex() };
+				const FrameIndex frame_index { m_renderer.getFrameIndex() };
+				const PresentIndex present_idx { m_renderer.getPresentIndex() };
 
 				const auto view_frustum { camera.getFrustumBounds() };
 
 				FrameInfo frame_info { frame_index,
+					                   present_idx,
 					                   delta_time,
 					                   command_buffer,
-					                   gui_command_buffer,
 					                   { camera, viewer.getTransform() },
 					                   global_descriptor_sets[ frame_index ],
 					                   m_game_objects_root,
@@ -168,8 +168,8 @@ namespace fgl::engine
 					                   draw_parameter_buffers[ frame_index ],
 					                   *this->m_vertex_buffer,
 					                   *this->m_index_buffer,
-					                   m_renderer.getGBufferDescriptor( frame_index ),
-					                   m_renderer.getGBufferCompositeDescriptor( frame_index ),
+					                   m_renderer.getGBufferDescriptor( present_idx ),
+					                   m_renderer.getGBufferCompositeDescriptor( present_idx ),
 					                   view_frustum,
 					                   this->m_renderer.getSwapChain() };
 

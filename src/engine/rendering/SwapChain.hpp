@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-
 #include <memory>
 #include <vector>
 
@@ -9,6 +7,7 @@
 #include "RenderPassBuilder.hpp"
 #include "engine/FrameInfo.hpp"
 #include "engine/texture/Texture.hpp"
+#include "types.hpp"
 
 namespace fgl::engine
 {
@@ -16,7 +15,7 @@ namespace fgl::engine
 	{
 	  public:
 
-		static constexpr std::uint16_t MAX_FRAMES_IN_FLIGHT = 2;
+		static constexpr std::uint16_t MAX_FRAMES_IN_FLIGHT { 2 };
 
 	  private:
 
@@ -51,10 +50,10 @@ namespace fgl::engine
 
 	  public:
 
-		std::unique_ptr< Texture > g_buffer_position_img { nullptr };
-		std::unique_ptr< Texture > g_buffer_normal_img { nullptr };
-		std::unique_ptr< Texture > g_buffer_albedo_img { nullptr };
-		std::unique_ptr< Texture > g_buffer_composite_img { nullptr };
+		std::vector< std::unique_ptr< Texture > > g_buffer_position_img {};
+		std::vector< std::unique_ptr< Texture > > g_buffer_normal_img {};
+		std::vector< std::unique_ptr< Texture > > g_buffer_albedo_img {};
+		std::vector< std::unique_ptr< Texture > > g_buffer_composite_img {};
 
 	  private:
 
@@ -66,11 +65,9 @@ namespace fgl::engine
 
 		std::vector< vk::ClearValue > m_clear_values;
 
-		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
-			m_gbuffer_descriptor_set;
+		std::vector< std::unique_ptr< descriptors::DescriptorSet > > m_gbuffer_descriptor_set;
 
-		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
-			m_gbuffer_composite_descriptor_set;
+		std::vector< std::unique_ptr< descriptors::DescriptorSet > > m_composite_descriptor_set;
 
 		std::vector< vk::raii::Semaphore > image_available_sem {};
 		std::vector< vk::raii::Semaphore > render_finished_sem {};
@@ -113,29 +110,25 @@ namespace fgl::engine
 			return clear_values;
 		}
 
-		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
-			createGBufferDescriptors();
-		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
-			createCompositeDescriptors();
+		std::vector< std::unique_ptr< descriptors::DescriptorSet > > createGBufferDescriptors();
+		std::vector< std::unique_ptr< descriptors::DescriptorSet > > createCompositeDescriptors();
 
 	  public:
 
 		std::vector< vk::ClearValue > getClearValues() const { return m_clear_values; }
 
-		descriptors::DescriptorSet& getGBufferDescriptor( std::uint16_t frame_idx ) const
+		descriptors::DescriptorSet& getGBufferDescriptor( PresentIndex frame_idx ) const
 		{
-			assert( frame_idx < SwapChain::MAX_FRAMES_IN_FLIGHT && "Frame index out of range" );
-			assert(
-				m_gbuffer_descriptor_set.size() == SwapChain::MAX_FRAMES_IN_FLIGHT
-				&& "GBuffer descriptor set not initialized" );
+			assert( frame_idx < imageCount() && "Frame index out of range" );
+			assert( m_gbuffer_descriptor_set.size() > 0 && "GBuffer descriptor set not initialized" );
 			return *m_gbuffer_descriptor_set[ frame_idx ];
 		}
 
-		descriptors::DescriptorSet& getGBufferCompositeDescriptor( uint16_t frame_idx ) const
+		descriptors::DescriptorSet& getGBufferCompositeDescriptor( PresentIndex frame_idx ) const
 		{
-			assert( frame_idx < SwapChain::MAX_FRAMES_IN_FLIGHT && "Frame index out of range" );
-
-			return *m_gbuffer_composite_descriptor_set[ frame_idx ];
+			assert( frame_idx < imageCount() && "Frame index out of range" );
+			assert( m_composite_descriptor_set.size() > 0 && "GBuffer descriptor set not initialized" );
+			return *m_composite_descriptor_set[ frame_idx ];
 		}
 
 		SwapChain( vk::Extent2D windowExtent, PhysicalDevice& phy_dev );
@@ -144,14 +137,14 @@ namespace fgl::engine
 		SwapChain( const SwapChain& ) = delete;
 		SwapChain& operator=( const SwapChain& ) = delete;
 
-		vk::raii::Framebuffer& getFrameBuffer( std::uint32_t index )
+		vk::raii::Framebuffer& getFrameBuffer( const PresentIndex present_index )
 		{
-			return m_swap_chain_buffers[ static_cast< std::size_t >( index ) ];
+			return m_swap_chain_buffers[ static_cast< std::size_t >( present_index ) ];
 		}
 
 		vk::raii::RenderPass& getRenderPass() { return m_render_pass; }
 
-		std::uint16_t imageCount() const { return static_cast< std::uint16_t >( m_swap_chain_images.size() ); }
+		PresentIndex imageCount() const { return static_cast< std::uint16_t >( m_swap_chain_images.size() ); }
 
 		vk::Format getSwapChainImageFormat() const { return m_swap_chain_format; }
 
@@ -174,9 +167,9 @@ namespace fgl::engine
 
 		static vk::Format findDepthFormat();
 
-		[[nodiscard]] std::pair< vk::Result, std::uint32_t > acquireNextImage();
+		[[nodiscard]] std::pair< vk::Result, PresentIndex > acquireNextImage();
 		[[nodiscard]] vk::Result
-			submitCommandBuffers( const vk::raii::CommandBuffer& buffers, std::uint32_t imageIndex );
+			submitCommandBuffers( const vk::raii::CommandBuffer& buffers, PresentIndex present_index );
 	};
 
 } // namespace fgl::engine
