@@ -22,26 +22,42 @@ namespace fgl::engine
 
 		PhysicalDevice& m_phy_device;
 
-		vk::Format m_swap_chain_format { vk::Format::eUndefined };
-		vk::Format m_swap_chain_depth_format { findDepthFormat() };
-		vk::Extent2D m_swap_chain_extent { 0, 0 };
+		SwapChainSupportDetails m_swapchain_details;
+		vk::SurfaceFormatKHR m_surface_format;
+		vk::PresentModeKHR m_present_mode;
+		vk::Extent2D m_swapchain_extent;
+
+		vk::Format m_swap_chain_format;
+		vk::Format m_swap_chain_depth_format;
+
+		std::shared_ptr< SwapChain > old_swap_chain;
+
+		vk::raii::SwapchainKHR m_swapchain;
+		std::vector< Image > m_swap_chain_images;
+
+		struct
+		{
+			ColoredPresentAttachment color;
+			DepthAttachment depth;
+		} render_attachments;
+
+		struct
+		{
+			ColorAttachment position { vk::Format::eR16G16B16A16Sfloat };
+			ColorAttachment normal { vk::Format::eR16G16B16A16Sfloat };
+			ColorAttachment albedo { vk::Format::eR8G8B8A8Unorm };
+			ColorAttachment composite { vk::Format::eR8G8B8A8Unorm };
+		} gbuffer {};
 
 		std::vector< vk::raii::Framebuffer > m_swap_chain_buffers {};
 		vk::raii::RenderPass m_render_pass { VK_NULL_HANDLE };
 		std::unique_ptr< RenderPassResources > m_render_pass_resources { nullptr };
 
-		std::vector< Image > m_swap_chain_images {};
-
-		vk::Extent2D windowExtent;
-
-		vk::raii::SwapchainKHR swapChain { VK_NULL_HANDLE };
-		std::shared_ptr< SwapChain > old_swap_chain {};
-
 		std::vector< vk::raii::Semaphore > imageAvailableSemaphores {};
 		std::vector< vk::raii::Semaphore > renderFinishedSemaphores {};
-		std::vector< vk::raii::Fence > inFlightFences {};
-		std::vector< vk::Fence > imagesInFlight {};
-		size_t currentFrame { 0 };
+		std::vector< vk::raii::Fence > in_flight_fence {};
+		std::vector< vk::Fence > images_in_flight {};
+		size_t m_current_frame_index { 0 };
 
 		std::vector< vk::ClearValue > m_clear_values {};
 
@@ -55,7 +71,8 @@ namespace fgl::engine
 	  private:
 
 		void init();
-		void createSwapChain();
+		[[nodiscard]] vk::raii::SwapchainKHR createSwapChain();
+		[[nodiscard]] std::vector< Image > createSwapchainImages();
 		void createRenderPass();
 		void createFramebuffers();
 		void createSyncObjects();
@@ -108,11 +125,11 @@ namespace fgl::engine
 
 		vk::Format getSwapChainImageFormat() const { return m_swap_chain_format; }
 
-		vk::Extent2D getSwapChainExtent() const { return m_swap_chain_extent; }
+		vk::Extent2D getSwapChainExtent() const { return m_swapchain_extent; }
 
-		uint32_t width() const { return m_swap_chain_extent.width; }
+		uint32_t width() const { return m_swapchain_extent.width; }
 
-		uint32_t height() const { return m_swap_chain_extent.height; }
+		uint32_t height() const { return m_swapchain_extent.height; }
 
 		bool compareSwapFormats( const SwapChain& other ) const
 		{
@@ -122,8 +139,7 @@ namespace fgl::engine
 
 		float extentAspectRatio() const
 		{
-			return static_cast< float >( m_swap_chain_extent.width )
-			     / static_cast< float >( m_swap_chain_extent.height );
+			return static_cast< float >( m_swapchain_extent.width ) / static_cast< float >( m_swapchain_extent.height );
 		}
 
 		vk::Format findDepthFormat();
