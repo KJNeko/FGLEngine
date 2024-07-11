@@ -141,19 +141,19 @@ namespace fgl::engine
 	}
 
 	template < CoordinateSpace CType >
-	Vector FGL_FORCE_INLINE Frustum< CType >::forwardVec() const
+	FGL_FORCE_INLINE Vector Frustum< CType >::forwardVec() const
 	{
 		return near.direction();
 	}
 
 	template < CoordinateSpace CType >
-	Vector FGL_FORCE_INLINE Frustum< CType >::upVec() const
+	FGL_FORCE_INLINE Vector Frustum< CType >::upVec() const
 	{
 		return glm::cross( forwardVec(), left.direction() );
 	}
 
 	template < CoordinateSpace CType >
-	Vector FGL_FORCE_INLINE Frustum< CType >::rightVec() const
+	FGL_FORCE_INLINE Vector Frustum< CType >::rightVec() const
 	{
 		return glm::cross( forwardVec(), upVec() );
 	}
