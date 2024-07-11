@@ -4,7 +4,7 @@
 
 #include "drawers.hpp"
 
-#include "engine/Camera.hpp"
+#include "engine/camera/Camera.hpp"
 #include "engine/primitives/boxes/AxisAlignedBoundingBox.hpp"
 #include "engine/primitives/boxes/AxisAlignedBoundingCube.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"

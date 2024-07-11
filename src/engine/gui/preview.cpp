@@ -21,6 +21,7 @@
 #include "engine/model/Model.hpp"
 #include "engine/model/builders/SceneBuilder.hpp"
 #include "engine/rendering/SwapChain.hpp"
+#include "engine/tree/octtree/OctTreeNode.hpp"
 
 namespace fgl::engine::gui
 {

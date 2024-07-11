@@ -10,18 +10,24 @@
 #include <tracy/TracyVulkan.hpp>
 //clang-format: on
 
-#include "Camera.hpp"
-#include "engine/descriptors/Descriptor.hpp"
-#include "engine/descriptors/DescriptorSet.hpp"
-#include "engine/descriptors/DescriptorSetLayout.hpp"
-#include "engine/tree/octtree/OctTreeNode.hpp"
+#include "descriptors/Descriptor.hpp"
+#include "descriptors/DescriptorSetLayout.hpp"
+#include "primitives/Frustum.hpp"
 #include "rendering/types.hpp"
 
 #define MAX_LIGHTS 10
 
 namespace fgl::engine
 {
+	class GameObject;
+
+	namespace descriptors
+	{
+		class DescriptorSet;
+	}
+	struct TransformComponent;
 	class SwapChain;
+	class Camera;
 
 	struct PointLight
 	{

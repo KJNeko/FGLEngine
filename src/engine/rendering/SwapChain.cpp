@@ -11,6 +11,7 @@
 #include "RenderPassBuilder.hpp"
 #include "Subpass.hpp"
 #include "engine/assets/TransferManager.hpp"
+#include "engine/descriptors/DescriptorSet.hpp"
 
 namespace fgl::engine
 {

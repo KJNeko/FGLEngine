@@ -88,28 +88,6 @@ namespace fgl::engine
 		static vk::PresentModeKHR chooseSwapPresentMode( const std::vector< vk::PresentModeKHR >& present_modes );
 		vk::Extent2D chooseSwapExtent( const vk::SurfaceCapabilitiesKHR& capabilities ) const;
 
-		template < is_attachment... Attachments >
-		static std::vector< vk::ImageView > getViewsForFrame( const std::uint8_t frame_idx, Attachments... attachments )
-		{
-			std::vector< vk::ImageView > view {};
-			view.resize( sizeof...( Attachments ) );
-
-			( ( view[ attachments.getIndex() ] = *attachments.getView( frame_idx ) ), ... );
-
-			return view;
-		}
-
-		template < is_attachment... Attachments >
-		static std::vector< vk::ClearValue > gatherClearValues( Attachments... attachments )
-		{
-			std::vector< vk::ClearValue > clear_values {};
-			clear_values.resize( sizeof...( Attachments ) );
-
-			( ( clear_values[ attachments.getIndex() ] = attachments.m_clear_value ), ... );
-
-			return clear_values;
-		}
-
 		std::vector< std::unique_ptr< descriptors::DescriptorSet > > createGBufferDescriptors();
 		std::vector< std::unique_ptr< descriptors::DescriptorSet > > createCompositeDescriptors();
 

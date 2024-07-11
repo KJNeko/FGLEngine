@@ -12,11 +12,13 @@
 #include <glm/gtx/string_cast.hpp>
 #pragma GCC diagnostic pop
 
-#include "constants.hpp"
+#include "CameraSwapchain.hpp"
+#include "engine/constants.hpp"
 #include "engine/primitives/Frustum.hpp"
 #include "engine/primitives/TransformComponent.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
+#include "engine/rendering/SwapChain.hpp"
 
 namespace fgl::engine
 {
@@ -26,12 +28,6 @@ namespace fgl::engine
 
 	class Camera
 	{
-#ifdef EXPOSE_CAMERA_INTERNAL
-
-	  public:
-
-#endif
-
 		Matrix< MatrixType::CameraToScreen > projection_matrix { 1.0f };
 
 		Matrix< MatrixType::WorldToCamera > view_matrix { 1.0f };
@@ -45,17 +41,19 @@ namespace fgl::engine
 
 		Rotation current_rotation {};
 
+		vk::Extent2D m_extent;
+
+		std::shared_ptr< CameraSwapchain > m_swapchain;
+
 		Matrix< MatrixType::ModelToWorld > frustumTranslationMatrix() const;
 
 		void updateFrustum();
 
 	  public:
 
-		Camera()
-		{
-			this->setPerspectiveProjection( 90.0f, 16.0f / 9.0f, constants::NEAR_PLANE, constants::FAR_PLANE );
-			this->setView( WorldCoordinate( constants::CENTER ), Rotation( 0.0f, 0.0f, 0.0f ) );
-		}
+		Camera( const vk::Extent2D extent );
+
+		void setExtent( const vk::Extent2D extent );
 
 		Rotation getRotation() const { return current_rotation; }
 

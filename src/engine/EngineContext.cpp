@@ -14,6 +14,7 @@
 #include "KeyboardMovementController.hpp"
 #include "assets/stores.hpp"
 #include "buffers/HostSingleT.hpp"
+#include "camera/Camera.hpp"
 #include "engine/Average.hpp"
 #include "engine/assets/TransferManager.hpp"
 #include "engine/buffers/UniqueFrameSuballocation.hpp"
@@ -95,7 +96,7 @@ namespace fgl::engine
 			global_descriptor_sets[ i ].update();
 		}
 
-		Camera camera {};
+		Camera camera { vk::Extent2D( 1920, 1080 ) };
 		debug::setDebugDrawingCamera( camera );
 
 		auto viewer { GameObject::createGameObject() };

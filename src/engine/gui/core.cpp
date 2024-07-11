@@ -19,6 +19,7 @@
 #include "engine/model/Model.hpp"
 #include "engine/rendering/Device.hpp"
 #include "engine/rendering/Renderer.hpp"
+#include "engine/tree/octtree/OctTreeNode.hpp"
 #include "preview.hpp"
 
 namespace fgl::engine::gui

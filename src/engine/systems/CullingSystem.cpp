@@ -9,6 +9,7 @@
 #include "engine/FrameInfo.hpp"
 #include "engine/debug/drawers.hpp"
 #include "engine/model/Model.hpp"
+#include "engine/tree/octtree/OctTreeNode.hpp"
 
 namespace fgl::engine
 {

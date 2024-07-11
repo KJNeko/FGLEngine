@@ -71,6 +71,20 @@ namespace fgl::engine
 		frustum = translation_matrix * base_frustum;
 	}
 
+	Camera::Camera( const vk::Extent2D extent ) :
+	  m_extent( extent ),
+	  m_swapchain( std::make_shared< CameraSwapchain >( m_extent ) )
+	{
+		this->setPerspectiveProjection( 90.0f, 16.0f / 9.0f, constants::NEAR_PLANE, constants::FAR_PLANE );
+		this->setView( WorldCoordinate( constants::CENTER ), Rotation( 0.0f, 0.0f, 0.0f ) );
+	}
+
+	void Camera::setExtent( const vk::Extent2D extent )
+	{
+		m_extent = extent;
+		m_swapchain = std::make_shared< CameraSwapchain >( m_extent );
+	}
+
 	Frustum< CoordinateSpace::Model >
 		createFrustum( const float aspect, const float fov_y, const float near, const float far )
 	{

@@ -179,6 +179,30 @@ namespace fgl::engine
 		requires is_wrapped_attachment< T >
 	using UnwrappedAttachment = std::conditional_t< is_wrapped_attachment< T >, typename T::Attachment, T >;
 
+	//Helper functions
+
+	template < is_attachment... Attachments >
+	static std::vector< vk::ImageView > getViewsForFrame( const std::uint8_t frame_idx, Attachments... attachments )
+	{
+		std::vector< vk::ImageView > view {};
+		view.resize( sizeof...( Attachments ) );
+
+		( ( view[ attachments.getIndex() ] = *attachments.getView( frame_idx ) ), ... );
+
+		return view;
+	}
+
+	template < is_attachment... Attachments >
+	static std::vector< vk::ClearValue > gatherClearValues( Attachments... attachments )
+	{
+		std::vector< vk::ClearValue > clear_values {};
+		clear_values.resize( sizeof...( Attachments ) );
+
+		( ( clear_values[ attachments.getIndex() ] = attachments.m_clear_value ), ... );
+
+		return clear_values;
+	}
+
 	using ColoredPresentAttachment = Attachment<
 		vk::AttachmentLoadOp::eClear,
 		vk::AttachmentStoreOp::eStore,

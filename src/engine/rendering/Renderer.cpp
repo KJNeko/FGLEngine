@@ -16,6 +16,7 @@
 #include "Device.hpp"
 #include "SwapChain.hpp"
 #include "engine/Window.hpp"
+#include "engine/descriptors/DescriptorSet.hpp"
 
 //clang-format: off
 #include <tracy/TracyVulkan.hpp>
