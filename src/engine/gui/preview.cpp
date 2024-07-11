@@ -98,6 +98,8 @@ namespace fgl::engine::gui
 	void drawRenderingOutputs( FrameInfo& info )
 	{
 		ZoneScoped;
+		const auto present_idx { info.present_idx };
+
 		ImGui::Begin( "RenderOutputs" );
 
 		enum RenderingOutputSelection : std::uint_fast8_t
@@ -139,8 +141,7 @@ namespace fgl::engine::gui
 				current = Composite;
 			}
 
-			/*
-			info.swap_chain.g_buffer_albedo_img->drawImGui( { v_size, h_size } );
+			info.swap_chain.g_buffer_albedo_img[ present_idx ]->drawImGui( { v_size, h_size } );
 			ImGui::SameLine();
 			if ( ImGui::Selectable( options[ Albedo ], current == Albedo ) )
 			{
@@ -148,7 +149,7 @@ namespace fgl::engine::gui
 				current = Albedo;
 			}
 
-			info.swap_chain.g_buffer_normal_img->drawImGui( { v_size, h_size } );
+			info.swap_chain.g_buffer_normal_img[ present_idx ]->drawImGui( { v_size, h_size } );
 			ImGui::SameLine();
 			if ( ImGui::Selectable( options[ Normal ], current == Normal ) )
 			{
@@ -156,37 +157,34 @@ namespace fgl::engine::gui
 				current = Normal;
 			}
 
-			info.swap_chain.g_buffer_position_img->drawImGui( { v_size, h_size } );
+			info.swap_chain.g_buffer_position_img[ present_idx ]->drawImGui( { v_size, h_size } );
 			ImGui::SameLine();
 			if ( ImGui::Selectable( options[ Position ], current == Position ) )
 			{
 				log::debug( "Changing output to Position" );
 				current = Position;
 			}
-			*/
 
 			ImGui::EndCombo();
 		}
 
-		/*
 		switch ( current )
 		{
 			default:
 				[[fallthrough]];
-
 			case Composite:
-				info.swap_chain.g_buffer_composite_img->drawImGui();
+				info.swap_chain.g_buffer_composite_img[ present_idx ]->drawImGui();
 				break;
 			case Albedo:
-				info.swap_chain.g_buffer_albedo_img->drawImGui();
+				info.swap_chain.g_buffer_albedo_img[ present_idx ]->drawImGui();
 				break;
 			case Normal:
-				info.swap_chain.g_buffer_normal_img->drawImGui();
+				info.swap_chain.g_buffer_normal_img[ present_idx ]->drawImGui();
 				break;
 			case Position:
-				info.swap_chain.g_buffer_position_img->drawImGui();
+				info.swap_chain.g_buffer_position_img[ present_idx ]->drawImGui();
 				break;
-		}*/
+		}
 
 		handleDragDrop( info );
 

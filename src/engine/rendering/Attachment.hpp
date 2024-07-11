@@ -13,8 +13,7 @@
 
 #include "engine/concepts/is_attachment.hpp"
 #include "engine/image/Image.hpp"
-#include "engine/image/ImageView.hpp"
-#include "types.hpp"
+#include "engine/rendering/Device.hpp"
 
 namespace fgl::engine
 {
@@ -34,7 +33,7 @@ namespace fgl::engine
 	class Attachment
 	{
 		vk::AttachmentDescription description {};
-		std::uint32_t m_index { std::numeric_limits< std::uint32_t >::max() };
+		std::uint32_t index { std::numeric_limits< std::uint32_t >::max() };
 
 	  public:
 
@@ -44,22 +43,9 @@ namespace fgl::engine
 
 		void setClear( vk::ClearDepthStencilValue value ) { m_clear_value = value; }
 
-		//! Fills out with the resource image view for the given frame index
-		void fillVec( const std::uint16_t frame_idx, std::vector< vk::ImageView >& out )
-		{
-			auto& resource { m_attachment_resources.m_image_views.at( frame_idx ) };
-			assert( resource );
-
-			assert( out.size() > m_index );
-
-			vk::ImageView view { resource->getVkView() };
-
-			out.at( m_index ) = view;
-		}
-
 		AttachmentResources m_attachment_resources {};
 
-		void setIndex( const std::uint32_t idx ) { m_index = idx; }
+		void setIndex( const std::uint32_t idx ) { index = idx; }
 
 		constexpr static vk::AttachmentLoadOp loadOp = load_op;
 		constexpr static vk::AttachmentStoreOp storeOp = store_op;
@@ -79,18 +65,21 @@ namespace fgl::engine
 			description.finalLayout = final_layout;
 		}
 
-		void linkImage( std::shared_ptr< Image > image )
+		void attachImageView( std::uint16_t frame_idx, std::shared_ptr< ImageView > image_view )
 		{
-			auto& itter { m_attachment_resources.m_images.emplace_back( std::move( image ) ) };
-			m_attachment_resources.m_image_views.emplace_back( itter->getView() );
+			auto& image_views = m_attachment_resources.m_image_views;
+			if ( image_views.size() <= frame_idx ) image_views.resize( frame_idx + 1 );
+			image_views[ frame_idx ] = std::move( image_view );
 		}
 
-		void linkImages( std::vector< std::shared_ptr< Image > >& images )
+		void linkImage( std::uint16_t frame_idx, Image& image ) { attachImageView( frame_idx, image.getView() ); }
+
+		void linkImages( std::vector< Image >& images )
 		{
-			for ( auto image : images )
+			assert( images.size() > 0 );
+			for ( std::uint16_t i = 0; i < images.size(); ++i )
 			{
-				auto& itter { m_attachment_resources.m_images.emplace_back( std::move( image ) ) };
-				m_attachment_resources.m_image_views.emplace_back( itter->getView() );
+				linkImage( i, images[ i ] );
 			}
 		}
 
@@ -110,22 +99,27 @@ namespace fgl::engine
 			}
 		}
 
-		//! Creates resources required for this attachment
+		//! Creates a resource that is used across all frames
 		void createResourceSpread(
 			const std::uint32_t count, vk::Extent2D extent, vk::ImageUsageFlags extra_flags = vk::ImageUsageFlags( 0 ) )
 		{
+			auto image { std::make_shared< Image >(
+				extent,
+				description.format,
+				usage | vk::ImageUsageFlagBits::eInputAttachment | extra_flags,
+				inital_layout,
+				final_layout ) };
 			for ( std::uint32_t i = 0; i < count; ++i )
 			{
-				auto image { std::make_shared< Image >(
-					extent,
-					description.format,
-					usage | vk::ImageUsageFlagBits::eInputAttachment | extra_flags,
-					inital_layout,
-					final_layout ) };
-
 				m_attachment_resources.m_images.emplace_back( image );
 				m_attachment_resources.m_image_views.emplace_back( image->getView() );
 			}
+		}
+
+		ImageView& getView( std::uint8_t frame_idx )
+		{
+			assert( frame_idx < m_attachment_resources.m_image_views.size() );
+			return *m_attachment_resources.m_image_views[ frame_idx ];
 		}
 
 		vk::AttachmentDescription& desc() { return description; }
@@ -133,36 +127,9 @@ namespace fgl::engine
 		std::uint32_t getIndex() const
 		{
 			assert(
-				m_index != std::numeric_limits< std::uint32_t >::max()
+				index != std::numeric_limits< std::uint32_t >::max()
 				&& "Attachment must be registered in RenderPass before use" );
-			return m_index;
-		}
-
-		ImageView& view( const FrameIndex index )
-		{
-			assert( index < m_attachment_resources.m_image_views.size() );
-			return *m_attachment_resources.m_image_views[ index ];
-		}
-
-		Image& image( const FrameIndex index )
-		{
-			assert( index < m_attachment_resources.m_images.size() );
-			return *m_attachment_resources.m_images[ index ];
-		}
-
-		void setName( const std::string str )
-		{
-			auto& images { m_attachment_resources.m_images };
-			auto& image_views { m_attachment_resources.m_image_views };
-
-			assert( images.size() == image_views.size() );
-			assert( images.size() > 0 );
-
-			for ( std::size_t i = 0; i < images.size(); ++i )
-			{
-				images[ i ]->setName( str );
-				image_views[ i ]->setName( str );
-			}
+			return index;
 		}
 
 		friend class RenderPassBuilder;

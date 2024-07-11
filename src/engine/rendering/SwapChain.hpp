@@ -1,15 +1,13 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-
 #include <memory>
 #include <vector>
 
 #include "Device.hpp"
 #include "RenderPassBuilder.hpp"
 #include "engine/FrameInfo.hpp"
-#include "engine/rendering/types.hpp"
 #include "engine/texture/Texture.hpp"
+#include "types.hpp"
 
 namespace fgl::engine
 {
@@ -17,31 +15,30 @@ namespace fgl::engine
 	{
 	  public:
 
-		static constexpr FrameIndex MAX_FRAMES_IN_FLIGHT { 2 };
+		static constexpr std::uint16_t MAX_FRAMES_IN_FLIGHT { 2 };
 
 	  private:
 
 		PhysicalDevice& m_phy_device;
-		std::shared_ptr< SwapChain > old_swap_chain {};
 
-		SwapChainSupportDetails m_swapchain_support;
+		SwapChainSupportDetails m_swapchain_details;
 		vk::SurfaceFormatKHR m_surface_format;
+		vk::PresentModeKHR m_present_mode;
+		vk::Extent2D m_swapchain_extent;
 
 		vk::Format m_swap_chain_format;
 		vk::Format m_swap_chain_depth_format;
-		vk::Extent2D m_swap_chain_extent;
 
-		vk::Extent2D m_swapchain_extent;
+		std::shared_ptr< SwapChain > old_swap_chain;
 
 		vk::raii::SwapchainKHR m_swapchain;
-		std::vector< std::shared_ptr< Image > > m_swap_chain_images;
+		std::vector< Image > m_swap_chain_images;
 
-		//! Attachments for the final render target
 		struct
 		{
-			ColoredPresentAttachment color; // Present attachment
+			ColoredPresentAttachment color;
 			DepthAttachment depth;
-		} m_render_attachments;
+		} render_attachments;
 
 		struct
 		{
@@ -49,80 +46,89 @@ namespace fgl::engine
 			ColorAttachment normal { vk::Format::eR16G16B16A16Sfloat };
 			ColorAttachment albedo { vk::Format::eR8G8B8A8Unorm };
 			ColorAttachment composite { vk::Format::eR8G8B8A8Unorm };
-		} m_gbuffer_attachments {};
+		} gbuffer {};
+
+	  public:
+
+		std::vector< std::unique_ptr< Texture > > g_buffer_position_img {};
+		std::vector< std::unique_ptr< Texture > > g_buffer_normal_img {};
+		std::vector< std::unique_ptr< Texture > > g_buffer_albedo_img {};
+		std::vector< std::unique_ptr< Texture > > g_buffer_composite_img {};
+
+	  private:
+
+		RenderPassBuilder render_pass_builder {};
 
 		vk::raii::RenderPass m_render_pass;
 
-		std::vector< std::vector< vk::raii::Framebuffer > > m_swap_chain_buffers;
+		std::vector< vk::raii::Framebuffer > m_swap_chain_buffers;
 
-		std::vector< vk::raii::Semaphore > imageAvailableSemaphores {};
-		std::vector< vk::raii::Semaphore > renderFinishedSemaphores {};
-		std::vector< vk::raii::Fence > in_flight_fences {};
+		std::vector< vk::ClearValue > m_clear_values;
+
+		std::vector< std::unique_ptr< descriptors::DescriptorSet > > m_gbuffer_descriptor_set;
+
+		std::vector< std::unique_ptr< descriptors::DescriptorSet > > m_composite_descriptor_set;
+
+		std::vector< vk::raii::Semaphore > image_available_sem {};
+		std::vector< vk::raii::Semaphore > render_finished_sem {};
+		std::vector< vk::raii::Fence > in_flight_fence {};
 		std::vector< vk::Fence > images_in_flight {};
-		FrameIndex current_frame_index { 0 };
-
-		std::vector< vk::ClearValue > m_clear_values {};
-
-		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
-			m_gbuffer_descriptor_set;
-
-		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
-			m_gbuffer_composite_descriptor_set;
+		size_t m_current_frame_index { 0 };
 
 		void init();
 		[[nodiscard]] vk::raii::SwapchainKHR createSwapChain();
-		[[nodiscard]] std::vector< std::shared_ptr< Image > > createSwapchainImages();
+		[[nodiscard]] std::vector< Image > createSwapchainImages();
 		[[nodiscard]] vk::raii::RenderPass createRenderPass();
-		[[nodiscard]] std::vector< std::vector< vk::raii::Framebuffer > > createFramebuffers();
+		[[nodiscard]] std::vector< vk::raii::Framebuffer > createFramebuffers();
 		void createSyncObjects();
 
-		std::vector< vk::ClearValue > populateAttachmentClearValues()
+		// Helper functions
+		static vk::SurfaceFormatKHR chooseSwapSurfaceFormat( const std::vector< vk::SurfaceFormatKHR >&
+		                                                         available_formats );
+		static vk::PresentModeKHR chooseSwapPresentMode( const std::vector< vk::PresentModeKHR >& present_modes );
+		vk::Extent2D chooseSwapExtent( const vk::SurfaceCapabilitiesKHR& capabilities ) const;
+
+		template < is_attachment... Attachments >
+		static std::vector< vk::ImageView > getViewsForFrame( const std::uint8_t frame_idx, Attachments... attachments )
 		{
-			return populateAttachmentClearValues(
-				m_render_attachments.color,
-				m_render_attachments.depth,
-				m_gbuffer_attachments.position,
-				m_gbuffer_attachments.normal,
-				m_gbuffer_attachments.albedo,
-				m_gbuffer_attachments.composite );
+			std::vector< vk::ImageView > view {};
+			view.resize( sizeof...( Attachments ) );
+
+			( ( view[ attachments.getIndex() ] = *attachments.getView( frame_idx ) ), ... );
+
+			return view;
 		}
 
 		template < is_attachment... Attachments >
-		std::vector< vk::ClearValue > populateAttachmentClearValues( Attachments&... attachments )
+		static std::vector< vk::ClearValue > gatherClearValues( Attachments... attachments )
 		{
-			std::vector< vk::ClearValue > values {};
+			std::vector< vk::ClearValue > clear_values {};
+			clear_values.resize( sizeof...( Attachments ) );
 
-			values.resize( sizeof...( Attachments ) );
-			( ( values[ attachments.getIndex() ] = attachments.m_clear_value ), ... );
+			( ( clear_values[ attachments.getIndex() ] = attachments.m_clear_value ), ... );
 
-			return values;
+			return clear_values;
 		}
 
-		// Helper functions
-		vk::SurfaceFormatKHR chooseSwapSurfaceFormat( const std::vector< vk::SurfaceFormatKHR >& available_formats );
-		vk::PresentModeKHR chooseSwapPresentMode( const std::vector< vk::PresentModeKHR >& available_present_modes );
-		vk::Extent2D chooseSwapExtent( const vk::SurfaceCapabilitiesKHR& capabilities );
-
-		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
-			createGBufferDescriptors();
-
-		std::array< std::unique_ptr< descriptors::DescriptorSet >, SwapChain::MAX_FRAMES_IN_FLIGHT >
-			createGBufferCompositeDescriptors();
+		std::vector< std::unique_ptr< descriptors::DescriptorSet > > createGBufferDescriptors();
+		std::vector< std::unique_ptr< descriptors::DescriptorSet > > createCompositeDescriptors();
 
 	  public:
 
 		std::vector< vk::ClearValue > getClearValues() const { return m_clear_values; }
 
-		descriptors::DescriptorSet& getGBufferDescriptor( std::uint16_t frame_idx ) const
+		descriptors::DescriptorSet& getGBufferDescriptor( PresentIndex frame_idx ) const
 		{
-			assert( frame_idx < SwapChain::MAX_FRAMES_IN_FLIGHT && "Frame index out of range" );
+			assert( frame_idx < imageCount() && "Frame index out of range" );
+			assert( m_gbuffer_descriptor_set.size() > 0 && "GBuffer descriptor set not initialized" );
 			return *m_gbuffer_descriptor_set[ frame_idx ];
 		}
 
-		descriptors::DescriptorSet& getGBufferCompositeDescriptor( uint16_t frame_idx ) const
+		descriptors::DescriptorSet& getGBufferCompositeDescriptor( PresentIndex frame_idx ) const
 		{
-			assert( frame_idx < SwapChain::MAX_FRAMES_IN_FLIGHT && "Frame index out of range" );
-			return *m_gbuffer_composite_descriptor_set[ frame_idx ];
+			assert( frame_idx < imageCount() && "Frame index out of range" );
+			assert( m_composite_descriptor_set.size() > 0 && "GBuffer descriptor set not initialized" );
+			return *m_composite_descriptor_set[ frame_idx ];
 		}
 
 		SwapChain( vk::Extent2D windowExtent, PhysicalDevice& phy_dev );
@@ -131,33 +137,22 @@ namespace fgl::engine
 		SwapChain( const SwapChain& ) = delete;
 		SwapChain& operator=( const SwapChain& ) = delete;
 
-		vk::raii::Framebuffer& getFrameBuffer( const FrameIndex frame_index, const std::uint16_t present_idx );
+		vk::raii::Framebuffer& getFrameBuffer( const PresentIndex present_index )
+		{
+			return m_swap_chain_buffers[ static_cast< std::size_t >( present_index ) ];
+		}
 
 		vk::raii::RenderPass& getRenderPass() { return m_render_pass; }
 
-		std::uint16_t imageCount() const
-		{
-			assert( m_swap_chain_images.size() > 0 );
-			return m_swap_chain_images.size();
-		}
+		PresentIndex imageCount() const { return static_cast< std::uint16_t >( m_swap_chain_images.size() ); }
 
-		vk::Format getSwapChainImageFormat() const
-		{
-			assert( m_swap_chain_format != vk::Format::eUndefined );
-			return m_swap_chain_format;
-		}
+		vk::Format getSwapChainImageFormat() const { return m_swap_chain_format; }
 
-		vk::Extent2D getSwapChainExtent() const { return m_swap_chain_extent; }
+		vk::Extent2D getSwapChainExtent() const { return m_swapchain_extent; }
 
-		uint32_t width() const
-		{
-			return m_swap_chain_extent.width;
-		}
+		uint32_t width() const { return m_swapchain_extent.width; }
 
-		uint32_t height() const
-		{
-			return m_swap_chain_extent.height;
-		}
+		uint32_t height() const { return m_swapchain_extent.height; }
 
 		bool compareSwapFormats( const SwapChain& other ) const
 		{
@@ -167,15 +162,14 @@ namespace fgl::engine
 
 		float extentAspectRatio() const
 		{
-			return static_cast< float >( m_swap_chain_extent.width )
-			     / static_cast< float >( m_swap_chain_extent.height );
+			return static_cast< float >( m_swapchain_extent.width ) / static_cast< float >( m_swapchain_extent.height );
 		}
 
-		vk::Format findDepthFormat();
+		static vk::Format findDepthFormat();
 
-		[[nodiscard]] std::pair< vk::Result, std::uint32_t > acquireNextImage();
+		[[nodiscard]] std::pair< vk::Result, PresentIndex > acquireNextImage();
 		[[nodiscard]] vk::Result
-			submitCommandBuffers( const vk::raii::CommandBuffer& buffers, PresentIndex current_present_index );
+			submitCommandBuffers( const vk::raii::CommandBuffer& buffers, PresentIndex present_index );
 	};
 
 } // namespace fgl::engine

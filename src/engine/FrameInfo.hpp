@@ -15,6 +15,7 @@
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/descriptors/DescriptorSetLayout.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
+#include "rendering/types.hpp"
 
 #define MAX_LIGHTS 10
 
@@ -75,7 +76,8 @@ namespace fgl::engine
 
 	struct FrameInfo
 	{
-		std::uint16_t frame_idx;
+		FrameIndex frame_idx;
+		PresentIndex present_idx;
 		float frame_time;
 
 		vk::raii::CommandBuffer& command_buffer;

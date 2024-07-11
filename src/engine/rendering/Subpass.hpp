@@ -198,17 +198,17 @@ namespace fgl::engine
 		void registerDependencyToExternal(
 			const vk::AccessFlags src_access_flags,
 			const vk::PipelineStageFlags src_stage_flags,
-			const vk::AccessFlags dst_access_flags,
-			const vk::PipelineStageFlags dst_stage_flags,
-			const vk::DependencyFlags dependency_flags )
+			const vk::AccessFlags dst_access_flags = vk::AccessFlagBits::eNone,
+			const vk::PipelineStageFlags dst_stage_flags = vk::PipelineStageFlagBits::eNone,
+			const vk::DependencyFlags dependency_flags = {} )
 		{
 			registerDependency(
 				this->getIndex(),
 				VK_SUBPASS_EXTERNAL,
 				src_access_flags,
 				src_stage_flags,
-				dst_access_flags,
-				dst_stage_flags,
+				dst_access_flags == vk::AccessFlagBits::eNone ? src_access_flags : dst_access_flags,
+				dst_stage_flags == vk::PipelineStageFlagBits::eNone ? src_stage_flags : dst_stage_flags,
 				dependency_flags );
 		}
 	};

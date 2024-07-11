@@ -11,6 +11,7 @@
 
 #include "Device.hpp"
 #include "SwapChain.hpp"
+#include "engine/Window.hpp"
 
 //clang-format: off
 #include <tracy/TracyVulkan.hpp>
@@ -32,7 +33,7 @@ namespace fgl::engine
 		std::optional< TracyVkCtx > m_tracy_ctx { std::nullopt };
 
 		PresentIndex current_present_index { std::numeric_limits< PresentIndex >::max() };
-		FrameIndex current_frame_index { 0 };
+		FrameIndex current_frame_idx { 0 };
 		bool is_frame_started { false };
 
 		void createCommandBuffers();
@@ -50,10 +51,16 @@ namespace fgl::engine
 			return m_swapchain->getGBufferCompositeDescriptor( frame_idx );
 		}
 
-		std::uint16_t getFrameIndex() const
+		FrameIndex getFrameIndex() const
 		{
 			assert( is_frame_started && "Cannot get frame index while frame not in progress" );
-			return current_frame_index;
+			return current_frame_idx;
+		}
+
+		PresentIndex getPresentIndex() const
+		{
+			assert( current_present_index != std::numeric_limits< PresentIndex >::max() );
+			return current_present_index;
 		}
 
 		bool isFrameInProgress() const { return is_frame_started; }
@@ -61,10 +68,10 @@ namespace fgl::engine
 		vk::raii::CommandBuffer& getCurrentCommandbuffer()
 		{
 			assert( is_frame_started && "Cannot get command buffer while frame not in progress" );
-			return m_command_buffer[ current_frame_index ];
+			return m_command_buffer[ current_frame_idx ];
 		}
 
-		vk::raii::CommandBuffer& getCurrentGuiCommandBuffer() { return m_gui_command_buffer[ current_frame_index ]; }
+		vk::raii::CommandBuffer& getCurrentGuiCommandBuffer() { return m_gui_command_buffer[ current_frame_idx ]; }
 
 		TracyVkCtx getCurrentTracyCTX() const
 		{

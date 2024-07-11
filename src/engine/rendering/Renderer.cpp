@@ -74,7 +74,7 @@ namespace fgl::engine
 	void Renderer::recreateSwapchain()
 	{
 		ZoneScoped;
-		log::info( "Rebuilding swapchain" );
+		std::cout << "Rebuilding swap chain" << std::endl;
 		auto extent { m_window.getExtent() };
 
 		while ( extent.width == 0 || extent.height == 0 )
@@ -145,8 +145,7 @@ namespace fgl::engine
 			throw std::runtime_error( "Failed to submit commmand buffer" );
 
 		is_frame_started = false;
-		current_frame_index =
-			static_cast< std::uint16_t >( ( current_frame_index + 1 ) % SwapChain::MAX_FRAMES_IN_FLIGHT );
+		current_frame_idx = static_cast< std::uint16_t >( ( current_frame_idx + 1 ) % SwapChain::MAX_FRAMES_IN_FLIGHT );
 	}
 
 	void Renderer::setViewport( const vk::raii::CommandBuffer& buffer )
@@ -182,7 +181,7 @@ namespace fgl::engine
 		vk::RenderPassBeginInfo render_pass_info {};
 		render_pass_info.pNext = VK_NULL_HANDLE;
 		render_pass_info.renderPass = m_swapchain->getRenderPass();
-		render_pass_info.framebuffer = m_swapchain->getFrameBuffer( current_frame_index, current_present_index );
+		render_pass_info.framebuffer = m_swapchain->getFrameBuffer( current_present_index );
 		render_pass_info.renderArea = { .offset = { 0, 0 }, .extent = m_swapchain->getSwapChainExtent() };
 		render_pass_info.clearValueCount = static_cast< std::uint32_t >( clear_values.size() );
 		render_pass_info.pClearValues = clear_values.data();
