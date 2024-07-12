@@ -13,7 +13,6 @@
 
 #include "engine/concepts/is_attachment.hpp"
 #include "engine/image/Image.hpp"
-#include "engine/rendering/Device.hpp"
 
 namespace fgl::engine
 {
@@ -47,10 +46,10 @@ namespace fgl::engine
 
 		void setIndex( const std::uint32_t idx ) { index = idx; }
 
-		constexpr static vk::AttachmentLoadOp loadOp = load_op;
-		constexpr static vk::AttachmentStoreOp storeOp = store_op;
-		constexpr static vk::ImageLayout InitalLayout = inital_layout;
-		constexpr static vk::ImageLayout FinalLayout = final_layout;
+		constexpr static vk::AttachmentLoadOp loadOp { load_op };
+		constexpr static vk::AttachmentStoreOp storeOp { store_op };
+		constexpr static vk::ImageLayout InitalLayout { inital_layout };
+		constexpr static vk::ImageLayout FinalLayout { final_layout };
 
 		Attachment( const vk::Format format )
 		{
@@ -178,6 +177,11 @@ namespace fgl::engine
 	template < typename T >
 		requires is_wrapped_attachment< T >
 	using UnwrappedAttachment = std::conditional_t< is_wrapped_attachment< T >, typename T::Attachment, T >;
+
+	//! Checks if the wrapped attachment is a depth attachment
+	template < typename T >
+	concept is_wrapped_depth_attachment = is_wrapped_attachment< T > && is_attachment< UnwrappedAttachment< T > >
+	                                   && ( T::m_layout == vk::ImageLayout::eDepthStencilAttachmentOptimal );
 
 	//Helper functions
 

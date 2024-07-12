@@ -6,6 +6,8 @@
 
 #include <memory>
 
+#include "engine/rendering/Attachment.hpp"
+
 namespace fgl::engine
 {
 	class ImageView;
@@ -37,9 +39,6 @@ namespace fgl::engine
 		} -> std::same_as< vk::ClearValue& >;
 	};
 
-	template < typename T >
-	concept is_depth_attachment = is_attachment< T > && T::Layout == vk::ImageLayout::eDepthStencilAttachmentOptimal;
 
-	template < typename T >
-	concept is_color_attachment = is_attachment< T > && T::Layout == vk::ImageLayout::eColorAttachmentOptimal;
+
 } // namespace fgl::engine

@@ -32,8 +32,7 @@ namespace fgl::engine
 	class Subpass
 	{
 		//! Set to true if the first attachment is a valid depth stencil attachment
-		constexpr static bool has_depth_stencil_attachment { Attachment::m_layout
-			                                                 == vk::ImageLayout::eDepthStencilAttachmentOptimal };
+		constexpr static bool has_depth_stencil_attachment { is_wrapped_depth_attachment< Attachment > };
 
 		constexpr static std::uint32_t attachment_count { ( ( !is_input_attachment< Attachments > ? 1 : 0 ) + ... )
 			                                              + ( has_depth_stencil_attachment ? 0 : 1 ) };
@@ -58,13 +57,35 @@ namespace fgl::engine
 		template < is_wrapped_attachment T >
 		void registerAttachment( UnwrappedAttachment< T >& attachment )
 		{
+			static_assert(
+				!is_wrapped_depth_attachment< T >,
+				"Unable to register depth attachment. Are you using more then one?" );
+
+			static_assert(
+				T::m_layout != vk::ImageLayout::eDepthAttachmentOptimal,
+				"Vulkan specification states that pColorAttachments can not have the type \'eDepthAttachmentOptimal\'" );
+			static_assert(
+				T::m_layout != vk::ImageLayout::eDepthReadOnlyOptimal,
+				"Vulkan specification states that pColorAttachments can not have the type \'eDepthReadOnlyOptimal\'" );
+			static_assert(
+				T::m_layout != vk::ImageLayout::eDepthStencilAttachmentOptimal,
+				"Vulkan specification states that pColorAttachments can not have the type \'eDepthStencilAttachmentOptimal\'" );
+			static_assert(
+				T::m_layout != vk::ImageLayout::eStencilReadOnlyOptimal,
+				"Vulkan specification states that pColorAttachments can not have the type \'eStencilReadOnlyOptimal\'" );
+
 			if constexpr ( is_input_attachment< T > )
 			{
 				input_attachment_references[ current_input_idx++ ] = { attachment.getIndex(), T::m_layout };
 			}
 			else if constexpr ( is_used_attachment< T > )
 			{
+				log::debug( "Adding attachment at index {} for usage", current_attachment_idx );
 				attachment_references[ current_attachment_idx++ ] = { attachment.getIndex(), T::m_layout };
+			}
+			else
+			{
+				static_assert( false, "Unknown attachment attempting to be registered" );
 			}
 		}
 
@@ -80,10 +101,10 @@ namespace fgl::engine
 		{
 			//TODO: Redo this check. As this will prevent any input attachments from being used as a depth input (Which may be done?)
 			static_assert(
-				( ( Attachments::m_layout != vk::ImageLayout::eDepthStencilAttachmentOptimal ) && ... ),
+				( (!is_wrapped_depth_attachment< Attachments >) || ... ),
 				"Depth stencil must be at attachment index 0 in template parameters" );
 
-			if constexpr ( has_depth_stencil_attachment )
+			if constexpr ( is_wrapped_depth_attachment< Attachment > )
 			{
 				depth_stencil_reference.layout = Attachment::m_layout;
 				depth_stencil_reference.attachment = first_attachment.getIndex();
@@ -100,7 +121,7 @@ namespace fgl::engine
 			subpass_description.colorAttachmentCount = static_cast< std::uint32_t >( attachment_references.size() );
 
 			subpass_description.pDepthStencilAttachment =
-				has_depth_stencil_attachment ? &depth_stencil_reference : nullptr;
+				is_wrapped_depth_attachment< Attachment > ? &depth_stencil_reference : nullptr;
 
 			subpass_description.pInputAttachments = input_attachment_references.data();
 			subpass_description.inputAttachmentCount =
