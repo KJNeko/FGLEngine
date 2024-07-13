@@ -104,7 +104,7 @@
 				AppendFlag("-fdiagnostics-show-template-tree") # Shows the template diagnostic info as a tree instead.
 				AppendFlag("-fdiagnostics-path-format=inline-events")
 
-				set(FGL_CONFIG "-std=c++23 -fmax-errors=3 -fconcepts-diagnostics-depth=8 -march=native -flto=auto -ftree-vectorize")
+				set(FGL_CONFIG "-std=c++23 -fmax-errors=6 -fconcepts-diagnostics-depth=8 -flto=auto -ftree-vectorize")
 
 				if (DEFINED USE_WERROR)
 					set(FGL_CONFIG "${FGL_CONFIG} -Werror")
