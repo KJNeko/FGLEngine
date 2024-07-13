@@ -24,6 +24,7 @@ namespace fgl::engine
 	};
 
 	template <
+		std::uint32_t Index,
 		vk::AttachmentLoadOp load_op,
 		vk::AttachmentStoreOp store_op,
 		vk::ImageLayout inital_layout,
@@ -32,7 +33,6 @@ namespace fgl::engine
 	class Attachment
 	{
 		vk::AttachmentDescription description {};
-		std::uint32_t index { std::numeric_limits< std::uint32_t >::max() };
 
 	  public:
 
@@ -44,12 +44,11 @@ namespace fgl::engine
 
 		AttachmentResources m_attachment_resources {};
 
-		void setIndex( const std::uint32_t idx ) { index = idx; }
-
 		constexpr static vk::AttachmentLoadOp loadOp { load_op };
 		constexpr static vk::AttachmentStoreOp storeOp { store_op };
 		constexpr static vk::ImageLayout InitalLayout { inital_layout };
 		constexpr static vk::ImageLayout FinalLayout { final_layout };
+		constexpr static std::uint32_t m_index { Index };
 
 		Attachment( const vk::Format format )
 		{
@@ -123,14 +122,6 @@ namespace fgl::engine
 
 		vk::AttachmentDescription& desc() { return description; }
 
-		std::uint32_t getIndex() const
-		{
-			assert(
-				index != std::numeric_limits< std::uint32_t >::max()
-				&& "Attachment must be registered in RenderPass before use" );
-			return index;
-		}
-
 		friend class RenderPassBuilder;
 	};
 
@@ -191,7 +182,7 @@ namespace fgl::engine
 		std::vector< vk::ImageView > view {};
 		view.resize( sizeof...( Attachments ) );
 
-		( ( view[ attachments.getIndex() ] = *attachments.getView( frame_idx ) ), ... );
+		( ( view[ attachments.m_index ] = *attachments.getView( frame_idx ) ), ... );
 
 		return view;
 	}
@@ -202,32 +193,36 @@ namespace fgl::engine
 		std::vector< vk::ClearValue > clear_values {};
 		clear_values.resize( sizeof...( Attachments ) );
 
-		( ( clear_values[ attachments.getIndex() ] = attachments.m_clear_value ), ... );
+		( ( clear_values[ attachments.m_index ] = attachments.m_clear_value ), ... );
 
 		return clear_values;
 	}
 
+	template < std::uint32_t Index >
 	using ColoredPresentAttachment = Attachment<
+		Index,
 		vk::AttachmentLoadOp::eClear,
 		vk::AttachmentStoreOp::eStore,
 		vk::ImageLayout::eUndefined,
 		vk::ImageLayout::ePresentSrcKHR,
 		vk::ImageUsageFlagBits::eColorAttachment >;
 
+	template < std::uint32_t Index >
 	using DepthAttachment = Attachment<
+		Index,
 		vk::AttachmentLoadOp::eClear,
 		vk::AttachmentStoreOp::eDontCare,
 		vk::ImageLayout::eUndefined,
 		vk::ImageLayout::eDepthStencilAttachmentOptimal,
 		vk::ImageUsageFlagBits::eDepthStencilAttachment >;
 
+	template < std::uint32_t Index >
 	using ColorAttachment = Attachment<
+		Index,
 		vk::AttachmentLoadOp::eClear,
 		vk::AttachmentStoreOp::eDontCare,
 		vk::ImageLayout::eUndefined,
 		vk::ImageLayout::eShaderReadOnlyOptimal,
 		vk::ImageUsageFlagBits::eColorAttachment >;
-
-	static_assert( is_input_attachment< InputAttachment< ColorAttachment, vk::ImageLayout::eShaderReadOnlyOptimal > > );
 
 } // namespace fgl::engine

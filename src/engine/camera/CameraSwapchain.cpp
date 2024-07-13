@@ -13,15 +13,13 @@ namespace fgl::engine
 
 		builder.registerAttachments( output.composite, output.depth, gbuffer.position, gbuffer.normal, gbuffer.albedo );
 
-		using UsedColorAttachment = UsedAttachment< ColorAttachment, vk::ImageLayout::eColorAttachmentOptimal >;
-
 		Subpass<
 			vk::PipelineBindPoint::eGraphics,
-			UsedAttachment< DepthAttachment, vk::ImageLayout::eDepthAttachmentOptimal >,
-			UsedColorAttachment,
-			UsedColorAttachment,
-			UsedColorAttachment >
-			g_buffer_subpass { 0, output.depth, gbuffer.position, gbuffer.normal, gbuffer.albedo };
+			UsedAttachment< DepthAttachment< 4 >, vk::ImageLayout::eDepthStencilAttachmentOptimal >,
+			UsedAttachment< ColorAttachment< 0 >, vk::ImageLayout::eColorAttachmentOptimal >,
+			UsedAttachment< ColorAttachment< 1 >, vk::ImageLayout::eColorAttachmentOptimal >,
+			UsedAttachment< ColorAttachment< 2 >, vk::ImageLayout::eColorAttachmentOptimal > >
+			g_buffer_subpass { 0 };
 
 		g_buffer_subpass.registerDependencyFromExternal(
 			vk::AccessFlagBits::eDepthStencilAttachmentWrite,
@@ -32,11 +30,11 @@ namespace fgl::engine
 
 		Subpass<
 			vk::PipelineBindPoint::eGraphics,
-			UsedAttachment< ColorAttachment, vk::ImageLayout::eColorAttachmentOptimal >,
-			InputAttachment< ColorAttachment, vk::ImageLayout::eShaderReadOnlyOptimal >,
-			InputAttachment< ColorAttachment, vk::ImageLayout::eShaderReadOnlyOptimal >,
-			InputAttachment< ColorAttachment, vk::ImageLayout::eShaderReadOnlyOptimal > >
-			composite_subpass { 1, output.composite, gbuffer.position, gbuffer.normal, gbuffer.albedo };
+			UsedAttachment< ColorAttachment< 3 >, vk::ImageLayout::eColorAttachmentOptimal >,
+			InputAttachment< ColorAttachment< 0 >, vk::ImageLayout::eShaderReadOnlyOptimal >,
+			InputAttachment< ColorAttachment< 1 >, vk::ImageLayout::eShaderReadOnlyOptimal >,
+			InputAttachment< ColorAttachment< 2 >, vk::ImageLayout::eShaderReadOnlyOptimal > >
+			composite_subpass { 1 };
 
 		composite_subpass.registerDependencyFromExternal(
 			vk::AccessFlagBits::eColorAttachmentWrite, vk::PipelineStageFlagBits::eColorAttachmentOutput );

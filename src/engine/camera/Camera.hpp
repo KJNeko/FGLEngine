@@ -12,7 +12,6 @@
 #include <glm/gtx/string_cast.hpp>
 #pragma GCC diagnostic pop
 
-#include "CameraSwapchain.hpp"
 #include "engine/constants.hpp"
 #include "engine/primitives/Frustum.hpp"
 #include "engine/primitives/TransformComponent.hpp"
@@ -22,6 +21,7 @@
 
 namespace fgl::engine
 {
+	class CameraSwapchain;
 	class Camera;
 
 	Frustum< CoordinateSpace::Model > createFrustum( float aspect, float fovy, float near, float far );

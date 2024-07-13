@@ -8,6 +8,8 @@
 #include <glm/gtx/string_cast.hpp>
 #include <tracy/Tracy.hpp>
 
+#include "CameraSwapchain.hpp"
+
 namespace fgl::engine
 {
 

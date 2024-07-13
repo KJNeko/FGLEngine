@@ -36,16 +36,16 @@ namespace fgl::engine
 
 		struct
 		{
-			ColoredPresentAttachment color;
-			DepthAttachment depth;
+			ColoredPresentAttachment< 0 > color;
+			DepthAttachment< 1 > depth;
 		} render_attachments;
 
 		struct
 		{
-			ColorAttachment position { vk::Format::eR16G16B16A16Sfloat };
-			ColorAttachment normal { vk::Format::eR16G16B16A16Sfloat };
-			ColorAttachment albedo { vk::Format::eR8G8B8A8Unorm };
-			ColorAttachment composite { vk::Format::eR8G8B8A8Unorm };
+			ColorAttachment< 2 > position { vk::Format::eR16G16B16A16Sfloat };
+			ColorAttachment< 3 > normal { vk::Format::eR16G16B16A16Sfloat };
+			ColorAttachment< 4 > albedo { vk::Format::eR8G8B8A8Unorm };
+			ColorAttachment< 5 > composite { vk::Format::eR8G8B8A8Unorm };
 		} gbuffer {};
 
 	  public:

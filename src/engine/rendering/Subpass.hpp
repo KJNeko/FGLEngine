@@ -55,7 +55,7 @@ namespace fgl::engine
 		std::uint32_t current_attachment_idx { 0 };
 
 		template < is_wrapped_attachment T >
-		void registerAttachment( UnwrappedAttachment< T >& attachment )
+		constexpr void registerAttachment()
 		{
 			static_assert(
 				!is_wrapped_depth_attachment< T >,
@@ -76,12 +76,11 @@ namespace fgl::engine
 
 			if constexpr ( is_input_attachment< T > )
 			{
-				input_attachment_references[ current_input_idx++ ] = { attachment.getIndex(), T::m_layout };
+				input_attachment_references[ current_input_idx++ ] = { UnwrappedAttachment< T >::m_index, T::m_layout };
 			}
 			else if constexpr ( is_used_attachment< T > )
 			{
-				log::debug( "Adding attachment at index {} for usage", current_attachment_idx );
-				attachment_references[ current_attachment_idx++ ] = { attachment.getIndex(), T::m_layout };
+				attachment_references[ current_attachment_idx++ ] = { UnwrappedAttachment< T >::m_index, T::m_layout };
 			}
 			else
 			{
@@ -93,11 +92,7 @@ namespace fgl::engine
 
 		std::uint32_t getIndex() const { return index; }
 
-		Subpass(
-			const std::uint32_t idx,
-			UnwrappedAttachment< Attachment >& first_attachment,
-			UnwrappedAttachment< Attachments >&... attachments ) :
-		  index( idx )
+		Subpass( const std::uint32_t idx ) : index( idx )
 		{
 			//TODO: Redo this check. As this will prevent any input attachments from being used as a depth input (Which may be done?)
 			static_assert(
@@ -107,14 +102,14 @@ namespace fgl::engine
 			if constexpr ( is_wrapped_depth_attachment< Attachment > )
 			{
 				depth_stencil_reference.layout = Attachment::m_layout;
-				depth_stencil_reference.attachment = first_attachment.getIndex();
+				depth_stencil_reference.attachment = UnwrappedAttachment< Attachment >::m_index;
 			}
 			else
 			{
-				registerAttachment< Attachment >( first_attachment );
+				registerAttachment< Attachment >();
 			}
 
-			( ( registerAttachment< Attachments >( attachments ) ), ... );
+			( ( registerAttachment< Attachments >() ), ... );
 
 			subpass_description.pipelineBindPoint = bind_point;
 			subpass_description.pColorAttachments = attachment_references.data();

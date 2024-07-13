@@ -236,16 +236,13 @@ namespace fgl::engine
 			gbuffer.albedo,
 			gbuffer.composite );
 
-		static_assert( is_attachment< ColoredPresentAttachment > );
-		static_assert( is_attachment< DepthAttachment > );
-
 		Subpass<
 			vk::PipelineBindPoint::eGraphics,
-			UsedAttachment< DepthAttachment, vk::ImageLayout::eDepthStencilAttachmentOptimal >,
-			UsedAttachment< ColorAttachment, vk::ImageLayout::eColorAttachmentOptimal >,
-			UsedAttachment< ColorAttachment, vk::ImageLayout::eColorAttachmentOptimal >,
-			UsedAttachment< ColorAttachment, vk::ImageLayout::eColorAttachmentOptimal > >
-			g_buffer_subpass { 0, render_attachments.depth, gbuffer.position, gbuffer.normal, gbuffer.albedo };
+			UsedAttachment< DepthAttachment< 1 >, vk::ImageLayout::eDepthStencilAttachmentOptimal >,
+			UsedAttachment< ColorAttachment< 2 >, vk::ImageLayout::eColorAttachmentOptimal >,
+			UsedAttachment< ColorAttachment< 3 >, vk::ImageLayout::eColorAttachmentOptimal >,
+			UsedAttachment< ColorAttachment< 4 >, vk::ImageLayout::eColorAttachmentOptimal > >
+			g_buffer_subpass { 0 };
 
 		g_buffer_subpass.registerDependencyFromExternal(
 			vk::AccessFlagBits::eDepthStencilAttachmentWrite,
@@ -256,11 +253,11 @@ namespace fgl::engine
 
 		Subpass<
 			vk::PipelineBindPoint::eGraphics,
-			UsedAttachment< ColorAttachment, vk::ImageLayout::eColorAttachmentOptimal >,
-			InputAttachment< ColorAttachment, vk::ImageLayout::eShaderReadOnlyOptimal >,
-			InputAttachment< ColorAttachment, vk::ImageLayout::eShaderReadOnlyOptimal >,
-			InputAttachment< ColorAttachment, vk::ImageLayout::eShaderReadOnlyOptimal > >
-			composite_subpass { 1, gbuffer.composite, gbuffer.position, gbuffer.normal, gbuffer.albedo };
+			UsedAttachment< ColorAttachment< 5 >, vk::ImageLayout::eColorAttachmentOptimal >,
+			InputAttachment< ColorAttachment< 2 >, vk::ImageLayout::eShaderReadOnlyOptimal >,
+			InputAttachment< ColorAttachment< 3 >, vk::ImageLayout::eShaderReadOnlyOptimal >,
+			InputAttachment< ColorAttachment< 4 >, vk::ImageLayout::eShaderReadOnlyOptimal > >
+			composite_subpass { 1 };
 
 		composite_subpass.registerDependencyFromExternal(
 			vk::AccessFlagBits::eColorAttachmentWrite, vk::PipelineStageFlagBits::eColorAttachmentOutput );
@@ -283,10 +280,10 @@ namespace fgl::engine
 		// To prevent the composite buffer from getting obliterated by the gui pass and so we can use it to render to the GUI in certian areas, We need to keep them seperate and the composite image to be unmodified.
 		Subpass<
 			vk::PipelineBindPoint::eGraphics,
-			UsedAttachment< DepthAttachment, vk::ImageLayout::eDepthStencilAttachmentOptimal >,
-			UsedAttachment< ColoredPresentAttachment, vk::ImageLayout::eColorAttachmentOptimal >,
-			InputAttachment< ColorAttachment, vk::ImageLayout::eShaderReadOnlyOptimal > >
-			gui_subpass { 2, render_attachments.depth, render_attachments.color, gbuffer.composite };
+			UsedAttachment< DepthAttachment< 1 >, vk::ImageLayout::eDepthStencilAttachmentOptimal >,
+			UsedAttachment< ColoredPresentAttachment< 0 >, vk::ImageLayout::eColorAttachmentOptimal >,
+			InputAttachment< ColorAttachment< 5 >, vk::ImageLayout::eShaderReadOnlyOptimal > >
+			gui_subpass { 2 };
 
 		gui_subpass.registerFullDependency( composite_subpass );
 

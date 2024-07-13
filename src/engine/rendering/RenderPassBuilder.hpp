@@ -9,6 +9,18 @@
 
 namespace fgl::engine
 {
+	template < is_attachment Attachment, is_attachment... Attachments >
+	consteval std::uint32_t maxIndex()
+	{
+		if constexpr ( sizeof...( Attachments ) == 0 )
+		{
+			return Attachment::m_index;
+		}
+		else
+		{
+			return std::max( Attachment::m_index, maxIndex< Attachments... >() );
+		}
+	}
 
 	class RenderPassBuilder
 	{
@@ -19,8 +31,6 @@ namespace fgl::engine
 		std::vector< vk::SubpassDependency > dependencies {};
 
 	  public:
-
-		std::vector< vk::ClearValue > getClearValues() const { return m_clear_values; }
 
 		template < typename SubpassT >
 			requires is_subpass< SubpassT >
@@ -37,13 +47,15 @@ namespace fgl::engine
 		template < is_attachment... Attachments >
 		void registerAttachments( Attachments&... attachments )
 		{
-			attachment_descriptions.reserve( sizeof...( Attachments ) );
-			m_clear_values.reserve( sizeof...( Attachments ) );
+			static_assert(
+				sizeof...( Attachments ) == maxIndex< Attachments... >() + 1,
+				"There must be no empty attachment indicies when creating a render pass" );
 
-			( ( attachments.setIndex( static_cast< std::uint32_t >( attachment_descriptions.size() ) ),
-			    attachment_descriptions.push_back( attachments.desc() ),
-			    m_clear_values.push_back( attachments.m_clear_value ) ),
-			  ... );
+			attachment_descriptions.resize( sizeof...( Attachments ) );
+			m_clear_values.resize( sizeof...( Attachments ) );
+
+			( ( attachment_descriptions[ attachments.m_index ] = attachments.desc() ), ... );
+			( ( m_clear_values[ attachments.m_index ] = attachments.m_clear_value ), ... );
 		}
 
 		vk::raii::RenderPass create();

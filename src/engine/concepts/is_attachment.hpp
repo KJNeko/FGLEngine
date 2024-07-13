@@ -20,11 +20,8 @@ namespace fgl::engine
 			a.desc()
 		} -> std::same_as< vk::AttachmentDescription& >;
 		{
-			a.getIndex()
-		} -> std::same_as< std::uint32_t >;
-		{
-			a.setIndex( std::declval< std::uint32_t >() )
-		};
+			a.m_index
+		} -> std::same_as< const std::uint32_t& >;
 		{
 			a.attachImageView( std::declval< std::uint16_t >(), std::declval< std::shared_ptr< ImageView > >() )
 		};
@@ -38,7 +35,5 @@ namespace fgl::engine
 			a.m_clear_value
 		} -> std::same_as< vk::ClearValue& >;
 	};
-
-
 
 } // namespace fgl::engine

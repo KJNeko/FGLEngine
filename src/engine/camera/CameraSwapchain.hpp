@@ -14,16 +14,16 @@ namespace fgl::engine
 	{
 		struct
 		{
-			ColorAttachment position { vk::Format::eR16G16B16A16Sfloat };
-			ColorAttachment normal { vk::Format::eR16G16B16A16Sfloat };
-			ColorAttachment albedo { vk::Format::eR8G8B8A8Unorm };
+			ColorAttachment< 0 > position { vk::Format::eR16G16B16A16Sfloat };
+			ColorAttachment< 1 > normal { vk::Format::eR16G16B16A16Sfloat };
+			ColorAttachment< 2 > albedo { vk::Format::eR8G8B8A8Unorm };
 		} gbuffer {};
 
 		struct
 		{
 			//Final attachments
-			ColorAttachment composite { vk::Format::eR8G8B8A8Unorm };
-			DepthAttachment depth { SwapChain::findDepthFormat() };
+			ColorAttachment< 3 > composite { vk::Format::eR8G8B8A8Unorm };
+			DepthAttachment< 4 > depth { SwapChain::findDepthFormat() };
 		} output {};
 
 		vk::Extent2D m_extent;
