@@ -9,18 +9,6 @@
 
 namespace fgl::engine
 {
-	template < is_attachment Attachment, is_attachment... Attachments >
-	consteval std::uint32_t maxIndex()
-	{
-		if constexpr ( sizeof...( Attachments ) == 0 )
-		{
-			return Attachment::m_index;
-		}
-		else
-		{
-			return std::max( Attachment::m_index, maxIndex< Attachments... >() );
-		}
-	}
 
 	class RenderPassBuilder
 	{

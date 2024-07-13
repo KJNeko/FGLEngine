@@ -175,12 +175,25 @@ namespace fgl::engine
 	                                   && ( T::m_layout == vk::ImageLayout::eDepthStencilAttachmentOptimal );
 
 	//Helper functions
+	template < is_attachment Attachment, is_attachment... Attachments >
+	consteval std::uint32_t maxIndex()
+	{
+		if constexpr ( sizeof...( Attachments ) == 0 )
+		{
+			return Attachment::m_index;
+		}
+		else
+		{
+			return std::max( Attachment::m_index, maxIndex< Attachments... >() );
+		}
+	}
 
 	template < is_attachment... Attachments >
 	static std::vector< vk::ImageView > getViewsForFrame( const std::uint8_t frame_idx, Attachments... attachments )
 	{
 		std::vector< vk::ImageView > view {};
 		view.resize( sizeof...( Attachments ) );
+		static_assert( maxIndex< Attachments... >() + 1 == sizeof...( Attachments ) );
 
 		( ( view[ attachments.m_index ] = *attachments.getView( frame_idx ) ), ... );
 
@@ -192,6 +205,7 @@ namespace fgl::engine
 	{
 		std::vector< vk::ClearValue > clear_values {};
 		clear_values.resize( sizeof...( Attachments ) );
+		static_assert( maxIndex< Attachments... >() + 1 == sizeof...( Attachments ) );
 
 		( ( clear_values[ attachments.m_index ] = attachments.m_clear_value ), ... );
 
