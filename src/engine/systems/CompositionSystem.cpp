@@ -31,7 +31,7 @@ namespace fgl::engine
 		m_composite_pipeline->bind( command_buffer );
 
 		m_composite_pipeline
-			->bindDescriptor( command_buffer, GBufferDescriptorSet::m_set_idx, info.gbuffer_descriptor_set );
+			->bindDescriptor( command_buffer, GBufferDescriptorSet::m_set_idx, info.getGBufferDescriptor() );
 
 		return info.command_buffer;
 	}

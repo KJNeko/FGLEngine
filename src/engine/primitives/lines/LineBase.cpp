@@ -4,7 +4,10 @@
 
 #include "LineBase.hpp"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 #include <glm/geometric.hpp>
+#pragma GCC diagnostic push
 
 namespace fgl::engine
 {

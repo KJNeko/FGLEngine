@@ -4,7 +4,11 @@
 
 #include "ModelComponent.hpp"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
 #include <imgui.h>
+#pragma GCC diagnostic pop
 
 namespace fgl::engine
 {

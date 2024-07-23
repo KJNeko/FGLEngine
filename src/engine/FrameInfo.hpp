@@ -74,9 +74,9 @@ namespace fgl::engine
 	using GBufferDescriptorSet =
 		descriptors::DescriptorSetLayout< 0, PositionDescriptor, NormalDescriptor, AlbedoDescriptor >;
 
-	using CompositeDescriptor = descriptors::AttachmentDescriptor< 0, vk::ShaderStageFlagBits::eFragment >;
+	using InputDescriptor = descriptors::AttachmentDescriptor< 0, vk::ShaderStageFlagBits::eFragment >;
 
-	using GBufferCompositeDescriptorSet = descriptors::DescriptorSetLayout< 0, CompositeDescriptor >;
+	using GuiInputDescriptorSet = descriptors::DescriptorSetLayout< 0, InputDescriptor >;
 
 	class OctTreeNode;
 
@@ -105,8 +105,9 @@ namespace fgl::engine
 		memory::Buffer& model_vertex_buffer;
 		memory::Buffer& model_index_buffer;
 
-		descriptors::DescriptorSet& gbuffer_descriptor_set;
-		descriptors::DescriptorSet& gbuffer_composite_set;
+		descriptors::DescriptorSet& gui_input_descriptor;
+
+		descriptors::DescriptorSet& getGBufferDescriptor();
 
 		const Frustum< CoordinateSpace::World >& camera_frustum;
 		SwapChain& swap_chain;

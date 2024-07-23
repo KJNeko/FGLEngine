@@ -49,7 +49,7 @@ namespace fgl::engine
 				throw std::runtime_error( "Unimplemented rotation order" );
 		}
 
-		std::unreachable();
+		FGL_UNREACHABLE();
 	}
 
 	glm::mat3 taitBryanMatrix( const glm::vec3 rotation, const RotationOrder order )

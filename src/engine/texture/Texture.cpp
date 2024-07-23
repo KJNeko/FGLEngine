@@ -114,17 +114,21 @@ namespace fgl::engine
 
 	Texture::Texture( std::vector< std::byte >&& data, const vk::Extent2D extent, const vk::Format format ) :
 	  m_texture_id( getNextID() ),
-	  m_extent( extent ),
 	  m_image( std::make_shared< Image >(
 		  extent,
 		  format,
 		  vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
 		  vk::ImageLayout::eUndefined,
 		  vk::ImageLayout::eShaderReadOnlyOptimal ) ),
-	  m_image_view( m_image->getView() )
+	  m_image_view( m_image->getView() ),
+	  m_extent( extent )
 	{
 		memory::TransferManager::getInstance()
 			.copyToImage( std::forward< std::vector< std::byte > >( data ), *m_image );
+
+#if ENABLE_IMGUI
+		createImGuiSet();
+#endif
 	}
 
 	Texture::Texture( const std::filesystem::path& path, const vk::Format format ) :
@@ -161,13 +165,13 @@ namespace fgl::engine
 
 	void Texture::createImGuiSet()
 	{
+#if ENABLE_IMGUI
 		if ( !this->ready() )
 		{
 			log::debug( "Unable to create ImGui set. Texture was not ready" );
 			return;
 		}
 
-#if ENABLE_IMGUI
 		log::debug( "Created ImGui set for image ID {}", this->getID() );
 		if ( m_imgui_set != VK_NULL_HANDLE ) return;
 
@@ -181,6 +185,8 @@ namespace fgl::engine
 		VkSampler vk_sampler { *( view->getSampler() ) };
 
 		m_imgui_set = ImGui_ImplVulkan_AddTexture( vk_sampler, vk_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+#else
+		FGL_UNREACHABLE();
 #endif
 	}
 
@@ -193,6 +199,7 @@ namespace fgl::engine
 
 	Texture::Texture( Image& image, Sampler sampler ) :
 	  m_texture_id( getNextID() ),
+	  m_image(),
 	  m_image_view( image.getView() ),
 	  //TODO: Figure out how to get extents from images.
 	  m_extent()

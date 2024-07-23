@@ -6,6 +6,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wduplicated-branches"
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #pragma GCC diagnostic pop
@@ -131,7 +132,7 @@ namespace fgl::engine
 			case RotationModifierType::Yaw:
 				return const_cast< const Rotation& >( rot ).yaw();
 		}
-		std::unreachable();
+		FGL_UNREACHABLE();
 	}
 
 	namespace constants
@@ -151,6 +152,8 @@ namespace fgl::engine
 			case RotationModifierType::Yaw:
 				return constants::WORLD_DOWN;
 		}
+
+		FGL_UNREACHABLE();
 	}
 
 	template < RotationModifierType ModifierType >

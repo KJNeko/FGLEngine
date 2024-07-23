@@ -13,6 +13,12 @@
 namespace fgl::engine
 {
 
+	Matrix< MatrixType::WorldToScreen > Camera::getProjectionViewMatrix() const
+	{
+		assert( projection_matrix != constants::MAT4_IDENTITY );
+		return projection_matrix * view_matrix;
+	}
+
 	void Camera::setOrthographicProjection( float left, float right, float top, float bottom, float near, float far )
 	{
 		projection_matrix =
@@ -28,7 +34,184 @@ namespace fgl::engine
 		base_frustum = createFrustum( aspect, fovy, near, far );
 	}
 
-	FGL_FLATTEN_HOT void Camera::setView( WorldCoordinate pos, const Rotation rotation, const ViewMode mode )
+	Coordinate< CoordinateSpace::World > Camera::getPosition() const
+	{
+		//Should maybe store the inverse view matrix
+		return WorldCoordinate( inverse_view_matrix[ 3 ] );
+	}
+
+	void Camera::pass( FrameInfo& frame_info ) const
+	{
+		m_renderer->pass( frame_info, *m_swapchain );
+	}
+
+	vk::raii::RenderPass& Camera::getRenderpass()
+	{
+		return m_renderer->getRenderpass();
+	}
+
+	CameraSwapchain& Camera::getSwapchain() const
+	{
+		return *m_swapchain;
+	}
+
+	void Camera::setViewport( const vk::raii::CommandBuffer& command_buffer )
+	{
+		vk::Viewport viewport {};
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+
+		const auto [ width, height ] = m_extent;
+		viewport.width = static_cast< float >( width );
+		viewport.height = static_cast< float >( height );
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+
+		const std::vector< vk::Viewport > viewports { viewport };
+
+		command_buffer.setViewport( 0, viewports );
+	}
+
+	void Camera::setScissor( const vk::raii::CommandBuffer& command_buffer )
+	{
+		const vk::Rect2D scissor { { 0, 0 }, m_extent };
+
+		const std::vector< vk::Rect2D > scissors { scissor };
+
+		command_buffer.setScissor( 0, scissors );
+	}
+
+	void Camera::beginRenderpass( const vk::raii::CommandBuffer& command_buffer, const FrameInfo& info )
+	{
+		vk::RenderPassBeginInfo begin_info {};
+		begin_info.renderPass = getRenderpass();
+		begin_info.framebuffer = this->getSwapchain().getFramebuffer( info.frame_idx );
+		begin_info.renderArea = { .offset = { 0, 0 }, .extent = m_extent };
+
+		begin_info.setClearValues( this->getSwapchain().getClearValues() );
+
+		command_buffer.beginRenderPass( begin_info, vk::SubpassContents::eInline );
+
+		setViewport( command_buffer );
+		setScissor( command_buffer );
+	}
+
+	void Camera::endRenderpass( const vk::raii::CommandBuffer& command_buffer )
+	{
+		command_buffer.endRenderPass();
+	}
+
+	void Camera::
+		copyOutput( const vk::raii::CommandBuffer& command_buffer, const FrameIndex frame_index, Image& target )
+	{
+		assert( m_extent == target.getExtent() );
+
+		Image& source { this->getSwapchain().getOutput( frame_index ) };
+
+		vk::ImageSubresourceRange range {};
+		range.aspectMask = vk::ImageAspectFlagBits::eColor;
+		range.baseMipLevel = 0;
+		range.levelCount = 1;
+		range.baseArrayLayer = 0;
+		range.layerCount = 1;
+
+		vk::ImageMemoryBarrier barrier_to_target {};
+		barrier_to_target.oldLayout = vk::ImageLayout::eUndefined;
+		barrier_to_target.newLayout = vk::ImageLayout::eTransferDstOptimal;
+		barrier_to_target.image = target.getVkImage();
+		barrier_to_target.subresourceRange = range;
+		barrier_to_target.srcAccessMask = vk::AccessFlagBits::eMemoryWrite;
+		barrier_to_target.dstAccessMask =
+			vk::AccessFlagBits::eTransferWrite | vk::AccessFlagBits::eColorAttachmentWrite;
+		barrier_to_target.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier_to_target.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+
+		command_buffer.pipelineBarrier(
+			vk::PipelineStageFlagBits::eTransfer | vk::PipelineStageFlagBits::eColorAttachmentOutput,
+			vk::PipelineStageFlagBits::eTransfer | vk::PipelineStageFlagBits::eColorAttachmentOutput,
+			{},
+			{},
+			{},
+			{ barrier_to_target } );
+
+		vk::ImageMemoryBarrier barrier_from_source {};
+		barrier_from_source.oldLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		barrier_from_source.newLayout = vk::ImageLayout::eTransferSrcOptimal;
+		barrier_from_source.image = source.getVkImage();
+		barrier_from_source.subresourceRange = range;
+		barrier_from_source.srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+		barrier_from_source.dstAccessMask = vk::AccessFlagBits::eTransferRead | vk::AccessFlagBits::eTransferWrite;
+		barrier_from_source.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier_from_source.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+
+		command_buffer.pipelineBarrier(
+			vk::PipelineStageFlagBits::eColorAttachmentOutput,
+			vk::PipelineStageFlagBits::eTransfer,
+			{},
+			{},
+			{},
+			{ barrier_from_source } );
+
+		vk::ImageCopy region {};
+		region.extent = vk::Extent3D( m_extent, 1 );
+
+		region.srcSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+		region.srcSubresource.layerCount = 1;
+		region.srcSubresource.mipLevel = 0;
+		region.srcSubresource.baseArrayLayer = 0;
+
+		region.srcOffset = vk::Offset3D( 0, 0, 0 );
+
+		region.dstOffset = region.srcOffset;
+		region.dstSubresource = region.srcSubresource;
+
+		command_buffer.copyImage(
+			source.getVkImage(),
+			vk::ImageLayout::eTransferSrcOptimal,
+			target.getVkImage(),
+			vk::ImageLayout::eTransferDstOptimal,
+			{ region } );
+
+		vk::ImageMemoryBarrier barrier_from_target {};
+
+		barrier_from_target.oldLayout = barrier_to_target.newLayout;
+		barrier_from_target.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		barrier_from_target.image = target.getVkImage();
+		barrier_from_target.subresourceRange = range;
+		barrier_from_target.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+		barrier_from_target.dstAccessMask = vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eInputAttachmentRead
+		                                  | vk::AccessFlagBits::eColorAttachmentRead;
+		barrier_from_target.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier_from_target.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+
+		command_buffer.pipelineBarrier(
+			vk::PipelineStageFlagBits::eTransfer,
+			vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eColorAttachmentOutput,
+			{},
+			{},
+			{},
+			{ barrier_from_target } );
+
+		vk::ImageMemoryBarrier barrier_to_source {};
+		barrier_to_source.oldLayout = barrier_from_source.newLayout;
+		barrier_to_source.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		barrier_to_source.image = source.getVkImage();
+		barrier_to_source.subresourceRange = range;
+		barrier_to_source.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+		barrier_to_source.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+		barrier_to_source.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier_to_source.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+
+		command_buffer.pipelineBarrier(
+			vk::PipelineStageFlagBits::eTransfer,
+			vk::PipelineStageFlagBits::eFragmentShader,
+			{},
+			{},
+			{},
+			{ barrier_to_source } );
+	}
+
+	FGL_FLATTEN_HOT void Camera::setView( WorldCoordinate pos, const Rotation& rotation, const ViewMode mode )
 	{
 		switch ( mode )
 		{
@@ -73,9 +256,15 @@ namespace fgl::engine
 		frustum = translation_matrix * base_frustum;
 	}
 
+	void Camera::initCameraRenderer()
+	{
+		assert( !m_renderer );
+		m_renderer = std::make_unique< CameraRenderer >();
+	}
+
 	Camera::Camera( const vk::Extent2D extent ) :
 	  m_extent( extent ),
-	  m_swapchain( std::make_shared< CameraSwapchain >( m_extent ) )
+	  m_swapchain( std::make_shared< CameraSwapchain >( m_renderer->getRenderpass(), m_extent ) )
 	{
 		this->setPerspectiveProjection( 90.0f, 16.0f / 9.0f, constants::NEAR_PLANE, constants::FAR_PLANE );
 		this->setView( WorldCoordinate( constants::CENTER ), Rotation( 0.0f, 0.0f, 0.0f ) );
@@ -84,7 +273,7 @@ namespace fgl::engine
 	void Camera::setExtent( const vk::Extent2D extent )
 	{
 		m_extent = extent;
-		m_swapchain = std::make_shared< CameraSwapchain >( m_extent );
+		m_swapchain = std::make_shared< CameraSwapchain >( m_renderer->getRenderpass(), m_extent );
 	}
 
 	Frustum< CoordinateSpace::Model >

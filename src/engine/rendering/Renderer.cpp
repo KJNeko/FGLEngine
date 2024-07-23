@@ -159,16 +159,16 @@ namespace fgl::engine
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 
-		std::vector< vk::Viewport > viewports { viewport };
+		const std::vector< vk::Viewport > viewports { viewport };
 
 		buffer.setViewport( 0, viewports );
 	}
 
 	void Renderer::setScissor( const vk::raii::CommandBuffer& buffer )
 	{
-		vk::Rect2D scissor { { 0, 0 }, m_swapchain->getSwapChainExtent() };
+		const vk::Rect2D scissor { { 0, 0 }, m_swapchain->getSwapChainExtent() };
 
-		std::vector< vk::Rect2D > scissors { scissor };
+		const std::vector< vk::Rect2D > scissors { scissor };
 
 		buffer.setScissor( 0, scissors );
 	}
@@ -177,15 +177,13 @@ namespace fgl::engine
 	{
 		assert( is_frame_started && "Cannot call beginSwapChainRenderPass if frame is not in progress" );
 
-		std::vector< vk::ClearValue > clear_values { m_swapchain->getClearValues() };
-
 		vk::RenderPassBeginInfo render_pass_info {};
 		render_pass_info.pNext = VK_NULL_HANDLE;
 		render_pass_info.renderPass = m_swapchain->getRenderPass();
 		render_pass_info.framebuffer = m_swapchain->getFrameBuffer( current_present_index );
 		render_pass_info.renderArea = { .offset = { 0, 0 }, .extent = m_swapchain->getSwapChainExtent() };
-		render_pass_info.clearValueCount = static_cast< std::uint32_t >( clear_values.size() );
-		render_pass_info.pClearValues = clear_values.data();
+
+		render_pass_info.setClearValues( m_swapchain->getClearValues() );
 
 		buffer.beginRenderPass( render_pass_info, vk::SubpassContents::eInline );
 

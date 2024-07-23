@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <ostream>
+
 #include "engine/primitives/lines/InfiniteLine.hpp"
 #include "engine/primitives/planes/OriginDistancePlane.hpp"
 #include "engine/primitives/planes/PointPlane.hpp"

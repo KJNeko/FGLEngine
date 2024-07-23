@@ -5,10 +5,11 @@
 #include "Window.hpp"
 
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_raii.hpp>
 
 #include <stdexcept>
 
-#include "engine/rendering/Device.hpp"
+#include "engine/rendering/Instance.hpp"
 
 namespace fgl::engine
 {

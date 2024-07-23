@@ -54,6 +54,9 @@ namespace fgl::engine
 			                               vk::BufferUsageFlagBits::eUniformBuffer,
 			                               vk::MemoryPropertyFlagBits::eHostVisible }; // 512 KB
 
+		//Camera prep
+		Camera::initCameraRenderer();
+
 		PerFrameSuballocation< HostSingleT< CameraInfo > > camera_info { global_ubo_buffer,
 			                                                             SwapChain::MAX_FRAMES_IN_FLIGHT };
 
@@ -117,6 +120,9 @@ namespace fgl::engine
 
 		TracyCZoneEnd( TRACY_PrepareEngine );
 
+		//TODO: Make a camera management object
+		std::vector< Camera* > cameras { &camera };
+
 		while ( !m_window.shouldClose() )
 		{
 			memory::TransferManager::getInstance().submitNow();
@@ -169,8 +175,7 @@ namespace fgl::engine
 					                   draw_parameter_buffers[ frame_index ],
 					                   *this->m_vertex_buffer,
 					                   *this->m_index_buffer,
-					                   m_renderer.getGBufferDescriptor( present_idx ),
-					                   m_renderer.getGBufferCompositeDescriptor( present_idx ),
+					                   m_renderer.getSwapChain().getInputDescriptor( present_idx ),
 					                   view_frustum,
 					                   this->m_renderer.getSwapChain() };
 
@@ -184,20 +189,22 @@ namespace fgl::engine
 
 				camera_info[ frame_index ] = current_camera_info;
 
-				m_culling_system.startPass( frame_info );
 				TracyVkCollect( frame_info.tracy_ctx, *command_buffer );
 
+				//TODO: Setup semaphores to make this pass not always required.
 				memory::TransferManager::getInstance().recordOwnershipTransferDst( command_buffer );
 
-				m_culling_system.wait();
+				for ( auto* current_camera : cameras )
+				{
+					current_camera->pass( frame_info );
+				}
+
+				auto* primary_camera { cameras[ 0 ] };
+
+				primary_camera
+					->copyOutput( command_buffer, frame_index, m_renderer.getSwapChain().getInputImage( present_idx ) );
 
 				m_renderer.beginSwapchainRendererPass( command_buffer );
-
-				m_terrain_system.pass( frame_info );
-
-				m_entity_renderer.pass( frame_info );
-
-				m_composition_system.pass( frame_info );
 
 				m_gui_system.pass( frame_info );
 

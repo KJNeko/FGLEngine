@@ -4,7 +4,12 @@
 
 #include "generator.hpp"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 #include <glm/geometric.hpp>
+#pragma GCC diagnostic pop
+
+
 #include <tracy/Tracy.hpp>
 
 #include <algorithm>

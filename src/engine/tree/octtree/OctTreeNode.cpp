@@ -11,7 +11,6 @@
 #include "engine/debug/drawers.hpp"
 #include "engine/model/Model.hpp"
 #include "engine/primitives/Frustum.hpp"
-#include "engine/tree/quadtree/QuadTree.hpp"
 
 namespace fgl::engine
 {
@@ -92,10 +91,10 @@ namespace fgl::engine
 					return;
 				}
 			default:
-				std::unreachable();
+				FGL_UNREACHABLE();
 		}
 
-		std::unreachable();
+		FGL_UNREACHABLE();
 	}
 
 	bool OctTreeNode::contains( const WorldCoordinate coord ) const
@@ -276,7 +275,7 @@ namespace fgl::engine
 			return nullptr;
 		}
 
-		std::unreachable();
+		FGL_UNREACHABLE();
 	}
 
 	auto OctTreeNode::getGameObjectItter( const GameObject::GameObjectID id )
@@ -416,7 +415,7 @@ namespace fgl::engine
 			}
 		}
 
-		std::unreachable();
+		FGL_UNREACHABLE();
 	}
 	*/
 
@@ -462,7 +461,7 @@ namespace fgl::engine
 			return counter;
 		}
 
-		std::unreachable();
+		FGL_UNREACHABLE();
 	}
 
 } // namespace fgl::engine

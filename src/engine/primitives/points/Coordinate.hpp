@@ -4,9 +4,11 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wduplicated-branches"
 #include <glm/glm.hpp>
-
-#include <ostream>
+#pragma GCC diagnostic pop
 
 #include "engine/constants.hpp"
 #include "engine/primitives/CoordinateSpace.hpp"

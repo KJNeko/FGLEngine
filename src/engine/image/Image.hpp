@@ -7,7 +7,6 @@
 #include <memory>
 
 #include "engine/image/ImageHandle.hpp"
-#include "engine/rendering/Device.hpp"
 
 namespace fgl::engine
 {
@@ -22,6 +21,7 @@ namespace fgl::engine
 	{
 		std::shared_ptr< ImageHandle > m_handle;
 		std::weak_ptr< ImageView > view {};
+		vk::Extent2D m_extent;
 
 		friend class memory::TransferManager;
 
@@ -29,42 +29,29 @@ namespace fgl::engine
 
 		Image() = delete;
 
+		[[nodiscard]]
+		Image( vk::Extent2D extent, vk::Format format, vk::Image image, vk::ImageUsageFlags usage ) noexcept;
+
 		[[nodiscard]] Image(
-			const vk::Extent2D extent,
-			const vk::Format format,
-			const vk::Image image,
-			const vk::ImageUsageFlags usage ) noexcept :
-		  m_handle( std::make_shared< ImageHandle >( extent, format, image, usage ) )
-		{}
+			vk::Extent2D extent,
+			vk::Format format,
+			vk::ImageUsageFlags usage,
+			vk::ImageLayout inital_layout,
+			vk::ImageLayout final_layout );
 
-		Image& setName( const std::string& str );
+		Image( const Image& other ) : m_handle( other.m_handle ), m_extent( other.m_extent ) {}
 
-		Image(
-			const vk::Extent2D extent,
-			const vk::Format format,
-			const vk::ImageUsageFlags usage,
-			const vk::ImageLayout inital_layout,
-			const vk::ImageLayout final_layout ) :
-		  m_handle( std::make_shared< ImageHandle >( extent, format, usage, inital_layout, final_layout ) )
-		{}
+		[[nodiscard]] Image& operator=( const Image& other );
 
-		Image( const Image& other ) : m_handle( other.m_handle ) {}
-
-		[[nodiscard]] Image& operator=( const Image& other )
-		{
-			m_handle = other.m_handle;
-			view = {};
-			return *this;
-		}
+		VkImage getVkImage() const;
 
 		[[nodiscard]] Image( Image&& other ) = default;
 
-		[[nodiscard]] Image& operator=( Image&& other ) noexcept
-		{
-			m_handle = std::move( other.m_handle );
-			view = std::move( other.view );
-			return *this;
-		}
+		[[nodiscard]] Image& operator=( Image&& other ) noexcept;
+
+		Image& setName( const std::string& str );
+
+		const vk::Extent2D& getExtent() const { return m_extent; }
 
 		[[nodiscard]] std::shared_ptr< ImageView > getView();
 	};

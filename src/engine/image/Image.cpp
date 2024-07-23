@@ -22,6 +22,45 @@ namespace fgl::engine
 		}
 	}
 
+	Image::Image(
+		const vk::Extent2D extent,
+		const vk::Format format,
+		const vk::Image image,
+		const vk::ImageUsageFlags usage ) noexcept :
+	  m_handle( std::make_shared< ImageHandle >( extent, format, image, usage ) ),
+	  m_extent( extent )
+	{}
+
+	Image::Image(
+		const vk::Extent2D extent,
+		const vk::Format format,
+		const vk::ImageUsageFlags usage,
+		const vk::ImageLayout inital_layout,
+		const vk::ImageLayout final_layout ) :
+	  m_handle( std::make_shared< ImageHandle >( extent, format, usage, inital_layout, final_layout ) ),
+	  m_extent( extent )
+	{}
+
+	Image& Image::operator=( const Image& other )
+	{
+		m_handle = other.m_handle;
+		view = {};
+		return *this;
+	}
+
+	VkImage Image::getVkImage() const
+	{
+		return m_handle->getVkImage();
+	}
+
+	Image& Image::operator=( Image&& other ) noexcept
+	{
+		m_handle = std::move( other.m_handle );
+		view = std::move( other.view );
+		m_extent = other.m_extent;
+		return *this;
+	}
+
 	Image& Image::setName( const std::string& str )
 	{
 		m_handle->setName( str );

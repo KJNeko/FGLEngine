@@ -15,7 +15,7 @@ namespace fgl::engine
 {
 	static bool enable_culling { true };
 
-	static bool& isCullingEnabled()
+	[[maybe_unused]] static bool& isCullingEnabled()
 	{
 		return enable_culling;
 	}

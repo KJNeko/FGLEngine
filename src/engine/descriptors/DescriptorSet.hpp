@@ -27,6 +27,7 @@ namespace fgl::engine::descriptors
 
 	class DescriptorSet
 	{
+		//TODO: Maybe redo this to not be a monostate variant?
 		std::vector< std::variant< std::monostate, vk::DescriptorImageInfo, vk::DescriptorBufferInfo > > m_infos {};
 		std::vector< vk::WriteDescriptorSet > descriptor_writes {};
 

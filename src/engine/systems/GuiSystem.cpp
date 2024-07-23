@@ -16,7 +16,7 @@ namespace fgl::engine
 		PipelineConfigInfo::addColorAttachmentConfig( info );
 		PipelineConfigInfo::disableVertexInput( info );
 		PipelineConfigInfo::disableCulling( info );
-		info.subpass = 2;
+		info.subpass = 0;
 
 		m_pipeline = std::make_unique< Pipeline >( device, std::move( info ) );
 		m_pipeline->setDebugName( "Gui Pipeline" );
@@ -26,12 +26,9 @@ namespace fgl::engine
 	{
 		auto& command_buffer { info.command_buffer };
 
-		command_buffer.nextSubpass( vk::SubpassContents::eInline );
-
 		m_pipeline->bind( command_buffer );
 
-		m_pipeline
-			->bindDescriptor( command_buffer, GBufferCompositeDescriptorSet::m_set_idx, info.gbuffer_composite_set );
+		m_pipeline->bindDescriptor( command_buffer, 0, info.gui_input_descriptor );
 
 		return command_buffer;
 	}

@@ -4,81 +4,60 @@
 
 #include "CameraSwapchain.hpp"
 
+#include "engine/descriptors/DescriptorSet.hpp"
+
 namespace fgl::engine
 {
 
-	vk::raii::RenderPass CameraSwapchain::creaeteRenderpass()
+	std::vector< std::unique_ptr< descriptors::DescriptorSet > > CameraSwapchain::createGBufferDescriptors()
 	{
-		RenderPassBuilder builder;
+		std::vector< std::unique_ptr< descriptors::DescriptorSet > > data {};
+		data.resize( SwapChain::MAX_FRAMES_IN_FLIGHT );
 
-		builder.registerAttachments( output.composite, output.depth, gbuffer.position, gbuffer.normal, gbuffer.albedo );
+		for ( PresentIndex i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
+		{
+			auto set { std::make_unique< descriptors::DescriptorSet >( GBufferDescriptorSet::createLayout() ) };
 
-		Subpass<
-			vk::PipelineBindPoint::eGraphics,
-			UsedAttachment< DepthAttachment< 4 >, vk::ImageLayout::eDepthStencilAttachmentOptimal >,
-			UsedAttachment< ColorAttachment< 0 >, vk::ImageLayout::eColorAttachmentOptimal >,
-			UsedAttachment< ColorAttachment< 1 >, vk::ImageLayout::eColorAttachmentOptimal >,
-			UsedAttachment< ColorAttachment< 2 >, vk::ImageLayout::eColorAttachmentOptimal > >
-			g_buffer_subpass { 0 };
+			set->setMaxIDX( 2 );
 
-		g_buffer_subpass.registerDependencyFromExternal(
-			vk::AccessFlagBits::eDepthStencilAttachmentWrite,
-			vk::PipelineStageFlagBits::eEarlyFragmentTests | vk::PipelineStageFlagBits::eLateFragmentTests );
+			set->bindAttachment( 0, gbuffer.position.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
 
-		g_buffer_subpass.registerDependencyFromExternal(
-			vk::AccessFlagBits::eColorAttachmentWrite, vk::PipelineStageFlagBits::eColorAttachmentOutput );
+			set->bindAttachment( 1, gbuffer.normal.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
 
-		Subpass<
-			vk::PipelineBindPoint::eGraphics,
-			UsedAttachment< ColorAttachment< 3 >, vk::ImageLayout::eColorAttachmentOptimal >,
-			InputAttachment< ColorAttachment< 0 >, vk::ImageLayout::eShaderReadOnlyOptimal >,
-			InputAttachment< ColorAttachment< 1 >, vk::ImageLayout::eShaderReadOnlyOptimal >,
-			InputAttachment< ColorAttachment< 2 >, vk::ImageLayout::eShaderReadOnlyOptimal > >
-			composite_subpass { 1 };
+			set->bindAttachment( 2, gbuffer.albedo.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
 
-		composite_subpass.registerDependencyFromExternal(
-			vk::AccessFlagBits::eColorAttachmentWrite, vk::PipelineStageFlagBits::eColorAttachmentOutput );
+			set->update();
 
-		// For color attachments
-		composite_subpass.registerDependencyFrom(
-			g_buffer_subpass,
-			vk::AccessFlagBits::eColorAttachmentWrite,
-			vk::PipelineStageFlagBits::eColorAttachmentOutput,
-			vk::AccessFlagBits::eInputAttachmentRead,
-			vk::PipelineStageFlagBits::eFragmentShader,
-			vk::DependencyFlagBits::eByRegion );
+			data[ i ] = std::move( set );
+		}
 
-		composite_subpass.registerDependencyToExternal(
-			vk::AccessFlagBits::eColorAttachmentWrite,
-			vk::PipelineStageFlagBits::eColorAttachmentOutput,
-			vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eInputAttachmentRead,
-			vk::PipelineStageFlagBits::eFragmentShader );
+		return data;
+	}
 
-		//Done
-		builder.registerSubpass( g_buffer_subpass );
-		builder.registerSubpass( composite_subpass );
-
-		return builder.create();
+	const std::vector< vk::ClearValue >& CameraSwapchain::getClearValues()
+	{
+		assert( !m_clear_values.empty() );
+		return m_clear_values;
 	}
 
 	std::vector< vk::raii::Framebuffer > CameraSwapchain::createFrambuffers()
 	{
-		const auto image_count { SwapChain::MAX_FRAMES_IN_FLIGHT };
-		gbuffer.position.createResourceSpread( image_count, m_extent );
-		gbuffer.normal.createResourceSpread( image_count, m_extent );
-		gbuffer.albedo.createResourceSpread( image_count, m_extent );
+		constexpr auto image_count { SwapChain::MAX_FRAMES_IN_FLIGHT };
+		gbuffer.position.createResources( image_count, m_extent );
+		gbuffer.normal.createResources( image_count, m_extent );
+		gbuffer.albedo.createResources( image_count, m_extent );
 
-		output.composite.createResourceSpread( image_count, m_extent, vk::ImageUsageFlagBits::eSampled );
-		output.depth.createResourceSpread( image_count, m_extent );
+		gbuffer.composite.createResources( image_count, m_extent, vk::ImageUsageFlagBits::eTransferSrc );
+		gbuffer.depth.createResources( image_count, m_extent );
+		gbuffer.depth.setClear( vk::ClearDepthStencilValue( 1.0f, 0 ) );
 
 		std::vector< vk::raii::Framebuffer > buffers {};
 		buffers.reserve( image_count );
 
 		for ( FrameIndex i = 0; i < image_count; ++i )
 		{
-			std::vector< vk::ImageView > attachments {
-				getViewsForFrame( i, gbuffer.position, gbuffer.normal, gbuffer.albedo, output.composite, output.depth )
-			};
+			std::vector< vk::ImageView > attachments { getViewsForFrame(
+				i, gbuffer.position, gbuffer.normal, gbuffer.albedo, gbuffer.composite, gbuffer.depth ) };
 
 			vk::FramebufferCreateInfo info {};
 			info.renderPass = m_renderpass;
@@ -88,15 +67,59 @@ namespace fgl::engine
 			info.layers = 1;
 
 			buffers.emplace_back( Device::getInstance()->createFramebuffer( info ) );
+
+			auto& position_resources { gbuffer.position.m_attachment_resources };
+			assert( position_resources.m_images[ i ] );
+			assert( position_resources.m_image_views[ i ] );
+			auto& position_image { *position_resources.m_images[ i ] };
+			position_image.setName( format_ns::format( "GBufferPosition: {}", i ) );
+
+			g_buffer_position_img.emplace_back( std::make_unique< Texture >( position_image ) );
+
+			g_buffer_normal_img.emplace_back( std::make_unique< Texture >( gbuffer.normal.m_attachment_resources
+			                                                                   .m_images[ i ]
+			                                                                   ->setName( "GBufferNormal" ) ) );
+			g_buffer_albedo_img.emplace_back( std::make_unique< Texture >( gbuffer.albedo.m_attachment_resources
+			                                                                   .m_images[ i ]
+			                                                                   ->setName( "GBufferAlbedo" ) ) );
+			g_buffer_composite_img.emplace_back( std::make_unique< Texture >( gbuffer.composite.m_attachment_resources
+			                                                                      .m_images[ i ]
+			                                                                      ->setName( "GBufferComposite" ) ) );
 		}
 
 		return buffers;
 	}
 
-	CameraSwapchain::CameraSwapchain( const vk::Extent2D extent ) :
+	descriptors::DescriptorSet& CameraSwapchain::getGBufferDescriptor( const FrameIndex frame_index )
+	{
+		return *m_gbuffer_descriptor_set[ frame_index ];
+	}
+
+	vk::raii::Framebuffer& CameraSwapchain::getFramebuffer( const FrameIndex frame_index )
+	{
+		return m_framebuffers[ frame_index ];
+	}
+
+	vk::Extent2D CameraSwapchain::getExtent() const
+	{
+		return m_extent;
+	}
+
+	Image& CameraSwapchain::getOutput( const FrameIndex index )
+	{
+		assert( index <= this->gbuffer.composite.m_attachment_resources.m_images.size() );
+		return *gbuffer.composite.m_attachment_resources.m_images[ index ];
+	}
+
+	CameraSwapchain::CameraSwapchain( vk::raii::RenderPass& renderpass, const vk::Extent2D extent ) :
 	  m_extent( extent ),
-	  m_renderpass( creaeteRenderpass() ),
-	  m_framebuffers( createFrambuffers() )
-	{}
+	  m_renderpass( renderpass ),
+	  m_framebuffers( createFrambuffers() ),
+	  m_clear_values(
+		  gatherClearValues( gbuffer.albedo, gbuffer.composite, gbuffer.depth, gbuffer.normal, gbuffer.position ) ),
+	  m_gbuffer_descriptor_set( createGBufferDescriptors() )
+	{
+		gbuffer.depth.setName( "Depth" );
+	}
 
 } // namespace fgl::engine

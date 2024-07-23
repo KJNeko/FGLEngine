@@ -12,6 +12,7 @@
 #include <glm/gtx/string_cast.hpp>
 #pragma GCC diagnostic pop
 
+#include "CameraRenderer.hpp"
 #include "engine/constants.hpp"
 #include "engine/primitives/Frustum.hpp"
 #include "engine/primitives/TransformComponent.hpp"
@@ -26,8 +27,13 @@ namespace fgl::engine
 
 	Frustum< CoordinateSpace::Model > createFrustum( float aspect, float fovy, float near, float far );
 
+	using CameraIDX = std::uint8_t;
+
 	class Camera
 	{
+		inline static CameraIDX camera_counter { 0 };
+		CameraIDX camera_idx { camera_counter++ };
+
 		Matrix< MatrixType::CameraToScreen > projection_matrix { 1.0f };
 
 		Matrix< MatrixType::WorldToCamera > view_matrix { 1.0f };
@@ -43,6 +49,7 @@ namespace fgl::engine
 
 		vk::Extent2D m_extent;
 
+		inline static std::unique_ptr< CameraRenderer > m_renderer;
 		std::shared_ptr< CameraSwapchain > m_swapchain;
 
 		Matrix< MatrixType::ModelToWorld > frustumTranslationMatrix() const;
@@ -51,9 +58,11 @@ namespace fgl::engine
 
 	  public:
 
-		Camera( const vk::Extent2D extent );
+		static void initCameraRenderer();
 
-		void setExtent( const vk::Extent2D extent );
+		Camera( vk::Extent2D extent );
+
+		void setExtent( vk::Extent2D extent );
 
 		Rotation getRotation() const { return current_rotation; }
 
@@ -68,22 +77,14 @@ namespace fgl::engine
 
 		const Matrix< MatrixType::WorldToCamera >& getViewMatrix() const { return view_matrix; }
 
-		Matrix< MatrixType::WorldToScreen > getProjectionViewMatrix() const
-		{
-			assert( projection_matrix != constants::MAT4_IDENTITY );
-			return projection_matrix * view_matrix;
-		}
+		Matrix< MatrixType::WorldToScreen > getProjectionViewMatrix() const;
 
 		glm::mat4 getInverseViewMatrix() const { return glm::inverse( view_matrix ); }
 
 		void setOrthographicProjection( float left, float right, float top, float bottom, float near, float far );
 		void setPerspectiveProjection( float fovy, float aspect, float near, float far );
 
-		Coordinate< CoordinateSpace::World > getPosition() const
-		{
-			//Should maybe store the inverse view matrix
-			return WorldCoordinate( inverse_view_matrix[ 3 ] );
-		}
+		Coordinate< CoordinateSpace::World > getPosition() const;
 
 		Vector getUp() const { return -getDown(); }
 
@@ -97,13 +98,26 @@ namespace fgl::engine
 
 		Vector getDown() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 1 ] ) ) ); }
 
+		//! Performs the render pass for this camera
+		void pass( FrameInfo& frame_info ) const;
+
+		static vk::raii::RenderPass& getRenderpass();
+		CameraSwapchain& getSwapchain() const;
+		void setViewport( const vk::raii::CommandBuffer& command_buffer );
+		void setScissor( const vk::raii::CommandBuffer& command_buffer );
+
+		void beginRenderpass( const vk::raii::CommandBuffer& command_buffer, const FrameInfo& info );
+		void endRenderpass( const vk::raii::CommandBuffer& command_buffer );
+
+		void copyOutput( const vk::raii::CommandBuffer& command_buffer, FrameIndex frame_index, Image& target );
+
 		enum ViewMode
 		{
 			Euler,
 			TaitBryan
 		};
 
-		void setView( WorldCoordinate pos, const Rotation rotation, const ViewMode mode = TaitBryan );
+		void setView( WorldCoordinate pos, const Rotation& rotation, ViewMode mode = TaitBryan );
 	};
 
 } // namespace fgl::engine

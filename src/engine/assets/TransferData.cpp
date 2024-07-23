@@ -163,7 +163,7 @@ namespace fgl::engine::memory
 			return false;
 		}
 
-		std::unreachable();
+		FGL_UNREACHABLE();
 	}
 
 	bool TransferData::stage(
@@ -188,7 +188,7 @@ namespace fgl::engine::memory
 				return performBufferStage( copy_regions );
 		}
 
-		std::unreachable();
+		FGL_UNREACHABLE();
 	}
 
 	void TransferData::markBad()

@@ -13,6 +13,7 @@
 
 #include "engine/concepts/is_attachment.hpp"
 #include "engine/image/Image.hpp"
+#include "types.hpp"
 
 namespace fgl::engine
 {
@@ -42,6 +43,14 @@ namespace fgl::engine
 
 		void setClear( vk::ClearDepthStencilValue value ) { m_clear_value = value; }
 
+		void setName( const char* str )
+		{
+			for ( const auto& image : m_attachment_resources.m_images )
+			{
+				image->setName( str );
+			}
+		}
+
 		AttachmentResources m_attachment_resources {};
 
 		constexpr static vk::AttachmentLoadOp loadOp { load_op };
@@ -50,7 +59,7 @@ namespace fgl::engine
 		constexpr static vk::ImageLayout FinalLayout { final_layout };
 		constexpr static std::uint32_t m_index { Index };
 
-		Attachment( const vk::Format format )
+		constexpr Attachment( const vk::Format format )
 		{
 			assert( format != vk::Format::eUndefined && "Attachment format must not be undefined" );
 			description.format = format;
@@ -81,7 +90,8 @@ namespace fgl::engine
 			}
 		}
 
-		void createResources( const std::uint32_t count, vk::Extent2D extent )
+		void createResources(
+			const std::uint32_t count, vk::Extent2D extent, vk::ImageUsageFlags extra_flags = vk::ImageUsageFlags( 0 ) )
 		{
 			for ( std::uint16_t i = 0; i < count; ++i )
 			{
@@ -90,8 +100,8 @@ namespace fgl::engine
 				auto& itter { images.emplace_back( std::make_shared< Image >(
 					extent,
 					description.format,
-					usage | vk::ImageUsageFlagBits::eInputAttachment,
-					inital_layout,
+					usage | vk::ImageUsageFlagBits::eInputAttachment | extra_flags,
+					vk::ImageLayout::eUndefined,
 					final_layout ) ) };
 				image_views.emplace_back( itter->getView() );
 			}
@@ -105,7 +115,7 @@ namespace fgl::engine
 				extent,
 				description.format,
 				usage | vk::ImageUsageFlagBits::eInputAttachment | extra_flags,
-				inital_layout,
+				vk::ImageLayout::eUndefined,
 				final_layout ) };
 			for ( std::uint32_t i = 0; i < count; ++i )
 			{
@@ -114,33 +124,31 @@ namespace fgl::engine
 			}
 		}
 
-		ImageView& getView( std::uint8_t frame_idx )
+		ImageView& getView( const FrameIndex frame_idx )
 		{
 			assert( frame_idx < m_attachment_resources.m_image_views.size() );
 			return *m_attachment_resources.m_image_views[ frame_idx ];
 		}
 
-		vk::AttachmentDescription& desc() { return description; }
+		constexpr vk::AttachmentDescription& desc() { return description; }
 
 		friend class RenderPassBuilder;
 	};
 
-	template < is_attachment AttachmentT, vk::ImageLayout layout >
+	template < std::size_t index, vk::ImageLayout layout >
 	struct InputAttachment
 	{
 		static constexpr bool is_input { true };
 		static constexpr vk::ImageLayout m_layout { layout };
-
-		using Attachment = AttachmentT;
+		static constexpr std::size_t m_index { index };
 	};
 
-	template < is_attachment AttachmentT, vk::ImageLayout layout >
+	template < std::size_t index, vk::ImageLayout layout >
 	struct UsedAttachment
 	{
-		static constexpr bool is_input { false };
 		static constexpr vk::ImageLayout m_layout { layout };
-
-		using Attachment = AttachmentT;
+		static constexpr std::size_t m_index { index };
+		static constexpr bool is_input { false };
 	};
 
 	template < typename T >
@@ -189,7 +197,7 @@ namespace fgl::engine
 	}
 
 	template < is_attachment... Attachments >
-	static std::vector< vk::ImageView > getViewsForFrame( const std::uint8_t frame_idx, Attachments... attachments )
+	static std::vector< vk::ImageView > getViewsForFrame( const FrameIndex frame_idx, Attachments... attachments )
 	{
 		std::vector< vk::ImageView > view {};
 		view.resize( sizeof...( Attachments ) );
@@ -230,13 +238,28 @@ namespace fgl::engine
 		vk::ImageLayout::eDepthStencilAttachmentOptimal,
 		vk::ImageUsageFlagBits::eDepthStencilAttachment >;
 
+#if ENABLE_IMGUI
+	constexpr vk::ImageUsageFlags IMGUI_ATTACHMENT_FLAGS { vk::ImageUsageFlagBits::eSampled };
+#else
+	constexpr vk::ImageUsageFlags IMGUI_ATTACHMENT_FLAGS { 0 };
+#endif
+
 	template < std::uint32_t Index >
 	using ColorAttachment = Attachment<
 		Index,
 		vk::AttachmentLoadOp::eClear,
-		vk::AttachmentStoreOp::eDontCare,
+		vk::AttachmentStoreOp::eStore,
 		vk::ImageLayout::eUndefined,
 		vk::ImageLayout::eShaderReadOnlyOptimal,
-		vk::ImageUsageFlagBits::eColorAttachment >;
+		vk::ImageUsageFlagBits::eColorAttachment | IMGUI_ATTACHMENT_FLAGS >;
+
+	template < std::uint32_t Index >
+	using InputColorAttachment = Attachment<
+		Index,
+		vk::AttachmentLoadOp::eLoad,
+		vk::AttachmentStoreOp::eDontCare,
+		vk::ImageLayout::eShaderReadOnlyOptimal,
+		vk::ImageLayout::eShaderReadOnlyOptimal,
+		vk::ImageUsageFlagBits::eColorAttachment | IMGUI_ATTACHMENT_FLAGS >;
 
 } // namespace fgl::engine

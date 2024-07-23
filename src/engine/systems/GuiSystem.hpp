@@ -19,7 +19,7 @@ namespace fgl::engine
 	class GuiSystem
 	{
 		// Attachment 0 will be the composited image
-		using CompositeDescriptorSets = descriptors::DescriptorSetCollection< GBufferCompositeDescriptorSet >;
+		using CompositeDescriptorSets = descriptors::DescriptorSetCollection< GuiInputDescriptorSet >;
 
 		using VertexShader = VertexShaderT< "shaders/fullscreen.vert.spv" >;
 		using FragmentShader = FragmentShaderT< "shaders/gui-compose.frag.spv" >;

@@ -30,7 +30,7 @@ namespace fgl::engine
 
 		const tinyobj::attrib_t& attrib { reader.GetAttrib() };
 		const std::vector< tinyobj::shape_t >& shapes { reader.GetShapes() };
-		const std::vector< tinyobj::material_t >& materials { reader.GetMaterials() };
+		[[maybe_unused]] const std::vector< tinyobj::material_t >& materials { reader.GetMaterials() };
 
 		if ( shapes.size() == 0 ) throw std::runtime_error( "Failed to get shapes from OBJ" );
 

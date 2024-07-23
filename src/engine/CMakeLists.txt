@@ -8,21 +8,25 @@ file(GLOB_RECURSE CPP_SOURCES
 add_library(FGLEngine STATIC ${CPP_SOURCES} ${HPP_SOURCES})
 set(CMAKE_CXX_STANDARD 23)
 
-target_precompile_headers(FGLEngine PRIVATE
+if (DEFINED FGL_ENABLE_PCH)
 
-		<vulkan/vulkan.h>
+	target_precompile_headers(FGLEngine PRIVATE
 
-		<tracy/Tracy.hpp>
+			<vulkan/vulkan.h>
 
-		<vma/vma_impl.hpp>
+			<tracy/Tracy.hpp>
 
-		<glm/glm.hpp>
-		<glm/gtc/matrix_transform.hpp>
-		<glm/gtc/constants.hpp>
-		<glm/vec3.hpp>
-		<glm/vec2.hpp>
-		<glm/mat4x4.hpp>
-)
+			<vma/vma_impl.hpp>
+
+			<glm/glm.hpp>
+			<glm/gtc/matrix_transform.hpp>
+			<glm/gtc/constants.hpp>
+			<glm/vec3.hpp>
+			<glm/vec2.hpp>
+			<glm/mat4x4.hpp>
+	)
+
+endif ()
 
 target_compile_definitions(FGLEngine PUBLIC VULKAN_HPP_FLAGS_MASK_TYPE_AS_PUBLIC)
 

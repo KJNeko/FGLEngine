@@ -4,8 +4,11 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
+#pragma GCC diagnostic pop
 
 namespace fgl::engine::constants
 {

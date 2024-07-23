@@ -3,6 +3,8 @@
 #include "engine/descriptors/DescriptorPool.hpp"
 
 // std headers
+#include <tracy/Tracy.hpp>
+
 #include <cstring>
 #include <iostream>
 #include <set>

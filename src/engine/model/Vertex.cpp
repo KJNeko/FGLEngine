@@ -5,7 +5,12 @@
 #include "Vertex.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wduplicated-branches"
+#include <glm/vec2.hpp>
 #include <glm/gtx/hash.hpp>
+#pragma GCC diagnostic pop
 
 #include "Model.hpp"
 #include "engine/utils.hpp"

@@ -4,9 +4,10 @@
 
 #pragma once
 
-#include <glm/mat4x4.hpp>
-
-#include "MatrixEvolvedTypes.hpp"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#include <glm/mat3x3.hpp>
+#pragma GCC diagnostic pop
 
 namespace fgl::engine
 {

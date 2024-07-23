@@ -64,7 +64,7 @@ namespace fgl::engine
 					return vk::Filter::eLinear;
 			}
 
-			std::unreachable();
+			FGL_UNREACHABLE();
 		}
 
 		vk::SamplerAddressMode wrappingToVk( const int val )

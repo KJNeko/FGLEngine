@@ -54,7 +54,7 @@ namespace fgl::engine::gui
 			.MSAASamples = VK_SAMPLE_COUNT_1_BIT,
 
 			.PipelineCache = VK_NULL_HANDLE,
-			.Subpass = 2,
+			.Subpass = 0,
 
 			.UseDynamicRendering = VK_FALSE,
 			.PipelineRenderingCreateInfo = {},

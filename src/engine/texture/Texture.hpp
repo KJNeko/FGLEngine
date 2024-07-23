@@ -62,24 +62,22 @@ namespace fgl::engine
 		[[nodiscard]] Texture( std::tuple< std::vector< std::byte >, int, int, vk::Format > );
 
 		//! Construct texture with a specific extent and data
-		[[nodiscard]]
-		Texture( std::vector< std::byte >&& data, const int x, const int y, const vk::Format texture_format );
+		[[nodiscard]] Texture( std::vector< std::byte >&& data, int x, int y, vk::Format texture_format );
 
 		//! Construct texture with a specific extent and data
-		[[nodiscard]]
-		Texture( std::vector< std::byte >&& data, const vk::Extent2D extent, const vk::Format texture_format );
+		[[nodiscard]] Texture( std::vector< std::byte >&& data, vk::Extent2D extent, vk::Format texture_format );
 
 		//! Construct with a specific format
-		[[nodiscard]] Texture( const std::filesystem::path& path, const vk::Format format );
+		[[nodiscard]] Texture( const std::filesystem::path& path, vk::Format format );
 
 		//! Construct with no format
 		[[nodiscard]] Texture( const std::filesystem::path& path );
 
 	  public:
 
-		inline static UIDKeyT extractKey( const std::filesystem::path& path ) { return path; }
+		static UIDKeyT extractKey( const std::filesystem::path& path ) { return path; }
 
-		inline static UIDKeyT extractKey( const std::filesystem::path& path, [[maybe_unused]] const vk::Format format )
+		static UIDKeyT extractKey( const std::filesystem::path& path, [[maybe_unused]] const vk::Format format )
 		{
 			return path;
 		}

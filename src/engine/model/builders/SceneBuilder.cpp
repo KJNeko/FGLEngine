@@ -308,10 +308,11 @@ namespace fgl::engine
 		}
 		log::debug( "Attributes for primitive:\n{}", att_str );
 
-		const bool has_normal { hasAttribute( prim, "NORMAL" ) };
+		//TODO: Get normal colors from texture
+		[[maybe_unused]] const bool has_normal { hasAttribute( prim, "NORMAL" ) };
 		const bool has_position { hasAttribute( prim, "POSITION" ) };
 		const bool has_texcoord { hasAttribute( prim, "TEXCOORD_0" ) };
-		const int texcoord_count { has_texcoord ? getTexcoordCount( prim ) : 0 };
+		[[maybe_unused]] const int texcoord_count { has_texcoord ? getTexcoordCount( prim ) : 0 };
 
 		if ( !has_position ) throw std::runtime_error( "Failed to load model. Missing expected POSITION attribute" );
 
@@ -355,7 +356,7 @@ namespace fgl::engine
 				}
 		}
 
-		std::unreachable();
+		FGL_UNREACHABLE();
 	}
 
 	OrientedBoundingBox< CoordinateSpace::Model > createModelBoundingBox( const std::vector< Primitive >& primitives )
@@ -448,12 +449,23 @@ namespace fgl::engine
 		const std::vector< double > scale { node.scale };
 
 		if ( rotation.size() == 4 )
-			obj.getTransform().rotation = glm::quat( rotation[ 0 ], rotation[ 1 ], rotation[ 2 ], rotation[ 3 ] );
+			obj.getTransform().rotation = glm::quat(
+				static_cast< float >( rotation[ 0 ] ),
+				static_cast< float >( rotation[ 1 ] ),
+				static_cast< float >( rotation[ 2 ] ),
+				static_cast< float >( rotation[ 3 ] ) );
 
-		if ( scale.size() == 3 ) obj.getTransform().scale = glm::vec3( scale[ 0 ], scale[ 1 ], scale[ 2 ] );
+		if ( scale.size() == 3 )
+			obj.getTransform().scale = glm::vec3(
+				static_cast< float >( scale[ 0 ] ),
+				static_cast< float >( scale[ 1 ] ),
+				static_cast< float >( scale[ 2 ] ) );
 
 		if ( translation.size() == 3 )
-			obj.getTransform().translation = WorldCoordinate( translation[ 0 ], translation[ 1 ], translation[ 2 ] );
+			obj.getTransform().translation = WorldCoordinate(
+				static_cast< float >( translation[ 0 ] ),
+				static_cast< float >( translation[ 1 ] ),
+				static_cast< float >( translation[ 2 ] ) );
 
 		obj.getName() = node.name;
 

@@ -4,7 +4,10 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 #include <glm/vec2.hpp>
+#pragma GCC diagnostic pop
 
 #include <vector>
 

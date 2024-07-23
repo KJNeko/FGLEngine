@@ -15,6 +15,8 @@
 // clang-format on
 
 #include "engine/FrameInfo.hpp"
+#include "engine/camera/Camera.hpp"
+#include "engine/camera/CameraSwapchain.hpp"
 #include "engine/filesystem/scanner/FileScanner.hpp"
 #include "engine/filesystem/types.hpp"
 #include "engine/gameobjects/components/ModelComponent.hpp"
@@ -99,7 +101,7 @@ namespace fgl::engine::gui
 	void drawRenderingOutputs( FrameInfo& info )
 	{
 		ZoneScoped;
-		const auto present_idx { info.present_idx };
+		const auto frame_index { info.frame_idx };
 
 		ImGui::Begin( "RenderOutputs" );
 
@@ -142,7 +144,7 @@ namespace fgl::engine::gui
 				current = Composite;
 			}
 
-			info.swap_chain.g_buffer_albedo_img[ present_idx ]->drawImGui( { v_size, h_size } );
+			info.camera_data.camera.getSwapchain().g_buffer_albedo_img[ frame_index ]->drawImGui( { v_size, h_size } );
 			ImGui::SameLine();
 			if ( ImGui::Selectable( options[ Albedo ], current == Albedo ) )
 			{
@@ -150,7 +152,7 @@ namespace fgl::engine::gui
 				current = Albedo;
 			}
 
-			info.swap_chain.g_buffer_normal_img[ present_idx ]->drawImGui( { v_size, h_size } );
+			info.camera_data.camera.getSwapchain().g_buffer_normal_img[ frame_index ]->drawImGui( { v_size, h_size } );
 			ImGui::SameLine();
 			if ( ImGui::Selectable( options[ Normal ], current == Normal ) )
 			{
@@ -158,7 +160,8 @@ namespace fgl::engine::gui
 				current = Normal;
 			}
 
-			info.swap_chain.g_buffer_position_img[ present_idx ]->drawImGui( { v_size, h_size } );
+			info.camera_data.camera.getSwapchain().g_buffer_position_img[ frame_index ]->drawImGui( { v_size,
+			                                                                                          h_size } );
 			ImGui::SameLine();
 			if ( ImGui::Selectable( options[ Position ], current == Position ) )
 			{
@@ -174,16 +177,16 @@ namespace fgl::engine::gui
 			default:
 				[[fallthrough]];
 			case Composite:
-				info.swap_chain.g_buffer_composite_img[ present_idx ]->drawImGui();
+				info.camera_data.camera.getSwapchain().g_buffer_composite_img[ frame_index ]->drawImGui();
 				break;
 			case Albedo:
-				info.swap_chain.g_buffer_albedo_img[ present_idx ]->drawImGui();
+				info.camera_data.camera.getSwapchain().g_buffer_albedo_img[ frame_index ]->drawImGui();
 				break;
 			case Normal:
-				info.swap_chain.g_buffer_normal_img[ present_idx ]->drawImGui();
+				info.camera_data.camera.getSwapchain().g_buffer_normal_img[ frame_index ]->drawImGui();
 				break;
 			case Position:
-				info.swap_chain.g_buffer_position_img[ present_idx ]->drawImGui();
+				info.camera_data.camera.getSwapchain().g_buffer_position_img[ frame_index ]->drawImGui();
 				break;
 		}
 

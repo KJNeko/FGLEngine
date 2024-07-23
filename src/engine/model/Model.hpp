@@ -4,7 +4,11 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wduplicated-branches"
 #include <glm/glm.hpp>
+#pragma GCC diagnostic pop
 
 #include <filesystem>
 #include <memory>

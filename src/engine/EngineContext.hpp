@@ -7,10 +7,7 @@
 #include "Window.hpp"
 #include "engine/literals/size.hpp"
 #include "engine/rendering/Renderer.hpp"
-#include "engine/systems/CullingSystem.hpp"
-#include "engine/systems/EntityRendererSystem.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
-#include "systems/CompositionSystem.hpp"
 #include "systems/GuiSystem.hpp"
 #include "systems/TerrainSystem.hpp"
 
@@ -49,14 +46,6 @@ namespace fgl::engine
 			vk::MemoryPropertyFlagBits::eDeviceLocal ) };
 
 		// SubPass 0
-		CullingSystem m_culling_system {};
-		TerrainSystem m_terrain_system { Device::getInstance(), m_renderer.getSwapChainRenderPass() };
-		EntityRendererSystem m_entity_renderer { Device::getInstance(), m_renderer.getSwapChainRenderPass() };
-
-		// SubPass 1
-		CompositionSystem m_composition_system { Device::getInstance(), m_renderer.getSwapChainRenderPass() };
-
-		// SubPass 2
 		GuiSystem m_gui_system { Device::getInstance(), m_renderer.getSwapChainRenderPass() };
 
 		void loadGameObjects();

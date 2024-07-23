@@ -11,7 +11,6 @@
 
 #include "Device.hpp"
 #include "SwapChain.hpp"
-#include "engine/Window.hpp"
 
 //clang-format: off
 #include <tracy/TracyVulkan.hpp>
@@ -40,16 +39,6 @@ namespace fgl::engine
 		void recreateSwapchain();
 
 	  public:
-
-		descriptors::DescriptorSet& getGBufferDescriptor( std::uint16_t frame_idx ) const
-		{
-			return m_swapchain->getGBufferDescriptor( frame_idx );
-		}
-
-		descriptors::DescriptorSet& getGBufferCompositeDescriptor( std::uint16_t frame_idx ) const
-		{
-			return m_swapchain->getGBufferCompositeDescriptor( frame_idx );
-		}
 
 		FrameIndex getFrameIndex() const
 		{

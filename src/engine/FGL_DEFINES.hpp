@@ -14,7 +14,6 @@
 #define FGL_DELETE_ALL_Ro5( ClassName )                                                                                \
 	FGL_DELETE_DEFAULT_CTOR( ClassName ) FGL_DELETE_COPY( ClassName ) FGL_DELETE_MOVE( ClassName )
 
-//#define FGL_FLATTEN __attribute__( ( flatten ) )
 #define FGL_FLATTEN [[gnu::flatten]]
 #define FGL_ARTIFICIAL [[gnu::artificial]]
 #define FGL_HOT [[gnu::hot]]
@@ -34,3 +33,13 @@
 
 //! Warns if the structure field is not alligned with a set number of bytes
 #define FGL_STRICT_ALIGNMENT( bytesize ) [[gnu::warn_if_not_aligned( bytesize )]]
+
+#define FGL_ASSERT( ... ) assert( __VA_ARGS__ );
+
+#ifndef NDEBUG
+#define FGL_UNREACHABLE()                                                                                              \
+	FGL_ASSERT( false );                                                                                               \
+	std::unreachable()
+#else
+#define FGL_UNREACHABLE() std::unreachable()
+#endif
