@@ -8,6 +8,9 @@
 #include <glm/gtx/string_cast.hpp>
 #include <tracy/Tracy.hpp>
 
+#include "CameraDescriptor.hpp"
+#include "CameraInfo.hpp"
+#include "CameraRenderer.hpp"
 #include "CameraSwapchain.hpp"
 
 namespace fgl::engine
@@ -40,9 +43,28 @@ namespace fgl::engine
 		return WorldCoordinate( inverse_view_matrix[ 3 ] );
 	}
 
-	void Camera::pass( FrameInfo& frame_info ) const
+	void Camera::updateInfo( const FrameIndex frame_index )
 	{
+		CameraInfo current_camera_info { .projection = getProjectionMatrix(),
+			                             .view = getViewMatrix(),
+			                             .inverse_view = getInverseViewMatrix() };
+
+		m_camera_frame_info[ frame_index ] = current_camera_info;
+	}
+
+	descriptors::DescriptorSet& Camera::getDescriptor( const FrameIndex index )
+	{
+		assert( index < m_camera_info_descriptors.size() );
+		return m_camera_info_descriptors[ index ];
+	}
+
+	void Camera::pass( FrameInfo& frame_info )
+	{
+		assert( frame_info.camera_data.camera == nullptr );
+		frame_info.camera_data.camera = this;
+		updateInfo( frame_info.frame_idx );
 		m_renderer->pass( frame_info, *m_swapchain );
+		frame_info.camera_data.camera = nullptr;
 	}
 
 	vk::raii::RenderPass& Camera::getRenderpass()
@@ -262,12 +284,23 @@ namespace fgl::engine
 		m_renderer = std::make_unique< CameraRenderer >();
 	}
 
-	Camera::Camera( const vk::Extent2D extent ) :
+	Camera::Camera( const vk::Extent2D extent, memory::Buffer& buffer ) :
 	  m_extent( extent ),
+	  m_camera_frame_info( buffer, SwapChain::MAX_FRAMES_IN_FLIGHT ),
 	  m_swapchain( std::make_shared< CameraSwapchain >( m_renderer->getRenderpass(), m_extent ) )
 	{
 		this->setPerspectiveProjection( 90.0f, 16.0f / 9.0f, constants::NEAR_PLANE, constants::FAR_PLANE );
 		this->setView( WorldCoordinate( constants::CENTER ), Rotation( 0.0f, 0.0f, 0.0f ) );
+
+		for ( std::uint8_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
+		{
+			descriptors::DescriptorSet set { CameraDescriptorSet::createLayout() };
+			set.setMaxIDX( 0 );
+			set.bindUniformBuffer( 0, m_camera_frame_info[ i ] );
+			set.update();
+
+			m_camera_info_descriptors.emplace_back( std::move( set ) );
+		}
 	}
 
 	void Camera::setExtent( const vk::Extent2D extent )
@@ -339,5 +372,8 @@ namespace fgl::engine
 	{
 		return last_frustum_pos;
 	}
+
+	Camera::~Camera()
+	{}
 
 } // namespace fgl::engine

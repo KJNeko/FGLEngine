@@ -8,9 +8,7 @@
 #include "Shader.hpp"
 #include "engine/concepts/is_descriptor_set_collection.hpp"
 #include "engine/concepts/is_empty_descriptor_set.hpp"
-#include "engine/concepts/is_valid_pipeline_input.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
-#include "engine/descriptors/createDescriptorSets.hpp"
 
 namespace fgl::engine
 {
@@ -25,7 +23,7 @@ namespace fgl::engine
 
 		//! Returns the binding type assocaited with the index
 		template < std::uint16_t binding_set_idx >
-		using BindingSet = DescriptorSetCollection::template BindingSet< binding_set_idx >;
+		using BindingSet = typename DescriptorSetCollection::template BindingSet< binding_set_idx >;
 
 		constexpr static std::uint16_t max_binding_set { DescriptorSetCollection::max_binding_set };
 

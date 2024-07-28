@@ -23,4 +23,6 @@ namespace fgl::engine::gui
 	void drawEntityInfo( FrameInfo& );
 	void drawFilesystemGUI( FrameInfo& info );
 
+	void drawCameraOutputs( FrameInfo& info );
+
 } // namespace fgl::engine::gui

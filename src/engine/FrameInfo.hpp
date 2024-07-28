@@ -35,26 +35,13 @@ namespace fgl::engine
 		glm::vec4 color {};
 	};
 
-	struct CameraInfo
-	{
-		glm::mat4 projection { 1.0f };
-		glm::mat4 view { 1.0f };
-		glm::mat4 inverse_view { 1.0f };
-	};
-
 	struct PointLightUBO
 	{
 		alignas( 16 ) PointLight point_lights[ MAX_LIGHTS ] {};
 		alignas( 16 ) int num_lights { 0 };
 	};
 
-	using CameraDescriptor =
-		descriptors::Descriptor< 0, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eAllGraphics >;
-	using LightDescriptor =
-		descriptors::Descriptor< 2, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eAllGraphics >;
-
-	using GlobalDescriptorSet =
-		descriptors::DescriptorSetLayout< 0, CameraDescriptor, descriptors::EmptyDescriptor< 1 >, LightDescriptor >;
+	//using GlobalDescriptorSet = descriptors::DescriptorSetLayout< 0, descriptors::EmptyDescriptor< 0 > >;
 
 	using TextureDescriptor = descriptors::Descriptor<
 		0,
@@ -63,7 +50,7 @@ namespace fgl::engine
 		512,
 		vk::DescriptorBindingFlagBits::eUpdateAfterBind | vk::DescriptorBindingFlagBits::ePartiallyBound >;
 
-	using TextureDescriptorSet = descriptors::DescriptorSetLayout< 1, TextureDescriptor >;
+	using TextureDescriptorSet = descriptors::DescriptorSetLayout< 2, TextureDescriptor >;
 
 	using PositionDescriptor = descriptors::AttachmentDescriptor< 0, vk::ShaderStageFlagBits::eFragment >;
 	using NormalDescriptor = descriptors::AttachmentDescriptor< 1, vk::ShaderStageFlagBits::eFragment >;
@@ -90,11 +77,13 @@ namespace fgl::engine
 
 		struct
 		{
-			Camera& camera;
+			Camera* camera { nullptr };
 			TransformComponent& camera_transform;
 		} camera_data;
 
-		descriptors::DescriptorSet& global_descriptor_set;
+		std::vector< std::weak_ptr< Camera > >& m_camera_list;
+
+		// descriptors::DescriptorSet& global_descriptor_set;
 		OctTreeNode& game_objects;
 		TracyVkCtx tracy_ctx;
 
@@ -108,8 +97,8 @@ namespace fgl::engine
 		descriptors::DescriptorSet& gui_input_descriptor;
 
 		descriptors::DescriptorSet& getGBufferDescriptor();
+		descriptors::DescriptorSet& getCameraDescriptor();
 
-		const Frustum< CoordinateSpace::World >& camera_frustum;
 		SwapChain& swap_chain;
 
 		std::vector< std::vector< GameObject >* > in_view_leafs {};

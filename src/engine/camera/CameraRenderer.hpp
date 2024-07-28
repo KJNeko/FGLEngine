@@ -9,7 +9,6 @@
 #include "engine/systems/CompositionSystem.hpp"
 #include "engine/systems/CullingSystem.hpp"
 #include "engine/systems/EntityRendererSystem.hpp"
-#include "engine/systems/TerrainSystem.hpp"
 
 namespace fgl::engine
 {
@@ -25,7 +24,7 @@ namespace fgl::engine
 		CullingSystem m_culling_system {};
 
 		// SubPass 0
-		TerrainSystem m_terrain_system { Device::getInstance(), m_renderpass };
+		//TerrainSystem m_terrain_system { Device::getInstance(), m_renderpass };
 		EntityRendererSystem m_entity_renderer { Device::getInstance(), m_renderpass };
 
 		// SubPass 1

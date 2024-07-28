@@ -12,7 +12,12 @@ namespace fgl::engine
 
 	descriptors::DescriptorSet& FrameInfo::getGBufferDescriptor()
 	{
-		return camera_data.camera.getSwapchain().getGBufferDescriptor( frame_idx );
+		return camera_data.camera->getSwapchain().getGBufferDescriptor( frame_idx );
+	}
+
+	descriptors::DescriptorSet& FrameInfo::getCameraDescriptor()
+	{
+		return camera_data.camera->getDescriptor( frame_idx );
 	}
 
 } // namespace fgl::engine

@@ -143,7 +143,7 @@ namespace fgl::engine::gui
 		//static std::once_flag flag;
 		//std::call_once( flag, prepareDock );
 
-		drawRenderingOutputs( info );
+		drawCameraOutputs( info );
 		drawEntityGUI( info );
 		drawEntityInfo( info );
 		drawFilesystemGUI( info );

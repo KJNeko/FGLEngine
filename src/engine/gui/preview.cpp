@@ -98,12 +98,33 @@ namespace fgl::engine::gui
 		}
 	}
 
-	void drawRenderingOutputs( FrameInfo& info )
+	vk::Extent2D calculateTargetSize( const float ratio, const vk::Extent2D max_extent )
+	{
+		// r = w/h
+		// w = r*h
+		// h = w/r
+		float height_size { static_cast< float >( max_extent.height ) };
+		float width_size { ratio * static_cast< float >( max_extent.height ) };
+
+		// If height is larger then the size then we need to compute the width from the height max
+		if ( width_size > max_extent.width )
+		{
+			width_size = static_cast< float >( max_extent.width );
+			height_size = static_cast< float >( max_extent.width ) / ratio;
+		}
+
+		return { static_cast< std::uint32_t >( width_size ), static_cast< std::uint32_t >( height_size ) };
+	}
+
+	FGL_FORCE_INLINE_FLATTEN vk::Extent2D calculateTargetSize( const float ratio, const ImVec2 max_extent )
+	{
+		return calculateTargetSize( ratio, vk::Extent2D( max_extent.x, max_extent.y ) );
+	}
+
+	void drawRenderingOutputs( FrameInfo& info, const Camera& camera )
 	{
 		ZoneScoped;
 		const auto frame_index { info.frame_idx };
-
-		ImGui::Begin( "RenderOutputs" );
 
 		enum RenderingOutputSelection : std::uint_fast8_t
 		{
@@ -118,24 +139,10 @@ namespace fgl::engine::gui
 
 		if ( ImGui::BeginCombo( "Rendering Output", options[ current ] ) )
 		{
-			constexpr float desired_size { 64 };
+			constexpr vk::Extent2D desired_size { 64, 64 };
 			//Calculate size
 			const float ratio { info.swap_chain.extentAspectRatio() };
-
-			// h = w/h
-
-			float fh_size { desired_size };
-			float fv_size { desired_size * ratio };
-
-			// If height is larger then the size then we need to compute the width from the height max
-			if ( fv_size > desired_size )
-			{
-				fv_size = desired_size;
-				fh_size = fv_size / ratio;
-			}
-
-			std::uint32_t h_size { static_cast< std::uint32_t >( fh_size ) };
-			std::uint32_t v_size { static_cast< std::uint32_t >( fv_size ) };
+			const auto size { calculateTargetSize( ratio, desired_size ) };
 
 			//Composite
 			if ( ImGui::Selectable( options[ Composite ], current == Composite ) )
@@ -144,7 +151,7 @@ namespace fgl::engine::gui
 				current = Composite;
 			}
 
-			info.camera_data.camera.getSwapchain().g_buffer_albedo_img[ frame_index ]->drawImGui( { v_size, h_size } );
+			camera.getSwapchain().g_buffer_albedo_img[ frame_index ]->drawImGui( size );
 			ImGui::SameLine();
 			if ( ImGui::Selectable( options[ Albedo ], current == Albedo ) )
 			{
@@ -152,7 +159,7 @@ namespace fgl::engine::gui
 				current = Albedo;
 			}
 
-			info.camera_data.camera.getSwapchain().g_buffer_normal_img[ frame_index ]->drawImGui( { v_size, h_size } );
+			camera.getSwapchain().g_buffer_normal_img[ frame_index ]->drawImGui( size );
 			ImGui::SameLine();
 			if ( ImGui::Selectable( options[ Normal ], current == Normal ) )
 			{
@@ -160,8 +167,7 @@ namespace fgl::engine::gui
 				current = Normal;
 			}
 
-			info.camera_data.camera.getSwapchain().g_buffer_position_img[ frame_index ]->drawImGui( { v_size,
-			                                                                                          h_size } );
+			camera.getSwapchain().g_buffer_position_img[ frame_index ]->drawImGui( size );
 			ImGui::SameLine();
 			if ( ImGui::Selectable( options[ Position ], current == Position ) )
 			{
@@ -172,27 +178,31 @@ namespace fgl::engine::gui
 			ImGui::EndCombo();
 		}
 
+		const float ratio { info.swap_chain.extentAspectRatio() };
+		const auto imgui_size { ImGui::GetWindowSize() };
+		const auto target_size { calculateTargetSize( ratio, imgui_size ) };
+
+		//Compute optimal size using aspect ratio
+
 		switch ( current )
 		{
 			default:
 				[[fallthrough]];
 			case Composite:
-				info.camera_data.camera.getSwapchain().g_buffer_composite_img[ frame_index ]->drawImGui();
+				camera.getSwapchain().g_buffer_composite_img[ frame_index ]->drawImGui( target_size );
 				break;
 			case Albedo:
-				info.camera_data.camera.getSwapchain().g_buffer_albedo_img[ frame_index ]->drawImGui();
+				camera.getSwapchain().g_buffer_albedo_img[ frame_index ]->drawImGui( target_size );
 				break;
 			case Normal:
-				info.camera_data.camera.getSwapchain().g_buffer_normal_img[ frame_index ]->drawImGui();
+				camera.getSwapchain().g_buffer_normal_img[ frame_index ]->drawImGui( target_size );
 				break;
 			case Position:
-				info.camera_data.camera.getSwapchain().g_buffer_position_img[ frame_index ]->drawImGui();
+				camera.getSwapchain().g_buffer_position_img[ frame_index ]->drawImGui( target_size );
 				break;
 		}
 
 		handleDragDrop( info );
-
-		ImGui::End();
 	}
 
 } // namespace fgl::engine::gui

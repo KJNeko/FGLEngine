@@ -13,15 +13,26 @@
 #pragma GCC diagnostic pop
 
 #include "CameraRenderer.hpp"
-#include "engine/constants.hpp"
+#include "engine/buffers/HostSingleT.hpp"
+#include "engine/buffers/UniqueFrameSuballocation.hpp"
+#include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/primitives/Frustum.hpp"
-#include "engine/primitives/TransformComponent.hpp"
-#include "engine/primitives/matricies/Matrix.hpp"
-#include "engine/primitives/points/Coordinate.hpp"
-#include "engine/rendering/SwapChain.hpp"
+#include "engine/primitives/Rotation.hpp"
+#include "engine/rendering/types.hpp"
+
+namespace vk::raii
+{
+	class CommandBuffer;
+	class RenderPass;
+} // namespace vk::raii
 
 namespace fgl::engine
 {
+	class Image;
+	struct FrameInfo;
+	class CameraRenderer;
+
+	struct CameraInfo;
 	class CameraSwapchain;
 	class Camera;
 
@@ -49,6 +60,11 @@ namespace fgl::engine
 
 		vk::Extent2D m_extent;
 
+		PerFrameSuballocation< HostSingleT< CameraInfo > > m_camera_frame_info;
+
+		// Camera info is expected at binding 0
+		std::vector< descriptors::DescriptorSet > m_camera_info_descriptors {};
+
 		inline static std::unique_ptr< CameraRenderer > m_renderer;
 		std::shared_ptr< CameraSwapchain > m_swapchain;
 
@@ -56,11 +72,19 @@ namespace fgl::engine
 
 		void updateFrustum();
 
+		Camera( vk::Extent2D extent, memory::Buffer& data_buffer );
+
+		friend class CameraManager;
+
 	  public:
 
-		static void initCameraRenderer();
+		FGL_DELETE_ALL_Ro5( Camera );
 
-		Camera( vk::Extent2D extent );
+		~Camera();
+
+		CameraIDX getIDX() { return camera_idx; }
+
+		static void initCameraRenderer();
 
 		void setExtent( vk::Extent2D extent );
 
@@ -81,25 +105,45 @@ namespace fgl::engine
 
 		glm::mat4 getInverseViewMatrix() const { return glm::inverse( view_matrix ); }
 
+		enum ViewMode
+		{
+			Euler,
+			TaitBryan
+		};
+
+		void setView( WorldCoordinate pos, const Rotation& rotation, ViewMode mode = TaitBryan );
 		void setOrthographicProjection( float left, float right, float top, float bottom, float near, float far );
 		void setPerspectiveProjection( float fovy, float aspect, float near, float far );
 
 		Coordinate< CoordinateSpace::World > getPosition() const;
 
-		Vector getUp() const { return -getDown(); }
+		FGL_FORCE_INLINE Vector getUp() const { return -getDown(); }
 
-		Vector getRight() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 0 ] ) ) ); }
+		FGL_FORCE_INLINE Vector getRight() const
+		{
+			return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 0 ] ) ) );
+		}
 
-		Vector getForward() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 2 ] ) ) ); }
+		FGL_FORCE_INLINE Vector getForward() const
+		{
+			return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 2 ] ) ) );
+		}
 
-		Vector getLeft() const { return -getRight(); }
+		FGL_FORCE_INLINE Vector getLeft() const { return -getRight(); }
 
-		Vector getBackward() const { return -getForward(); }
+		FGL_FORCE_INLINE Vector getBackward() const { return -getForward(); }
 
-		Vector getDown() const { return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 1 ] ) ) ); }
+		FGL_FORCE_INLINE Vector getDown() const
+		{
+			return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 1 ] ) ) );
+		}
+
+		//! Updates the required info for rendering
+		void updateInfo( FrameIndex frame_index );
+		descriptors::DescriptorSet& getDescriptor( FrameIndex index );
 
 		//! Performs the render pass for this camera
-		void pass( FrameInfo& frame_info ) const;
+		void pass( FrameInfo& frame_info );
 
 		static vk::raii::RenderPass& getRenderpass();
 		CameraSwapchain& getSwapchain() const;
@@ -110,14 +154,6 @@ namespace fgl::engine
 		void endRenderpass( const vk::raii::CommandBuffer& command_buffer );
 
 		void copyOutput( const vk::raii::CommandBuffer& command_buffer, FrameIndex frame_index, Image& target );
-
-		enum ViewMode
-		{
-			Euler,
-			TaitBryan
-		};
-
-		void setView( WorldCoordinate pos, const Rotation& rotation, ViewMode mode = TaitBryan );
 	};
 
 } // namespace fgl::engine

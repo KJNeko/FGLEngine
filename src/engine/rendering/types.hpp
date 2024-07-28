@@ -10,4 +10,6 @@ namespace fgl::engine
 {
 	using PresentIndex = std::uint16_t;
 	using FrameIndex = std::uint16_t;
+
+	using CameraIndex = std::uint16_t;
 }

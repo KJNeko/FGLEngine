@@ -8,6 +8,7 @@
 #include "concepts.hpp"
 #include "engine/FrameInfo.hpp"
 #include "engine/buffers/vector/HostVector.hpp"
+#include "engine/camera/Camera.hpp"
 #include "engine/descriptors/DescriptorSetCollection.hpp"
 #include "engine/model/Model.hpp"
 #include "engine/pipeline/PipelineT.hpp"
@@ -15,6 +16,8 @@
 
 namespace fgl::engine
 {
+
+	/*
 	class TerrainSystem
 	{
 		using VertexShader = VertexShaderT< "shaders/terrain/terrain.vert.spv" >;
@@ -23,7 +26,8 @@ namespace fgl::engine
 		using TessEShader = TesselationEvaluationShaderT< "shaders/terrain/terrain.tese.spv" >;
 
 		using Shaders = ShaderCollection< VertexShader, FragmentShader, TessCShader, TessEShader >;
-		using DescriptorSets = descriptors::DescriptorSetCollection< GlobalDescriptorSet, TextureDescriptorSet >;
+		using DescriptorSets =
+			descriptors::DescriptorSetCollection< GlobalDescriptorSet, CameraDescriptorSet, TextureDescriptorSet >;
 
 		using Pipeline = PipelineT< Shaders, DescriptorSets >;
 
@@ -73,6 +77,8 @@ namespace fgl::engine
 	};
 
 	static_assert( is_system< TerrainSystem > );
+	*/
+
 } // namespace fgl::engine
 
 #endif //GAME_TERRAINSYSTEM_HPP

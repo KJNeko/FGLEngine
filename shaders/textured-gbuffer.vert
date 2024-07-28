@@ -14,7 +14,7 @@ layout (location = 1) out vec2 out_tex_coord;
 layout (location = 2) out vec3 out_world_pos;
 layout (location = 3) out flat uint out_texture_idx;
 
-layout (set = 0, binding = 0) uniform CameraInfo {
+layout (set = 1, binding = 0) uniform CameraInfo {
     mat4 projection;
     mat4 view;
     mat4 inverse_view;

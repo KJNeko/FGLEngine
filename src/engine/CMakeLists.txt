@@ -40,18 +40,18 @@ target_compile_features(FGLEngine PRIVATE cxx_std_23)
 
 string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_UPPER_BUILD_TYPE)
 
-if (NOT DEFINED FORCE_DISABLE_IMGUI)
-	set(FORCE_DISABLE_IMGUI 0)
+if (NOT DEFINED FGL_ENABLE_IMGUI AND CMAKE_UPPER_BUILD_TYPE STREQUAL "DEBUG")
+	set(FGL_ENABLE_IMGUI 1)
 endif ()
 
-if (FORCE_DISABLE_IMGUI EQUAL 0)
-	if (CMAKE_UPPER_BUILD_TYPE STREQUAL "DEBUG" OR CMAKE_UPPER_BUILD_TYPE STREQUAL "RELWITHDEBINFO")
-		target_compile_definitions(FGLEngine PRIVATE ENABLE_IMGUI=1)
-		target_compile_definitions(FGLEngine PRIVATE ENABLE_IMGUI_DRAWERS=1)
-	else ()
-		target_compile_definitions(FGLEngine PRIVATE ENABLE_IMGUI=0)
-		target_compile_definitions(FGLEngine PRIVATE ENABLE_IMGUI_DRAWERS=0)
-	endif ()
+message("-- FGL_ENABLE_IMGUI: ${FGL_ENABLE_IMGUI}")
+
+if (FGL_ENABLE_IMGUI)
+	target_compile_definitions(FGLEngine PRIVATE ENABLE_IMGUI=1)
+	target_compile_definitions(FGLEngine PRIVATE ENABLE_IMGUI_DRAWERS=1)
+else ()
+	target_compile_definitions(FGLEngine PRIVATE ENABLE_IMGUI=0)
+	target_compile_definitions(FGLEngine PRIVATE ENABLE_IMGUI_DRAWERS=0)
 endif ()
 
 #GLM settings

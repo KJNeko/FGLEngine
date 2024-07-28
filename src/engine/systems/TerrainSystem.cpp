@@ -7,11 +7,13 @@
 #include <tracy/Tracy.hpp>
 
 #include "DrawPair.hpp"
+#include "engine/camera/Camera.hpp"
 #include "engine/literals/size.hpp"
 
 namespace fgl::engine
 {
 
+	/*
 	TerrainSystem::TerrainSystem( Device& device, vk::raii::RenderPass& render_pass )
 	{
 		ZoneScoped;
@@ -58,7 +60,7 @@ namespace fgl::engine
 		return;
 
 		auto [ draw_commands, model_matricies ] =
-			getDrawCallsFromTree( info.game_objects, info.camera_frustum, IS_VISIBLE );
+			getDrawCallsFromTree( info.game_objects, info.camera_data.camera.getFrustumBounds(), IS_VISIBLE );
 
 		if ( draw_commands.size() == 0 ) return;
 
@@ -84,5 +86,6 @@ namespace fgl::engine
 			draw_parameter_buffer->size(),
 			draw_parameter_buffer->stride() );
 	}
+	*/
 
 } // namespace fgl::engine

@@ -7,7 +7,7 @@
 #include <tracy/TracyC.h>
 
 #include "engine/FrameInfo.hpp"
-#include "engine/debug/drawers.hpp"
+#include "engine/camera/Camera.hpp"
 #include "engine/model/Model.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
 
@@ -24,7 +24,7 @@ namespace fgl::engine
 	{
 		ZoneScopedN( "Culling pass" );
 
-		const auto frustum { info.camera_frustum };
+		const auto frustum { info.camera_data.camera->getFrustumBounds() };
 
 		if ( !enable_culling )
 		{

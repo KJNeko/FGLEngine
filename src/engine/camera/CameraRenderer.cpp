@@ -137,7 +137,7 @@ namespace fgl::engine
 
 		m_culling_system.wait();
 
-		m_terrain_system.pass( frame_info );
+		//m_terrain_system.pass( frame_info );
 
 		m_entity_renderer.pass( frame_info );
 

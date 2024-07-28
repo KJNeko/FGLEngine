@@ -15,13 +15,13 @@
 #include "assets/stores.hpp"
 #include "buffers/HostSingleT.hpp"
 #include "camera/Camera.hpp"
+#include "camera/CameraManager.hpp"
 #include "engine/Average.hpp"
 #include "engine/assets/TransferManager.hpp"
 #include "engine/buffers/UniqueFrameSuballocation.hpp"
 #include "engine/debug/drawers.hpp"
 #include "engine/literals/size.hpp"
 #include "engine/model/prebuilt/terrainModel.hpp"
-#include "engine/pipeline/PipelineT.hpp"
 #include "engine/systems/EntityRendererSystem.hpp"
 #include "gui/core.hpp"
 #include "model/builders/SceneBuilder.hpp"
@@ -49,16 +49,13 @@ namespace fgl::engine
 	{
 		TracyCZoneN( TRACY_PrepareEngine, "Inital Run", true );
 		std::cout << "Starting main loop run" << std::endl;
-		using namespace fgl::literals::size_literals;
 		memory::Buffer global_ubo_buffer { 512_KiB,
 			                               vk::BufferUsageFlagBits::eUniformBuffer,
 			                               vk::MemoryPropertyFlagBits::eHostVisible }; // 512 KB
 
 		//Camera prep
-		Camera::initCameraRenderer();
 
-		PerFrameSuballocation< HostSingleT< CameraInfo > > camera_info { global_ubo_buffer,
-			                                                             SwapChain::MAX_FRAMES_IN_FLIGHT };
+		CameraManager camera_manager {};
 
 		PerFrameSuballocation< HostSingleT< PointLight > > point_lights { global_ubo_buffer,
 			                                                              SwapChain::MAX_FRAMES_IN_FLIGHT };
@@ -74,7 +71,7 @@ namespace fgl::engine
 
 		std::vector< memory::Buffer > draw_parameter_buffers {};
 
-		std::vector< descriptors::DescriptorSet > global_descriptor_sets {};
+		// std::vector< descriptors::DescriptorSet > global_descriptor_sets {};
 
 		for ( int i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
 		{
@@ -88,19 +85,15 @@ namespace fgl::engine
 				vk::BufferUsageFlagBits::eIndirectBuffer,
 				vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible );
 
-			global_descriptor_sets.emplace_back( GlobalDescriptorSet::createLayout() );
+			// global_descriptor_sets.emplace_back( GlobalDescriptorSet::createLayout() );
 		}
 
-		for ( std::uint8_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
-		{
-			global_descriptor_sets[ i ].setMaxIDX( 2 );
-			global_descriptor_sets[ i ].bindUniformBuffer( 0, camera_info[ i ] );
-			global_descriptor_sets[ i ].bindUniformBuffer( 2, point_lights[ i ] );
-			global_descriptor_sets[ i ].update();
-		}
-
-		Camera camera { vk::Extent2D( 1920, 1080 ) };
-		debug::setDebugDrawingCamera( camera );
+		// for ( std::uint8_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
+		// {
+		// global_descriptor_sets[ i ].setMaxIDX( 2 );
+		// global_descriptor_sets[ i ].bindUniformBuffer( 2, point_lights[ i ] );
+		// global_descriptor_sets[ i ].update();
+		// }
 
 		auto viewer { GameObject::createGameObject() };
 
@@ -114,14 +107,22 @@ namespace fgl::engine
 
 		//camera.setOrthographicProjection( -aspect, aspect, -1, 1, -1, 1 );
 		const float aspect { m_renderer.getAspectRatio() };
-		camera.setPerspectiveProjection( glm::radians( 90.0f ), aspect, constants::NEAR_PLANE, constants::FAR_PLANE );
+
+		auto& primary_camera { camera_manager.getPrimary() };
+		auto secondary_camera { camera_manager.createCamera( { 1920, 1080 } ) };
+
+		primary_camera
+			.setPerspectiveProjection( glm::radians( 90.0f ), aspect, constants::NEAR_PLANE, constants::FAR_PLANE );
+		secondary_camera
+			->setPerspectiveProjection( glm::radians( 90.0f ), aspect, constants::NEAR_PLANE, constants::FAR_PLANE );
 
 		const auto old_aspect_ratio { m_renderer.getAspectRatio() };
 
-		TracyCZoneEnd( TRACY_PrepareEngine );
+		camera_controller.moveInPlaneXZ( m_window.window(), 0.0, viewer );
+		primary_camera.setView( viewer.getPosition(), viewer.getRotation() );
+		secondary_camera->setView( viewer.getPosition(), viewer.getRotation() );
 
-		//TODO: Make a camera management object
-		std::vector< Camera* > cameras { &camera };
+		TracyCZoneEnd( TRACY_PrepareEngine );
 
 		while ( !m_window.shouldClose() )
 		{
@@ -148,12 +149,12 @@ namespace fgl::engine
 
 			if ( old_aspect_ratio != m_renderer.getAspectRatio() )
 			{
-				camera.setPerspectiveProjection(
+				primary_camera.setPerspectiveProjection(
 					glm::radians( 90.0f ), m_renderer.getAspectRatio(), constants::NEAR_PLANE, constants::FAR_PLANE );
 			}
 
 			camera_controller.moveInPlaneXZ( m_window.window(), delta_time, viewer );
-			camera.setView( viewer.getPosition(), viewer.getRotation() );
+			primary_camera.setView( viewer.getPosition(), viewer.getRotation() );
 
 			if ( auto& command_buffer = m_renderer.beginFrame(); *command_buffer )
 			{
@@ -161,14 +162,13 @@ namespace fgl::engine
 				const FrameIndex frame_index { m_renderer.getFrameIndex() };
 				const PresentIndex present_idx { m_renderer.getPresentIndex() };
 
-				const auto view_frustum { camera.getFrustumBounds() };
-
 				FrameInfo frame_info { frame_index,
 					                   present_idx,
 					                   delta_time,
 					                   command_buffer,
-					                   { camera, viewer.getTransform() },
-					                   global_descriptor_sets[ frame_index ],
+					                   { nullptr, viewer.getTransform() },
+					                   camera_manager.getCameras(),
+					                   // global_descriptor_sets[ frame_index ],
 					                   m_game_objects_root,
 					                   m_renderer.getCurrentTracyCTX(),
 					                   matrix_info_buffers[ frame_index ],
@@ -176,33 +176,32 @@ namespace fgl::engine
 					                   *this->m_vertex_buffer,
 					                   *this->m_index_buffer,
 					                   m_renderer.getSwapChain().getInputDescriptor( present_idx ),
-					                   view_frustum,
 					                   this->m_renderer.getSwapChain() };
 
 #if TRACY_ENABLE
 				//auto& tracy_ctx { frame_info.tracy_ctx };
 #endif
 
-				CameraInfo current_camera_info { .projection = camera.getProjectionMatrix(),
-					                             .view = camera.getViewMatrix(),
-					                             .inverse_view = camera.getInverseViewMatrix() };
-
-				camera_info[ frame_index ] = current_camera_info;
-
 				TracyVkCollect( frame_info.tracy_ctx, *command_buffer );
 
 				//TODO: Setup semaphores to make this pass not always required.
 				memory::TransferManager::getInstance().recordOwnershipTransferDst( command_buffer );
 
-				for ( auto* current_camera : cameras )
+				for ( auto& current_camera_ptr : camera_manager.getCameras() )
 				{
-					current_camera->pass( frame_info );
+					if ( current_camera_ptr.expired() ) continue;
+
+					auto sh_camera { current_camera_ptr.lock() };
+
+					Camera& current_camera { *sh_camera };
+
+					current_camera.pass( frame_info );
 				}
 
-				auto* primary_camera { cameras[ 0 ] };
+				m_renderer.clearInputImage( command_buffer );
 
-				primary_camera
-					->copyOutput( command_buffer, frame_index, m_renderer.getSwapChain().getInputImage( present_idx ) );
+				//primary_camera
+				//	.copyOutput( command_buffer, frame_index, m_renderer.getSwapChain().getInputImage( present_idx ) );
 
 				m_renderer.beginSwapchainRendererPass( command_buffer );
 

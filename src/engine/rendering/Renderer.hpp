@@ -87,6 +87,8 @@ namespace fgl::engine
 
 		SwapChain& getSwapChain() { return *m_swapchain; }
 
+		void clearInputImage( vk::raii::CommandBuffer& command_buffer );
+
 		Renderer( Window& window, PhysicalDevice& phy_device );
 		~Renderer();
 		Renderer( Renderer&& other ) = delete;

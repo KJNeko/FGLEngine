@@ -13,14 +13,13 @@ layout (location = 1) out vec2 out_tex_coord;
 layout (location = 2) out vec3 out_world_pos;
 layout (location = 3) out vec3 out_color;
 
-layout (set = 0, binding = 0) uniform CameraInfo {
+layout (set = 1, binding = 0) uniform CameraInfo {
     mat4 projection;
     mat4 view;
     mat4 inverse_view;
 } ubo;
 
 void main() {
-
     vec4 position_world = instance_model_matrix * vec4(position, 1.0);
 
     gl_Position = ubo.projection * ubo.view * position_world;

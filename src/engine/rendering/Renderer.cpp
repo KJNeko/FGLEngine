@@ -26,6 +26,24 @@
 namespace fgl::engine
 {
 
+	void Renderer::clearInputImage( vk::raii::CommandBuffer& command_buffer )
+	{
+		auto& image { getSwapChain().getInputImage( current_present_index ) };
+
+		vk::ImageSubresourceRange range {};
+		range.aspectMask = vk::ImageAspectFlagBits::eColor;
+		range.layerCount = 1;
+		range.baseArrayLayer = 0;
+		range.levelCount = 1;
+		range.baseMipLevel = 0;
+
+		command_buffer.clearColorImage(
+			image.getVkImage(),
+			vk::ImageLayout::eShaderReadOnlyOptimal,
+			vk::ClearColorValue( 0.0f, 0.0f, 0.0f, 0.0f ),
+			{ range } );
+	}
+
 	Renderer::Renderer( Window& window, PhysicalDevice& phy_device ) :
 	  m_window( window ),
 	  m_phy_device( phy_device ),
