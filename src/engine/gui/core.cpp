@@ -14,13 +14,15 @@
 #include <imgui.h>
 #pragma GCC diagnostic pop
 
+#include <imgui_internal.h>
+
+#include "dockspace.hpp"
 #include "engine/descriptors/DescriptorPool.hpp"
 #include "engine/filesystem/FileBrowser.hpp"
 #include "engine/model/Model.hpp"
 #include "engine/rendering/Device.hpp"
 #include "engine/rendering/Renderer.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
-#include "preview.hpp"
 
 namespace fgl::engine::gui
 {
@@ -74,8 +76,6 @@ namespace fgl::engine::gui
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
-		ImGui::DockSpaceOverViewport( 0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode );
-
 		ImGui::Begin( "Main" );
 	}
 
@@ -92,56 +92,87 @@ namespace fgl::engine::gui
 		//ImGui::RenderPlatformWindowsDefault();
 	}
 
-	/*
-	ImGui DockBuilder is still very much not ready for use.
-	void prepareDock()
+	inline void prepareDock( ImGuiID& primary_id )
 	{
-		// Docks seem utterly broken.
-		ImGuiID primary_id { ImGui::GetID( "WindowGroup" ) };
-
-		ImGui::DockSpaceOverViewport( primary_id, ImGui::GetMainViewport() );
-
 		ImGui::DockBuilderRemoveNode( primary_id );
-		ImGui::DockBuilderAddNode( primary_id, ImGuiDockNodeFlags_DockSpace );
+		ImGui::DockBuilderAddNode( primary_id, ImGuiDockNodeFlags_DockSpace | ImGuiDockNodeFlags_PassthruCentralNode );
 
-		const auto viewport { ImGui::GetMainViewport() };
-		ImGui::DockBuilderSetNodeSize( primary_id, viewport->Size );
+		ImGui::DockBuilderSetNodeSize( primary_id, ImGui::GetMainViewport()->WorkSize );
 
-		ImGuiID right {};
-		auto left { ImGui::DockBuilderSplitNode( primary_id, ImGuiDir_Left, 0.2f, nullptr, &right ) };
-		ImGui::DockBuilderAddNode( right );
-		auto center { ImGui::DockBuilderSplitNode( right, ImGuiDir_Left, 0.2f, nullptr, &right ) };
+		constexpr float left_bar_size { 0.2f };
+		constexpr float right_bar_size { 0.2f };
+		constexpr float bottom_bar_size { 0.4f };
 
-		ImGui::DockBuilderAddNode( center, ImGuiDockNodeFlags_DockSpace );
-		ImGui::DockBuilderAddNode( left, ImGuiDockNodeFlags_DockSpace );
-		ImGui::DockBuilderAddNode( right, ImGuiDockNodeFlags_DockSpace );
+		ImGuiID lb_node {
+			ImGui::DockBuilderSplitNode( primary_id, ImGuiDir_Left, left_bar_size, nullptr, &primary_id )
+		};
 
-		ImGuiID left_up {};
-		auto left_down { ImGui::DockBuilderSplitNode( primary_id, ImGuiDir_Down, 0.2f, nullptr, &left_up ) };
+		ImGuiID rb_node {
+			ImGui::DockBuilderSplitNode( primary_id, ImGuiDir_Right, right_bar_size, nullptr, &primary_id )
+		};
 
-		ImGui::DockBuilderDockWindow( "Scene", left_up );
-		ImGui::DockBuilderDockWindow( "Main", left_down );
+		ImGuiID bb_node {
+			ImGui::DockBuilderSplitNode( primary_id, ImGuiDir_Down, bottom_bar_size, nullptr, &primary_id )
+		};
 
-		ImGui::DockBuilderDockWindow( "Entity info", right );
+		ImGuiID mv_node { primary_id };
+		//ImGuiID mv_node { ImGui::DockBuilderSplitNode( primary_id, ImGuiDir_Up, 1.0f - 0.3f, &primary_id, nullptr ) };
 
-		ImGuiID up {};
-		auto down { ImGui::DockBuilderSplitNode( center, ImGuiDir_Down, 0.2f, nullptr, &up ) };
+		ImGui::DockBuilderDockWindow( "Scene", lb_node );
 
-		ImGui::DockBuilderDockWindow( "RenderOutputs", up );
-		ImGui::DockBuilderDockWindow( "File Picker", down );
+		//ImGui::DockBuilderDockWindow( "Main", mv_node );
+
+		ImGui::DockBuilderDockWindow( "Camera: 0", mv_node );
+
+		ImGui::DockBuilderDockWindow( "Entity info", rb_node );
+
+		ImGui::DockBuilderDockWindow( "File Picker", bb_node );
 
 		ImGui::DockBuilderFinish( primary_id );
 	}
-	*/
+
+	// ImGui DockBuilder is still very much not ready for use.
+	// But let's try it anyways
+	void drawDock()
+	{
+		// ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0.0f, 0.0f ) );
+
+		// Docks seem utterly broken.
+		ImGuiID primary_id {
+			ImGui::DockSpaceOverViewport( ImGui::GetID( "MainWindowDockspace" ), ImGui::GetMainViewport() )
+		};
+		// +--------------------------------------------------------------------+
+		// |        |                                                  |        |
+		// |        |                                                  |        |
+		// |        |                                                  |        |
+		// |        |                      mv                          |        |
+		// |        |                                                  |        |
+		// |        |                                                  |        |
+		// |   lb   |                                                  |   rb   |
+		// |        |                                                  |        |
+		// |        |                                                  |        |
+		// |        |--------------------------------------------------|        |
+		// |        |                      bb                          |        |
+		// |        |                                                  |        |
+		// +--------+---------------------------------------------------+-------+
+
+		static std::once_flag flag;
+		std::call_once( flag, prepareDock, primary_id );
+
+		ImGui::DockBuilderSetNodePos( primary_id, ImVec2( 0.0f, 0.0f ) );
+		ImGui::DockBuilderSetNodeSize( primary_id, ImGui::GetMainViewport()->WorkSize );
+
+		// ImGui::PopStyleVar();
+	}
 
 	void drawMainGUI( FrameInfo& info )
 	{
 		ZoneScoped;
 		beginImGui();
 
-		// TODO: Maybe play with docks again some other time
-		//static std::once_flag flag;
-		//std::call_once( flag, prepareDock );
+		// ImGui::ShowDemoWindow();
+
+		drawDock();
 
 		drawCameraOutputs( info );
 		drawEntityGUI( info );
