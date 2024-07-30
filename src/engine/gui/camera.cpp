@@ -30,8 +30,17 @@ namespace fgl::engine::gui
 
 			Camera& camera { *camera_ptr };
 
-			const auto name { std::format( "Camera: {}", camera.getIDX() ) };
-			ImGui::Begin( name.c_str() );
+			std::string name { "" };
+
+			if ( camera.getName() == "" )
+				name = std::format( "Camera: ID {}", camera.getIDX() );
+			else
+				name = camera.getName();
+
+			ImGui::Begin(
+				name.c_str(),
+				nullptr,
+				ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar );
 
 			drawRenderingOutputs( info, camera );
 

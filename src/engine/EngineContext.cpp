@@ -22,7 +22,6 @@
 #include "engine/debug/drawers.hpp"
 #include "engine/literals/size.hpp"
 #include "engine/model/prebuilt/terrainModel.hpp"
-#include "engine/systems/EntityRendererSystem.hpp"
 #include "gui/core.hpp"
 #include "model/builders/SceneBuilder.hpp"
 
@@ -108,19 +107,19 @@ namespace fgl::engine
 		//camera.setOrthographicProjection( -aspect, aspect, -1, 1, -1, 1 );
 		const float aspect { m_renderer.getAspectRatio() };
 
-		auto& primary_camera { camera_manager.getPrimary() };
-		auto secondary_camera { camera_manager.createCamera( { 1920, 1080 } ) };
+		auto& editor_camera { camera_manager.getPrimary() };
+		// auto secondary_camera { camera_manager.createCamera( { 1920, 1080 } ) };
 
-		primary_camera
+		editor_camera
 			.setPerspectiveProjection( glm::radians( 90.0f ), aspect, constants::NEAR_PLANE, constants::FAR_PLANE );
-		secondary_camera
-			->setPerspectiveProjection( glm::radians( 90.0f ), aspect, constants::NEAR_PLANE, constants::FAR_PLANE );
+		// secondary_camera
+		// ->setPerspectiveProjection( glm::radians( 90.0f ), aspect, constants::NEAR_PLANE, constants::FAR_PLANE );
 
 		const auto old_aspect_ratio { m_renderer.getAspectRatio() };
 
 		camera_controller.moveInPlaneXZ( m_window.window(), 0.0, viewer );
-		primary_camera.setView( viewer.getPosition(), viewer.getRotation() );
-		secondary_camera->setView( viewer.getPosition(), viewer.getRotation() );
+		editor_camera.setView( viewer.getPosition(), viewer.getRotation() );
+		// secondary_camera->setView( viewer.getPosition(), viewer.getRotation() );
 
 		TracyCZoneEnd( TRACY_PrepareEngine );
 
@@ -149,12 +148,12 @@ namespace fgl::engine
 
 			if ( old_aspect_ratio != m_renderer.getAspectRatio() )
 			{
-				primary_camera.setPerspectiveProjection(
+				editor_camera.setPerspectiveProjection(
 					glm::radians( 90.0f ), m_renderer.getAspectRatio(), constants::NEAR_PLANE, constants::FAR_PLANE );
 			}
 
 			camera_controller.moveInPlaneXZ( m_window.window(), delta_time, viewer );
-			primary_camera.setView( viewer.getPosition(), viewer.getRotation() );
+			editor_camera.setView( viewer.getPosition(), viewer.getRotation() );
 
 			if ( auto& command_buffer = m_renderer.beginFrame(); *command_buffer )
 			{

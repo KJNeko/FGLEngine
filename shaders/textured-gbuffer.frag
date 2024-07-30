@@ -15,7 +15,7 @@ layout (set = 1, binding = 0) uniform CameraInfo {
     mat4 projection;
     mat4 view;
     mat4 inverse_view;
-} ubo;
+} camera_info;
 
 layout (set = 2, binding = 0) uniform sampler2D tex[];
 
@@ -42,7 +42,6 @@ void main()
     {
         discard;
     }
-
 
     out_albedo = tex_value;
 

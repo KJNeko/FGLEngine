@@ -40,6 +40,7 @@ namespace fgl::engine
 
 	using CameraIDX = std::uint8_t;
 
+
 	class Camera
 	{
 		inline static CameraIDX camera_counter { 0 };
@@ -68,6 +69,8 @@ namespace fgl::engine
 		inline static std::unique_ptr< CameraRenderer > m_renderer;
 		std::shared_ptr< CameraSwapchain > m_swapchain;
 
+		std::string name;
+
 		Matrix< MatrixType::ModelToWorld > frustumTranslationMatrix() const;
 
 		void updateFrustum();
@@ -82,7 +85,9 @@ namespace fgl::engine
 
 		~Camera();
 
-		CameraIDX getIDX() { return camera_idx; }
+		CameraIDX getIDX() const;
+
+		const std::string& getName() const;
 
 		static void initCameraRenderer();
 
@@ -152,6 +157,8 @@ namespace fgl::engine
 
 		void beginRenderpass( const vk::raii::CommandBuffer& command_buffer, const FrameInfo& info );
 		void endRenderpass( const vk::raii::CommandBuffer& command_buffer );
+
+		void setName( std::string_view str );
 
 		void copyOutput( const vk::raii::CommandBuffer& command_buffer, FrameIndex frame_index, Image& target );
 	};

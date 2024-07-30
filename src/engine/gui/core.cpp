@@ -10,19 +10,18 @@
 #pragma GCC diagnostic ignored "-Wconversion"
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
-
-#include <imgui.h>
 #pragma GCC diagnostic pop
 
 #include <imgui_internal.h>
 
-#include "dockspace.hpp"
 #include "engine/descriptors/DescriptorPool.hpp"
 #include "engine/filesystem/FileBrowser.hpp"
 #include "engine/model/Model.hpp"
 #include "engine/rendering/Device.hpp"
 #include "engine/rendering/Renderer.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
+#include "gui_window_names.hpp"
+#include "safe_include.hpp"
 
 namespace fgl::engine::gui
 {
@@ -75,14 +74,11 @@ namespace fgl::engine::gui
 		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-
-		ImGui::Begin( "Main" );
 	}
 
 	void endImGui( vk::raii::CommandBuffer& command_buffer )
 	{
 		ZoneScoped;
-		ImGui::End();
 		ImGui::Render();
 
 		ImDrawData* data { ImGui::GetDrawData() };
@@ -118,15 +114,15 @@ namespace fgl::engine::gui
 		ImGuiID mv_node { primary_id };
 		//ImGuiID mv_node { ImGui::DockBuilderSplitNode( primary_id, ImGuiDir_Up, 1.0f - 0.3f, &primary_id, nullptr ) };
 
-		ImGui::DockBuilderDockWindow( "Scene", lb_node );
+		ImGui::DockBuilderDockWindow( OBJECT_TREE_VIEW_NAME, lb_node );
 
 		//ImGui::DockBuilderDockWindow( "Main", mv_node );
 
-		ImGui::DockBuilderDockWindow( "Camera: 0", mv_node );
+		ImGui::DockBuilderDockWindow( CAMERA_EDITOR_NAME, mv_node );
 
-		ImGui::DockBuilderDockWindow( "Entity info", rb_node );
+		ImGui::DockBuilderDockWindow( ENTITY_INFO_NAME, rb_node );
 
-		ImGui::DockBuilderDockWindow( "File Picker", bb_node );
+		ImGui::DockBuilderDockWindow( FILE_PICKER_NAME, bb_node );
 
 		ImGui::DockBuilderFinish( primary_id );
 	}
@@ -139,7 +135,7 @@ namespace fgl::engine::gui
 
 		// Docks seem utterly broken.
 		ImGuiID primary_id {
-			ImGui::DockSpaceOverViewport( ImGui::GetID( "MainWindowDockspace" ), ImGui::GetMainViewport() )
+			ImGui::DockSpaceOverViewport( ImGui::GetID( GUI_DOCKSPACE_NAME ), ImGui::GetMainViewport() )
 		};
 		// +--------------------------------------------------------------------+
 		// |        |                                                  |        |
@@ -187,7 +183,7 @@ namespace fgl::engine::gui
 	void drawEntityGUI( FrameInfo& info )
 	{
 		ZoneScoped;
-		ImGui::Begin( "Scene" );
+		ImGui::Begin( OBJECT_TREE_VIEW_NAME );
 
 		for ( OctTreeNodeLeaf* leaf : info.game_objects.getAllLeafs() )
 		{
@@ -210,7 +206,7 @@ namespace fgl::engine::gui
 	void drawEntityInfo( [[maybe_unused]] FrameInfo& info )
 	{
 		ZoneScoped;
-		ImGui::Begin( "Entity info" );
+		ImGui::Begin( ENTITY_INFO_NAME );
 
 		if ( selected_object ) selected_object->drawImGui();
 
@@ -220,7 +216,7 @@ namespace fgl::engine::gui
 	void drawFilesystemGUI( FrameInfo& info )
 	{
 		ZoneScoped;
-		ImGui::Begin( "File Picker", nullptr, ImGuiWindowFlags_MenuBar );
+		ImGui::Begin( FILE_PICKER_NAME, nullptr, ImGuiWindowFlags_MenuBar );
 
 		filesystem::FileBrowser::drawGui( info );
 

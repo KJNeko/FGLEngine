@@ -106,19 +106,75 @@ namespace fgl::engine::gui
 		float height_size { static_cast< float >( max_extent.height ) };
 		float width_size { ratio * static_cast< float >( max_extent.height ) };
 
-		// If height is larger then the size then we need to compute the width from the height max
+		// If the width is higher then the max extent, Then we wanna use the width instead
 		if ( width_size > max_extent.width )
 		{
 			width_size = static_cast< float >( max_extent.width );
 			height_size = static_cast< float >( max_extent.width ) / ratio;
 		}
 
+		assert( width_size <= max_extent.width );
+		assert( height_size <= max_extent.height );
+
 		return { static_cast< std::uint32_t >( width_size ), static_cast< std::uint32_t >( height_size ) };
 	}
 
-	FGL_FORCE_INLINE_FLATTEN vk::Extent2D calculateTargetSize( const float ratio, const ImVec2 max_extent )
+	FGL_FORCE_INLINE_FLATTEN inline vk::Extent2D calculateTargetSize( const float ratio, const ImVec2 max_extent )
 	{
 		return calculateTargetSize( ratio, vk::Extent2D( max_extent.x, max_extent.y ) );
+	}
+
+	enum RenderingOutputSelection : std::uint_fast8_t
+	{
+		Composite = 0,
+		Albedo = 1,
+		Normal = 2,
+		Position = 3
+	};
+
+	inline static bool hotkeys_enabled { true };
+
+	inline void drawConfigBar(
+		[[maybe_unused]] const FrameInfo& info,
+		[[maybe_unused]] const Camera& camera,
+		[[maybe_unused]] const FrameIndex frame_index,
+		std::uint_fast8_t& current )
+	{
+		static constexpr char* const options[] = { "Composite", "Albedo", "Normal", "Position" };
+		if ( ImGui::BeginMenuBar() )
+		{
+			if ( ImGui::BeginMenu( "Output" ) )
+			{
+				if ( ImGui::MenuItem( options[ Composite ], "Alt+1", current == Composite, true ) )
+				{
+					current = Composite;
+				}
+
+				if ( ImGui::MenuItem( options[ Albedo ], "Alt+2", current == Albedo, true ) )
+				{
+					current = Albedo;
+				}
+
+				if ( ImGui::MenuItem( options[ Normal ], "Alt+3", current == Normal, true ) )
+				{
+					current = Normal;
+				}
+
+				if ( ImGui::MenuItem( options[ Position ], "Alt+4", current == Position, true ) )
+				{
+					current = Position;
+				}
+
+				if ( ImGui::MenuItem( "Enable Hotkeys" ), nullptr, hotkeys_enabled )
+				{
+					hotkeys_enabled = !hotkeys_enabled;
+				}
+
+				ImGui::EndMenu();
+			}
+
+			ImGui::EndMenuBar();
+		}
 	}
 
 	void drawRenderingOutputs( FrameInfo& info, const Camera& camera )
@@ -126,63 +182,33 @@ namespace fgl::engine::gui
 		ZoneScoped;
 		const auto frame_index { info.frame_idx };
 
-		enum RenderingOutputSelection : std::uint_fast8_t
-		{
-			Composite = 0,
-			Albedo = 1,
-			Normal = 2,
-			Position = 3
-		};
-
-		static const char* const options[] = { "Composite", "Albedo", "Normal", "Position" };
 		static std::uint_fast8_t current { Composite };
 
-		if ( ImGui::BeginCombo( "Rendering Output", options[ current ] ) )
-		{
-			constexpr vk::Extent2D desired_size { 64, 64 };
-			//Calculate size
-			const float ratio { info.swap_chain.extentAspectRatio() };
-			const auto size { calculateTargetSize( ratio, desired_size ) };
-
-			//Composite
-			if ( ImGui::Selectable( options[ Composite ], current == Composite ) )
-			{
-				log::debug( "Changing output to Compositite" );
-				current = Composite;
-			}
-
-			camera.getSwapchain().g_buffer_albedo_img[ frame_index ]->drawImGui( size );
-			ImGui::SameLine();
-			if ( ImGui::Selectable( options[ Albedo ], current == Albedo ) )
-			{
-				log::debug( "Changing output to Albedo" );
-				current = Albedo;
-			}
-
-			camera.getSwapchain().g_buffer_normal_img[ frame_index ]->drawImGui( size );
-			ImGui::SameLine();
-			if ( ImGui::Selectable( options[ Normal ], current == Normal ) )
-			{
-				log::debug( "Changing output to Normal" );
-				current = Normal;
-			}
-
-			camera.getSwapchain().g_buffer_position_img[ frame_index ]->drawImGui( size );
-			ImGui::SameLine();
-			if ( ImGui::Selectable( options[ Position ], current == Position ) )
-			{
-				log::debug( "Changing output to Position" );
-				current = Position;
-			}
-
-			ImGui::EndCombo();
-		}
+		drawConfigBar( info, camera, frame_index, current );
 
 		const float ratio { info.swap_chain.extentAspectRatio() };
 		const auto imgui_size { ImGui::GetWindowSize() };
 		const auto target_size { calculateTargetSize( ratio, imgui_size ) };
 
-		//Compute optimal size using aspect ratio
+		if ( hotkeys_enabled && ImGui::IsWindowFocused() && ImGui::IsKeyDown( ImGuiKey_LeftAlt ) )
+		{
+			if ( ImGui::IsKeyPressed( ImGuiKey_1 ) )
+			{
+				current = Composite;
+			}
+			else if ( ImGui::IsKeyPressed( ImGuiKey_2 ) )
+			{
+				current = Albedo;
+			}
+			else if ( ImGui::IsKeyPressed( ImGuiKey_3 ) )
+			{
+				current = Normal;
+			}
+			else if ( ImGui::IsKeyPressed( ImGuiKey_4 ) )
+			{
+				current = Position;
+			}
+		}
 
 		switch ( current )
 		{

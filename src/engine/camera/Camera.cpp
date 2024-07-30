@@ -123,6 +123,11 @@ namespace fgl::engine
 		command_buffer.endRenderPass();
 	}
 
+	void Camera::setName( const std::string_view str )
+	{
+		name = str;
+	}
+
 	void Camera::
 		copyOutput( const vk::raii::CommandBuffer& command_buffer, const FrameIndex frame_index, Image& target )
 	{
@@ -278,6 +283,11 @@ namespace fgl::engine
 		frustum = translation_matrix * base_frustum;
 	}
 
+	const std::string& Camera::getName() const
+	{
+		return name;
+	}
+
 	void Camera::initCameraRenderer()
 	{
 		assert( !m_renderer );
@@ -375,5 +385,10 @@ namespace fgl::engine
 
 	Camera::~Camera()
 	{}
+
+	CameraIDX Camera::getIDX() const
+	{
+		return camera_idx;
+	}
 
 } // namespace fgl::engine

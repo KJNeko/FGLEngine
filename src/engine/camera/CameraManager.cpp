@@ -6,6 +6,7 @@
 
 #include "Camera.hpp"
 #include "engine/debug/drawers.hpp"
+#include "engine/gui/gui_window_names.hpp"
 #include "engine/literals/size.hpp"
 
 namespace fgl::engine
@@ -30,6 +31,7 @@ namespace fgl::engine
 		debug::setDebugDrawingCamera( getPrimary() );
 
 		m_primary_camera = createCamera( { 1920, 1080 } );
+		m_primary_camera->setName( CAMERA_EDITOR_NAME );
 	}
 
 	std::shared_ptr< Camera > CameraManager::createCamera( const vk::Extent2D extent )
