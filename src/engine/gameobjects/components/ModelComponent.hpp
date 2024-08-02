@@ -7,7 +7,6 @@
 #include <memory>
 
 #include "GameObjectComponent.hpp"
-#include "engine/primitives/TransformComponent.hpp"
 
 namespace fgl::engine
 {
@@ -16,12 +15,12 @@ namespace fgl::engine
 	class ModelComponent final : public GameObjectComponent< 1 >
 	{
 		std::shared_ptr< Model > m_model;
-		TransformComponent m_model_transform {};
 
 	  public:
 
 		ModelComponent( std::shared_ptr< Model >&& model ) : m_model( std::forward< decltype( m_model ) >( model ) ) {}
 
+#ifdef IDHAN_EDITOR
 		void drawImGui() override;
 
 		std::string_view name() const override
@@ -29,10 +28,9 @@ namespace fgl::engine
 			//TODO: Get name of component
 			return "TEST NAME";
 		}
+#endif
 
 		virtual ~ModelComponent() override {}
-
-		void setModel( const std::filesystem::path path );
 
 		Model* operator->() { return m_model.get(); }
 

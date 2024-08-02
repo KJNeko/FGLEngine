@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Rotation.hpp"
+#include "Scale.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 
 namespace fgl::engine
@@ -16,7 +17,7 @@ namespace fgl::engine
 	struct TransformComponent
 	{
 		WorldCoordinate translation { constants::WORLD_CENTER };
-		glm::vec3 scale { 1.0f, 1.0f, 1.0f };
+		Scale scale { 1.0f, 1.0f, 1.0f };
 
 		Rotation rotation { 0.0f, 0.0f, 0.0f };
 

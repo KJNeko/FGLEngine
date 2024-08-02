@@ -29,7 +29,7 @@ namespace fgl::engine
 		std::vector< vk::raii::CommandBuffer > m_command_buffer {};
 		std::vector< vk::raii::CommandBuffer > m_gui_command_buffer {};
 
-		std::optional< TracyVkCtx > m_tracy_ctx { std::nullopt };
+		TracyVkCtx m_tracy_ctx { nullptr };
 
 		PresentIndex current_present_index { std::numeric_limits< PresentIndex >::max() };
 		FrameIndex current_frame_idx { 0 };
@@ -62,15 +62,7 @@ namespace fgl::engine
 
 		vk::raii::CommandBuffer& getCurrentGuiCommandBuffer() { return m_gui_command_buffer[ current_frame_idx ]; }
 
-		TracyVkCtx getCurrentTracyCTX() const
-		{
-#if TRACY_ENABLE
-			assert( m_tracy_ctx.has_value() );
-			return m_tracy_ctx.value();
-#else
-			return nullptr;
-#endif
-		}
+		TracyVkCtx getCurrentTracyCTX() const { return m_tracy_ctx; }
 
 		vk::raii::RenderPass& getSwapChainRenderPass() const { return m_swapchain->getRenderPass(); }
 

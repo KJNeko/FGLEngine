@@ -4,10 +4,6 @@
 
 #include "GameObject.hpp"
 
-#include "engine/gui/helpers.hpp"
-#include "engine/gui/safe_include.hpp"
-#include "engine/model/Model.hpp"
-
 namespace fgl::engine
 {
 
@@ -17,6 +13,7 @@ namespace fgl::engine
 		return GameObject( current_id++ );
 	}
 
+	/*
 	void GameObject::drawImGui()
 	{
 		ImGui::InputText( "Name", &( this->getName() ) );
@@ -37,5 +34,6 @@ namespace fgl::engine
 			component->drawImGui();
 		}
 	}
+	*/
 
 } // namespace fgl::engine

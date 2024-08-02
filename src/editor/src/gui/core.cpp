@@ -10,17 +10,19 @@
 #pragma GCC diagnostic ignored "-Wconversion"
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
+
+#include <imgui_internal.h> // Included for DockBuilder since it's not exposed yet
 #pragma GCC diagnostic pop
 
-#include <imgui_internal.h>
-
+#include "FileBrowser.hpp"
+#include "engine/debug/DEBUG_NAMES.hpp"
 #include "engine/descriptors/DescriptorPool.hpp"
-#include "engine/filesystem/FileBrowser.hpp"
 #include "engine/model/Model.hpp"
 #include "engine/rendering/Device.hpp"
 #include "engine/rendering/Renderer.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
 #include "gui_window_names.hpp"
+#include "helpers.hpp"
 #include "safe_include.hpp"
 
 namespace fgl::engine::gui
@@ -203,12 +205,40 @@ namespace fgl::engine::gui
 		ImGui::End();
 	}
 
+	void drawObject( GameObject& game_object )
+	{
+		ImGui::InputText( "Name", &( game_object.getName() ) );
+
+		// Transform - Position
+		dragFloat3( "Position", game_object.getTransform().translation.vec() );
+
+		dragFloat3Rot( "Rotation", game_object.getRotation() );
+
+		dragFloat3( "Scale", game_object.getScale() );
+	}
+
+	void drawComponents( const GameObject& game_object )
+	{
+		for ( ComponentEditorInterface* component : game_object.getComponents() )
+		{
+			ImGui::Separator();
+			component->drawImGui();
+		}
+	}
+
 	void drawEntityInfo( [[maybe_unused]] FrameInfo& info )
 	{
 		ZoneScoped;
 		ImGui::Begin( ENTITY_INFO_NAME );
 
-		if ( selected_object ) selected_object->drawImGui();
+		if ( !selected_object )
+		{
+			ImGui::End();
+			return;
+		}
+
+		drawObject( *selected_object );
+		drawComponents( *selected_object );
 
 		ImGui::End();
 	}

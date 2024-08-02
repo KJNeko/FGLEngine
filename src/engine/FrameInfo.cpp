@@ -10,14 +10,14 @@
 namespace fgl::engine
 {
 
-	descriptors::DescriptorSet& FrameInfo::getGBufferDescriptor()
+	descriptors::DescriptorSet& FrameInfo::getGBufferDescriptor() const
 	{
-		return camera_data.camera->getSwapchain().getGBufferDescriptor( frame_idx );
+		return camera->getSwapchain().getGBufferDescriptor( frame_idx );
 	}
 
-	descriptors::DescriptorSet& FrameInfo::getCameraDescriptor()
+	descriptors::DescriptorSet& FrameInfo::getCameraDescriptor() const
 	{
-		return camera_data.camera->getDescriptor( frame_idx );
+		return camera->getDescriptor( frame_idx );
 	}
 
 } // namespace fgl::engine

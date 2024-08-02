@@ -60,11 +60,11 @@ namespace fgl::engine
 
 	void Camera::pass( FrameInfo& frame_info )
 	{
-		assert( frame_info.camera_data.camera == nullptr );
-		frame_info.camera_data.camera = this;
+		assert( frame_info.camera == nullptr );
+		frame_info.camera = this;
 		updateInfo( frame_info.frame_idx );
 		m_renderer->pass( frame_info, *m_swapchain );
-		frame_info.camera_data.camera = nullptr;
+		frame_info.camera = nullptr;
 	}
 
 	vk::raii::RenderPass& Camera::getRenderpass()

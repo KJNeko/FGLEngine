@@ -71,15 +71,11 @@ namespace fgl::engine
 	{
 		FrameIndex frame_idx;
 		PresentIndex present_idx;
-		float frame_time;
+		double frame_time_ms;
 
 		vk::raii::CommandBuffer& command_buffer;
 
-		struct
-		{
-			Camera* camera { nullptr };
-			TransformComponent& camera_transform;
-		} camera_data;
+		Camera* camera { nullptr };
 
 		std::vector< std::weak_ptr< Camera > >& m_camera_list;
 
@@ -96,8 +92,8 @@ namespace fgl::engine
 
 		descriptors::DescriptorSet& gui_input_descriptor;
 
-		descriptors::DescriptorSet& getGBufferDescriptor();
-		descriptors::DescriptorSet& getCameraDescriptor();
+		descriptors::DescriptorSet& getGBufferDescriptor() const;
+		descriptors::DescriptorSet& getCameraDescriptor() const;
 
 		SwapChain& swap_chain;
 

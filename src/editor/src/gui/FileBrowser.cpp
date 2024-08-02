@@ -6,11 +6,11 @@
 
 #include "engine/assets/stores.hpp"
 #include "engine/filesystem/scanner/FileScanner.hpp"
-#include "engine/gui/safe_include.hpp"
+#include "engine/filesystem/types.hpp"
 #include "engine/image/ImageView.hpp"
 #include "engine/logging/logging.hpp"
 #include "engine/texture/Texture.hpp"
-#include "types.hpp"
+#include "safe_include.hpp"
 
 namespace fgl::engine::filesystem
 {

@@ -5,7 +5,6 @@
 #include "GuiSystem.hpp"
 
 #include "engine/FrameInfo.hpp"
-#include "engine/gui/core.hpp"
 
 namespace fgl::engine
 {
@@ -40,7 +39,7 @@ namespace fgl::engine
 		command_buffer.draw( 3, 1, 0, 0 );
 
 		//Handle GUI
-		gui::drawMainGUI( info );
+		// gui::drawMainGUI( info );
 	}
 
 } // namespace fgl::engine

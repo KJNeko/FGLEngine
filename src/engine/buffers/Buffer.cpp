@@ -3,7 +3,6 @@
 //
 
 #include "Buffer.hpp"
-
 #include "BufferSuballocationHandle.hpp"
 #include "align.hpp"
 #include "engine/buffers/exceptions.hpp"

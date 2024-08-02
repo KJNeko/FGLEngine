@@ -13,6 +13,7 @@
 
 namespace fgl::engine
 {
+	struct Scale;
 	template < CoordinateSpace CType >
 	struct OrientedBoundingBox;
 
@@ -44,7 +45,7 @@ namespace fgl::engine
 		GameObjectFlagType object_flags { GameObjectFlagMask::MASK_DEFAULT };
 		TransformComponent m_transform {};
 
-		std::vector< GameObjectComponentBase* > components {};
+		std::vector< GameObjectComponentPtr > components {};
 
 		std::string name {};
 
@@ -64,13 +65,15 @@ namespace fgl::engine
 			components.emplace_back( ptr.release() );
 		}
 
+		Scale& getScale() { return m_transform.scale; }
+
 		GameObject( GameObject&& other ) = default;
 
 		template < typename T >
 			requires is_component< T >
 		bool hasComponent() const
 		{
-			for ( const GameObjectComponentBase* comp : components )
+			for ( const GameObjectComponentPtr comp : components )
 			{
 				if ( comp->id() == T::ID ) return true;
 			}
@@ -84,7 +87,7 @@ namespace fgl::engine
 		{
 			std::vector< const T* > temp {};
 
-			for ( const GameObjectComponentBase* comp : components )
+			for ( const ComponentEngineInterface* comp : components )
 			{
 				if ( comp->id() == T::ID ) temp.emplace_back( static_cast< const T* >( comp ) );
 			}
@@ -98,13 +101,17 @@ namespace fgl::engine
 		{
 			std::vector< T* > temp {};
 
-			for ( GameObjectComponentBase* comp : components )
+			for ( ComponentEngineInterface* comp : components )
 			{
 				if ( comp->id() == T::ID ) temp.emplace_back( comp );
 			}
 
 			return temp;
 		}
+
+		std::vector< GameObjectComponentPtr >& getComponents() { return components; }
+
+		const std::vector< GameObjectComponentPtr >& getComponents() const { return components; }
 
 		//Flags
 		GameObjectFlagType flags() const { return object_flags; }
@@ -120,7 +127,9 @@ namespace fgl::engine
 
 		const WorldCoordinate& getPosition() const { return m_transform.translation; }
 
-		const Rotation& getRotation() const { return m_transform.rotation; }
+		// const Rotation& getRotation() const { return m_transform.rotation; }
+
+		Rotation& getRotation() { return m_transform.rotation; }
 
 		//Misc
 		static GameObject createGameObject();
@@ -130,7 +139,7 @@ namespace fgl::engine
 		//! Returns the name of the game object. If no name is set then the name of the model is used.
 		std::string& getName() { return name; }
 
-		void drawImGui();
+		// void drawImGui();
 	};
 
 	//	static_assert( offsetof( GameObject, hot_limter ) < 64, "Hot limit reached" );

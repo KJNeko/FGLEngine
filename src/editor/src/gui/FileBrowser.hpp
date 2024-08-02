@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "scanner/FileScanner.hpp"
+#include "../../../engine/filesystem/scanner/FileScanner.hpp"
 
 namespace fgl::engine
 {

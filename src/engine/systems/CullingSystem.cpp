@@ -23,7 +23,7 @@ namespace fgl::engine
 	{
 		ZoneScopedN( "Culling pass" );
 
-		const auto frustum { info.camera_data.camera->getFrustumBounds() };
+		const auto frustum { info.camera->getFrustumBounds() };
 
 		if ( !enable_culling )
 		{

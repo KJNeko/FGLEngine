@@ -99,9 +99,8 @@ endforeach ()
 add_custom_target(shaders ALL DEPENDS ${SPV_SHADERS})
 add_custom_target(assets ALL DEPENDS ${OUT_ASSETS})
 
-add_dependencies(${PROJECT_NAME} shaders)
-add_dependencies(${PROJECT_NAME} assets)
-
+add_dependencies(TitorEditor shaders)
+add_dependencies(TitorEditor assets)
 
 add_custom_command(
 		OUTPUT ${CMAKE_SOURCE_DIR}/compile_commands.json

@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "Camera.hpp"
-#include "engine/buffers/UniqueFrameSuballocation.hpp"
 
 namespace fgl::engine
 {
@@ -23,13 +22,15 @@ namespace fgl::engine
 
 		std::vector< std::weak_ptr< Camera > > cameras {};
 
+		CameraManager();
+
 	  public:
+
+		static CameraManager& getInstance();
 
 		std::vector< std::weak_ptr< Camera > >& getCameras();
 
-		Camera& getPrimary();
-
-		CameraManager();
+		std::shared_ptr< Camera >& getPrimary();
 
 		std::shared_ptr< Camera > createCamera( vk::Extent2D extent );
 	};

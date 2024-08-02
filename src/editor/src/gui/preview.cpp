@@ -4,16 +4,6 @@
 
 #include "preview.hpp"
 
-// clang-format off
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-Wconversion"
-#include <imgui.h>
-#include <imgui/misc/cpp/imgui_stdlib.h>
-#pragma GCC diagnostic pop
-// clang-format on
-
 #include "engine/FrameInfo.hpp"
 #include "engine/camera/Camera.hpp"
 #include "engine/camera/CameraSwapchain.hpp"
@@ -24,6 +14,7 @@
 #include "engine/model/builders/SceneBuilder.hpp"
 #include "engine/rendering/SwapChain.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
+#include "safe_include.hpp"
 
 namespace fgl::engine::gui
 {
@@ -140,7 +131,7 @@ namespace fgl::engine::gui
 		[[maybe_unused]] const FrameIndex frame_index,
 		std::uint_fast8_t& current )
 	{
-		static constexpr char* const options[] = { "Composite", "Albedo", "Normal", "Position" };
+		static constexpr std::string_view options[] = { "Composite", "Albedo", "Normal", "Position" };
 		if ( ImGui::BeginMenuBar() )
 		{
 			if ( ImGui::BeginMenu( "Output" ) )

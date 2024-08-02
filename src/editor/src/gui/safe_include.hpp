@@ -38,4 +38,18 @@ namespace ImGui
 		return ::ImGui::Begin( name.data(), p_open, flags );
 	}
 
+	// IMGUI_API bool          MenuItem(const char* label, const char* shortcut = NULL, bool selected = false, bool enabled = true);  // return true when activated.
+	FGL_FORCE_INLINE inline bool MenuItem(
+		const std::string_view label, const char* shortcut = NULL, bool selected = false, bool enabled = true )
+	{
+		return ::ImGui::MenuItem( label.data(), shortcut, selected, enabled );
+	}
+
+	// IMGUI_API bool          MenuItem(const char* label, const char* shortcut, bool* p_selected, bool enabled = true);              // return true when activated + toggle (*p_selected) if p_selected != NULL
+	FGL_FORCE_INLINE inline bool
+		MenuItem( const std::string_view label, const char* shortcut, bool* selected, bool enabled = true )
+	{
+		return ::ImGui::MenuItem( label.data(), shortcut, selected, enabled );
+	}
+
 } // namespace ImGui

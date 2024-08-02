@@ -13,6 +13,8 @@
 
 namespace fgl::engine
 {
+	class CameraManager;
+	class GameObject;
 
 	using namespace fgl::literals::size_literals;
 
@@ -48,17 +50,63 @@ namespace fgl::engine
 		// SubPass 0
 		GuiSystem m_gui_system { Device::getInstance(), m_renderer.getSwapChainRenderPass() };
 
+		// Temp function
+		std::function< void( FrameInfo& ) > renderGui;
+		std::function< void() > cleanupImGui;
+
+		// Memory pool for shader uniforms.
+		memory::Buffer m_ubo_buffer_pool;
+
+		// Memory pool for matrix info and draw parameters
+		memory::Buffer m_matrix_info_pool;
+		memory::Buffer m_draw_parameter_pool;
+
+		std::chrono::time_point< std::chrono::high_resolution_clock > last_tick {
+			std::chrono::high_resolution_clock::now()
+		};
+		double m_delta_time_ms;
+
 		void loadGameObjects();
 
-		void initImGui();
+#ifdef IDHAN_EDITOR
+
+	  public:
+
+#endif
+
+		FGL_FORCE_INLINE_FLATTEN void hookInitImGui( const std::function< void( Window&, Renderer& ) >& func )
+		{
+			func( m_window, m_renderer );
+		}
+
+		FGL_FORCE_INLINE_FLATTEN void hookCleanupImGui( const std::function< void() >& func ) { cleanupImGui = func; }
+
+		void TEMPhookGuiRender( const std::function< void( FrameInfo& ) >& func ) { renderGui = func; }
 
 	  public:
 
 		EngineContext();
 		~EngineContext();
+
+		bool good();
+
+		//! Performs and pending memory transfers
+		void handleTransfers();
+
 		EngineContext( EngineContext&& other ) = delete;
 		EngineContext( const EngineContext& other ) = delete;
 		EngineContext& operator=( const EngineContext& other ) = delete;
+
+		void processInput();
+
+		void tickDeltaTime();
+		void tickSimulation();
+		void renderCameras( FrameInfo frame_info );
+
+		void renderFrame();
+
+		Window& getWindow();
+		float getWindowAspectRatio();
 
 		void run();
 	};

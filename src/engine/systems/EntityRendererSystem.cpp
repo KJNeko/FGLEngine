@@ -83,7 +83,7 @@ namespace fgl::engine
 
 		//Get all commands for drawing anything without a texture
 		auto [ draw_commands, model_matricies ] = getDrawCallsFromTree(
-			info.game_objects, info.camera_data.camera->getFrustumBounds(), IS_VISIBLE | IS_ENTITY, IS_TEXTURELESS );
+			info.game_objects, info.camera->getFrustumBounds(), IS_VISIBLE | IS_ENTITY, IS_TEXTURELESS );
 
 		//TODO: Filter Textureless models (#6)
 
@@ -127,8 +127,8 @@ namespace fgl::engine
 		m_textured_pipeline
 			->bindDescriptor( command_buffer, TextureDescriptorSet::m_set_idx, Texture::getTextureDescriptorSet() );
 
-		auto [ draw_commands, model_matricies ] = getDrawCallsFromTree(
-			info.game_objects, info.camera_data.camera->getFrustumBounds(), IS_VISIBLE | IS_ENTITY );
+		auto [ draw_commands, model_matricies ] =
+			getDrawCallsFromTree( info.game_objects, info.camera->getFrustumBounds(), IS_VISIBLE | IS_ENTITY );
 
 		if ( draw_commands.empty() ) return;
 

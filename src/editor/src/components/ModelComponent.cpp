@@ -1,18 +1,13 @@
 //
-// Created by kj16609 on 7/8/24.
+// Created by kj16609 on 8/2/24.
 //
 
-#include "ModelComponent.hpp"
+#include "engine/gameobjects/components/ModelComponent.hpp"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-Weffc++"
-#include <imgui.h>
-#pragma GCC diagnostic pop
+#include "gui/safe_include.hpp"
 
 namespace fgl::engine
 {
-
 	void ModelComponent::drawImGui()
 	{
 		if ( ImGui::CollapsingHeader( "Model Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen ) )
@@ -20,5 +15,4 @@ namespace fgl::engine
 			ImGui::Text( "MODEL COMPONENT WOOOOOO" );
 		}
 	}
-
 } // namespace fgl::engine
