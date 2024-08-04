@@ -62,7 +62,7 @@ namespace fgl::engine
 	void EntityRendererSystem::pass( FrameInfo& info )
 	{
 		ZoneScopedN( "Entity pass" );
-		auto& command_buffer { setupSystem( info ) };
+		[[maybe_unused]] auto& command_buffer { setupSystem( info ) };
 		TracyVkZone( info.tracy_ctx, *command_buffer, "Render entities" );
 
 		texturelessPass( info );

@@ -39,7 +39,7 @@ namespace fgl::engine
 
 		InfiniteLine operator-() const { return InfiniteLine( m_start, -m_direction ); }
 
-		inline InfiniteLine flip() const { return -( *this ); }
+		InfiniteLine flip() const { return -( *this ); }
 
 		template < typename T >
 			requires is_plane< T >

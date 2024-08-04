@@ -27,18 +27,18 @@ namespace fgl::engine
 
 	  public:
 
-		const glm::vec3& vec() const { return static_cast< const glm::vec3& >( *this ); }
-
-		glm::vec3& vec() { return static_cast< glm::vec3& >( *this ); }
-
 		//TODO: Make my own normalize function to bypass the fact glm::normalize can't be constexpr
 		NormalVector() : glm::vec3( glm::normalize( glm::vec3( 1.0f ) ) ) {}
 
 		NormalVector( const NormalVector& other ) = default;
 
-		NormalVector( const Vector vec );
+		explicit NormalVector( const Vector vec );
 
-		explicit constexpr NormalVector( const glm::vec3 vec );
+		explicit NormalVector( const glm::vec3 vec );
+
+		const glm::vec3& vec() const { return static_cast< const glm::vec3& >( *this ); }
+
+		glm::vec3& vec() { return static_cast< glm::vec3& >( *this ); }
 
 		Vector operator*( const float scalar ) const;
 

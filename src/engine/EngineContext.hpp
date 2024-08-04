@@ -51,8 +51,8 @@ namespace fgl::engine
 		GuiSystem m_gui_system { Device::getInstance(), m_renderer.getSwapChainRenderPass() };
 
 		// Temp function
-		std::function< void( FrameInfo& ) > renderGui;
-		std::function< void() > cleanupImGui;
+		std::function< void( FrameInfo& ) > renderGui { []( [[maybe_unused]] FrameInfo& ) noexcept {} };
+		std::function< void() > cleanupImGui { []() noexcept {} };
 
 		// Memory pool for shader uniforms.
 		memory::Buffer m_ubo_buffer_pool;

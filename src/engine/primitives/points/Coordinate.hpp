@@ -40,37 +40,37 @@ namespace fgl::engine
 
 		explicit Coordinate( const float value ) : glm::vec3( value ) {}
 
-		explicit Coordinate( const Vector vector );
+		explicit Coordinate( Vector vector );
 
-		inline float& up() { return z; }
+		float& up() { return z; }
 
-		inline float up() const { return z; }
+		float up() const { return z; }
 
-		inline float& right() { return x; }
+		float& right() { return x; }
 
-		inline float right() const { return x; }
+		float right() const { return x; }
 
-		inline float& forward() { return y; }
+		float& forward() { return y; }
 
-		inline float forward() const { return y; }
+		float forward() const { return y; }
 
-		inline glm::vec3& vec() { return static_cast< glm::vec3& >( *this ); }
+		glm::vec3& vec() { return static_cast< glm::vec3& >( *this ); }
 
-		inline const glm::vec3& vec() const { return static_cast< const glm::vec3& >( *this ); }
+		const glm::vec3& vec() const { return static_cast< const glm::vec3& >( *this ); }
 
-		Coordinate operator+( const Vector other ) const;
-		Coordinate operator-( const Vector other ) const;
-		Coordinate& operator+=( const Vector other );
-		Coordinate& operator-=( const Vector other );
+		Coordinate operator+( Vector other ) const;
+		Coordinate operator-( Vector other ) const;
+		Coordinate& operator+=( Vector other );
+		Coordinate& operator-=( Vector other );
 
-		Coordinate operator+( const NormalVector other ) const;
-		Coordinate operator-( const NormalVector other ) const;
+		Coordinate operator+( NormalVector other ) const;
+		Coordinate operator-( NormalVector other ) const;
 
-		Coordinate operator+( const Coordinate other ) const;
-		Coordinate operator-( const Coordinate other ) const;
+		Coordinate operator+( Coordinate other ) const;
+		Coordinate operator-( Coordinate other ) const;
 
-		Coordinate operator+( const glm::vec3 other ) const;
-		Coordinate operator-( const glm::vec3 other ) const;
+		Coordinate operator+( glm::vec3 other ) const;
+		Coordinate operator-( glm::vec3 other ) const;
 
 		Coordinate& operator=( const Coordinate& other ) = default;
 		Coordinate& operator=( Coordinate&& other ) = default;
@@ -87,14 +87,13 @@ namespace fgl::engine
 	static_assert( sizeof( glm::vec3 ) == sizeof( ModelCoordinate ) );
 
 	template < CoordinateSpace CType >
-	inline double distance( const Coordinate< CType >& p1, const Coordinate< CType >& p2 )
+	double distance( const Coordinate< CType >& p1, const Coordinate< CType >& p2 )
 	{
 		return length( p1.vec() - p2.vec() );
 	}
 
-	template < engine::CoordinateSpace CType >
-	inline engine::Coordinate< CType >
-		midpoint( const engine::Coordinate< CType > left, const engine::Coordinate< CType > right )
+	template < CoordinateSpace CType >
+	Coordinate< CType > midpoint( const Coordinate< CType > left, const Coordinate< CType > right )
 	{
 		const auto x { ( left.vec().x + right.vec().x ) / 2.0f };
 		const auto y { ( left.vec().y + right.vec().y ) / 2.0f };

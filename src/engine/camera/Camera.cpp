@@ -12,7 +12,6 @@
 #include "CameraInfo.hpp"
 #include "CameraRenderer.hpp"
 #include "CameraSwapchain.hpp"
-#include "engine/logging/formatters/glm_formatters.hpp"
 
 namespace fgl::engine
 {
@@ -305,9 +304,11 @@ namespace fgl::engine
 	}
 
 	Camera::Camera( const vk::Extent2D extent, memory::Buffer& buffer ) :
+	  m_transform(),
 	  m_target_extent( extent ),
 	  m_camera_frame_info( buffer, SwapChain::MAX_FRAMES_IN_FLIGHT ),
-	  m_swapchain( std::make_shared< CameraSwapchain >( m_renderer->getRenderpass(), m_target_extent ) )
+	  m_swapchain( std::make_shared< CameraSwapchain >( m_renderer->getRenderpass(), m_target_extent ) ),
+	  name()
 	{
 		this->setPerspectiveProjection( m_fov_y, aspectRatio(), constants::NEAR_PLANE, constants::FAR_PLANE );
 		this->setView( WorldCoordinate( constants::CENTER ), Rotation( 0.0f, 0.0f, 0.0f ) );

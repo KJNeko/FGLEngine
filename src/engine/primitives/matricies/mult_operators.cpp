@@ -2,7 +2,10 @@
 // Created by kj16609 on 2/28/24.
 //
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 #include <glm/ext/matrix_transform.hpp>
+#pragma GCC diagnostic pop
 
 #include "RotationMatrix.hpp"
 #include "engine/primitives/vectors/NormalVector.hpp"

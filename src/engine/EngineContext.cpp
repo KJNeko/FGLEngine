@@ -222,9 +222,7 @@ namespace fgl::engine
 
 	EngineContext::~EngineContext()
 	{
-#if TITOR_EDITOR
-		gui::cleanupImGui();
-#endif
+		cleanupImGui();
 	}
 
 	bool EngineContext::good()

@@ -45,10 +45,3 @@
 #else
 #define FGL_UNREACHABLE() std::unreachable()
 #endif
-
-#ifndef FGL_TESTS
-#define FGL_TESTED_ASSERT( ... ) FGL_ASSERT( __VA_ARGS__ );
-#else
-#include <catch2/src/catch2/catch_test_macros.hpp>
-#define FGL_TESTED_ASSERT( ... ) REQUIRE( __VA_ARGS__ );
-#endif

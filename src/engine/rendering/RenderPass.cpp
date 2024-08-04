@@ -243,7 +243,7 @@ namespace fgl::engine::rendering
 		}
 
 		info.setSubpasses( subpass_descriptions );
-		info.setSubpassCount( subpass_descriptions.size() );
+		// info.setSubpassCount( subpass_descriptions.size() );
 		info.setDependencies( subpass_dependencies );
 		info.setAttachments( m_attachment_descriptions );
 

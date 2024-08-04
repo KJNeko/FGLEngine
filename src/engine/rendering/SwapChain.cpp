@@ -159,7 +159,8 @@ namespace fgl::engine
 			throw std::runtime_error( "failed to present swap chain image!" );
 		}
 
-		m_current_frame_index = ( m_current_frame_index + 1 ) % MAX_FRAMES_IN_FLIGHT;
+		m_current_frame_index = static_cast<
+			FrameIndex >( ( m_current_frame_index + static_cast< FrameIndex >( 1 ) ) % MAX_FRAMES_IN_FLIGHT );
 
 		return vk::Result::eSuccess;
 	}

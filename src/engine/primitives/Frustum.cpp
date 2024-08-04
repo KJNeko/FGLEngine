@@ -8,6 +8,7 @@
 #include "engine/primitives/boxes/AxisAlignedBoundingBox.hpp"
 #include "engine/primitives/boxes/AxisAlignedBoundingCube.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"
+#include "lines/InfiniteLine.hpp"
 
 namespace fgl::engine
 {
@@ -141,21 +142,47 @@ namespace fgl::engine
 	}
 
 	template < CoordinateSpace CType >
-	FGL_FORCE_INLINE Vector Frustum< CType >::forwardVec() const
+	FGL_FORCE_INLINE inline NormalVector Frustum< CType >::forwardVec() const
 	{
-		return near.direction();
+		return near.getDirection();
 	}
 
 	template < CoordinateSpace CType >
-	FGL_FORCE_INLINE Vector Frustum< CType >::upVec() const
+	FGL_FORCE_INLINE inline NormalVector Frustum< CType >::upVec() const
 	{
-		return glm::cross( forwardVec(), left.direction() );
+		return NormalVector( glm::cross( forwardVec().vec(), left.getDirection().vec() ) );
 	}
 
 	template < CoordinateSpace CType >
-	FGL_FORCE_INLINE Vector Frustum< CType >::rightVec() const
+	FGL_FORCE_INLINE inline NormalVector Frustum< CType >::rightVec() const
 	{
-		return glm::cross( forwardVec(), upVec() );
+		return NormalVector( glm::cross( forwardVec().vec(), upVec().vec() ) );
+	}
+
+	template < CoordinateSpace CType >
+	std::array< Coordinate< CType >, 4 * 2 > Frustum< CType >::points() const
+	{
+		const NormalVector pv0 { glm::cross( top.getDirection().vec(), left.getDirection().vec() ) };
+		const NormalVector pv1 { glm::cross( top.getDirection().vec(), right.getDirection().vec() ) };
+		const NormalVector pv2 { glm::cross( bottom.getDirection().vec(), left.getDirection().vec() ) };
+		const NormalVector pv3 { glm::cross( bottom.getDirection().vec(), right.getDirection().vec() ) };
+
+		const auto l0 { InfiniteLine< CoordinateSpace::World >( m_position, pv0 ) };
+		const auto l1 { InfiniteLine< CoordinateSpace::World >( m_position, pv1 ) };
+		const auto l2 { InfiniteLine< CoordinateSpace::World >( m_position, pv2 ) };
+		const auto l3 { InfiniteLine< CoordinateSpace::World >( m_position, pv3 ) };
+
+		const auto p0 { l0.intersection( far ) };
+		const auto p1 { l1.intersection( far ) };
+		const auto p2 { l2.intersection( far ) };
+		const auto p3 { l3.intersection( far ) };
+
+		const auto p4 { l0.intersection( near ) };
+		const auto p5 { l1.intersection( near ) };
+		const auto p6 { l2.intersection( near ) };
+		const auto p7 { l3.intersection( near ) };
+
+		return { { p0, p1, p2, p3, p4, p5, p6, p7 } };
 	}
 
 	template <>
@@ -357,5 +384,7 @@ namespace fgl::engine
 
 		return coordinate;
 	}
+
+	template struct Frustum< CoordinateSpace::World >;
 
 } // namespace fgl::engine

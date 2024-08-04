@@ -6,10 +6,9 @@
 
 #include <ostream>
 
-#include "engine/primitives/lines/InfiniteLine.hpp"
-#include "engine/primitives/planes/OriginDistancePlane.hpp"
 #include "engine/primitives/planes/PointPlane.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
+#include "vectors/Vector.hpp"
 
 namespace fgl::engine
 {
@@ -57,9 +56,9 @@ namespace fgl::engine
 		  m_position( position )
 		{}
 
-		FGL_FORCE_INLINE Vector forwardVec() const;
-		FGL_FORCE_INLINE Vector upVec() const;
-		FGL_FORCE_INLINE Vector rightVec() const;
+		FGL_FORCE_INLINE NormalVector forwardVec() const;
+		FGL_FORCE_INLINE NormalVector upVec() const;
+		FGL_FORCE_INLINE NormalVector rightVec() const;
 
 		Coordinate< CType > getPosition() const { return m_position; }
 
@@ -93,36 +92,7 @@ namespace fgl::engine
 		template < typename T >
 		Coordinate< CType > intersection( const T& t ) const;
 
-		std::array< Coordinate< CType >, 4 * 2 > points() const
-		{
-			const Vector pv0 { glm::cross( top.getDirection().vec(), left.getDirection().vec() ) };
-			const Vector pv1 { glm::cross( top.getDirection().vec(), right.getDirection().vec() ) };
-			const Vector pv2 { glm::cross( bottom.getDirection().vec(), left.getDirection().vec() ) };
-			const Vector pv3 { glm::cross( bottom.getDirection().vec(), right.getDirection().vec() ) };
-
-			const auto l0 { InfiniteLine< CoordinateSpace::World >( m_position, pv0 ) };
-			const auto l1 { InfiniteLine< CoordinateSpace::World >( m_position, pv1 ) };
-			const auto l2 { InfiniteLine< CoordinateSpace::World >( m_position, pv2 ) };
-			const auto l3 { InfiniteLine< CoordinateSpace::World >( m_position, pv3 ) };
-
-			const auto p0 { l0.intersection( far ) };
-			const auto p1 { l1.intersection( far ) };
-			const auto p2 { l2.intersection( far ) };
-			const auto p3 { l3.intersection( far ) };
-
-			const auto p4 { l0.intersection( near ) };
-			const auto p5 { l1.intersection( near ) };
-			const auto p6 { l2.intersection( near ) };
-			const auto p7 { l3.intersection( near ) };
-
-			return { { p0, p1, p2, p3, p4, p5, p6, p7 } };
-		}
-
-		bool operator==( const Frustum< CType >& other ) const
-		{
-			return near == other.near && far == other.far && top == other.top && bottom == other.bottom
-			    && right == other.right && left == other.left;
-		}
+		std::array< Coordinate< CType >, 4 * 2 > points() const;
 	};
 
 #ifdef EXPOSE_FRUSTUM_INTERNALS
