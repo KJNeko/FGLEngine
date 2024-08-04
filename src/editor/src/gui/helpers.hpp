@@ -22,10 +22,10 @@ namespace fgl::engine::gui
 			Roll = 2
 		};
 
-		glm::vec3 dat { rot.euler() };
+		glm::vec3 dat { glm::degrees( rot.euler() ) };
 		const glm::vec3 c_dat { dat };
 
-		constexpr float speed { 0.01f };
+		constexpr float speed { 1.0f };
 
 		assert( &dat.x + 1 == &dat.y );
 		assert( &dat.y + 1 == &dat.z );
@@ -38,6 +38,9 @@ namespace fgl::engine::gui
 		const glm::vec< 3, bool > changed_high { glm::greaterThanEqual( diff, glm::vec3( epsilon ) ) };
 		const glm::vec< 3, bool > changed_low { glm::lessThanEqual( diff, glm::vec3( -epsilon ) ) };
 		const glm::vec< 3, bool > changed { changed_high || changed_low };
+
+		// Convert back to radians
+		dat = glm::radians( dat );
 
 		if ( changed[ Pitch ] )
 		{
