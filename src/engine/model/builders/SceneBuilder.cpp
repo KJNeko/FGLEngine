@@ -467,7 +467,10 @@ namespace fgl::engine
 				static_cast< float >( translation[ 1 ] ),
 				static_cast< float >( translation[ 2 ] ) );
 
-		obj.getName() = node.name;
+		if ( node.name.empty() )
+			obj.setName( "Unnamed Game Object" );
+		else
+			obj.setName( node.name );
 
 		this->game_objects.emplace_back( std::move( obj ) );
 	}

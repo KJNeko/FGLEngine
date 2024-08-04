@@ -18,35 +18,40 @@ namespace fgl::engine::gui
 		enum Axis
 		{
 			Pitch = 0,
-			Roll = 1,
-			Yaw = 2
+			Yaw = 1,
+			Roll = 2
 		};
 
-		float dat[ 3 ] { rot.pitch(), rot.roll(), rot.yaw() };
-		const float c_dat[ 3 ] { dat[ Pitch ], dat[ Roll ], dat[ Yaw ] };
+		glm::vec3 dat { rot.euler() };
+		const glm::vec3 c_dat { dat };
 
 		constexpr float speed { 0.01f };
 
-		ImGui::DragFloat3( label, dat, speed );
+		assert( &dat.x + 1 == &dat.y );
+		assert( &dat.y + 1 == &dat.z );
 
-		const float diff[ 3 ] { c_dat[ Pitch ] - dat[ Pitch ], c_dat[ Roll ] - dat[ Roll ], c_dat[ Yaw ] - dat[ Yaw ] };
+		ImGui::DragFloat3( label, &dat.x, speed );
+
+		const glm::vec3 diff { c_dat - dat };
 		constexpr float epsilon { std::numeric_limits< float >::epsilon() };
-		const bool changed[ 3 ] { diff[ Pitch ] > epsilon || diff[ Pitch ]< -epsilon, diff[ Roll ] > epsilon
-			                      || diff[ Roll ]< -epsilon, diff[ Yaw ] > epsilon || diff[ Yaw ] < -epsilon };
+
+		const glm::vec< 3, bool > changed_high { glm::greaterThanEqual( diff, glm::vec3( epsilon ) ) };
+		const glm::vec< 3, bool > changed_low { glm::lessThanEqual( diff, glm::vec3( -epsilon ) ) };
+		const glm::vec< 3, bool > changed { changed_high || changed_low };
 
 		if ( changed[ Pitch ] )
 		{
-			rot.pitch() += diff[ Pitch ];
+			rot.pitch() = dat[ Pitch ];
 		}
 
 		if ( changed[ Roll ] )
 		{
-			rot.roll() += diff[ Roll ];
+			rot.roll() = dat[ Roll ];
 		}
 
 		if ( changed[ Yaw ] )
 		{
-			rot.yaw() += diff[ Yaw ];
+			rot.yaw() = dat[ Yaw ];
 		}
 	}
 

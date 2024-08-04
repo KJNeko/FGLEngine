@@ -70,6 +70,8 @@ namespace fgl::engine
 		RotationModifier< RotationModifierType::Yaw > yaw();
 		ConstRotationModifier< RotationModifierType::Yaw > yaw() const;
 
+		glm::vec3 euler() const;
+
 		Rotation& operator=( const Rotation& rotation );
 		Rotation& operator=( const glm::quat& rotation );
 
@@ -129,101 +131,16 @@ namespace fgl::engine
 
 	  public:
 
-		Rotation& operator+=( const float scalar )
-		{
-			static_assert( !is_const, "Cannot perform operator-= on a const rotation" );
+		Rotation& operator+=( const float scalar );
 
-			const glm::quat modifier { glm::angleAxis( scalar, getModifierAxis< ModifierType >() ) };
+		Rotation& operator-=( const float scalar );
 
-			switch ( ModifierType )
-			{
-				case Pitch:
-					[[fallthrough]];
-				case Roll:
-					rot = static_cast< glm::quat >( rot ) * modifier; // local
-					break;
-				case Yaw:
-					rot = modifier * static_cast< glm::quat >( rot ); // global
-					break;
-				default:
-					FGL_UNREACHABLE();
-			}
-
-			return rot;
-		}
-
-		Rotation& operator-=( const float scalar )
-		{
-			static_assert( !is_const, "Cannot perform operator-= on a const rotation" );
-
-			const auto modifier { glm::angleAxis( -scalar, getModifierAxis< ModifierType >() ) };
-
-			switch ( ModifierType )
-			{
-				case Pitch:
-					[[fallthrough]];
-				case Roll:
-					rot = static_cast< glm::quat >( rot ) * modifier; // local
-					break;
-				case Yaw:
-					rot = modifier * static_cast< glm::quat >( rot ); // global
-					break;
-				default:
-					FGL_UNREACHABLE();
-			}
-			return rot;
-		}
-
-		Rotation& operator=( const float scalar )
-		{
-			glm::vec3 euler { glm::eulerAngles( rot ) };
-
-			switch ( ModifierType )
-			{
-				default:
-					FGL_UNREACHABLE();
-				case Pitch:
-					euler.x = scalar;
-					break;
-				case Roll:
-					euler.y = scalar;
-					break;
-				case Yaw:
-					euler.z = scalar;
-					break;
-			}
-
-			return rot;
-		}
+		Rotation& operator=( const float scalar );
 
 		operator float() const;
 
 		float value() const;
 	};
-
-	template < RotationModifierType ModifierType, bool is_const >
-	FGL_FORCE_INLINE_FLATTEN inline RotationModifier< ModifierType, is_const >::operator float() const
-	{
-		return value();
-	}
-
-	template < RotationModifierType ModifierType, bool is_const >
-	float RotationModifier< ModifierType, is_const >::value() const
-	{
-		switch ( ModifierType )
-		{
-			default:
-				FGL_UNREACHABLE();
-			case Pitch:
-				return glm::pitch( rot );
-			case Roll:
-				return glm::roll( rot );
-			case Yaw:
-				return glm::yaw( rot );
-		}
-
-		FGL_UNREACHABLE();
-	}
 
 	namespace constants
 	{

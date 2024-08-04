@@ -11,7 +11,6 @@
 
 namespace fgl::engine
 {
-
 	Rotation::Rotation() : glm::quat( 1.0f, 0.0f, 0.0f, 0.0f )
 	{}
 
@@ -50,13 +49,18 @@ namespace fgl::engine
 		return glm::atan( y, x );
 	}
 
+	inline glm::vec3 eulerAngles( const glm::quat& quat )
+	{
+		return { pitch( quat ), roll( quat ), yaw( quat ) };
+	}
+
 	// Because of how glm does stuff. We need to invert the roll.
 	Rotation::Rotation( const float pitch, const float roll, const float yaw ) :
 	  glm::quat( buildQuat( { pitch, roll, yaw } ) )
 	{
 		FGL_ASSERT( ::fgl::engine::pitch( *this ) - pitch < glm::epsilon< float >() );
 		FGL_ASSERT( ::fgl::engine::yaw( *this ) - yaw < glm::epsilon< float >() );
-		FGL_ASSERT( ::fgl::engine::roll( *this ) - roll  < glm::epsilon< float >() );
+		FGL_ASSERT( ::fgl::engine::roll( *this ) - roll < glm::epsilon< float >() );
 	}
 
 	RotationModifier< RotationModifierType::Roll > Rotation::roll()
@@ -87,6 +91,127 @@ namespace fgl::engine
 	ConstRotationModifier< RotationModifierType::Yaw > Rotation::yaw() const
 	{
 		return ConstRotationModifier< RotationModifierType::Yaw >( *this );
+	}
+
+	template < RotationModifierType ModifierType, bool is_const >
+	Rotation& RotationModifier< ModifierType, is_const >::operator+=( const float scalar )
+	{
+		if constexpr ( is_const )
+		{
+			// We should never be in this function if we are attempting to modify a const rotation
+			FGL_UNREACHABLE();
+		}
+		else
+		{
+			const glm::quat modifier { glm::angleAxis( scalar, getModifierAxis< ModifierType >() ) };
+
+			switch ( ModifierType )
+			{
+				case Pitch:
+					[[fallthrough]];
+				case Roll:
+					rot = static_cast< glm::quat >( rot ) * modifier; // local
+					break;
+				case Yaw:
+					rot = modifier * static_cast< glm::quat >( rot ); // global
+					break;
+				default:
+					FGL_UNREACHABLE();
+			}
+
+			return rot;
+		}
+	}
+
+	template < RotationModifierType ModifierType, bool is_const >
+	Rotation& RotationModifier< ModifierType, is_const >::operator-=( const float scalar )
+	{
+		if constexpr ( is_const )
+		{
+			// We should never be in this function if we are attempting to modify a const rotation
+			FGL_UNREACHABLE();
+		}
+		else
+		{
+			const auto modifier { glm::angleAxis( -scalar, getModifierAxis< ModifierType >() ) };
+
+			switch ( ModifierType )
+			{
+				case Pitch:
+					[[fallthrough]];
+				case Roll:
+					rot = static_cast< glm::quat >( rot ) * modifier; // local
+					break;
+				case Yaw:
+					rot = modifier * static_cast< glm::quat >( rot ); // global
+					break;
+				default:
+					FGL_UNREACHABLE();
+			}
+			return rot;
+		}
+	}
+
+	template < RotationModifierType ModifierType, bool is_const >
+	Rotation& RotationModifier< ModifierType, is_const >::operator=( const float scalar )
+	{
+		if constexpr ( is_const )
+		{
+			// We should never be in this function if we are attempting to modify a const rotation
+			FGL_UNREACHABLE();
+		}
+		else
+		{
+			glm::vec3 euler { ::fgl::engine::eulerAngles( rot ) };
+
+			switch ( ModifierType )
+			{
+				default:
+					FGL_UNREACHABLE();
+				case Pitch:
+					euler.x = scalar;
+					break;
+				case Roll:
+					euler.y = scalar;
+					break;
+				case Yaw:
+					euler.z = scalar;
+					break;
+			}
+
+			rot = { euler };
+
+			return rot;
+		}
+	}
+
+	template < RotationModifierType ModifierType, bool is_const >
+	FGL_FORCE_INLINE_FLATTEN inline RotationModifier< ModifierType, is_const >::operator float() const
+	{
+		return value();
+	}
+
+	template < RotationModifierType ModifierType, bool is_const >
+	float RotationModifier< ModifierType, is_const >::value() const
+	{
+		switch ( ModifierType )
+		{
+			default:
+				FGL_UNREACHABLE();
+			case Pitch:
+				return glm::pitch( rot );
+			case Roll:
+				return glm::roll( rot );
+			case Yaw:
+				return glm::yaw( rot );
+		}
+
+		FGL_UNREACHABLE();
+	}
+
+	glm::vec3 Rotation::euler() const
+	{
+		return { pitch(), roll(), yaw() };
 	}
 
 	Rotation& Rotation::operator=( const Rotation& rotation )
@@ -134,5 +259,12 @@ namespace fgl::engine
 	{
 		return Rotation( glm::normalize( static_cast< glm::quat >( *this ) * static_cast< glm::quat >( other ) ) );
 	}
+
+	template class RotationModifier< RotationModifierType::Pitch, false >;
+	template class RotationModifier< RotationModifierType::Roll, false >;
+	template class RotationModifier< RotationModifierType::Yaw, false >;
+	template class RotationModifier< RotationModifierType::Pitch, true >;
+	template class RotationModifier< RotationModifierType::Roll, true >;
+	template class RotationModifier< RotationModifierType::Yaw, true >;
 
 } // namespace fgl::engine

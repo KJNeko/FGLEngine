@@ -207,7 +207,10 @@ namespace fgl::engine::gui
 
 	void drawObject( GameObject& game_object )
 	{
-		ImGui::InputText( "Name", &( game_object.getName() ) );
+		static std::string name_input_temp { "" };
+		name_input_temp = game_object.getName();
+		ImGui::InputText( "Name", &name_input_temp );
+		if ( game_object.getName() != name_input_temp ) game_object.setName( name_input_temp );
 
 		// Transform - Position
 		dragFloat3( "Position", game_object.getTransform().translation.vec() );

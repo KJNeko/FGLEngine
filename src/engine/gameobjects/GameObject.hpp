@@ -47,7 +47,7 @@ namespace fgl::engine
 
 		std::vector< GameObjectComponentPtr > components {};
 
-		std::string name {};
+		std::string m_name {};
 
 		explicit GameObject( GameObjectID obj_id ) : m_id( obj_id ) {}
 
@@ -137,7 +137,9 @@ namespace fgl::engine
 		GameObjectID getId() const { return m_id; }
 
 		//! Returns the name of the game object. If no name is set then the name of the model is used.
-		std::string& getName() { return name; }
+		const std::string& getName() const { return m_name; }
+
+		void setName( const std::string& name ) { m_name = name; }
 
 		// void drawImGui();
 	};
