@@ -177,7 +177,7 @@ namespace fgl::engine::gui
 
 		drawConfigBar( info, camera, frame_index, current );
 
-		const float ratio { info.swap_chain.extentAspectRatio() };
+		const float ratio { camera.aspectRatio() };
 		const auto imgui_size { ImGui::GetWindowSize() };
 		const auto target_size { calculateTargetSize( ratio, imgui_size ) };
 

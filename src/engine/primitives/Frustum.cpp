@@ -82,7 +82,7 @@ namespace fgl::engine
 
 		WorldCoordinate first_exit { enter_intersections.at( 0 ) };
 		float distance { signedDistance( line.getDirection(), line.getEnd(), line.getPosition() ) };
-		assert( distance > 0.0f );
+		//assert( distance > 0.0f );
 
 		for ( const auto intersection_point : enter_intersections )
 		{

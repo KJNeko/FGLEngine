@@ -17,10 +17,6 @@ namespace fgl::engine::constants
 
 	constexpr glm::vec3 WORLD_CENTER { 0.0f, 0.0f, 0.0f };
 
-	// Z UP
-	constexpr glm::vec3 WORLD_UP { 0.0f, 0.0f, 1.0f };
-	constexpr glm::vec3 WORLD_DOWN { -WORLD_UP };
-
 	// X RIGHT
 	constexpr glm::vec3 WORLD_RIGHT { 1.0f, 0.0f, 0.0f };
 	constexpr glm::vec3 WORLD_LEFT { -WORLD_RIGHT };
@@ -28,6 +24,10 @@ namespace fgl::engine::constants
 	// Y FORWARD
 	constexpr glm::vec3 WORLD_FORWARD { 0.0f, 1.0f, 0.0f };
 	constexpr glm::vec3 WORLD_BACKWARD { -WORLD_FORWARD };
+
+	// Z UP
+	constexpr glm::vec3 WORLD_UP { 0.0f, 0.0f, 1.0f };
+	constexpr glm::vec3 WORLD_DOWN { -WORLD_UP };
 
 	constexpr float DEFAULT_FLOAT { std::numeric_limits< float >::max() };
 
@@ -40,5 +40,6 @@ namespace fgl::engine::constants
 	constexpr auto FRUSTUM_ORIGIN { constants::WORLD_CENTER };
 
 	constexpr glm::mat4 MAT4_IDENTITY { 1.0f };
+	constexpr glm::mat3 MAT3_IDENTITY { 1.0f };
 
 } // namespace fgl::engine::constants

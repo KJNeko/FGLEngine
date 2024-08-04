@@ -20,7 +20,7 @@ namespace fgl::engine
 
 		ModelComponent( std::shared_ptr< Model >&& model ) : m_model( std::forward< decltype( m_model ) >( model ) ) {}
 
-#ifdef IDHAN_EDITOR
+#ifdef TITOR_EDITOR
 		void drawImGui() override;
 
 		std::string_view name() const override

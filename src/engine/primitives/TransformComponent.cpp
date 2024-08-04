@@ -4,8 +4,6 @@
 
 #include "TransformComponent.hpp"
 
-#include "engine/math/taitBryanMatrix.hpp"
-
 namespace fgl::engine
 {
 
@@ -24,6 +22,21 @@ namespace fgl::engine
 	Matrix< MatrixType::ModelToWorld > TransformComponent::mat() const
 	{
 		return Matrix< MatrixType::ModelToWorld >( mat4() );
+	}
+
+	NormalVector TransformComponent::forward() const
+	{
+		return rotation.forward();
+	}
+
+	NormalVector TransformComponent::right() const
+	{
+		return rotation.right();
+	}
+
+	NormalVector TransformComponent::up() const
+	{
+		return rotation.up();
 	}
 
 } // namespace fgl::engine

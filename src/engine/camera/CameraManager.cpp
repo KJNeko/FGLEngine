@@ -40,10 +40,11 @@ namespace fgl::engine
 	  m_data_buffer( 4_KiB, vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eHostVisible )
 	{
 		Camera::initCameraRenderer();
-		debug::setDebugDrawingCamera( *getPrimary() );
 
 		m_primary_camera = createCamera( { 1920, 1080 } );
 		m_primary_camera->setName( CAMERA_EDITOR_NAME );
+
+		debug::setDebugDrawingCamera( getPrimary() );
 	}
 
 	std::shared_ptr< Camera > CameraManager::createCamera( const vk::Extent2D extent )

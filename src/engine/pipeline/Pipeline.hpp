@@ -39,11 +39,7 @@ namespace fgl::engine::internal
 			Device& device,
 			vk::raii::PipelineLayout layout,
 			PipelineConfigInfo info,
-			std::vector< std::unique_ptr< ShaderHandle > > shaders ) :
-		  m_device( device ),
-		  m_layout( std::move( layout ) ),
-		  m_vk_pipeline( createGraphicsPipeline( shaders, info, m_layout ) )
-		{}
+			std::vector< std::unique_ptr< ShaderHandle > > shaders );
 
 		Pipeline( const Pipeline& other ) = delete;
 		Pipeline& operator=( const Pipeline& ) = delete;

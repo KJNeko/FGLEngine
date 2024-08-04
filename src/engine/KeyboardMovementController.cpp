@@ -83,12 +83,12 @@ namespace fgl::engine
 			Rotation pitch_rotation {};
 
 			if ( pitch_change > std::numeric_limits< float >::epsilon()
-			     || pitch_change < std::numeric_limits< float >::epsilon() )
-				pitch_rotation.pitch() += ( dt * pitch_change );
+			     || pitch_change < -std::numeric_limits< float >::epsilon() )
+				pitch_rotation.pitch() += static_cast< float >( dt * pitch_change );
 
 			if ( yaw_change > std::numeric_limits< float >::epsilon()
-			     || yaw_change < std::numeric_limits< float >::epsilon() )
-				yaw_rotation.yaw() += ( dt * yaw_change );
+			     || yaw_change < -std::numeric_limits< float >::epsilon() )
+				yaw_rotation.yaw() += static_cast< float >( dt * yaw_change );
 
 			target.getTransform().rotation = yaw_rotation * original_rotation * pitch_rotation;
 		}

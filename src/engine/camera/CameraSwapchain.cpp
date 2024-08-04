@@ -111,6 +111,11 @@ namespace fgl::engine
 		return *gbuffer.composite.m_attachment_resources.m_images[ index ];
 	}
 
+	float CameraSwapchain::getAspectRatio()
+	{
+		return static_cast< float >( m_extent.width ) / static_cast< float >( m_extent.height );
+	}
+
 	CameraSwapchain::CameraSwapchain( vk::raii::RenderPass& renderpass, const vk::Extent2D extent ) :
 	  m_extent( extent ),
 	  m_renderpass( renderpass ),

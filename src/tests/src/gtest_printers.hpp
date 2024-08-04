@@ -26,7 +26,7 @@ namespace Catch
 	{
 		static std::string convert( const fgl::engine::Vector& vec )
 		{
-			return StringMaker< glm::vec3 >::convert( static_cast< glm::vec3 >( vec ) );
+			return StringMaker< glm::vec3 >::convert( static_cast< glm::vec3 >( vec.vec() ) );
 		}
 	};
 
@@ -35,7 +35,7 @@ namespace Catch
 	{
 		static std::string convert( const fgl::engine::Rotation& rot )
 		{
-			return StringMaker< glm::vec3 >::convert( static_cast< glm::vec3 >( rot ) );
+			return StringMaker< glm::vec3 >::convert( { rot.pitch(), rot.roll(), rot.yaw() } );
 		}
 	};
 
@@ -58,6 +58,15 @@ namespace Catch
 		}
 	};
 
+	template <>
+	struct StringMaker< fgl::engine::NormalVector >
+	{
+		static std::string convert( const fgl::engine::NormalVector vec )
+		{
+			return StringMaker< fgl::engine::Vector >::convert( static_cast< fgl::engine::Vector >( vec ) );
+		}
+	};
+
 } // namespace Catch
 
 #ifndef NDEBUG
@@ -70,5 +79,5 @@ namespace glm
 
 } // namespace glm
 #else
-#warning "Debug mode not enabled. Tests will pass when checking for floating point equality."
+#warning "Debug mode not enabled. Tests will fail when checking for floating point equality."
 #endif

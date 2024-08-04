@@ -4,9 +4,12 @@
 
 #include <glm/gtc/epsilon.hpp>
 
+#include <utility>
+
 #include "engine/primitives/TransformComponent.hpp"
 #include "engine/primitives/vectors/Vector.hpp"
 #include "gtest_printers.hpp"
+#include "operators/vector.hpp"
 
 using namespace fgl::engine;
 
@@ -31,7 +34,7 @@ TEST_CASE( "Vector", "[vector][transforms]" )
 
 	WHEN( "Rotated +90 yaw" )
 	{
-		Vector rotation_vec { constants::WORLD_FORWARD };
+		Vector rotation_vec { NormalVector( constants::WORLD_FORWARD ) };
 
 		//Rotate by 90 degrees on yaw
 		TransformComponent transform;
@@ -41,13 +44,13 @@ TEST_CASE( "Vector", "[vector][transforms]" )
 
 		THEN( "Forward should be WORLD_RIGHT" )
 		{
-			REQUIRE( value == constants::WORLD_RIGHT );
+			REQUIRE( value == Vector( constants::WORLD_RIGHT ) );
 		}
 	}
 
 	WHEN( "Rotated -90 yaw" )
 	{
-		Vector rotation_vec { constants::WORLD_FORWARD };
+		Vector rotation_vec { NormalVector( constants::WORLD_FORWARD ) };
 
 		//Rotate by 90 degrees on yaw
 		TransformComponent transform;
@@ -57,7 +60,7 @@ TEST_CASE( "Vector", "[vector][transforms]" )
 
 		THEN( "Forward should be WORLD_LEFT" )
 		{
-			REQUIRE( value == constants::WORLD_LEFT );
+			REQUIRE( value == Vector( constants::WORLD_LEFT ) );
 		}
 	}
 }
@@ -82,22 +85,48 @@ TEST_CASE( "Rotation", "[vector][transforms]" )
 
 		THEN( "Forward should be WORLD_FORWARD" )
 		{
-			REQUIRE( rot.forward() == constants::WORLD_FORWARD );
+			REQUIRE( rot.forward() == NormalVector( constants::WORLD_FORWARD ) );
 		}
 
 		THEN( "Backwards should be WORLD_BACKWARD" )
 		{
-			REQUIRE( rot.backwards() == constants::WORLD_BACKWARD );
+			REQUIRE( -rot.forward() == NormalVector( constants::WORLD_BACKWARD ) );
 		}
 
 		THEN( "Right should be WORLD_RIGHT" )
 		{
-			REQUIRE( rot.right( constants::WORLD_UP ) == constants::WORLD_RIGHT );
+			REQUIRE( rot.right() == NormalVector( constants::WORLD_RIGHT ) );
 		}
 
 		THEN( "Left should be WORLD_LEFT" )
 		{
-			REQUIRE( rot.left( constants::WORLD_UP ) == constants::WORLD_LEFT );
+			REQUIRE( -rot.right() == NormalVector( constants::WORLD_LEFT ) );
+		}
+	}
+
+	GIVEN( "A rotation constructed" )
+	{
+		constexpr auto rad_90 { glm::radians( 90.0f ) };
+
+		AND_WHEN( "Given 90.0f pitch" )
+		{
+			Rotation rotation { rad_90, 0.0f, 0.0f };
+
+			REQUIRE( rotation.pitch() == Catch::Approx( rad_90 ).epsilon( 0.01 ) );
+		}
+
+		AND_WHEN( "Given 90.0f yaw" )
+		{
+			Rotation rotation { 0.0f, rad_90, 0.0f };
+
+			REQUIRE( rotation.yaw() == Catch::Approx( rad_90 ).epsilon( 0.01 ) );
+		}
+
+		AND_WHEN( "Given 90.0f roll" )
+		{
+			Rotation rotation { 0.0f, 0.0f, rad_90 };
+
+			REQUIRE( rotation.roll() == Catch::Approx( rad_90 ).epsilon( 0.01 ) );
 		}
 	}
 
@@ -109,22 +138,22 @@ TEST_CASE( "Rotation", "[vector][transforms]" )
 
 			THEN( "Forward should be WORLD_RIGHT" )
 			{
-				REQUIRE( rot.forward() == constants::WORLD_RIGHT );
+				REQUIRE( rot.forward() == NormalVector( constants::WORLD_RIGHT ) );
 			}
 
 			THEN( "Backwards should be WORLD_LEFT" )
 			{
-				REQUIRE( rot.backwards() == constants::WORLD_LEFT );
+				REQUIRE( rot.back() == NormalVector( constants::WORLD_LEFT ) );
 			}
 
 			THEN( "Right should be WORLD_BACKWARD" )
 			{
-				REQUIRE( rot.right( constants::WORLD_UP ) == constants::WORLD_BACKWARD );
+				REQUIRE( rot.right() == NormalVector( constants::WORLD_BACKWARD ) );
 			}
 
 			THEN( "Left should be WORLD_FORWARD" )
 			{
-				REQUIRE( rot.left( constants::WORLD_UP ) == constants::WORLD_FORWARD );
+				REQUIRE( rot.left() == NormalVector( constants::WORLD_FORWARD ) );
 			}
 		}
 
@@ -134,22 +163,22 @@ TEST_CASE( "Rotation", "[vector][transforms]" )
 
 			THEN( "Forward should be WORLD_LEFT" )
 			{
-				REQUIRE( rot.forward() == constants::WORLD_LEFT );
+				REQUIRE( rot.forward() == NormalVector( constants::WORLD_LEFT ) );
 			}
 
 			THEN( "Backwards should be WORLD_RIGHT" )
 			{
-				REQUIRE( rot.backwards() == constants::WORLD_RIGHT );
+				REQUIRE( rot.back() == NormalVector( constants::WORLD_RIGHT ) );
 			}
 
 			THEN( "Right should be WORLD_FORWARD" )
 			{
-				REQUIRE( rot.right( constants::WORLD_UP ) == constants::WORLD_FORWARD );
+				REQUIRE( rot.right() == NormalVector( constants::WORLD_FORWARD ) );
 			}
 
 			THEN( "Left should be WORLD_BACKWARD" )
 			{
-				REQUIRE( rot.left( constants::WORLD_UP ) == constants::WORLD_BACKWARD );
+				REQUIRE( rot.left() == NormalVector( constants::WORLD_BACKWARD ) );
 			}
 		}
 	}

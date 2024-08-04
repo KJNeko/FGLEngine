@@ -40,7 +40,6 @@ namespace fgl::engine
 
 	using CameraIDX = std::uint8_t;
 
-
 	class Camera
 	{
 		inline static CameraIDX camera_counter { 0 };
@@ -57,9 +56,10 @@ namespace fgl::engine
 		Frustum< CoordinateSpace::World > frustum {};
 		WorldCoordinate last_frustum_pos { constants::WORLD_CENTER };
 
-		Rotation current_rotation {};
+		TransformComponent m_transform;
 
-		vk::Extent2D m_extent;
+		vk::Extent2D m_target_extent;
+		float m_fov_y { glm::radians( 90.0f ) };
 
 		PerFrameSuballocation< HostSingleT< CameraInfo > > m_camera_frame_info;
 
@@ -75,11 +75,20 @@ namespace fgl::engine
 
 		void updateFrustum();
 
+#ifdef EXPOSE_CAMERA_TESTS
+		//Constructor for tests
+		Camera( vk::Extent2D test_extent ) : m_target_extent( test_extent ) {}
+#endif
+
 		Camera( vk::Extent2D extent, memory::Buffer& data_buffer );
 
 		friend class CameraManager;
 
 	  public:
+
+		float& x { m_transform.translation.x };
+		float& y { m_transform.translation.y };
+		float& z { m_transform.translation.z };
 
 		FGL_DELETE_ALL_Ro5( Camera );
 
@@ -93,7 +102,13 @@ namespace fgl::engine
 
 		void setExtent( vk::Extent2D extent );
 
-		Rotation getRotation() const { return current_rotation; }
+		const Rotation& getRotation() const { return m_transform.rotation; }
+
+		Rotation& getRotation() { return m_transform.rotation; }
+
+		const TransformComponent& getTransform() const { return m_transform; }
+
+		TransformComponent& getTransform() { return m_transform; }
 
 		WorldCoordinate getFrustumPosition() const;
 
@@ -147,6 +162,8 @@ namespace fgl::engine
 		void updateInfo( FrameIndex frame_index );
 		descriptors::DescriptorSet& getDescriptor( FrameIndex index );
 
+		void setFOV( const float fov_y );
+
 		//! Performs the render pass for this camera
 		void pass( FrameInfo& frame_info );
 
@@ -155,12 +172,20 @@ namespace fgl::engine
 		void setViewport( const vk::raii::CommandBuffer& command_buffer );
 		void setScissor( const vk::raii::CommandBuffer& command_buffer );
 
-		void beginRenderpass( const vk::raii::CommandBuffer& command_buffer, const FrameInfo& info );
-		void endRenderpass( const vk::raii::CommandBuffer& command_buffer );
+		void remakeSwapchain( vk::Extent2D extent );
 
 		void setName( std::string_view str );
 
+		float aspectRatio() const;
+
 		void copyOutput( const vk::raii::CommandBuffer& command_buffer, FrameIndex frame_index, Image& target );
+		void updateMatrix();
+
+#ifdef EXPOSE_CAMERA_TESTS
+
+		Camera CREATE_TESTING_CAMERA() { return { { 1920, 1080 } }; }
+
+#endif
 	};
 
 } // namespace fgl::engine

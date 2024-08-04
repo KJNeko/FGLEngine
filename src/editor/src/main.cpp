@@ -26,8 +26,7 @@ int main()
 
 	auto& editor_camera { camera_manager.getPrimary() };
 
-	editor_camera->setPerspectiveProjection(
-		glm::radians( 90.0f ), engine_ctx.getWindowAspectRatio(), constants::NEAR_PLANE, constants::FAR_PLANE );
+	editor_camera->setFOV( glm::radians( 90.0f ) );
 
 	//! Will be true until the window says it wants to close.
 	while ( engine_ctx.good() )

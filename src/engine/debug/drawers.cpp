@@ -23,17 +23,18 @@
 
 namespace fgl::engine::debug
 {
-	inline static std::optional< Camera* > debug_camera { std::nullopt };
+	inline static std::optional< std::shared_ptr< Camera > > debug_camera { std::nullopt };
 
 	Camera& getDebugDrawingCamera()
 	{
-		assert( debug_camera.has_value() && "Debug camera not set" );
+		assert( debug_camera.has_value() && debug_camera.value() != nullptr && "Debug camera not set" );
 		return *debug_camera.value();
 	}
 
-	void setDebugDrawingCamera( Camera& cam )
+	void setDebugDrawingCamera( std::shared_ptr< Camera >& cam )
 	{
-		debug_camera = &cam;
+		assert( cam );
+		debug_camera = cam;
 	}
 
 	const ImVec2 windowSize()

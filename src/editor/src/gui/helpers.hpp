@@ -15,31 +15,38 @@ namespace fgl::engine::gui
 
 	inline void dragFloat3Rot( const char* const label, Rotation& rot )
 	{
+		enum Axis
+		{
+			Pitch = 0,
+			Roll = 1,
+			Yaw = 2
+		};
+
 		float dat[ 3 ] { rot.pitch(), rot.roll(), rot.yaw() };
-		const float c_dat[ 3 ] { dat[ 0 ], dat[ 1 ], dat[ 2 ] };
+		const float c_dat[ 3 ] { dat[ Pitch ], dat[ Roll ], dat[ Yaw ] };
 
 		constexpr float speed { 0.01f };
 
 		ImGui::DragFloat3( label, dat, speed );
 
-		const float diff[ 3 ] { c_dat[ 0 ] - dat[ 0 ], c_dat[ 1 ] - dat[ 1 ], c_dat[ 2 ] - dat[ 2 ] };
+		const float diff[ 3 ] { c_dat[ Pitch ] - dat[ Pitch ], c_dat[ Roll ] - dat[ Roll ], c_dat[ Yaw ] - dat[ Yaw ] };
 		constexpr float epsilon { std::numeric_limits< float >::epsilon() };
-		const bool changed[ 3 ] { diff[ 0 ] > epsilon || diff[ 0 ]< epsilon, diff[ 1 ] > epsilon
-			                      || diff[ 1 ]< epsilon, diff[ 2 ] > epsilon || diff[ 2 ] < epsilon };
+		const bool changed[ 3 ] { diff[ Pitch ] > epsilon || diff[ Pitch ]< -epsilon, diff[ Roll ] > epsilon
+			                      || diff[ Roll ]< -epsilon, diff[ Yaw ] > epsilon || diff[ Yaw ] < -epsilon };
 
-		if ( changed[ 0 ] )
+		if ( changed[ Pitch ] )
 		{
-			rot.pitch() += diff[ 0 ];
+			rot.pitch() += diff[ Pitch ];
 		}
 
-		if ( changed[ 1 ] )
+		if ( changed[ Roll ] )
 		{
-			rot.roll() += diff[ 1 ];
+			rot.roll() += diff[ Roll ];
 		}
 
-		if ( changed[ 2 ] )
+		if ( changed[ Yaw ] )
 		{
-			rot.yaw() += diff[ 2 ];
+			rot.yaw() += diff[ Yaw ];
 		}
 	}
 

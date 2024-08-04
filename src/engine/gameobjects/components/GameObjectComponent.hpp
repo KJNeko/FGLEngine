@@ -20,7 +20,7 @@ namespace fgl::engine
 	struct GameObjectComponent : public GameObjectComponentBase
 	{
 		constexpr static ComponentID ID { T_ID };
-		ComponentTransform m_transform;
+		ComponentTransform m_transform { WorldCoordinate( 0.0f ), Scale( 1.0 ), Rotation() };
 
 		virtual ComponentID id() const override final { return ID; }
 	};

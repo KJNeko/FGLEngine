@@ -27,121 +27,75 @@ namespace fgl::engine
 {
 	enum class RotationModifierType
 	{
-		Pitch,
-		Roll,
-		Yaw
+		Pitch = 0,
+		Roll = 1,
+		Yaw = 2,
 	};
 
 	struct Rotation;
 
+	template < RotationModifierType ModifierType, bool is_const = false >
+	class RotationModifier;
+
 	template < RotationModifierType ModifierType >
-	class RotationModifier
-	{
-		using enum RotationModifierType;
-
-		Rotation& rot;
-
-		friend struct Rotation;
-
-		RotationModifier() = delete;
-
-		RotationModifier( Rotation& i_rot ) : rot( i_rot ) {}
-
-	  public:
-
-		Rotation& operator+=( const float scalar );
-		Rotation& operator-=( const float scalar );
-
-		operator float() const;
-
-		float value() const { return static_cast< float >( *this ); }
-
-		float value() { return static_cast< float >( *this ); }
-	};
+	using ConstRotationModifier = RotationModifier< ModifierType, true >;
 
 	struct Rotation : private glm::quat
 	{
-		friend class RotationModifier< RotationModifierType::Pitch >;
-		friend class RotationModifier< RotationModifierType::Roll >;
-		friend class RotationModifier< RotationModifierType::Yaw >;
-
-	  public:
+		template < RotationModifierType ModifierType, bool is_const >
+		friend class RotationModifier;
 
 		Rotation();
 
-		explicit Rotation( const float pitch_r, const float roll_r, const float yaw_r );
+		explicit Rotation( float pitch, float roll, float yaw );
 
 		Rotation( const Rotation& other ) = default;
 
-		Rotation( const glm::quat other ) : glm::quat( other ) {}
+		explicit Rotation( const glm::quat other ) : glm::quat( other ) {}
 
-		FGL_FORCE_INLINE_FLATTEN auto pitch() { return RotationModifier< RotationModifierType::Pitch >( *this ); }
+		explicit Rotation( const float scalar ) : Rotation( scalar, scalar, scalar ) {}
 
-		FGL_FORCE_INLINE_FLATTEN auto roll() { return RotationModifier< RotationModifierType::Roll >( *this ); }
-
-		FGL_FORCE_INLINE_FLATTEN auto yaw() { return RotationModifier< RotationModifierType::Yaw >( *this ); }
-
-		FGL_FORCE_INLINE float pitch() const
+		enum RotationReference
 		{
-			//TODO: Ask entry to explain this stuff
-			const float sinr_cosp { 2.0f * ( w * x + y * z ) };
-			const float cosr_cosp { 1.0f - 2.0f * ( x * x + y * y ) };
-			return std::atan2( sinr_cosp, cosr_cosp );
-		}
+			Local,
+			Global
+		};
 
-		FGL_FORCE_INLINE float roll() const
-		{
-			const float sinp { glm::sqrt( 1.0f + 2.0f * ( w * y - x * z ) ) };
-			const float cosp { glm::sqrt( 1.0f - 2.0f * ( w * y - x * z ) ) };
-			return 2.0f * std::atan2( sinp, cosp ) - ( std::numbers::pi_v< float > / 2.0f );
-		}
+		RotationModifier< RotationModifierType::Pitch > pitch();
+		ConstRotationModifier< RotationModifierType::Pitch > pitch() const;
 
-		FGL_FORCE_INLINE float yaw() const
-		{
-			const float siny_cosp { 2.0f * ( w * z + x * y ) };
-			const float cosy_cosp { 1.0f - 2.0f * ( y * y + z * z ) };
-			return std::atan2( siny_cosp, cosy_cosp );
-		}
+		RotationModifier< RotationModifierType::Roll > roll();
+		ConstRotationModifier< RotationModifierType::Roll > roll() const;
+
+		RotationModifier< RotationModifierType::Yaw > yaw();
+		ConstRotationModifier< RotationModifierType::Yaw > yaw() const;
 
 		Rotation& operator=( const Rotation& rotation );
+		Rotation& operator=( const glm::quat& rotation );
 
 		Rotation& operator+=( const Rotation& rotation );
 
 		NormalVector forward() const;
 
+		NormalVector back() const { return -forward(); }
+
 		NormalVector right() const;
+
+		NormalVector left() const { return -right(); }
 
 		NormalVector up() const;
 
+		NormalVector down() const { return -up(); }
+
 		RotationMatrix mat() const;
 
-		Rotation operator*( const Rotation other ) const;
+		Rotation operator*( const Rotation& other ) const;
 
 		bool operator==( const Rotation& other ) const = default;
 	};
 
-	template < RotationModifierType ModifierType >
-	FGL_FORCE_INLINE_FLATTEN RotationModifier< ModifierType >::operator float() const
-	{
-		switch ( ModifierType )
-		{
-			case RotationModifierType::Pitch:
-				return const_cast< const Rotation& >( rot ).pitch();
-			case RotationModifierType::Roll:
-				return const_cast< const Rotation& >( rot ).roll();
-			case RotationModifierType::Yaw:
-				return const_cast< const Rotation& >( rot ).yaw();
-		}
-		FGL_UNREACHABLE();
-	}
-
-	namespace constants
-	{
-		constexpr glm::vec3 DEFAULT_ROTATION { 0.0f, 0.0f, 0.0f };
-	}
-
 	template < RotationModifierType MT >
-	consteval glm::vec3 getModifierAxis()
+	glm::vec3 getModifierAxis()
 	{
 		switch ( MT )
 		{
@@ -150,25 +104,130 @@ namespace fgl::engine
 			case RotationModifierType::Roll:
 				return constants::WORLD_FORWARD;
 			case RotationModifierType::Yaw:
-				return constants::WORLD_DOWN;
+				return -constants::WORLD_UP;
+			default:
+				FGL_UNREACHABLE();
 		}
 
 		FGL_UNREACHABLE();
 	}
 
-	template < RotationModifierType ModifierType >
-	Rotation& RotationModifier< ModifierType >::operator+=( const float scalar )
+	template < RotationModifierType ModifierType, bool is_const >
+	class RotationModifier
 	{
-		rot = Rotation( static_cast< glm::quat >( rot ) * glm::angleAxis( scalar, getModifierAxis< ModifierType >() ) );
-		return rot;
+		using enum RotationModifierType;
+
+		using RotationType = std::conditional_t< is_const, const Rotation&, Rotation& >;
+
+		RotationType rot;
+
+		friend struct Rotation;
+
+		RotationModifier() = delete;
+
+		explicit RotationModifier( RotationType& i_rot ) : rot( i_rot ) {}
+
+	  public:
+
+		Rotation& operator+=( const float scalar )
+		{
+			static_assert( !is_const, "Cannot perform operator-= on a const rotation" );
+
+			const glm::quat modifier { glm::angleAxis( scalar, getModifierAxis< ModifierType >() ) };
+
+			switch ( ModifierType )
+			{
+				case Pitch:
+					[[fallthrough]];
+				case Roll:
+					rot = static_cast< glm::quat >( rot ) * modifier; // local
+					break;
+				case Yaw:
+					rot = modifier * static_cast< glm::quat >( rot ); // global
+					break;
+				default:
+					FGL_UNREACHABLE();
+			}
+
+			return rot;
+		}
+
+		Rotation& operator-=( const float scalar )
+		{
+			static_assert( !is_const, "Cannot perform operator-= on a const rotation" );
+
+			const auto modifier { glm::angleAxis( -scalar, getModifierAxis< ModifierType >() ) };
+
+			switch ( ModifierType )
+			{
+				case Pitch:
+					[[fallthrough]];
+				case Roll:
+					rot = static_cast< glm::quat >( rot ) * modifier; // local
+					break;
+				case Yaw:
+					rot = modifier * static_cast< glm::quat >( rot ); // global
+					break;
+				default:
+					FGL_UNREACHABLE();
+			}
+			return rot;
+		}
+
+		Rotation& operator=( const float scalar )
+		{
+			glm::vec3 euler { glm::eulerAngles( rot ) };
+
+			switch ( ModifierType )
+			{
+				default:
+					FGL_UNREACHABLE();
+				case Pitch:
+					euler.x = scalar;
+					break;
+				case Roll:
+					euler.y = scalar;
+					break;
+				case Yaw:
+					euler.z = scalar;
+					break;
+			}
+
+			return rot;
+		}
+
+		operator float() const;
+
+		float value() const;
+	};
+
+	template < RotationModifierType ModifierType, bool is_const >
+	FGL_FORCE_INLINE_FLATTEN inline RotationModifier< ModifierType, is_const >::operator float() const
+	{
+		return value();
 	}
 
-	template < RotationModifierType ModifierType >
-	Rotation& RotationModifier< ModifierType >::operator-=( const float scalar )
+	template < RotationModifierType ModifierType, bool is_const >
+	float RotationModifier< ModifierType, is_const >::value() const
 	{
-		rot =
-			Rotation( static_cast< glm::quat >( rot ) * glm::angleAxis( -scalar, getModifierAxis< ModifierType >() ) );
-		return rot;
+		switch ( ModifierType )
+		{
+			default:
+				FGL_UNREACHABLE();
+			case Pitch:
+				return glm::pitch( rot );
+			case Roll:
+				return glm::roll( rot );
+			case Yaw:
+				return glm::yaw( rot );
+		}
+
+		FGL_UNREACHABLE();
+	}
+
+	namespace constants
+	{
+		constexpr glm::vec3 DEFAULT_ROTATION { 0.0f, 0.0f, 0.0f };
 	}
 
 } // namespace fgl::engine

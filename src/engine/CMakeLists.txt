@@ -47,12 +47,24 @@ endif ()
 message("-- FGL_ENABLE_IMGUI: ${FGL_ENABLE_IMGUI}")
 
 if (FGL_ENABLE_IMGUI)
-	target_compile_definitions(FGLEngine PRIVATE ENABLE_IMGUI=1)
-	target_compile_definitions(FGLEngine PRIVATE ENABLE_IMGUI_DRAWERS=1)
+	target_compile_definitions(FGLEngine PUBLIC ENABLE_IMGUI=1)
+	target_compile_definitions(FGLEngine PUBLIC ENABLE_IMGUI_DRAWERS=1)
 else ()
-	target_compile_definitions(FGLEngine PRIVATE ENABLE_IMGUI=0)
-	target_compile_definitions(FGLEngine PRIVATE ENABLE_IMGUI_DRAWERS=0)
+	target_compile_definitions(FGLEngine PUBLIC ENABLE_IMGUI=0)
+	target_compile_definitions(FGLEngine PUBLIC ENABLE_IMGUI_DRAWERS=0)
 endif ()
+
+if (NOT DEFINED FGL_ENABLE_TESTS)
+	set(FGL_ENABLE_TESTS 0)
+endif ()
+
+if (FGL_ENABLE_TESTS)
+	target_compile_definitions(FGLEngine PUBLIC FGL_TESTS=1)
+	target_link_libraries(FGLEngine PUBLIC Catch2)
+else ()
+	target_compile_definitions(FGLEngine PUBLIC FGL_TESTS=0)
+endif ()
+
 
 #GLM settings
 # GLM_FORCE_NO_CTOR_INIT

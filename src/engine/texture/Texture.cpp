@@ -24,11 +24,26 @@
 
 namespace fgl::engine
 {
-	//TODO: We should be trying to re-use IDs that are released from textures so we can prevent this number from getting extremely large.
-	std::uint32_t getNextID()
+	using TextureID = std::uint32_t;
+	static std::queue< TextureID > unused_ids {};
+
+	TextureID getNextID()
 	{
-		static std::uint32_t id { 0 };
-		return id++;
+		static TextureID id { 0 };
+
+		if ( unused_ids.size() > 0 )
+		{
+			const TextureID pulled_id { unused_ids.front() };
+			unused_ids.pop();
+
+			log::debug( "Gave ID {} to texture", pulled_id );
+
+			return pulled_id;
+		}
+		else
+		{
+			return id++;
+		}
 	}
 
 	std::tuple< std::vector< std::byte >, int, int, vk::Format >
@@ -145,6 +160,7 @@ namespace fgl::engine
 	Texture::~Texture()
 	{
 		if ( m_imgui_set != VK_NULL_HANDLE ) ImGui_ImplVulkan_RemoveTexture( m_imgui_set );
+		unused_ids.push( m_texture_id );
 	}
 
 	vk::DescriptorImageInfo Texture::getDescriptor() const

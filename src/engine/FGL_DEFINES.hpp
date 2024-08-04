@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <utility>
+
 #define FGL_DELETE_DEFAULT_CTOR( ClassName ) ClassName() = delete;
 #define FGL_DELETE_COPY_ASSIGN( ClassName ) ClassName& operator=( const ClassName& ) = delete;
 #define FGL_DELETE_COPY_CTOR( ClassName ) ClassName( const ClassName& ) = delete;
@@ -42,4 +44,11 @@
 	std::unreachable()
 #else
 #define FGL_UNREACHABLE() std::unreachable()
+#endif
+
+#ifndef FGL_TESTS
+#define FGL_TESTED_ASSERT( ... ) FGL_ASSERT( __VA_ARGS__ );
+#else
+#include <catch2/src/catch2/catch_test_macros.hpp>
+#define FGL_TESTED_ASSERT( ... ) REQUIRE( __VA_ARGS__ );
 #endif

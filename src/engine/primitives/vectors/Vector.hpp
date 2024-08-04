@@ -26,6 +26,10 @@ namespace fgl::engine
 	{
 	  public:
 
+		using glm::vec3::x;
+		using glm::vec3::y;
+		using glm::vec3::z;
+
 		const glm::vec3& vec() const { return static_cast< const glm::vec3& >( *this ); }
 
 		glm::vec3& vec() { return static_cast< glm::vec3& >( *this ); }
@@ -68,6 +72,7 @@ namespace fgl::engine
 		{
 			return coord - *this;
 		}
+
 	};
 
 	inline Vector operator-( const Vector vec )

@@ -34,7 +34,6 @@ include(dependencies/vulkan)
 include(dependencies/catch2)
 
 add_subdirectory(src)
-add_subdirectory(tests)
 
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/bin/shaders")
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/bin/assets")

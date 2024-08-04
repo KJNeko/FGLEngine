@@ -38,7 +38,7 @@ namespace fgl::engine
 
 		NormalVector( const Vector vec );
 
-		explicit NormalVector( const glm::vec3 vec );
+		explicit constexpr NormalVector( const glm::vec3 vec );
 
 		Vector operator*( const float scalar ) const;
 

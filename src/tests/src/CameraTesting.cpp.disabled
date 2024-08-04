@@ -7,7 +7,7 @@
 #include <iostream>
 
 #define EXPOSE_CAMERA_INTERNAL
-#include "engine/Camera.hpp"
+#include "engine/camera/Camera.hpp"
 #include "gtest_printers.hpp"
 
 using namespace fgl::engine;
@@ -30,7 +30,7 @@ TEST_CASE( "Camera", "[camera]" )
 
 	WHEN( "Camera is it's default orientation" )
 	{
-		camera.setView( constants::WORLD_CENTER, Rotation( 0.0f ) );
+		camera.setView( WorldCoordinate( constants::WORLD_CENTER ), Rotation( 0.0f ) );
 
 		CAPTURE( camera.view_matrix );
 

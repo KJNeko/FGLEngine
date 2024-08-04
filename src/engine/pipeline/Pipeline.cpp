@@ -62,6 +62,16 @@ namespace fgl::engine::internal
 		return m_device->createGraphicsPipeline( VK_NULL_HANDLE, pipeline_info );
 	}
 
+	Pipeline::Pipeline(
+		Device& device,
+		vk::raii::PipelineLayout layout,
+		PipelineConfigInfo info,
+		std::vector< std::unique_ptr< ShaderHandle > > shaders ) :
+	  m_device( device ),
+	  m_layout( std::move( layout ) ),
+	  m_vk_pipeline( createGraphicsPipeline( shaders, info, m_layout ) )
+	{}
+
 	void Pipeline::bind( vk::raii::CommandBuffer& command_buffer )
 	{
 		command_buffer.bindPipeline( vk::PipelineBindPoint::eGraphics, m_vk_pipeline );

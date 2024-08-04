@@ -93,7 +93,7 @@ namespace fgl::engine::gui
 	inline void prepareDock( ImGuiID& primary_id )
 	{
 		ImGui::DockBuilderRemoveNode( primary_id );
-		ImGui::DockBuilderAddNode( primary_id, ImGuiDockNodeFlags_DockSpace | ImGuiDockNodeFlags_PassthruCentralNode );
+		ImGui::DockBuilderAddNode( primary_id, ImGuiDockNodeFlags_PassthruCentralNode );
 
 		ImGui::DockBuilderSetNodeSize( primary_id, ImGui::GetMainViewport()->WorkSize );
 

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "engine/primitives/Frustum.hpp"
 #include "engine/primitives/lines/LineSegment.hpp"
 #include "engine/primitives/planes/PointPlane.hpp"
@@ -42,64 +44,61 @@ namespace fgl::engine
 namespace fgl::engine::debug
 {
 	Camera& getDebugDrawingCamera();
-	void setDebugDrawingCamera( Camera& );
+	void setDebugDrawingCamera( std::shared_ptr< Camera >& );
 
 	namespace world
 	{
 		void drawBoundingBox(
-			const OrientedBoundingBox< CoordinateSpace::World >& box, const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
+			const OrientedBoundingBox< CoordinateSpace::World >& box, glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 		void drawBoundingBox(
-			const AxisAlignedBoundingBox< CoordinateSpace::World >& box, const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
+			const AxisAlignedBoundingBox< CoordinateSpace::World >& box, glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 		void drawBoundingBox(
-			const AxisAlignedBoundingCube< CoordinateSpace::World >& box,
-			const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
+			const AxisAlignedBoundingCube< CoordinateSpace::World >& box, glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 
 		void drawLine(
-			const Coordinate< CoordinateSpace::World > start,
-			const Coordinate< CoordinateSpace::World > end,
-			const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
+			Coordinate< CoordinateSpace::World > start,
+			Coordinate< CoordinateSpace::World > end,
+			glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 
-		void drawPointLabel( const Coordinate< CoordinateSpace::World > point, const std::string label );
+		void drawPointLabel( Coordinate< CoordinateSpace::World > point, std::string label );
 
 		void drawLineI(
-			const LineSegment< CoordinateSpace::World > line,
-			const glm::vec3 color = { 1.0f, 1.0f, 1.0f },
-			const float thickness = 1.0f );
+			LineSegment< CoordinateSpace::World > line,
+			glm::vec3 color = { 1.0f, 1.0f, 1.0f },
+			float thickness = 1.0f );
 		void drawLine(
-			const LineSegment< CoordinateSpace::World > line,
-			const glm::vec3 color = { 1.0f, 1.0f, 1.0f },
-			const float thickness = 1.0f );
+			LineSegment< CoordinateSpace::World > line,
+			glm::vec3 color = { 1.0f, 1.0f, 1.0f },
+			float thickness = 1.0f );
 
-		void drawPointText(
-			const Coordinate< CoordinateSpace::World > point, const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
+		void drawPointText( Coordinate< CoordinateSpace::World > point, glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 
-		void drawBoolAlpha(
-			const Coordinate< CoordinateSpace::World > point, const bool value, const glm::vec2 offset = {} );
+		void drawBoolAlpha( Coordinate< CoordinateSpace::World > point, bool value, glm::vec2 offset = {} );
 		void drawPoint(
-			const Coordinate< CoordinateSpace::World > point,
-			const std::string label = "",
-			const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
+			Coordinate< CoordinateSpace::World > point,
+			std::string label = "",
+			glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 
 		void drawVector(
-			const Coordinate< CoordinateSpace::World > point,
+			Coordinate< CoordinateSpace::World > point,
 			Vector vector,
-			const std::string label = "",
-			const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
+			std::string label = "",
+			glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 
 		void drawVector(
-			const Coordinate< CoordinateSpace::World > point,
+			Coordinate< CoordinateSpace::World > point,
 			NormalVector vector,
-			const std::string label = "",
-			const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
+			std::string label = "",
+			glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 
-		void drawFrustum( const Frustum< CoordinateSpace::World >& frustum, const WorldCoordinate coordinate );
+		void drawFrustum( const Frustum< CoordinateSpace::World >& frustum, WorldCoordinate coordinate );
 		void drawFrustum();
 
 		void drawPlane(
 			const Plane< CoordinateSpace::World >& plane,
-			const WorldCoordinate point,
-			const std::string label = "",
-			const glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
+			WorldCoordinate point,
+			std::string label = "",
+			glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 
 	} // namespace world
 
@@ -107,13 +106,12 @@ namespace fgl::engine::debug
 	{
 
 		void drawText(
-			const glm::vec2 position,
+			glm::vec2 position,
 			const std::string& text,
-			const glm::vec3 color = { 1.0f, 1.0f, 1.0f },
-			const glm::vec2 offset = {} );
+			glm::vec3 color = { 1.0f, 1.0f, 1.0f },
+			glm::vec2 offset = {} );
 
-		void drawBoolAlpha(
-			const glm::vec2 screen_point, const Camera& camera, const bool value, const glm::vec2 offset = {} );
+		void drawBoolAlpha( glm::vec2 screen_point, const Camera& camera, bool value, glm::vec2 offset = {} );
 
 	} // namespace screen
 

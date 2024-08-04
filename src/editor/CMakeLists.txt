@@ -12,4 +12,5 @@ file(GLOB_RECURSE SOURCE_FILES
 add_executable(TitorEditor ${SOURCE_FILES})
 target_link_libraries(TitorEditor PRIVATE FGLEngine)
 target_include_directories(TitorEditor PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_compile_definitions(TitorEditor PUBLIC IDHAN_EDITOR)
+target_compile_definitions(TitorEditor PUBLIC TITOR_EDITOR)
+target_compile_features(TitorEditor PRIVATE cxx_std_23)

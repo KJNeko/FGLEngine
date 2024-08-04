@@ -6,9 +6,9 @@
 
 #include <iostream>
 
-#define EXPOSE_FRUSTUM_INTERNALS
-#define EXPOSE_CAMERA_INTERNAL
-#include "engine/Camera.hpp"
+#define EXPOSE_FRUSTUM_TESTS
+#define EXPOSE_CAMERA_TESTS
+#include "engine/camera/Camera.hpp"
 #include "engine/primitives/Frustum.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"
 #include "gtest_printers.hpp"
@@ -21,7 +21,7 @@ constexpr float ASPECT_RATIO { static_cast< float >( width ) / static_cast< floa
 
 TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 {
-	Camera camera {};
+	Camera camera { Camera::CREATE_TESTING_CAMERA() };
 	camera.setPerspectiveProjection( 90.0f, ASPECT_RATIO, constants::NEAR_PLANE, constants::FAR_PLANE );
 
 	GIVEN( "A default frustum from a default camera" )
@@ -42,7 +42,8 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 		{
 			const LineSegment< CoordinateSpace::World > line {
 				constants::WORLD_BACKWARD + ( constants::WORLD_UP * 1.0f ),
-				constants::WORLD_BACKWARD + ( constants::WORLD_DOWN * 1.0f ) };
+				constants::WORLD_BACKWARD + ( constants::WORLD_DOWN * 1.0f )
+			};
 
 			THEN( "The signed distance of the end to the start should be positive" )
 			{
@@ -161,7 +162,8 @@ TEST_CASE( "Frustum", "[frustum][rotation][translation]" )
 		{
 			const LineSegment< CoordinateSpace::World > line {
 				constants::WORLD_FORWARD + ( constants::WORLD_UP * 2.0f ),
-				constants::WORLD_FORWARD + ( constants::WORLD_DOWN * 2.0f ) };
+				constants::WORLD_FORWARD + ( constants::WORLD_DOWN * 2.0f )
+			};
 
 			THEN( "The line should intersect the frustum" )
 			{

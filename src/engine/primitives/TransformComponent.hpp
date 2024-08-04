@@ -25,6 +25,18 @@ namespace fgl::engine
 		glm::mat4 mat4() const;
 
 		Matrix< MatrixType::ModelToWorld > mat() const;
+
+		NormalVector forward() const;
+
+		NormalVector backwards() const { return -forward(); }
+
+		NormalVector right() const;
+
+		NormalVector left() const { return -right(); }
+
+		NormalVector up() const;
+
+		NormalVector down() const { return -up(); }
 	};
 
 } // namespace fgl::engine

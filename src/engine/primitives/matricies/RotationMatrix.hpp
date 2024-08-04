@@ -19,7 +19,7 @@ namespace fgl::engine
 	{};
 
 	//This will return a normal vector since it's purely a rotation
-	NormalVector operator*( const RotationMatrix rot_mat, const NormalVector vec );
-	Vector operator*( const RotationMatrix rot_mat, const Vector vec );
+	NormalVector operator*( const RotationMatrix& rot_mat, const NormalVector vec );
+	Vector operator*( const RotationMatrix& rot_mat, const Vector& vec );
 
 } // namespace fgl::engine

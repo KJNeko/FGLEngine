@@ -4,6 +4,8 @@
 
 #include "FileBrowser.hpp"
 
+#include <cmath>
+
 #include "engine/assets/stores.hpp"
 #include "engine/filesystem/scanner/FileScanner.hpp"
 #include "engine/filesystem/types.hpp"

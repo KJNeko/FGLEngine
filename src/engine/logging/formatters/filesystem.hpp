@@ -4,29 +4,11 @@
 
 #pragma once
 
-#ifdef HAVE_STD_FORMAT
-#include <format>
-namespace format_ns = std;
-
-#else
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wswitch-default"
-#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
-#endif
-
-#include <fmt/format.h>
-namespace format_ns = fmt;
-
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-
-#endif
-
 #include <filesystem>
+#include <format>
 #include <source_location>
+
+namespace format_ns = std;
 
 template <>
 struct format_ns::formatter< std::filesystem::path >
@@ -73,7 +55,3 @@ struct format_ns::formatter< format_ns::format_string<> >
 
 	format_context::iterator format( const format_ns::format_string<>& str, format_context& ctx ) const;
 };
-
-
-
-

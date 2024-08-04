@@ -19,7 +19,6 @@
 #include "engine/assets/TransferManager.hpp"
 #include "engine/debug/drawers.hpp"
 #include "engine/literals/size.hpp"
-#include "engine/model/prebuilt/terrainModel.hpp"
 #include "model/builders/SceneBuilder.hpp"
 
 namespace fgl::engine
@@ -36,7 +35,7 @@ namespace fgl::engine
 		  16_KiB,
 		  vk::BufferUsageFlagBits::eIndirectBuffer,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible ),
-	  m_delta_time_ms( 0.0 )
+	  m_delta_time( 0.0 )
 	{
 		ZoneScoped;
 		using namespace fgl::literals::size_literals;
@@ -55,10 +54,11 @@ namespace fgl::engine
 	{
 		// Get delta time
 		const auto now { std::chrono::high_resolution_clock::now() };
-		const std::chrono::duration< double, std::micro > time_diff { last_tick - now };
+		const std::chrono::duration< double, std::chrono::seconds::period > time_diff { now - last_tick };
 		last_tick = now;
 
-		m_delta_time_ms = time_diff.count() * 1000.0f;
+		// Convert from ms to s
+		m_delta_time = time_diff.count();
 	}
 
 	void EngineContext::tickSimulation()
@@ -96,7 +96,7 @@ namespace fgl::engine
 
 			FrameInfo frame_info { frame_index,
 				                   present_idx,
-				                   m_delta_time_ms,
+				                   m_delta_time,
 				                   command_buffer,
 				                   nullptr, // Camera
 				                   camera_manager.getCameras(),
@@ -222,7 +222,7 @@ namespace fgl::engine
 
 	EngineContext::~EngineContext()
 	{
-#if EXPOSE_IMGUI_FUNCS
+#if TITOR_EDITOR
 		gui::cleanupImGui();
 #endif
 	}

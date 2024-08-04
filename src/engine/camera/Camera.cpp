@@ -12,6 +12,7 @@
 #include "CameraInfo.hpp"
 #include "CameraRenderer.hpp"
 #include "CameraSwapchain.hpp"
+#include "engine/logging/formatters/glm_formatters.hpp"
 
 namespace fgl::engine
 {
@@ -30,7 +31,8 @@ namespace fgl::engine
 		//TODO: Figure out frustum culling for orthographic projection. (If we even wanna use it)
 	}
 
-	FGL_FLATTEN_HOT void Camera::setPerspectiveProjection( float fovy, float aspect, float near, float far )
+	FGL_FLATTEN_HOT void Camera::
+		setPerspectiveProjection( const float fovy, const float aspect, const float near, const float far )
 	{
 		projection_matrix = Matrix< MatrixType::CameraToScreen >( glm::perspectiveLH_ZO( fovy, aspect, near, far ) );
 
@@ -58,10 +60,22 @@ namespace fgl::engine
 		return m_camera_info_descriptors[ index ];
 	}
 
+	void Camera::setFOV( const float fov_y )
+	{
+		m_fov_y = fov_y;
+		setPerspectiveProjection( m_fov_y, aspectRatio(), constants::NEAR_PLANE, constants::FAR_PLANE );
+	}
+
 	void Camera::pass( FrameInfo& frame_info )
 	{
 		assert( frame_info.camera == nullptr );
 		frame_info.camera = this;
+
+		if ( m_swapchain->getExtent() != m_target_extent )
+		{
+			remakeSwapchain( m_target_extent );
+		}
+
 		updateInfo( frame_info.frame_idx );
 		m_renderer->pass( frame_info, *m_swapchain );
 		frame_info.camera = nullptr;
@@ -83,7 +97,7 @@ namespace fgl::engine
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
 
-		const auto [ width, height ] = m_extent;
+		const auto& [ width, height ] = m_swapchain->getExtent();
 		viewport.width = static_cast< float >( width );
 		viewport.height = static_cast< float >( height );
 		viewport.minDepth = 0.0f;
@@ -96,31 +110,17 @@ namespace fgl::engine
 
 	void Camera::setScissor( const vk::raii::CommandBuffer& command_buffer )
 	{
-		const vk::Rect2D scissor { { 0, 0 }, m_extent };
+		const vk::Rect2D scissor { { 0, 0 }, m_swapchain->getExtent() };
 
 		const std::vector< vk::Rect2D > scissors { scissor };
 
 		command_buffer.setScissor( 0, scissors );
 	}
 
-	void Camera::beginRenderpass( const vk::raii::CommandBuffer& command_buffer, const FrameInfo& info )
+	void Camera::remakeSwapchain( vk::Extent2D extent )
 	{
-		vk::RenderPassBeginInfo begin_info {};
-		begin_info.renderPass = getRenderpass();
-		begin_info.framebuffer = this->getSwapchain().getFramebuffer( info.frame_idx );
-		begin_info.renderArea = { .offset = { 0, 0 }, .extent = m_extent };
-
-		begin_info.setClearValues( this->getSwapchain().getClearValues() );
-
-		command_buffer.beginRenderPass( begin_info, vk::SubpassContents::eInline );
-
-		setViewport( command_buffer );
-		setScissor( command_buffer );
-	}
-
-	void Camera::endRenderpass( const vk::raii::CommandBuffer& command_buffer )
-	{
-		command_buffer.endRenderPass();
+		this->setPerspectiveProjection( m_fov_y, aspectRatio(), constants::NEAR_PLANE, constants::FAR_PLANE );
+		m_swapchain = std::make_shared< CameraSwapchain >( m_renderer->getRenderpass(), extent );
 	}
 
 	void Camera::setName( const std::string_view str )
@@ -128,10 +128,15 @@ namespace fgl::engine
 		name = str;
 	}
 
+	float Camera::aspectRatio() const
+	{
+		return m_swapchain->getAspectRatio();
+	}
+
 	void Camera::
 		copyOutput( const vk::raii::CommandBuffer& command_buffer, const FrameIndex frame_index, Image& target )
 	{
-		assert( m_extent == target.getExtent() );
+		assert( m_swapchain->getExtent() == target.getExtent() );
 
 		Image& source { this->getSwapchain().getOutput( frame_index ) };
 
@@ -180,7 +185,7 @@ namespace fgl::engine
 			{ barrier_from_source } );
 
 		vk::ImageCopy region {};
-		region.extent = vk::Extent3D( m_extent, 1 );
+		region.extent = vk::Extent3D( m_swapchain->getExtent(), 1 );
 
 		region.srcSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
 		region.srcSubresource.layerCount = 1;
@@ -238,25 +243,32 @@ namespace fgl::engine
 			{ barrier_to_source } );
 	}
 
-	FGL_FLATTEN_HOT void Camera::setView( WorldCoordinate pos, const Rotation& rotation, const ViewMode mode )
+	void Camera::updateMatrix()
+	{
+		const auto& [ pos, scale, rotation ] = m_transform;
+
+		const auto rotation_matrix { rotation.mat() };
+
+		const glm::vec3 forward { rotation_matrix * glm::vec4( constants::WORLD_FORWARD, 0.0f ) };
+
+		const glm::vec3 camera_up { rotation_matrix * glm::vec4( constants::WORLD_UP, 0.0f ) };
+
+		const WorldCoordinate center_pos { pos + forward };
+
+		view_matrix = Matrix< MatrixType::WorldToCamera >( glm::lookAtLH( pos.vec(), center_pos.vec(), -camera_up ) );
+
+		inverse_view_matrix = glm::inverse( view_matrix );
+	}
+
+	FGL_FLATTEN_HOT void Camera::setView( const WorldCoordinate pos, const Rotation& rotation, const ViewMode mode )
 	{
 		switch ( mode )
 		{
 			case ViewMode::TaitBryan:
 				{
-					const RotationMatrix rotation_matrix { rotation.mat() };
-
-					const glm::vec3 forward { rotation_matrix * glm::vec4( constants::WORLD_FORWARD, 0.0f ) };
-
-					const glm::vec3 camera_up { rotation_matrix * glm::vec4( constants::WORLD_UP, 0.0f ) };
-
-					const WorldCoordinate center_pos { pos + forward };
-
-					view_matrix =
-						Matrix< MatrixType::WorldToCamera >( glm::lookAtLH( pos.vec(), center_pos.vec(), -camera_up ) );
-
-					inverse_view_matrix = glm::inverse( view_matrix );
-
+					m_transform.translation = pos;
+					m_transform.rotation = rotation;
+					updateMatrix();
 					break;
 				}
 			case ViewMode::Euler:
@@ -268,8 +280,6 @@ namespace fgl::engine
 			default:
 				throw std::runtime_error( "Unimplemented view mode" );
 		}
-
-		current_rotation = rotation;
 
 		updateFrustum();
 	}
@@ -295,11 +305,11 @@ namespace fgl::engine
 	}
 
 	Camera::Camera( const vk::Extent2D extent, memory::Buffer& buffer ) :
-	  m_extent( extent ),
+	  m_target_extent( extent ),
 	  m_camera_frame_info( buffer, SwapChain::MAX_FRAMES_IN_FLIGHT ),
-	  m_swapchain( std::make_shared< CameraSwapchain >( m_renderer->getRenderpass(), m_extent ) )
+	  m_swapchain( std::make_shared< CameraSwapchain >( m_renderer->getRenderpass(), m_target_extent ) )
 	{
-		this->setPerspectiveProjection( 90.0f, 16.0f / 9.0f, constants::NEAR_PLANE, constants::FAR_PLANE );
+		this->setPerspectiveProjection( m_fov_y, aspectRatio(), constants::NEAR_PLANE, constants::FAR_PLANE );
 		this->setView( WorldCoordinate( constants::CENTER ), Rotation( 0.0f, 0.0f, 0.0f ) );
 
 		for ( std::uint8_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
@@ -315,8 +325,7 @@ namespace fgl::engine
 
 	void Camera::setExtent( const vk::Extent2D extent )
 	{
-		m_extent = extent;
-		m_swapchain = std::make_shared< CameraSwapchain >( m_renderer->getRenderpass(), m_extent );
+		m_target_extent = extent;
 	}
 
 	Frustum< CoordinateSpace::Model >
@@ -371,11 +380,7 @@ namespace fgl::engine
 
 	Matrix< MatrixType::ModelToWorld > Camera::frustumTranslationMatrix() const
 	{
-		TransformComponent comp {};
-		comp.translation = getPosition();
-		comp.rotation = current_rotation;
-
-		return comp.mat();
+		return m_transform.mat();
 	}
 
 	WorldCoordinate Camera::getFrustumPosition() const

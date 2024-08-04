@@ -4,9 +4,9 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "engine/math/taitBryanMatrix.hpp"
 #include "engine/primitives/TransformComponent.hpp"
 #include "gtest_printers.hpp"
+#include "operators/vector.hpp"
 
 using namespace fgl::engine;
 
@@ -14,7 +14,7 @@ TEST_CASE( "Transform", "[transform][rotation][translation]" )
 {
 	TransformComponent component;
 
-	component.translation = constants::WORLD_CENTER;
+	component.translation = WorldCoordinate( constants::WORLD_CENTER );
 	component.scale = glm::vec3( 1.0f );
 	component.rotation = Rotation( 0.0f );
 
@@ -31,7 +31,6 @@ TEST_CASE( "Transform", "[transform][rotation][translation]" )
 
 		THEN( "The rotation matrix is the identity matrix" )
 		{
-			REQUIRE( constants::MAT4_IDENTITY == taitBryanMatrix( component.rotation ) );
 			REQUIRE( constants::MAT4_IDENTITY == component.mat4() );
 		}
 
@@ -39,20 +38,30 @@ TEST_CASE( "Transform", "[transform][rotation][translation]" )
 		WHEN( "Rotated +90 Pitch" )
 		{
 			//Rotate by pitch
-			component.rotation.pitch() = glm::radians( 90.0f );
-
-			const glm::vec3 rotated_point { component.mat4() * glm::vec4( TEST_POINT, 1.0f ) };
+			component.rotation.pitch() = glm::radians( glm::radians( 90.0f ) );
 
 			THEN( "Forward should be WORLD_UP" )
 			{
-				REQUIRE( rotated_point == constants::WORLD_UP );
+				REQUIRE( component.forward() == NormalVector( constants::WORLD_UP ) );
+			}
+
+			THEN( "WORLD_FORWARD should be rotated to WORLD_UP" )
+			{
+				REQUIRE(
+					component.rotation.mat() * NormalVector( constants::WORLD_FORWARD )
+					== NormalVector( constants::WORLD_UP ) );
+			}
+
+			THEN( "Pitch should be 90.0f" )
+			{
+				REQUIRE( component.rotation.pitch() == glm::radians( 90.0f ) );
 			}
 		}
 
 		// Tests behaviour that a point from WORLD_FORWARD should end up WORLD_DOWN when pitched -90 degrees
 		WHEN( "Rotated -90 Pitch" )
 		{
-			component.rotation.pitch() = -glm::radians( 90.0f );
+			component.rotation.pitch() = -glm::radians( glm::radians( 90.0f ) );
 
 			const glm::vec3 rotated_point { component.mat4() * glm::vec4( TEST_POINT, 1.0f ) };
 
@@ -65,7 +74,7 @@ TEST_CASE( "Transform", "[transform][rotation][translation]" )
 		// Tests behaviour that a point from WORLD_FORWARD should end up WORLD_RIGHT when yawed 90 degrees
 		WHEN( "Rotated +90 Yaw" )
 		{
-			component.rotation.yaw() = glm::radians( 90.0f );
+			component.rotation.yaw() = glm::radians( glm::radians( 90.0f ) );
 
 			const glm::vec3 rotated_point { component.mat4() * glm::vec4( TEST_POINT, 1.0f ) };
 
@@ -78,7 +87,7 @@ TEST_CASE( "Transform", "[transform][rotation][translation]" )
 		// Tests behaviour that a point from WORLD_FORWARD should end up WORLD_LEFT when yawed -90 degrees
 		WHEN( "Rotated -90 Yaw" )
 		{
-			component.rotation.yaw() = -glm::radians( 90.0f );
+			component.rotation.yaw() = -glm::radians( glm::radians( 90.0f ) );
 
 			const glm::vec3 rotated_point { component.mat4() * glm::vec4( TEST_POINT, 1.0f ) };
 
@@ -92,7 +101,7 @@ TEST_CASE( "Transform", "[transform][rotation][translation]" )
 		//This behaviour assumes that WORLD_RIGHT is 90 deg YAW+ from WORLD_FORWARD
 		WHEN( "Rotated +90 Roll" )
 		{
-			component.rotation.roll() = glm::radians( 90.0f );
+			component.rotation.roll() = glm::radians( glm::radians( 90.0f ) );
 
 			const glm::vec3 rotated_point { component.mat4() * glm::vec4( constants::WORLD_RIGHT, 1.0f ) };
 
@@ -105,7 +114,7 @@ TEST_CASE( "Transform", "[transform][rotation][translation]" )
 		//Tests behaviour that a point from WORLD_RIGHT should end up WORLD_UP when rolled -90 degrees
 		WHEN( "Rotated -90 Roll" )
 		{
-			component.rotation.roll() = -glm::radians( 90.0f );
+			component.rotation.roll() = -glm::radians( glm::radians( 90.0f ) );
 
 			const glm::vec3 rotated_point { component.mat4() * glm::vec4( constants::WORLD_RIGHT, 1.0f ) };
 
@@ -115,6 +124,8 @@ TEST_CASE( "Transform", "[transform][rotation][translation]" )
 			}
 		}
 	}
+
+
 
 	SECTION( "Translation" )
 	{
@@ -159,7 +170,7 @@ TEST_CASE( "Transform", "[transform][rotation][translation]" )
 	{
 		WHEN( "Translated X+1 and Rotated Y+90" )
 		{
-			component.rotation.yaw() = glm::radians( 90.0f );
+			component.rotation.yaw() = glm::radians( glm::radians( 90.0f ) );
 			component.translation.right() += 1.0f;
 
 			const glm::vec3 translated_point { component.mat4() * glm::vec4( constants::WORLD_FORWARD, 1.0f ) };
@@ -172,7 +183,7 @@ TEST_CASE( "Transform", "[transform][rotation][translation]" )
 
 		SECTION( "Translated X+1 Yaw-90" )
 		{
-			component.rotation.yaw() = glm::radians( -90.0f );
+			component.rotation.yaw() = glm::radians( -glm::radians( 90.0f ) );
 			component.translation.right() += 1.0f;
 
 			const glm::vec3 translated_point { component.mat4() * glm::vec4( TEST_POINT, 1.0f ) };

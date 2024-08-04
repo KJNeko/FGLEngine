@@ -58,6 +58,8 @@ namespace fgl::engine
 		vk::Extent2D getExtent() const;
 
 		Image& getOutput( const FrameIndex index );
+
+		float getAspectRatio();
 	};
 
 } // namespace fgl::engine

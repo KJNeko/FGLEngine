@@ -64,11 +64,11 @@ namespace fgl::engine
 		std::chrono::time_point< std::chrono::high_resolution_clock > last_tick {
 			std::chrono::high_resolution_clock::now()
 		};
-		double m_delta_time_ms;
+		double m_delta_time;
 
 		void loadGameObjects();
 
-#ifdef IDHAN_EDITOR
+#ifdef TITOR_EDITOR
 
 	  public:
 
