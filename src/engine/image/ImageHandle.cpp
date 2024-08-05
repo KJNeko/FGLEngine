@@ -72,10 +72,17 @@ namespace fgl::engine
 		VmaAllocationCreateInfo alloc_info {};
 		alloc_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-		if ( vmaAllocateMemoryForImage(
-				 Device::getInstance().allocator(), getVkImage(), &alloc_info, &m_allocation, &m_allocation_info )
-		     != VK_SUCCESS )
+		if ( const auto result = vmaAllocateMemoryForImage(
+				 Device::getInstance().allocator(), getVkImage(), &alloc_info, &m_allocation, &m_allocation_info );
+		     result != VK_SUCCESS )
+		{
+			log::critical(
+				"Failed to allocate memory for image of size ({},{}) with error {}",
+				m_extent.width,
+				m_extent.height,
+				static_cast< int >( result ) );
 			throw std::runtime_error( "Failed to allocate memory for image" );
+		}
 
 		if ( vmaBindImageMemory( Device::getInstance().allocator(), m_allocation, getVkImage() ) != VK_SUCCESS )
 			throw std::runtime_error( "Failed to bind memory" );
