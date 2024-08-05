@@ -24,12 +24,12 @@
 
 namespace fgl::engine
 {
-	using TextureID = std::uint32_t;
+
 	static std::queue< TextureID > unused_ids {};
 
 	TextureID getNextID()
 	{
-		static TextureID id { 0 };
+		static TextureID id { 1 };
 
 		if ( unused_ids.size() > 0 )
 		{
@@ -40,10 +40,8 @@ namespace fgl::engine
 
 			return pulled_id;
 		}
-		else
-		{
-			return id++;
-		}
+
+		return id++;
 	}
 
 	std::tuple< std::vector< std::byte >, int, int, vk::Format >

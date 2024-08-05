@@ -40,6 +40,7 @@ namespace fgl::engine
 	{
 		std::shared_ptr< Texture > albedo { nullptr };
 		std::shared_ptr< Texture > normal { nullptr };
+		std::shared_ptr< Texture > metallic_roughness { nullptr };
 
 		bool hasTextures() const { return albedo || normal; }
 
@@ -53,6 +54,11 @@ namespace fgl::engine
 			if ( normal )
 			{
 				if ( !normal->ready() ) return false;
+			}
+
+			if ( metallic_roughness )
+			{
+				if ( !metallic_roughness->ready() ) return false;
 			}
 
 			return true;
@@ -112,6 +118,7 @@ namespace fgl::engine
 			memory::Buffer& index_buffer );
 
 		TextureID getAlbedoTextureID() const;
+		TextureID getNormalTextureID() const;
 	};
 
 } // namespace fgl::engine

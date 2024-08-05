@@ -8,8 +8,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wduplicated-branches"
-#include <glm/vec2.hpp>
 #include <glm/gtx/hash.hpp>
+#include <glm/vec2.hpp>
 #pragma GCC diagnostic pop
 
 #include "Model.hpp"
@@ -50,8 +50,12 @@ namespace fgl::engine
 		attribute_descriptions.emplace_back( 7, 1, vk::Format::eR32G32B32A32Sfloat, 3 * sizeof( glm::vec4 ) );
 
 		attribute_descriptions.emplace_back( 8, 1, vk::Format::eR32Uint, 4 * sizeof( glm::vec4 ) );
+		attribute_descriptions.emplace_back( 9, 1, vk::Format::eR32Uint, 5 * sizeof( glm::vec4 ) );
+		attribute_descriptions.emplace_back( 10, 1, vk::Format::eR32Uint, 6 * sizeof( glm::vec4 ) );
 
-		static_assert( 4 * sizeof( glm::vec4 ) + sizeof( unsigned int ) == sizeof( ModelMatrixInfo ) );
+		static_assert(
+			4 * sizeof( glm::vec4 ) + sizeof( unsigned int ) + sizeof( unsigned int ) + sizeof( unsigned int )
+			== sizeof( ModelMatrixInfo ) );
 
 		return attribute_descriptions;
 	}

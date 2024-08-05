@@ -179,11 +179,6 @@ namespace fgl::engine
 
 		const tinygltf::Material& materials { root.materials[ mat_idx ] };
 
-		for ( const auto& [ key, value ] : materials.values )
-		{
-			log::debug( "Found key: {}", key );
-		}
-
 		auto findParameter = [ &materials ]( const std::string name ) -> std::optional< tinygltf::Parameter >
 		{
 			const auto& itter { materials.values.find( name ) };
@@ -194,20 +189,39 @@ namespace fgl::engine
 				return { itter->second };
 		};
 
-		const auto albedo { findParameter( "baseColorTexture" ) };
-		const auto normal { findParameter( "normalTexture" ) };
-		const auto occlusion_texture { findParameter( "occlusionTexture" ) };
+		std::string str;
+
+		std::size_t counter { 0 };
+
+		for ( const auto& [ name, parameter ] : materials.values )
+		{
+			str += name;
+			if ( counter + 1 != materials.values.size() ) str += ", ";
+			++counter;
+		}
+
+		log::debug( "Found materials: {}", str );
 
 		PrimitiveTextures textures {};
 
+		const auto albedo { findParameter( "baseColorTexture" ) };
 		if ( albedo.has_value() )
 		{
 			textures.albedo = getTextureForParameter( *albedo, root );
 		}
 
+		const auto normal { findParameter( "normalTexture" ) };
 		if ( normal.has_value() )
 		{
 			textures.normal = getTextureForParameter( *normal, root );
+		}
+
+		const auto occlusion_texture { findParameter( "occlusionTexture" ) };
+
+		const auto mettalic_roughness_texture { findParameter( "mettalicRoughnessTexture" ) };
+		if ( mettalic_roughness_texture.has_value() )
+		{
+			textures.metallic_roughness = getTextureForParameter( *mettalic_roughness_texture, root );
 		}
 
 		return textures;
@@ -290,7 +304,7 @@ namespace fgl::engine
 		}
 
 		log::debug(
-			"Found {} verts.\n\t- Has UV info: {}\n\t- Has normals: {}",
+			"Found {} verts. Has UV info: {}, Has normals: {}",
 			verts.size(),
 			has_uv ? "Yes" : "No",
 			has_normals ? "Yes" : "No" );
@@ -301,12 +315,13 @@ namespace fgl::engine
 	Primitive SceneBuilder::loadPrimitive( const tinygltf::Primitive& prim, const tinygltf::Model& root )
 	{
 		ZoneScoped;
-		std::string att_str;
+		std::string att_str { "" };
 		for ( const auto& attrib : prim.attributes )
 		{
-			att_str += "Attribute: " + attrib.first + "\n";
+			att_str += attrib.first + ", ";
 		}
-		log::debug( "Attributes for primitive:\n{}", att_str );
+
+		log::debug( "Attributes for primitive: [{}]", att_str );
 
 		//TODO: Get normal colors from texture
 		[[maybe_unused]] const bool has_normal { hasAttribute( prim, "NORMAL" ) };

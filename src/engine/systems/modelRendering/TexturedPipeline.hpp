@@ -11,8 +11,8 @@
 namespace fgl::engine
 {
 
-	using TexturedPipelineVertexShader = VertexShaderT< "shaders/textured-gbuffer.vert.spv" >;
-	using TexturedPipelineFragShader = FragmentShaderT< "shaders/textured-gbuffer.frag.spv" >;
+	using TexturedPipelineVertexShader = VertexShaderT< "shaders/textured-gbuffer.vert" >;
+	using TexturedPipelineFragShader = FragmentShaderT< "shaders/textured-gbuffer.frag" >;
 	using TexturedPipelineShaders = ShaderCollection< TexturedPipelineVertexShader, TexturedPipelineFragShader >;
 
 	//using TexturedPipelineDescriptorSets =

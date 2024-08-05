@@ -30,7 +30,9 @@ namespace fgl::engine
 	struct ModelMatrixInfo
 	{
 		glm::mat4 model_matrix;
-		std::uint32_t texture_idx;
+		std::uint32_t albedo_id;
+		std::uint32_t normal_id;
+		std::uint32_t metallic_roughness;
 	};
 
 	class Model

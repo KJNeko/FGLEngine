@@ -100,8 +100,6 @@ namespace fgl::engine::descriptors
 		m_infos[ binding_idx ] = tex.getImageView().descriptorInfo(
 			tex.getImageView().getSampler().getVkSampler(), vk::ImageLayout::eShaderReadOnlyOptimal );
 
-		log::info( "Bound texture {} to global texture array", tex.getID() );
-
 		vk::WriteDescriptorSet write {};
 		write.dstSet = m_set;
 		write.dstBinding = binding_idx;
@@ -109,8 +107,6 @@ namespace fgl::engine::descriptors
 		write.descriptorCount = 1;
 		write.descriptorType = vk::DescriptorType::eCombinedImageSampler;
 		write.pImageInfo = &( std::get< vk::DescriptorImageInfo >( m_infos.data()[ binding_idx ] ) );
-
-		std::cout << "Bound texture: " << tex.getID() << std::endl;
 
 		descriptor_writes.push_back( write );
 	}

@@ -42,7 +42,7 @@ namespace fgl::engine
 		std::vector< std::byte > loadData( const std::filesystem::path& );
 		vk::ShaderModuleCreateInfo createModuleInfo();
 
-		ShaderHandle( const std::filesystem::path path, const vk::PipelineShaderStageCreateInfo info );
+		ShaderHandle( const std::filesystem::path& path, const vk::PipelineShaderStageCreateInfo& info );
 
 		ShaderHandle( const ShaderHandle& other ) = delete;
 

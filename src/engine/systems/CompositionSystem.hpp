@@ -17,8 +17,8 @@ namespace fgl::engine
 	{
 		using DescriptorSets = descriptors::DescriptorSetCollection< GBufferDescriptorSet >;
 
-		using VertexShader = VertexShaderT< "shaders/fullscreen.vert.spv" >;
-		using FragmentShader = FragmentShaderT< "shaders/composition.frag.spv" >;
+		using VertexShader = VertexShaderT< "shaders/fullscreen.vert" >;
+		using FragmentShader = FragmentShaderT< "shaders/composition.frag" >;
 
 		using Shaders = ShaderCollection< VertexShader, FragmentShader >;
 

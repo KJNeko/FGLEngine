@@ -12,8 +12,8 @@
 namespace fgl::engine
 {
 
-	using StandardPipelineVertexShader = VertexShaderT< "shaders/textureless-gbuffer.vert.spv" >;
-	using StandardPipelineFragShader = FragmentShaderT< "shaders/textureless-gbuffer.frag.spv" >;
+	using StandardPipelineVertexShader = VertexShaderT< "shaders/textureless-gbuffer.vert" >;
+	using StandardPipelineFragShader = FragmentShaderT< "shaders/textureless-gbuffer.frag" >;
 	using StandardPipelineShaders = ShaderCollection< StandardPipelineVertexShader, StandardPipelineFragShader >;
 
 	// using StandardPipelineDescriptorSets = descriptors::DescriptorSetCollection< GlobalDescriptorSet >;

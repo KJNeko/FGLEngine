@@ -31,11 +31,12 @@ namespace fgl::engine
 
 	class TextureHandle;
 
-	using TextureID = std::uint32_t;
-
 	class Texture;
 
 	using TextureStore = AssetStore< Texture >;
+
+	using TextureID = std::uint32_t;
+	constexpr TextureID INVALID_TEXTURE_ID { 0 };
 
 	//TODO: Implement texture handle map to avoid loading the same texture multiple times
 	class Texture final : public AssetInterface< Texture >

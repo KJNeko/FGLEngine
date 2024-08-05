@@ -34,9 +34,12 @@ namespace fgl::engine
 		throw std::runtime_error( "Unknown shader type!" );
 	}
 
-	std::vector< std::byte > compilerShader( const std::string_view input_name, std::vector< std::byte >& input )
+	std::vector< std::byte > compileShader( const std::string_view input_name, const std::vector< std::byte >& input )
 	{
 		shaderc::CompileOptions options;
+
+		options.SetTargetEnvironment( shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_3 );
+
 #ifndef NDEBUG
 		options.SetOptimizationLevel( shaderc_optimization_level_zero );
 #else
@@ -45,7 +48,7 @@ namespace fgl::engine
 
 		const shaderc_shader_kind kind { getShaderKindFromName( input_name ) };
 
-		const auto result { compiler->CompileGlslToSpvAssembly(
+		const auto result { getInstance().CompileGlslToSpv(
 			reinterpret_cast< const char* >( input.data() ), input.size(), kind, input_name.data(), "main", options ) };
 
 		switch ( result.GetCompilationStatus() )
@@ -74,6 +77,8 @@ namespace fgl::engine
 				break;
 		}
 
+		log::debug( "Compiled shader {}", input_name );
+
 		std::vector< std::byte > output {};
 		output.reserve( result.cend() - result.cbegin() );
 
@@ -87,6 +92,7 @@ namespace fgl::engine
 
 		// Should be a multiple of 4
 		assert( output.size() % 4 == 0 );
+		assert( output.size() > 0 );
 
 		return output;
 	}

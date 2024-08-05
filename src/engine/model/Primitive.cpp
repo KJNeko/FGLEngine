@@ -26,7 +26,15 @@ namespace fgl::engine
 		if ( m_textures.albedo )
 			return m_textures.albedo->getID();
 		else
-			return std::numeric_limits< TextureID >::max();
+			return INVALID_TEXTURE_ID;
+	}
+
+	TextureID Primitive::getNormalTextureID() const
+	{
+		if ( m_textures.normal )
+			return m_textures.normal->getID();
+		else
+			return INVALID_TEXTURE_ID;
 	}
 
 } // namespace fgl::engine

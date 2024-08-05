@@ -5,6 +5,7 @@
 #include "Shader.hpp"
 
 #include "engine/rendering/Device.hpp"
+#include "engine/shaders/Compiler.hpp"
 
 namespace fgl::engine
 {
@@ -21,7 +22,9 @@ namespace fgl::engine
 
 			ifs.read( reinterpret_cast< std::ifstream::char_type* >( data.data() ), data.size() );
 
-			return data;
+			// We now need to compile the shader before we use it.
+
+			return compileShader( path.filename().string(), data );
 		}
 		else
 		{
@@ -40,7 +43,7 @@ namespace fgl::engine
 		return module_info;
 	}
 
-	ShaderHandle::ShaderHandle( const std::filesystem::path path, const vk::PipelineShaderStageCreateInfo info ) :
+	ShaderHandle::ShaderHandle( const std::filesystem::path& path, const vk::PipelineShaderStageCreateInfo& info ) :
 	  shader_data( loadData( path ) ),
 	  module_create_info( createModuleInfo() ),
 	  stage_info( info ),

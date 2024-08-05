@@ -51,7 +51,8 @@ namespace fgl::engine
 
 						//assert( primitive.m_texture );
 						const ModelMatrixInfo matrix_info { .model_matrix = obj.getTransform().mat4(),
-							                                .texture_idx = primitive.getAlbedoTextureID() };
+							                                .albedo_id = primitive.getAlbedoTextureID(),
+							                                .normal_id = primitive.getNormalTextureID() };
 
 						// If the textureless flag is on and we have a texture then skip the primitive.c
 						if ( tree_flags & IS_TEXTURELESS )
@@ -65,7 +66,7 @@ namespace fgl::engine
 						}
 
 						const auto key {
-							std::make_pair( matrix_info.texture_idx, primitive.m_index_buffer.getOffset() )
+							std::make_pair( matrix_info.albedo_id, primitive.m_index_buffer.getOffset() )
 						};
 
 						assert( primitive.m_index_buffer.size() > 0 );

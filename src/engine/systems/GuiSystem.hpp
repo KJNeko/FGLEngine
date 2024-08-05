@@ -21,8 +21,8 @@ namespace fgl::engine
 		// Attachment 0 will be the composited image
 		using CompositeDescriptorSets = descriptors::DescriptorSetCollection< GuiInputDescriptorSet >;
 
-		using VertexShader = VertexShaderT< "shaders/fullscreen.vert.spv" >;
-		using FragmentShader = FragmentShaderT< "shaders/gui-compose.frag.spv" >;
+		using VertexShader = VertexShaderT< "shaders/fullscreen.vert" >;
+		using FragmentShader = FragmentShaderT< "shaders/gui-compose.frag" >;
 
 		using Shaders = ShaderCollection< VertexShader, FragmentShader >;
 		using Pipeline = PipelineT< Shaders, CompositeDescriptorSets >;
