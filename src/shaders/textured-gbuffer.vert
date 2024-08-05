@@ -7,12 +7,16 @@ layout (location = 2) in vec3 normal;
 layout (location = 3) in vec2 uv;
 
 layout (location = 4) in mat4 instance_model_matrix;// 4, 5, 6, 7
-layout (location = 8) in uint in_texture_id;
+layout (location = 8) in uint in_albedo_id;
+layout (location = 9) in uint in_normal_id;
+layout (location = 10) in uint in_metallic_roughness_id;
 
 layout (location = 0) out vec3 out_normal;
 layout (location = 1) out vec2 out_tex_coord;
 layout (location = 2) out vec3 out_world_pos;
-layout (location = 3) out flat uint out_texture_idx;
+layout (location = 3) out flat uint out_albedo_id;
+layout (location = 4) out flat uint out_normal_id;
+layout (location = 5) out flat uint out_metallic_roughness_id;
 
 layout (set = 1, binding = 0) uniform CameraInfo {
     mat4 projection;
@@ -33,5 +37,6 @@ void main() {
 
     out_tex_coord = uv;
 
-    out_texture_idx = in_texture_id;
+    out_albedo_id = in_albedo_id;
+    out_metallic_roughness_id = in_metallic_roughness_id;
 }

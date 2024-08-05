@@ -42,3 +42,5 @@ include(versioninfo)
 include(profiling)
 include(docs)
 message(DEBUG "Leaving ${CMAKE_CURRENT_LIST_FILE}")
+
+string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_UPPER_BUILD_TYPE)

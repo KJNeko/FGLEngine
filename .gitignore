@@ -12,7 +12,6 @@
 # Build dirs
 /build/
 /cmake-build-*/
-/src/shaders/
 
 # Build helpers
 build.bat
