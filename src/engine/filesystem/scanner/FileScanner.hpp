@@ -16,7 +16,7 @@ namespace fgl::engine::filesystem
 
 	struct DirInfo
 	{
-		std::filesystem::path path;
+		std::filesystem::path m_path;
 		std::size_t total_size { 0 };
 		std::vector< FileInfo > files {};
 		std::vector< DirInfo > nested_dirs {};
@@ -26,15 +26,15 @@ namespace fgl::engine::filesystem
 
 		inline std::unique_ptr< DirInfo > up() const
 		{
-			assert( std::filesystem::exists( path ) );
+			assert( std::filesystem::exists( m_path ) );
 
-			return std::make_unique< DirInfo >( path.parent_path() );
+			return std::make_unique< DirInfo >( m_path.parent_path() );
 		}
 
 		std::size_t fileCount() const;
 		FileInfo& file( const std::size_t index );
 
-		bool hasParent() const { return !( path == "/" || path == "" ); }
+		bool hasParent() const { return !( m_path == "/" || m_path == "" ); }
 
 		inline std::size_t folderCount() const { return nested_dirs.size() + nested_dirs_to_scan.size(); }
 
@@ -45,19 +45,19 @@ namespace fgl::engine::filesystem
 		DirInfo( const std::filesystem::path& path );
 
 		DirInfo( const DirInfo& other ) :
-		  path( other.path ),
+		  m_path( other.m_path ),
 		  total_size( other.total_size ),
 		  files( other.files ),
 		  nested_dirs( other.nested_dirs ),
 		  nested_dirs_to_scan( other.nested_dirs_to_scan )
 		{
-			assert( std::filesystem::exists( other.path ) );
+			assert( std::filesystem::exists( other.m_path ) );
 		}
 
 		DirInfo& operator=( const DirInfo& other )
 		{
-			assert( std::filesystem::exists( other.path ) );
-			path = other.path;
+			assert( std::filesystem::exists( other.m_path ) );
+			m_path = other.m_path;
 			total_size = other.total_size;
 			files = other.files;
 			nested_dirs = other.nested_dirs;

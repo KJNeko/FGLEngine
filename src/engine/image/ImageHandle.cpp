@@ -67,6 +67,9 @@ namespace fgl::engine
 		assert( std::holds_alternative< vk::raii::Image >( m_image ) );
 		assert( *std::get< vk::raii::Image >( m_image ) != VK_NULL_HANDLE );
 
+		assert( m_extent.width > 0 );
+		assert( m_extent.height > 0 );
+
 		ZoneScoped;
 		//Allocate memory for image
 		VmaAllocationCreateInfo alloc_info {};

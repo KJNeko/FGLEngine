@@ -8,15 +8,16 @@
 
 #include "FileScanner.hpp"
 
+#include "engine/FGL_DEFINES.hpp"
 #include "engine/logging/logging.hpp"
 
 namespace fgl::engine::filesystem
 {
 
-	DirInfo::DirInfo( const std::filesystem::path& dir ) : path( dir ), total_size( 0 )
+	DirInfo::DirInfo( const std::filesystem::path& path ) : m_path( path ), total_size( 0 )
 	{
-		assert( std::filesystem::exists( dir ) );
-		for ( auto itter = std::filesystem::directory_iterator( dir ); itter != std::filesystem::directory_iterator();
+		FGL_ASSERT( std::filesystem::exists( path ) );
+		for ( auto itter = std::filesystem::directory_iterator( path ); itter != std::filesystem::directory_iterator();
 		      ++itter )
 		{
 			if ( itter->is_regular_file() )

@@ -29,7 +29,7 @@ namespace fgl::engine::filesystem
 	constexpr std::uint32_t desired_size { 128 };
 	constexpr std::uint32_t padding { 2 };
 
-	const std::filesystem::path test_path { "/home/kj16609/Desktop/Projects/cxx/Mecha/assets" };
+	const std::filesystem::path test_path { std::filesystem::current_path() / "assets" };
 
 	void prepareFileGUI()
 	{
@@ -224,7 +224,7 @@ namespace fgl::engine::filesystem
 
 	void FileBrowser::drawFolder( const DirInfo& data )
 	{
-		ImGui::PushID( data.path.c_str() );
+		ImGui::PushID( data.m_path.c_str() );
 
 		if ( folder_texture->drawImGuiButton( { desired_size, desired_size } ) )
 		{
@@ -233,7 +233,7 @@ namespace fgl::engine::filesystem
 			return;
 		}
 
-		ImGui::Text( data.path.filename().c_str() );
+		ImGui::Text( data.m_path.filename().c_str() );
 		ImGui::Text( "%ld files\n%ld folders", data.fileCount(), data.folderCount() );
 
 		ImGui::PopID();
@@ -247,14 +247,14 @@ namespace fgl::engine::filesystem
 	void FileBrowser::openFolder( const DirInfo& dir )
 	{
 		file_textures.clear();
-		current = std::make_unique< DirInfo >( dir.path );
+		current = std::make_unique< DirInfo >( dir.m_path );
 	}
 
 	void FileBrowser::drawUp( const std::unique_ptr< DirInfo >& current_dir )
 	{
 		auto up { current_dir->up() };
 
-		ImGui::PushID( up->path.c_str() );
+		ImGui::PushID( up->m_path.c_str() );
 
 		if ( up_texture->drawImGuiButton( { desired_size, desired_size } ) )
 		{
