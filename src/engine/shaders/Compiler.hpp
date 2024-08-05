@@ -11,6 +11,6 @@ namespace fgl::engine
 
 	shaderc::Compiler& getInstance();
 
-	std::vector< std::byte > compileShader( const std::string_view str, const std::vector< std::byte >& input );
+	std::vector< std::byte > compileShader( const std::string_view input_name, const std::vector< std::byte >& input );
 
 } // namespace fgl::engine

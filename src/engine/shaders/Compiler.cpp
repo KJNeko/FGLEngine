@@ -5,6 +5,7 @@
 #include "Compiler.hpp"
 
 #include <cassert>
+#include <fstream>
 
 #include "engine/FGL_DEFINES.hpp"
 #include "engine/logging/logging.hpp"
@@ -34,11 +35,80 @@ namespace fgl::engine
 		throw std::runtime_error( "Unknown shader type!" );
 	}
 
+	class Includer : public shaderc::CompileOptions::IncluderInterface
+	{
+		struct DataHolder
+		{
+			std::filesystem::path source_path {};
+			std::vector< char > content {};
+		};
+
+		shaderc_include_result* GetInclude(
+			const char* requested_source,
+			shaderc_include_type type,
+			const char* requesting_source,
+			size_t include_depth ) override;
+
+		void ReleaseInclude( shaderc_include_result* data ) override;
+	};
+
+	shaderc_include_result* Includer::GetInclude(
+		const char* requested_source, shaderc_include_type type, const char* requesting_source, size_t include_depth )
+	{
+		const std::string_view requsted { requested_source };
+		const std::string_view requster { requesting_source };
+		log::debug( "Source file {} is requesting {}", requster, requsted );
+
+		std::vector< char > file_data {};
+
+		const auto path { std::filesystem::current_path() / "shaders" / requsted };
+
+		if ( std::ifstream ifs( path ); ifs )
+		{
+			file_data.resize( std::filesystem::file_size( path ) );
+
+			ifs.read( file_data.data(), file_data.size() );
+			log::debug( "Found source file {} to be included into {}", requsted, requster );
+		}
+		else
+		{
+			log::error( "Failed to find include {} for {}", path, requster );
+			//throw std::runtime_error( std::format( "Failed to open include file {} for file {}", requsted, requster ) );
+
+			auto error_return { new shaderc_include_result() };
+			error_return->user_data = nullptr;
+			error_return->source_name = "";
+			error_return->source_name_length = 0;
+			error_return->content = "Failed to find include for requsted file";
+
+			return error_return;
+		}
+
+		auto* data_holder { new DataHolder( path, std::move( file_data ) ) };
+
+		auto data { new shaderc_include_result() };
+		data->user_data = data_holder;
+		data->content = data_holder->content.data();
+		data->content_length = data_holder->content.size();
+		data->source_name = data_holder->source_path.c_str();
+		data->source_name_length = data_holder->source_path.string().size();
+
+		return data;
+	}
+
+	void Includer::ReleaseInclude( shaderc_include_result* data )
+	{
+		delete static_cast< DataHolder* >( data->user_data );
+		delete data;
+	}
+
 	std::vector< std::byte > compileShader( const std::string_view input_name, const std::vector< std::byte >& input )
 	{
-		shaderc::CompileOptions options;
+		shaderc::CompileOptions options {};
 
 		options.SetTargetEnvironment( shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_3 );
+
+		options.SetIncluder( std::make_unique< Includer >() );
 
 #ifndef NDEBUG
 		options.SetOptimizationLevel( shaderc_optimization_level_zero );
@@ -55,24 +125,39 @@ namespace fgl::engine
 		{
 			case shaderc_compilation_status_success:
 				break;
+			case shaderc_compilation_status_compilation_error:
+				log::critical(
+					"Compilation error when compiling shader {} with error: {}", input_name, result.GetErrorMessage() );
+				throw std::runtime_error( "Failed to compile shader" );
 			default:
 				[[fallthrough]];
-			case shaderc_compilation_status_invalid_stage:
-				[[fallthrough]];
-			case shaderc_compilation_status_compilation_error:
-				[[fallthrough]];
 			case shaderc_compilation_status_internal_error:
+				log::critical(
+					"internal error while compiling shader {} with error: {}", input_name, result.GetErrorMessage() );
+				throw std::runtime_error( "Failed to compile shader" );
 				[[fallthrough]];
 			case shaderc_compilation_status_null_result_object:
+				log::critical(
+					"null result object when compiling shader {} with error: {}",
+					input_name,
+					result.GetErrorMessage() );
+				throw std::runtime_error( "Failed to compile shader" );
 				[[fallthrough]];
 			case shaderc_compilation_status_invalid_assembly:
+				log::critical( "Failed to compile shader {} with error: {}", input_name, result.GetErrorMessage() );
+				throw std::runtime_error( "Failed to compile shader" );
 				[[fallthrough]];
 			case shaderc_compilation_status_validation_error:
-				[[fallthrough]];
+				log::critical( "Failed to compile shader {} with error: {}", input_name, result.GetErrorMessage() );
+				throw std::runtime_error( "Failed to compile shader" );
 			case shaderc_compilation_status_transformation_error:
-				[[fallthrough]];
+				log::critical( "Failed to compile shader {} with error: {}", input_name, result.GetErrorMessage() );
+				throw std::runtime_error( "Failed to compile shader" );
+			case shaderc_compilation_status_invalid_stage:
+				log::critical( "Failed to compile shader {} with error: {}", input_name, result.GetErrorMessage() );
+				throw std::runtime_error( "Failed to compile shader" );
 			case shaderc_compilation_status_configuration_error:
-				log::critical( "Failed to compile shader {} with error: {}", result.GetErrorMessage() );
+				log::critical( "Failed to compile shader {} with error: {}", input_name, result.GetErrorMessage() );
 				throw std::runtime_error( "Failed to compile shader" );
 				break;
 		}
