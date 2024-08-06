@@ -116,10 +116,18 @@ namespace fgl::engine
 		options.SetOptimizationLevel( shaderc_optimization_level_performance );
 #endif
 
+		options.SetVulkanRulesRelaxed( false );
+
 		const shaderc_shader_kind kind { getShaderKindFromName( input_name ) };
 
+		const auto preprocessed_source { getInstance().PreprocessGlsl(
+			reinterpret_cast< const char* >( input.data() ), input.size(), kind, input_name.data(), options ) };
+
+		log::info(
+			"Preprocessed source:\n{}", std::string_view( preprocessed_source.begin(), preprocessed_source.end() ) );
+
 		const auto result { getInstance().CompileGlslToSpv(
-			reinterpret_cast< const char* >( input.data() ), input.size(), kind, input_name.data(), "main", options ) };
+			reinterpret_cast< const char* >( input.data() ), input.size(), kind, input_name.data(), options ) };
 
 		switch ( result.GetCompilationStatus() )
 		{
