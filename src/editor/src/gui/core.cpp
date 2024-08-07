@@ -177,6 +177,8 @@ namespace fgl::engine::gui
 		drawEntityInfo( info );
 		drawFilesystemGUI( info );
 
+		drawStats( info );
+
 		endImGui( info.command_buffer );
 	}
 

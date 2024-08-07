@@ -25,4 +25,6 @@ namespace fgl::engine::gui
 
 	void drawCameraOutputs( FrameInfo& info );
 
+	void drawStats( const FrameInfo& info );
+
 } // namespace fgl::engine::gui

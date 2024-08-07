@@ -16,6 +16,8 @@
 
 #include <string_view>
 
+#include "engine/FGL_DEFINES.hpp"
+
 namespace ImGui
 {
 
