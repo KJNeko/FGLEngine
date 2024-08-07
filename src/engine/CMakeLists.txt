@@ -65,6 +65,10 @@ else ()
 	target_compile_definitions(FGLEngine PUBLIC FGL_TESTS=0)
 endif ()
 
+# Enable tracking for buffers, I need to find some way to disable this when trying to link
+# with the game itself
+target_compile_definitions(FGLEngine PUBLIC TRACK_BUFFERS)
+
 
 #GLM settings
 # GLM_FORCE_NO_CTOR_INIT

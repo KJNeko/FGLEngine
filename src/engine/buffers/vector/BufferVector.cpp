@@ -11,7 +11,7 @@ namespace fgl::engine::memory
 {
 
 	[[nodiscard]] BufferVector::BufferVector( Buffer& buffer, std::uint32_t count, std::uint32_t stride ) :
-	  BufferSuballocation( buffer.suballocate( count * stride ) ),
+	  BufferSuballocation( buffer.allocate( count * stride ) ),
 	  m_count( count ),
 	  m_stride( stride )
 	{}

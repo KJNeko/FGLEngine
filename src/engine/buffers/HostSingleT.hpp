@@ -24,7 +24,7 @@ namespace fgl::engine
 		HostSingleT& operator=( const HostSingleT& ) = delete;
 
 		HostSingleT( memory::Buffer& buffer ) :
-		  memory::BufferSuballocation( buffer.suballocate( sizeof( T ), alignof( T ) ) )
+		  memory::BufferSuballocation( buffer.allocate( sizeof( T ), alignof( T ) ) )
 		{}
 
 		HostSingleT& operator=( T& t )

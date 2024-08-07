@@ -32,7 +32,9 @@ namespace fgl::engine::memory
 	//TODO: Dynamic/onDemand resizing of Buffer for suballocations
 	//TODO: Defragmentation
 
-	class BufferHandle
+	//TODO: Ensure this class can't be directly accessed from within Buffer unless we are trying
+	// to access it in a debug manner (IE the drawStats menu)
+	struct BufferHandle
 	{
 		vk::Buffer m_buffer { VK_NULL_HANDLE };
 		VmaAllocation m_allocation {};
@@ -45,8 +47,6 @@ namespace fgl::engine::memory
 
 		void alloc( vk::DeviceSize memory_size );
 		void dealloc();
-
-	  public:
 
 		BufferHandle() = delete;
 		BufferHandle( const BufferHandle& other ) = delete;
@@ -70,8 +70,21 @@ namespace fgl::engine::memory
 
 	class Buffer
 	{
+#ifdef TRACK_BUFFERS
+		//! Tracking pointer for all buffers
 		inline static std::vector< std::weak_ptr< BufferHandle > > m_buffer_handles {};
 
+	  public:
+
+		static std::vector< std::weak_ptr< BufferHandle > > getActiveBufferHandles();
+
+	  private:
+
+#endif
+
+		//TODO: Switch this to being a non pointer if we aren't tracking
+		// Since we don't need this to be a pointer at all if we don't need to track anything
+		// It'll just be wasted pointer dereferencing
 		std::shared_ptr< BufferHandle > m_handle;
 
 	  public:
@@ -91,8 +104,6 @@ namespace fgl::engine::memory
 		Buffer( Buffer&& other ) = default;
 		Buffer& operator=( Buffer&& other ) = default;
 
-		static std::vector< std::weak_ptr< BufferHandle > > getActiveBufferHandles();
-
 		inline vk::Buffer& getVkBuffer() noexcept { return m_handle->m_buffer; }
 
 		//! Returns the required alignment for this buffer.
@@ -104,7 +115,7 @@ namespace fgl::engine::memory
 
 		//! @brief List of all active suballocations
 		//! <offset, size>
-		std::map< vk::DeviceSize, vk::DeviceSize > m_suballocations {};
+		std::map< vk::DeviceSize, vk::DeviceSize > m_allocations {};
 
 		//! @brief list of any free blocks
 		//! @note All blocks are amalgamated to the largest they can expand to.
@@ -164,7 +175,7 @@ namespace fgl::engine::memory
 		 * @note Alignment for atom_size is 0 if buffer is not host visible
 		 */
 		std::shared_ptr< BufferSuballocationHandle >
-			suballocate( vk::DeviceSize memory_size, std::uint32_t alignment = 1 );
+			allocate( vk::DeviceSize memory_size, std::uint32_t alignment = 1 );
 
 		//! Frees a given suballocation. After calling this the handle is invalid and accessing it is UB
 		void free( BufferSuballocationHandle& info );

@@ -3,6 +3,7 @@
 //
 
 #include "Buffer.hpp"
+
 #include "BufferSuballocationHandle.hpp"
 #include "align.hpp"
 #include "engine/buffers/exceptions.hpp"
@@ -78,6 +79,7 @@ namespace fgl::engine::memory
 		vmaGetAllocationInfo( Device::getInstance().allocator(), m_allocation, &m_alloc_info );
 	}
 
+#ifdef TRACK_BUFFERS
 	std::vector< std::weak_ptr< BufferHandle > > Buffer::getActiveBufferHandles()
 	{
 		std::vector< std::weak_ptr< BufferHandle > > handles;
@@ -94,6 +96,7 @@ namespace fgl::engine::memory
 		m_buffer_handles = handles;
 		return handles;
 	}
+#endif
 
 	vk::DeviceSize Buffer::alignment()
 	{
@@ -113,23 +116,23 @@ namespace fgl::engine::memory
 	}
 
 	std::shared_ptr< BufferSuballocationHandle > Buffer::
-		suballocate( vk::DeviceSize memory_size, std::uint32_t allignment )
+		allocate( vk::DeviceSize memory_size, std::uint32_t t_alignment )
 	{
 		ZoneScoped;
 		//Calculate alignment from alignment, ubo_alignment, and atom_size_alignment
 		memory_size = align( memory_size, alignment() );
 
-		auto findBlock = [ this, memory_size, allignment ]()
+		auto findBlock = [ this, memory_size, t_alignment ]()
 		{
 			//Find a free space.
 			return std::find_if(
 				m_free_blocks.begin(),
 				m_free_blocks.end(),
-				[ this, memory_size, allignment ]( const std::pair< vk::DeviceSize, vk::DeviceSize >& pair )
+				[ this, memory_size, t_alignment ]( const std::pair< vk::DeviceSize, vk::DeviceSize >& pair )
 				{
 					const auto [ offset, size ] = pair;
 
-					const auto new_offset = align( offset, alignment(), allignment );
+					const auto new_offset = align( offset, alignment(), t_alignment );
 					const auto after_size { size - ( new_offset - offset ) };
 
 					// If the size of the block after alignment is greater than or equal to the size of the memory we want to allocate using it.
@@ -156,14 +159,14 @@ namespace fgl::engine::memory
 			{
 				std::cout << "Offset: " << std::hex << offset << " Size: " << std::dec << size << "\n";
 
-				std::cout << "Aligned offset: " << std::hex << align( offset, alignment(), allignment )
+				std::cout << "Aligned offset: " << std::hex << align( offset, alignment(), t_alignment )
 						  << " Size: " << std::dec << size << "\n"
 						  << std::endl;
 			}
 
 			std::cout << "====== Suballocations ======\n";
 
-			for ( auto [ offset, size ] : m_suballocations )
+			for ( auto [ offset, size ] : m_allocations )
 			{
 				std::cout << "Offset: " << std::hex << offset << " Size: " << std::dec << size << "\n";
 			}
@@ -174,7 +177,7 @@ namespace fgl::engine::memory
 
 			std::uint64_t allocated_memory_counter { 0 };
 			//Sum up all memory to check for leaks
-			for ( auto [ offset, size ] : m_suballocations )
+			for ( auto [ offset, size ] : m_allocations )
 			{
 				allocated_memory_counter += size;
 			}
@@ -207,7 +210,7 @@ namespace fgl::engine::memory
 		auto [ offset, size ] = *itter;
 		m_free_blocks.erase( itter );
 
-		const auto aligned_offset { align( offset, alignment(), allignment ) };
+		const auto aligned_offset { align( offset, alignment(), t_alignment ) };
 
 		//Fix the offset and size if they aren't alligned
 		if ( aligned_offset != offset )
@@ -224,7 +227,7 @@ namespace fgl::engine::memory
 		}
 
 		//Add the suballocation
-		m_suballocations.insert_or_assign( offset, memory_size );
+		m_allocations.insert_or_assign( offset, memory_size );
 
 		//If there is any memory left over, Then add it back into the free blocks
 		if ( size - memory_size > 0 )
@@ -238,7 +241,7 @@ namespace fgl::engine::memory
 			sum += free_blocks.second;
 		}
 
-		for ( const auto& allocated : this->m_suballocations )
+		for ( const auto& allocated : this->m_allocations )
 		{
 			sum += allocated.second;
 		}
@@ -310,12 +313,12 @@ namespace fgl::engine::memory
 		ZoneScoped;
 
 		//Find the suballocation
-		auto itter = m_suballocations.find( info.m_offset );
+		auto itter = m_allocations.find( info.m_offset );
 
-		if ( itter == m_suballocations.end() ) throw std::runtime_error( "Failed to find suballocation" );
+		if ( itter == m_allocations.end() ) throw std::runtime_error( "Failed to find suballocation" );
 
 		//Remove the suballocation
-		m_suballocations.erase( itter );
+		m_allocations.erase( itter );
 
 		//Add the block back to the free blocks
 		m_free_blocks.emplace_back( std::make_pair( info.m_offset, info.m_size ) );
@@ -330,7 +333,7 @@ namespace fgl::engine::memory
 			sum += free_blocks.second;
 		}
 
-		for ( const auto& allocated : this->m_suballocations )
+		for ( const auto& allocated : this->m_allocations )
 		{
 			sum += allocated.second;
 		}
@@ -351,12 +354,14 @@ namespace fgl::engine::memory
 	  m_memory_properties( memory_properties )
 	{
 		m_free_blocks.insert( m_free_blocks.begin(), { 0, memory_size } );
+#ifdef TRACK_BUFFERS
 		m_buffer_handles.emplace_back( m_handle );
+#endif
 	}
 
 	Buffer::~Buffer()
 	{
-		assert( m_suballocations.size() == 0 && "Buffer destructed while allocations still present" );
+		assert( m_allocations.size() == 0 && "Buffer destructed while allocations still present" );
 	}
 
 } // namespace fgl::engine::memory

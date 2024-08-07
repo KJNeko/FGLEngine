@@ -34,7 +34,7 @@ namespace fgl::engine
 
 		/**
 		 * @brief Constructs a new DeviceVector from a vector using an allocation of the supplied buffer
-		 * @param buffer buffer to suballocate from
+		 * @param buffer buffer to allocate from
 		 * @param data
 		 */
 		DeviceVector( memory::Buffer& buffer, const std::vector< T >& data ) :

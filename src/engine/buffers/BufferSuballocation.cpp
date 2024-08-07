@@ -109,7 +109,7 @@ namespace fgl::engine::memory
 	}
 
 	BufferSuballocation::BufferSuballocation( Buffer& buffer, const vk::DeviceSize size ) :
-	  BufferSuballocation( buffer.suballocate( size ) )
+	  BufferSuballocation( buffer.allocate( size ) )
 	{}
 
 } // namespace fgl::engine
