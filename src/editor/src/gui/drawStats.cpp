@@ -4,6 +4,7 @@
 #include "core.hpp"
 #include "engine/buffers/Buffer.hpp"
 #include "engine/literals/size.hpp"
+#include "engine/profiling/counters.hpp"
 #include "safe_include.hpp"
 
 namespace fgl::engine::gui
@@ -75,6 +76,21 @@ namespace fgl::engine::gui
 		ImGui::Text( "|- %s Unused", to_string( host.free() ).c_str() );
 		ImGui::Text( "|- %s Available in most allocated buffer", to_string( host.m_largest_free_block ).c_str() );
 		ImGui::Separator();
+
+		if ( ImGui::CollapsingHeader( "Buffers" ) )
+		{
+			for ( const auto* buffer : memory::getActiveBuffers() )
+			{
+				ImGui::Text( "Name: %s", "FIXME" );
+				ImGui::Text(
+					"Allocated: %s/%s (%2.1f\%)",
+					to_string( buffer->used() ).c_str(),
+					to_string( buffer->size() ).c_str(),
+					( static_cast< float >( buffer->used() ) / static_cast< float >( buffer->size() ) * 100.0f ) );
+				ImGui::Text( "Largest block: %s", to_string( buffer->largestBlock() ).c_str() );
+				ImGui::Separator();
+			}
+		}
 	}
 
 	void drawStats( const FrameInfo& info )
@@ -82,6 +98,12 @@ namespace fgl::engine::gui
 		ImGui::Begin( "Stats" );
 
 		ImGui::Text( "FPS: %0.1f", ImGui::GetIO().Framerate );
+		const auto& counters { profiling::getCounters() };
+		ImGui::Text( "Models drawn: %zu", counters.models_draw );
+		ImGui::Text( "Verts drawn: %zu", counters.verts_drawn );
+
+		//TODO: This should likely be moved to the just before we start rendering again.
+		profiling::resetCounters();
 
 		if ( ImGui::CollapsingHeader( "Memory" ) )
 		{

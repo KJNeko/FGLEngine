@@ -10,6 +10,7 @@
 #include "DrawPair.hpp"
 #include "engine/camera/Camera.hpp"
 #include "engine/literals/size.hpp"
+#include "engine/profiling/counters.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
 
 namespace fgl::engine
@@ -131,6 +132,8 @@ namespace fgl::engine
 			getDrawCallsFromTree( info.game_objects, info.camera->getFrustumBounds(), IS_VISIBLE | IS_ENTITY );
 
 		if ( draw_commands.empty() ) return;
+
+		profiling::addModelDrawn( model_matricies.size() );
 
 		auto& model_matrix_info_buffer { m_textured_model_matrix_info_buffers[ info.frame_idx ] };
 		model_matrix_info_buffer =
