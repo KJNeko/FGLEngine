@@ -10,7 +10,6 @@
 namespace fgl::engine::memory
 {
 	class Buffer;
-	class BufferHandle;
 	class SuballocationView;
 
 	struct BufferSuballocationHandle;

@@ -12,34 +12,49 @@
 
 namespace fgl::engine::memory
 {
-	BufferHandle::BufferHandle(
-		vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties ) :
+
+	inline static std::vector< Buffer* > active_buffers {};
+
+	std::vector< Buffer* > getActiveBuffers()
+	{
+		return active_buffers;
+	}
+
+	Buffer::
+		Buffer( vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties ) :
 	  m_memory_size( memory_size ),
 	  m_usage( usage ),
 	  m_memory_properties( memory_properties )
 	{
 		alloc( memory_size );
+		active_buffers.emplace_back( this );
+		m_free_blocks.push_back( { 0, memory_size } );
 	}
 
-	BufferHandle::~BufferHandle()
+	Buffer::~Buffer()
 	{
+		assert( this->m_allocations.size() == 0 );
 		dealloc();
+		if ( auto itter = std::find( active_buffers.begin(), active_buffers.end(), this );
+		     itter != active_buffers.end() )
+			active_buffers.erase( itter );
 	}
 
-	void* BufferHandle::map( BufferSuballocationHandle& handle )
+	void* Buffer::map( BufferSuballocationHandle& handle )
 	{
 		if ( m_alloc_info.pMappedData == nullptr ) return nullptr;
 
 		return static_cast< std::byte* >( m_alloc_info.pMappedData ) + handle.m_offset;
 	}
 
-	void BufferHandle::dealloc()
+	void Buffer::dealloc()
 	{
 		vmaDestroyBuffer( Device::getInstance().allocator(), m_buffer, m_allocation );
 	}
 
-	void BufferHandle::alloc( vk::DeviceSize memory_size )
+	void Buffer::alloc( vk::DeviceSize memory_size )
 	{
+		assert( memory_size > 0 );
 		m_memory_size = memory_size;
 		vk::BufferCreateInfo buffer_info {};
 		buffer_info.pNext = VK_NULL_HANDLE;
@@ -78,25 +93,6 @@ namespace fgl::engine::memory
 
 		vmaGetAllocationInfo( Device::getInstance().allocator(), m_allocation, &m_alloc_info );
 	}
-
-#ifdef TRACK_BUFFERS
-	std::vector< std::weak_ptr< BufferHandle > > Buffer::getActiveBufferHandles()
-	{
-		std::vector< std::weak_ptr< BufferHandle > > handles;
-		handles.reserve( m_buffer_handles.size() );
-
-		for ( auto& handle : m_buffer_handles )
-		{
-			if ( auto ptr = handle.lock() )
-			{
-				handles.push_back( ptr );
-			}
-		}
-
-		m_buffer_handles = handles;
-		return handles;
-	}
-#endif
 
 	vk::DeviceSize Buffer::alignment()
 	{
@@ -194,10 +190,9 @@ namespace fgl::engine::memory
 			std::cout << "Total memory free: " << fgl::literals::size_literals::to_string( free_memory_counter )
 					  << std::endl;
 
-			std::cout << "Total memory: " << fgl::literals::size_literals::to_string( m_handle->m_memory_size )
-					  << std::endl;
+			std::cout << "Total memory: " << fgl::literals::size_literals::to_string( m_memory_size ) << std::endl;
 
-			if ( allocated_memory_counter + free_memory_counter != m_handle->m_memory_size )
+			if ( allocated_memory_counter + free_memory_counter != m_memory_size )
 			{
 				std::cout << "Memory size mismatch detected! Difference of: "
 						  << ( allocated_memory_counter + free_memory_counter - memory_size ) << std::endl;
@@ -303,7 +298,7 @@ namespace fgl::engine::memory
 		vk::DebugUtilsObjectNameInfoEXT info {};
 		info.objectType = vk::ObjectType::eBuffer;
 		info.pObjectName = str.c_str();
-		info.objectHandle = reinterpret_cast< std::uint64_t >( static_cast< VkBuffer >( this->m_handle->m_buffer ) );
+		info.objectHandle = reinterpret_cast< std::uint64_t >( static_cast< VkBuffer >( this->m_buffer ) );
 
 		Device::getInstance().setDebugUtilsObjectName( info );
 	}
@@ -342,26 +337,27 @@ namespace fgl::engine::memory
 #endif
 	}
 
-	void* Buffer::map( BufferSuballocationHandle& handle )
+	vk::DeviceSize Buffer::used() const
 	{
-		return this->m_handle->map( handle );
+		vk::DeviceSize total_size { 0 };
+
+		if ( m_allocations.size() == 0 ) return total_size;
+
+		for ( const auto& [ offset, size ] : m_allocations ) total_size += size;
+
+		return total_size;
 	}
 
-	Buffer::
-		Buffer( vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties ) :
-	  m_handle( std::make_shared< BufferHandle >( memory_size, usage, memory_properties ) ),
-	  m_usage( usage ),
-	  m_memory_properties( memory_properties )
+	vk::DeviceSize Buffer::largestBlock() const
 	{
-		m_free_blocks.insert( m_free_blocks.begin(), { 0, memory_size } );
-#ifdef TRACK_BUFFERS
-		m_buffer_handles.emplace_back( m_handle );
-#endif
-	}
+		vk::DeviceSize largest { 0 };
 
-	Buffer::~Buffer()
-	{
-		assert( m_allocations.size() == 0 && "Buffer destructed while allocations still present" );
+		for ( const auto& blocks : m_free_blocks )
+		{
+			largest = std::max( largest, blocks.second );
+		}
+
+		return largest;
 	}
 
 } // namespace fgl::engine::memory

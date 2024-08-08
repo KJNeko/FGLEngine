@@ -3,6 +3,7 @@
 
 #include "core.hpp"
 #include "engine/buffers/Buffer.hpp"
+#include "engine/literals/size.hpp"
 #include "safe_include.hpp"
 
 namespace fgl::engine::gui
@@ -17,38 +18,37 @@ namespace fgl::engine::gui
 
 			inline vk::DeviceSize free() const { return m_total - m_used; }
 
-			vk::DeviceSize m_largest_free_block;
+			vk::DeviceSize m_largest_free_block { std::numeric_limits< vk::DeviceSize >::max() };
 		};
 
 		AllocationInfo gpu {};
 		AllocationInfo host {};
 	};
 
-	const AllocationList getTotalAllocated()
+	AllocationList getTotalAllocated()
 	{
 		AllocationList info {};
 
 		auto& [ gpu_allocated, gpu_used, gpu_largest_free ] = info.gpu;
 		auto& [ host_allocated, host_used, host_largest_free ] = info.host;
 
-		for ( const std::weak_ptr< memory::BufferHandle >& buffer_weak :
-		      fgl::engine::memory::Buffer::getActiveBufferHandles() )
+		for ( const auto* buffer : memory::getActiveBuffers() )
 		{
-			if ( auto locked = buffer_weak.lock(); locked )
+			// The buffer is still active.
+			if ( buffer->m_memory_properties & vk::MemoryPropertyFlagBits::eDeviceLocal )
 			{
-				// The buffer is still active.
-				if ( locked->m_memory_properties & vk::MemoryPropertyFlagBits::eDeviceLocal )
-				{
-					gpu_allocated += locked->size();
-				}
-				else if ( locked->m_memory_properties & vk::MemoryPropertyFlagBits::eHostVisible )
-				{
-					host_allocated += locked->size();
-				}
-				else
-					throw std::
-						runtime_error( "Unknown memory property flag choice. Could not determine host vs device" );
+				gpu_allocated += buffer->size();
+				gpu_used += buffer->used();
+				gpu_largest_free = std::min( buffer->largestBlock(), gpu_largest_free );
 			}
+			else if ( buffer->m_memory_properties & vk::MemoryPropertyFlagBits::eHostVisible )
+			{
+				host_allocated += buffer->size();
+				host_used += buffer->used();
+				host_largest_free = std::min( buffer->largestBlock(), host_largest_free );
+			}
+			else
+				throw std::runtime_error( "Unknown memory property flag choice. Could not determine host vs device" );
 		}
 
 		return info;
@@ -60,16 +60,20 @@ namespace fgl::engine::gui
 		const auto& [ gpu_allocated, gpu_used, gpu_largest_block ] = gpu;
 		const auto& [ host_allocated, host_used, host_largest_block ] = host;
 
+		using namespace literals::size_literals;
+
 		ImGui::Text( "Device" );
-		ImGui::Text( "|- %0.1f MB Allocated", static_cast< float >( gpu_allocated ) / 1000.0f / 1000.0f );
-		ImGui::Text( "|- %0.1f MB Used ", static_cast< float >( gpu_used ) / 1000.0f / 1000.0f );
-		ImGui::Text( "|- %0.1f MB Unused", static_cast< float >( gpu.free() ) / 1000.0f / 1000.0f );
+		ImGui::Text( "|- %s Allocated", to_string( gpu_allocated ).c_str() );
+		ImGui::Text( "|- %s Used ", to_string( gpu_used ).c_str() );
+		ImGui::Text( "|- %s Unused", to_string( gpu.free() ).c_str() );
+		ImGui::Text( "|- %s Available in most allocated buffer", to_string( gpu.m_largest_free_block ).c_str() );
 
 		ImGui::Separator();
 		ImGui::Text( "Host" );
-		ImGui::Text( "|- %0.1f MB Allocated", static_cast< float >( host_allocated ) / 1000.0f / 1000.0f );
-		ImGui::Text( "|- %0.1f MB Used ", static_cast< float >( host_used ) / 1000.0f / 1000.0f );
-		ImGui::Text( "|- %0.1f MB Unused", static_cast< float >( host.free() ) / 1000.0f / 1000.0f );
+		ImGui::Text( "|- %s Allocated", to_string( host_allocated ).c_str() );
+		ImGui::Text( "|- %s Used ", to_string( host_used ).c_str() );
+		ImGui::Text( "|- %s Unused", to_string( host.free() ).c_str() );
+		ImGui::Text( "|- %s Available in most allocated buffer", to_string( host.m_largest_free_block ).c_str() );
 		ImGui::Separator();
 	}
 

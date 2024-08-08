@@ -12,7 +12,7 @@ namespace fgl::engine::memory
 {
 	vk::Buffer BufferSuballocationHandle::getBuffer()
 	{
-		return buffer.getBuffer();
+		return buffer.getVkBuffer();
 	}
 
 	BufferSuballocationHandle::

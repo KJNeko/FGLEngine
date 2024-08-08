@@ -20,12 +20,16 @@
 namespace fgl::engine
 {
 	class Device;
-}
+
+	namespace gui
+	{
+		struct AllocationList;
+		AllocationList getTotalAllocated();
+	} // namespace gui
+} // namespace fgl::engine
 
 namespace fgl::engine::memory
 {
-
-	class BufferHandle;
 	class BufferSuballocation;
 	struct BufferSuballocationHandle;
 
@@ -34,7 +38,7 @@ namespace fgl::engine::memory
 
 	//TODO: Ensure this class can't be directly accessed from within Buffer unless we are trying
 	// to access it in a debug manner (IE the drawStats menu)
-	struct BufferHandle
+	class Buffer
 	{
 		vk::Buffer m_buffer { VK_NULL_HANDLE };
 		VmaAllocation m_allocation {};
@@ -48,70 +52,32 @@ namespace fgl::engine::memory
 		void alloc( vk::DeviceSize memory_size );
 		void dealloc();
 
-		BufferHandle() = delete;
-		BufferHandle( const BufferHandle& other ) = delete;
-		BufferHandle& operator=( const BufferHandle& other ) = delete;
-		BufferHandle( BufferHandle&& other ) = delete;
-		BufferHandle& operator=( BufferHandle&& other ) = delete;
+		Buffer() = delete;
+		Buffer( const Buffer& other ) = delete;
+		Buffer& operator=( const Buffer& other ) = delete;
+		Buffer( Buffer&& other ) = delete;
+		Buffer& operator=( Buffer&& other ) = delete;
 
-		friend class Buffer;
+	  public:
 
-		BufferHandle(
-			vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties );
+		Buffer( vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties );
 
-		~BufferHandle();
+		~Buffer();
 
 		auto address() const { return m_alloc_info.deviceMemory; }
 
 		auto size() const { return m_alloc_info.size; }
 
-		void* map( BufferSuballocationHandle& handle );
-	};
+		vk::DeviceSize largestBlock() const;
 
-	class Buffer
-	{
-#ifdef TRACK_BUFFERS
-		//! Tracking pointer for all buffers
-		inline static std::vector< std::weak_ptr< BufferHandle > > m_buffer_handles {};
-
-	  public:
-
-		static std::vector< std::weak_ptr< BufferHandle > > getActiveBufferHandles();
+		vk::DeviceSize used() const;
 
 	  private:
 
-#endif
-
-		//TODO: Switch this to being a non pointer if we aren't tracking
-		// Since we don't need this to be a pointer at all if we don't need to track anything
-		// It'll just be wasted pointer dereferencing
-		std::shared_ptr< BufferHandle > m_handle;
-
-	  public:
-
-		vk::BufferUsageFlags m_usage;
-
-		vk::MemoryPropertyFlags m_memory_properties;
-
-		Buffer() = delete;
-		Buffer( vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties );
-
-		~Buffer();
-
-		Buffer( const Buffer& other ) = delete;
-		Buffer& operator=( const Buffer& other ) = delete;
-
-		Buffer( Buffer&& other ) = default;
-		Buffer& operator=( Buffer&& other ) = default;
-
-		inline vk::Buffer& getVkBuffer() noexcept { return m_handle->m_buffer; }
+		void* map( BufferSuballocationHandle& handle );
 
 		//! Returns the required alignment for this buffer.
 		vk::DeviceSize alignment();
-
-		std::shared_ptr< BufferHandle >& getHandle() { return m_handle; }
-
-	  private:
 
 		//! @brief List of all active suballocations
 		//! <offset, size>
@@ -125,40 +91,24 @@ namespace fgl::engine::memory
 	  public:
 
 		//! Returns the vulkan buffer handle for this buffer
-		vk::Buffer getBuffer() const
-		{
-			assert( m_handle );
-			assert( m_handle->m_buffer != VK_NULL_HANDLE );
-
-			return m_handle->m_buffer;
-		}
+		vk::Buffer getVkBuffer() const { return m_buffer; }
 
 		//! Returns the vulkan memory handle for this buffer
 		vk::DeviceMemory getMemory() const
 		{
-			assert( m_handle );
-			assert( m_handle->m_alloc_info.deviceMemory != VK_NULL_HANDLE );
+			assert( m_alloc_info.deviceMemory != VK_NULL_HANDLE );
 
-			return m_handle->m_alloc_info.deviceMemory;
+			return m_alloc_info.deviceMemory;
 		}
 
-		//! Total memory size of the buffer
-		vk::DeviceSize size() const
-		{
-			assert( m_handle );
-			assert( !std::isnan( m_handle->m_memory_size ) );
+		friend struct BufferSuballocationHandle;
+		friend class BufferSuballocation; //TODO: Remove this
 
-			return m_handle->m_memory_size;
-		}
+		friend gui::AllocationList gui::getTotalAllocated();
 
-		void* map( BufferSuballocationHandle& info );
+	  public:
 
-		bool isMappable() const
-		{
-			assert( m_handle );
-
-			return m_handle->m_alloc_info.pMappedData != nullptr;
-		}
+		bool isMappable() const { return m_alloc_info.pMappedData != nullptr; }
 
 		//! Returns a allocation block from this buffer. Block will be aligned with nonUniformBufferOffsetAlignment
 		//! and nonCoherentAtomSize if required (is_uniform_buffer and is_host_visible respectively)
@@ -185,4 +135,5 @@ namespace fgl::engine::memory
 		void setDebugName( const std::string str );
 	};
 
+	std::vector< Buffer* > getActiveBuffers();
 } // namespace fgl::engine::memory

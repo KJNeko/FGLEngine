@@ -4,11 +4,14 @@
 
 #pragma once
 
-#include "Buffer.hpp"
 #include "BufferSuballocation.hpp"
 
 namespace fgl::engine
 {
+	namespace memory
+	{
+		class Buffer;
+	}
 
 	//! Single element allocation of T
 	template < typename T >
