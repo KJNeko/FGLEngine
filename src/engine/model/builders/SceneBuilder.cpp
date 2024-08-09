@@ -173,7 +173,7 @@ namespace fgl::engine
 		const auto mat_idx { prim.material };
 		if ( mat_idx == -1 )
 		{
-			//There is no matrial for this
+			//There is no material for this
 			throw std::runtime_error( "No material for primitive. One was expected" );
 		}
 
@@ -189,7 +189,7 @@ namespace fgl::engine
 				return { itter->second };
 		};
 
-		std::string str;
+		std::string str {};
 
 		std::size_t counter { 0 };
 

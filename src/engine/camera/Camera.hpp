@@ -12,12 +12,12 @@
 #include <glm/gtx/string_cast.hpp>
 #pragma GCC diagnostic pop
 
-#include "CameraRenderer.hpp"
 #include "engine/buffers/HostSingleT.hpp"
 #include "engine/buffers/UniqueFrameSuballocation.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/primitives/Frustum.hpp"
 #include "engine/primitives/Rotation.hpp"
+#include "engine/primitives/TransformComponent.hpp"
 #include "engine/rendering/types.hpp"
 
 namespace vk::raii
@@ -43,7 +43,9 @@ namespace fgl::engine
 	class Camera
 	{
 		inline static CameraIDX camera_counter { 0 };
-		CameraIDX camera_idx { camera_counter++ };
+
+		// Const is acceptable, Since this value should never change. EVER
+		const CameraIDX camera_idx { camera_counter++ };
 
 		Matrix< MatrixType::CameraToScreen > projection_matrix { 1.0f };
 
@@ -66,7 +68,6 @@ namespace fgl::engine
 		// Camera info is expected at binding 0
 		std::vector< descriptors::DescriptorSet > m_camera_info_descriptors {};
 
-		inline static std::unique_ptr< CameraRenderer > m_renderer;
 		std::shared_ptr< CameraSwapchain > m_swapchain;
 
 		std::string name;

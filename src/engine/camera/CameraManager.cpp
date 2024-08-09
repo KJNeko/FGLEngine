@@ -55,4 +55,7 @@ namespace fgl::engine
 
 		return camera;
 	}
+
+	CameraManager::~CameraManager()
+	{}
 } // namespace fgl::engine

@@ -37,4 +37,9 @@ namespace fgl::engine
 			return INVALID_TEXTURE_ID;
 	}
 
+	OrientedBoundingBox< CoordinateSpace::World > Primitive::getWorldBounds() const
+	{
+		return m_transform->mat() * m_bounding_box;
+	}
+
 } // namespace fgl::engine

@@ -119,6 +119,7 @@ namespace fgl::engine
 
 		TextureID getAlbedoTextureID() const;
 		TextureID getNormalTextureID() const;
+		OrientedBoundingBox< CoordinateSpace::World > getWorldBounds() const;
 	};
 
 } // namespace fgl::engine

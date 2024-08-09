@@ -16,6 +16,8 @@
 namespace fgl::engine
 {
 
+	inline static std::unique_ptr< CameraRenderer > camera_renderer;
+
 	Matrix< MatrixType::WorldToScreen > Camera::getProjectionViewMatrix() const
 	{
 		assert( projection_matrix != constants::MAT4_IDENTITY );
@@ -76,13 +78,13 @@ namespace fgl::engine
 		}
 
 		updateInfo( frame_info.frame_idx );
-		m_renderer->pass( frame_info, *m_swapchain );
+		camera_renderer->pass( frame_info, *m_swapchain );
 		frame_info.camera = nullptr;
 	}
 
 	vk::raii::RenderPass& Camera::getRenderpass()
 	{
-		return m_renderer->getRenderpass();
+		return camera_renderer->getRenderpass();
 	}
 
 	CameraSwapchain& Camera::getSwapchain() const
@@ -119,7 +121,7 @@ namespace fgl::engine
 	void Camera::remakeSwapchain( vk::Extent2D extent )
 	{
 		this->setPerspectiveProjection( m_fov_y, aspectRatio(), constants::NEAR_PLANE, constants::FAR_PLANE );
-		m_swapchain = std::make_shared< CameraSwapchain >( m_renderer->getRenderpass(), extent );
+		m_swapchain = std::make_shared< CameraSwapchain >( camera_renderer->getRenderpass(), extent );
 	}
 
 	void Camera::setName( const std::string_view str )
@@ -299,15 +301,15 @@ namespace fgl::engine
 
 	void Camera::initCameraRenderer()
 	{
-		assert( !m_renderer );
-		m_renderer = std::make_unique< CameraRenderer >();
+		assert( !camera_renderer );
+		camera_renderer = std::make_unique< CameraRenderer >();
 	}
 
 	Camera::Camera( const vk::Extent2D extent, memory::Buffer& buffer ) :
 	  m_transform(),
 	  m_target_extent( extent ),
 	  m_camera_frame_info( buffer, SwapChain::MAX_FRAMES_IN_FLIGHT ),
-	  m_swapchain( std::make_shared< CameraSwapchain >( m_renderer->getRenderpass(), m_target_extent ) ),
+	  m_swapchain( std::make_shared< CameraSwapchain >( camera_renderer->getRenderpass(), m_target_extent ) ),
 	  name()
 	{
 		this->setPerspectiveProjection( m_fov_y, aspectRatio(), constants::NEAR_PLANE, constants::FAR_PLANE );

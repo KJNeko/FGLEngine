@@ -49,6 +49,9 @@ namespace fgl::engine
 					{
 						if ( !primitive.ready() ) continue;
 
+						// Does this primitive pass the bounds check
+						if ( !frustum.intersects( primitive.getWorldBounds() ) ) continue;
+
 						//assert( primitive.m_texture );
 						const ModelMatrixInfo matrix_info { .model_matrix = obj.getTransform().mat4(),
 							                                .albedo_id = primitive.getAlbedoTextureID(),

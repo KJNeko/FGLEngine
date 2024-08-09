@@ -68,6 +68,11 @@ namespace fgl::engine
 			static_assert(
 				CType == CoordinateSpace::World, "pointInside can only be called on World coordinate Frustums" );
 
+			//Ensure the point we are not trying to test a NaN point
+			assert( coord.x != std::numeric_limits< decltype( coord.x ) >::quiet_NaN() );
+			assert( coord.y != std::numeric_limits< decltype( coord.y ) >::quiet_NaN() );
+			assert( coord.z != std::numeric_limits< decltype( coord.z ) >::quiet_NaN() );
+
 			//TODO: This is a biased approach.
 			// Approaches for non-biased:
 			// We can either make this non-biased by using a projection from distance shot down the FORWARD vector

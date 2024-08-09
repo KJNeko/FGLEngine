@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Camera.hpp"
+#include "engine/buffers/Buffer.hpp"
 
 namespace fgl::engine
 {
@@ -25,6 +26,8 @@ namespace fgl::engine
 		CameraManager();
 
 	  public:
+
+		~CameraManager();
 
 		static CameraManager& getInstance();
 

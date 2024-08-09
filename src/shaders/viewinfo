@@ -1,0 +1,31 @@
+
+#ifndef FGL_SHADER
+#define mat4 glm::mat4
+#define mat3 glm::mat3
+
+#define vec4 glm::vec4
+#define vec3 glm::vec3
+#endif
+
+#ifdef FGL_ENGINE
+namespace fgl::engine
+{
+#endif
+
+struct ViewInfo {
+
+
+
+};
+
+
+#ifdef FGL_ENGINE
+} // namespace fgl::engine
+#endif
+
+#define SHADER_LAYOUT(set_idx, binding_idx) \
+layout (set = set_idx, binding = binding_idx)
+
+#define UNIFORM uniform
+
+SHADER_LAYOUT(1, 0) UNIFORM CAMERA_INFO ubo;

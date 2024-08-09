@@ -4,8 +4,12 @@
 
 #pragma once
 
+
+
 namespace fgl::engine
 {
+
+
 	struct CameraInfo
 	{
 		glm::mat4 projection { 1.0f };

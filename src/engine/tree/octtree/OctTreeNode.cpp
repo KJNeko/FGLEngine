@@ -83,7 +83,6 @@ namespace fgl::engine
 				{
 					assert( std::holds_alternative< OctTreeNodeLeaf >( m_node_data ) );
 					OctTreeNodeLeaf& leaf { std::get< OctTreeNodeLeaf >( m_node_data ) };
-					leafs.reserve( LEAF_RESERVE_SIZE );
 					leafs.emplace_back( &leaf );
 
 					//debug::world::drawBoundingBox( m_bounds );
@@ -200,6 +199,7 @@ namespace fgl::engine
 		{
 			auto& objects { std::get< OctTreeNodeLeaf >( m_node_data ) };
 			assert( objects.capacity() == MAX_NODES_IN_LEAF );
+			// If the amount of nodes is about to exceed the number of leafs, Then split the nodes
 			if ( objects.size() + 1 > MAX_NODES_IN_LEAF )
 			{
 				split();
@@ -313,7 +313,7 @@ namespace fgl::engine
 		if ( std::holds_alternative< OctTreeNodeLeaf >( m_node_data ) )
 		{
 			auto& leaf { std::get< OctTreeNodeLeaf >( m_node_data ) };
-			//No point in us giving back an empy leaf
+			//No point in us giving back an empty leaf
 			if ( leaf.size() > 0 ) objects.emplace_back( &leaf );
 		}
 		else
