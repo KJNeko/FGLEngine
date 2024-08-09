@@ -19,17 +19,15 @@ namespace fgl::engine
 	struct Frustum
 	{
 		Plane< CType > near { Coordinate< CType >( constants::WORLD_CENTER ),
-			                  NormalVector::bypass( constants::WORLD_FORWARD ) };
-		Plane< CType > far { Coordinate< CType >( constants::WORLD_CENTER ),
-			                 NormalVector::bypass( constants::WORLD_FORWARD ) };
-		Plane< CType > top { Coordinate< CType >( constants::WORLD_CENTER ),
-			                 NormalVector::bypass( constants::WORLD_FORWARD ) };
+			                  NormalVector( constants::WORLD_FORWARD ) };
+		Plane< CType > far { Coordinate< CType >( constants::WORLD_CENTER ), NormalVector( constants::WORLD_FORWARD ) };
+		Plane< CType > top { Coordinate< CType >( constants::WORLD_CENTER ), NormalVector( constants::WORLD_FORWARD ) };
 		Plane< CType > bottom { Coordinate< CType >( constants::WORLD_CENTER ),
-			                    NormalVector::bypass( constants::WORLD_FORWARD ) };
+			                    NormalVector( constants::WORLD_FORWARD ) };
 		Plane< CType > right { Coordinate< CType >( constants::WORLD_CENTER ),
-			                   NormalVector::bypass( constants::WORLD_FORWARD ) };
+			                   NormalVector( constants::WORLD_FORWARD ) };
 		Plane< CType > left { Coordinate< CType >( constants::WORLD_CENTER ),
-			                  NormalVector::bypass( constants::WORLD_FORWARD ) };
+			                  NormalVector( constants::WORLD_FORWARD ) };
 
 		Coordinate< CType > m_position {};
 
@@ -39,6 +37,7 @@ namespace fgl::engine
 
 		Frustum() = default;
 
+		//TODO: Change this to be, near far, top bottom, left right
 		Frustum(
 			const Plane< CType > near_plane,
 			const Plane< CType > far_plane,

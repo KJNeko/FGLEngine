@@ -335,9 +335,9 @@ namespace fgl::engine
 		createFrustum( const float aspect, const float fov_y, const float near, const float far )
 	{
 		const Plane< CoordinateSpace::Model > near_plane { ModelCoordinate( constants::WORLD_FORWARD * near ),
-			                                               NormalVector::bypass( constants::WORLD_FORWARD ) };
+			                                               NormalVector( constants::WORLD_FORWARD ) };
 		const Plane< CoordinateSpace::Model > far_plane { ModelCoordinate( constants::WORLD_FORWARD * far ),
-			                                              NormalVector::bypass( constants::WORLD_BACKWARD ) };
+			                                              NormalVector( constants::WORLD_BACKWARD ) };
 
 		const float half_height { far * glm::tan( fov_y / 2.0f ) };
 		const float half_width { half_height * aspect };

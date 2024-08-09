@@ -67,11 +67,11 @@ namespace fgl::engine
 		std::array< Coordinate< CType >, POINT_COUNT > points() const;
 		std::array< LineSegment< CType >, LINE_COUNT > lines() const;
 
-		constexpr NormalVector right() const { return NormalVector::bypass( constants::WORLD_RIGHT ); }
+		constexpr NormalVector right() const { return NormalVector( constants::WORLD_RIGHT ); }
 
-		constexpr NormalVector up() const { return NormalVector::bypass( constants::WORLD_UP ); }
+		constexpr NormalVector up() const { return NormalVector( constants::WORLD_UP ); }
 
-		constexpr NormalVector forward() const { return NormalVector::bypass( constants::WORLD_FORWARD ); }
+		constexpr NormalVector forward() const { return NormalVector( constants::WORLD_FORWARD ); }
 	};
 
 } // namespace fgl::engine
