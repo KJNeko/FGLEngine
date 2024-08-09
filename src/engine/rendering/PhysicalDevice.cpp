@@ -77,7 +77,11 @@ namespace fgl::engine
 	}
 
 	const static std::vector< const char* > required_device_extensions { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-		                                                                 VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME };
+		                                                                 VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
+#if ENABLE_CALIBRATED_PROFILING
+		                                                                 VK_KHR_CALIBRATED_TIMESTAMPS_EXTENSION_NAME
+#endif
+	};
 
 	bool PhysicalDevice::supportsRequiredExtensions()
 	{

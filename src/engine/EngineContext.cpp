@@ -189,7 +189,7 @@ namespace fgl::engine
 			renderFrame();
 
 			using namespace std::chrono_literals;
-			std::this_thread::sleep_for( 13ms );
+//			std::this_thread::sleep_for( 13ms );
 		}
 
 		Device::getInstance().device().waitIdle();

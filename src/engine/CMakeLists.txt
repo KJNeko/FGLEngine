@@ -8,7 +8,7 @@ file(GLOB_RECURSE CPP_SOURCES
 add_library(FGLEngine STATIC ${CPP_SOURCES} ${HPP_SOURCES})
 set(CMAKE_CXX_STANDARD 23)
 
-if (DEFINED FGL_ENABLE_PCH)
+if (DEFINED FGL_ENABLE_PCH AND FGL_ENABLE_PCH)
 
 	target_precompile_headers(FGLEngine PRIVATE
 
@@ -54,11 +54,7 @@ else ()
 	target_compile_definitions(FGLEngine PUBLIC ENABLE_IMGUI_DRAWERS=0)
 endif ()
 
-if (NOT DEFINED FGL_ENABLE_TESTS)
-	set(FGL_ENABLE_TESTS 0)
-endif ()
-
-if (FGL_ENABLE_TESTS)
+if (DEFINED FGL_ENABLE_TESTS AND FGL_ENABLE_TESTS)
 	target_compile_definitions(FGLEngine PUBLIC FGL_TESTS=1)
 	target_link_libraries(FGLEngine PUBLIC Catch2)
 else ()
@@ -69,7 +65,12 @@ endif ()
 # with the game itself
 target_compile_definitions(FGLEngine PUBLIC TRACK_BUFFERS)
 
-
 #GLM settings
 # GLM_FORCE_NO_CTOR_INIT
 target_compile_definitions(FGLEngine PUBLIC GLM_FORCE_RADIANS GLM_FORCE_DEPTH_ZERO_TO_ONE GLM_FORCE_LEFT_HANDED)
+
+if (DEFINED FGL_ENABLE_CALIBRATED_PROFILING AND FGL_ENABLE_CALIBRATED_PROFILING)
+	target_compile_definitions(FGLEngine PUBLIC ENABLE_CALIBRATED_PROFILING=1)
+else ()
+	target_compile_definitions(FGLEngine PUBLIC ENABLE_CALIBRATED_PROFILING=0)
+endif ()

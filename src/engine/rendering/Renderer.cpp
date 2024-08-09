@@ -58,7 +58,35 @@ namespace fgl::engine
 
 	TracyVkCtx createContext( PhysicalDevice& physical_device, Device& device, vk::raii::CommandBuffer& cmd_buffer )
 	{
+#if ENABLE_CALIBRATED_PROFILING
+
+		// The calibrated context wants the calibration extention and two function pointers.
+		auto getPhysicalDeviceClibrateableTimeDomains {
+			reinterpret_cast< PFN_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT >(
+				device->getProcAddr( "vkGetPhysicalDeviceCalibrateableTimeDomainsKHR" ) )
+		};
+
+		auto getCalibratedTimestamps {
+			reinterpret_cast< PFN_vkGetCalibratedTimestampsEXT >( device
+			                                                          ->getProcAddr( "vkGetCalibratedTimestampsKHR" ) )
+		};
+
+		if ( getPhysicalDeviceClibrateableTimeDomains == nullptr )
+			throw std::runtime_error( "Failed to get vkGetPhysicalDeviceCalibratableTimeDomainsEXT" );
+
+		if ( getCalibratedTimestamps == nullptr )
+			throw std::runtime_error( "Failed to get vkGetCalibratedTimestampsEXT" );
+
+		return TracyVkContextCalibrated(
+			*physical_device,
+			*device,
+			*device.graphicsQueue(),
+			*cmd_buffer,
+			getPhysicalDeviceClibrateableTimeDomains,
+			getCalibratedTimestamps );
+#else
 		return TracyVkContext( *physical_device, *device, *device.graphicsQueue(), *cmd_buffer );
+#endif
 	}
 
 	void Renderer::createCommandBuffers()

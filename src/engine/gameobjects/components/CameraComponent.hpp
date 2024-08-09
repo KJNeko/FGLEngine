@@ -5,20 +5,20 @@
 #pragma once
 #include <memory>
 
-#include "GameObjectComponent.hpp"
+#include "engine/gameobjects/components/interface/GameObjectComponent.hpp"
 
 namespace fgl::engine
 {
 	class Camera;
 
-	class CameraComponent final : public GameObjectComponent< 2 >
+	COMPONENT_CLASS( CameraComponent, CameraComponentID )
 	{
 		std::shared_ptr< Camera > m_camera;
 
 	  public:
 
 		CameraComponent() = delete;
-		CameraComponent( std::shared_ptr< Camera >& camera );
+		CameraComponent( std::shared_ptr< Camera > & camera );
 		~CameraComponent();
 	};
 

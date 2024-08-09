@@ -7,8 +7,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "components/GameObjectComponent.hpp"
 #include "components/ModelComponent.hpp"
+#include "engine/gameobjects/components/interface/GameObjectComponent.hpp"
 #include "engine/primitives/TransformComponent.hpp"
 
 namespace fgl::engine

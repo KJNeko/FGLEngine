@@ -6,19 +6,21 @@
 #include <filesystem>
 #include <memory>
 
-#include "GameObjectComponent.hpp"
+#include "ComponentIDS.hpp"
+#include "engine/gameobjects/components/interface/GameObjectComponent.hpp"
 
 namespace fgl::engine
 {
 	class Model;
 
-	class ModelComponent final : public GameObjectComponent< 1 >
+	COMPONENT_CLASS( ModelComponent, ModelComponentID )
 	{
 		std::shared_ptr< Model > m_model;
 
 	  public:
 
-		ModelComponent( std::shared_ptr< Model >&& model ) : m_model( std::forward< decltype( m_model ) >( model ) ) {}
+		ModelComponent( std::shared_ptr< Model > && model ) : m_model( std::forward< decltype( m_model ) >( model ) )
+		{}
 
 #ifdef TITOR_EDITOR
 		void drawImGui() override;
@@ -30,11 +32,18 @@ namespace fgl::engine
 		}
 #endif
 
-		virtual ~ModelComponent() override {}
+		virtual ~ModelComponent() override
+		{}
 
-		Model* operator->() { return m_model.get(); }
+		Model* operator->()
+		{
+			return m_model.get();
+		}
 
-		const Model* operator->() const { return m_model.get(); }
+		const Model* operator->() const
+		{
+			return m_model.get();
+		}
 	};
 
 	static_assert( is_component< ModelComponent > );
