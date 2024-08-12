@@ -17,7 +17,7 @@ namespace fgl::engine
 	class Coordinate;
 
 	class Vector;
-	class NormalVector;
+	struct NormalVector;
 
 	template < typename T >
 	concept is_plane = requires( T t ) {

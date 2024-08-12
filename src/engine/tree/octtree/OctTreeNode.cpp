@@ -8,7 +8,6 @@
 #include <engine/FrameInfo.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-#include "engine/debug/drawers.hpp"
 #include "engine/model/Model.hpp"
 #include "engine/primitives/Frustum.hpp"
 
@@ -221,8 +220,8 @@ namespace fgl::engine
 		{
 			if ( ( draw_inview_bounds || std::holds_alternative< OctTreeNodeLeaf >( this->m_node_data ) ) && m_parent )
 			{
-				if ( draw_leaf_fit_bounds ) debug::world::drawBoundingBox( m_fit_bounding_box );
-				if ( draw_leaf_real_bounds ) debug::world::drawBoundingBox( m_bounds );
+				// if ( draw_leaf_fit_bounds ) debug::world::drawBoundingBox( m_fit_bounding_box );
+				// if ( draw_leaf_real_bounds ) debug::world::drawBoundingBox( m_bounds );
 			}
 
 			return true;

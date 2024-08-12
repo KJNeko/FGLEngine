@@ -9,9 +9,7 @@ layout (location = 3) in flat uint in_albedo_idx;
 layout (location = 4) in flat uint in_normal_idx;
 layout (location = 5) in flat uint in_metallic_roughness_idx;
 
-layout (location = 0) out vec4 out_position;
-layout (location = 1) out vec4 out_normal;
-layout (location = 2) out vec4 out_albedo;
+#include "include/gbuffer_out.glsl"
 
 layout (set = 1, binding = 0) uniform CameraInfo {
     mat4 projection;

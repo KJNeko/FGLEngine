@@ -28,7 +28,7 @@ namespace fgl::engine
 
 	//Vectors
 	class Vector;
-	class NormalVector;
+	struct NormalVector;
 
 	template < MatrixType MType >
 	class Matrix : public glm::mat4

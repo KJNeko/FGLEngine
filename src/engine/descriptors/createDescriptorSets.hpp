@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "engine/FGL_DEFINES.hpp"
 #include "engine/concepts/is_valid_pipeline_input.hpp"
 
 namespace fgl::engine::descriptors

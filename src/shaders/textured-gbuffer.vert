@@ -11,11 +11,7 @@ layout (location = 3) out flat uint out_albedo_id;
 layout (location = 4) out flat uint out_normal_id;
 layout (location = 5) out flat uint out_metallic_roughness_id;
 
-layout (set = 1, binding = 0) uniform CameraInfo {
-    mat4 projection;
-    mat4 view;
-    mat4 inverse_view;
-} ubo;
+#include "include/camera.glsl"
 
 void main() {
 

@@ -12,6 +12,7 @@
 
 #include "descriptors/Descriptor.hpp"
 #include "descriptors/DescriptorSetLayout.hpp"
+#include "pipeline/Pipeline.hpp"
 #include "primitives/Frustum.hpp"
 #include "rendering/types.hpp"
 
@@ -98,6 +99,9 @@ namespace fgl::engine
 		SwapChain& swap_chain;
 
 		std::vector< std::vector< GameObject >* > in_view_leafs {};
+
+		//! Binds the camera descriptor to the command buffer
+		void bindCamera( internal::Pipeline& pipeline );
 	};
 
 } // namespace fgl::engine

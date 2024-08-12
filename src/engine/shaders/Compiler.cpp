@@ -22,7 +22,7 @@ namespace fgl::engine
 			compiler = std::make_unique< shaderc::Compiler >();
 		}
 
-		FGL_ASSERT( compiler );
+		FGL_ASSERT( compiler, "Compiler invalid!" );
 
 		return *compiler;
 	}

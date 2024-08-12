@@ -6,6 +6,7 @@
 
 #include "camera/Camera.hpp"
 #include "camera/CameraSwapchain.hpp"
+#include "pipeline/Pipeline.hpp"
 
 namespace fgl::engine
 {
@@ -18,6 +19,11 @@ namespace fgl::engine
 	descriptors::DescriptorSet& FrameInfo::getCameraDescriptor() const
 	{
 		return camera->getDescriptor( frame_idx );
+	}
+
+	void FrameInfo::bindCamera( internal::Pipeline& pipeline )
+	{
+		//TODO: This
 	}
 
 } // namespace fgl::engine

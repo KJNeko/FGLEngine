@@ -19,7 +19,7 @@ namespace fgl::engine
 	template < CoordinateSpace type >
 	class Coordinate;
 
-	class NormalVector;
+	struct NormalVector;
 
 	//TODO: Make normalized form of Vector
 	class Vector : private glm::vec3

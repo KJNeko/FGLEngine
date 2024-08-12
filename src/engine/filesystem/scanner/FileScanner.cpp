@@ -16,7 +16,7 @@ namespace fgl::engine::filesystem
 
 	DirInfo::DirInfo( const std::filesystem::path& path ) : m_path( path ), total_size( 0 )
 	{
-		FGL_ASSERT( std::filesystem::exists( path ) );
+		FGL_ASSERT( std::filesystem::exists( path ), "Path must exist" );
 		for ( auto itter = std::filesystem::directory_iterator( path ); itter != std::filesystem::directory_iterator();
 		      ++itter )
 		{

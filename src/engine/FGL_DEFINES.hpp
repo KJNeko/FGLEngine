@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <utility>
-
 #define FGL_DELETE_DEFAULT_CTOR( ClassName ) ClassName() = delete;
 #define FGL_DELETE_COPY_ASSIGN( ClassName ) ClassName& operator=( const ClassName& ) = delete;
 #define FGL_DELETE_COPY_CTOR( ClassName ) ClassName( const ClassName& ) = delete;
@@ -36,11 +34,18 @@
 //! Warns if the structure field is not alligned with a set number of bytes
 #define FGL_STRICT_ALIGNMENT( bytesize ) [[gnu::warn_if_not_aligned( bytesize )]]
 
-#define FGL_ASSERT( ... ) assert( __VA_ARGS__ );
+#ifndef NDEBUG
+#include <stdexcept>
+#define FGL_ASSERT( test, msg )                                                                                        \
+	if ( !( test ) ) throw std::runtime_error( msg );
+#else
+#define FGL_ASSERT( test, msg )
+#endif
 
 #ifndef NDEBUG
+#include <utility>
 #define FGL_UNREACHABLE()                                                                                              \
-	FGL_ASSERT( false );                                                                                               \
+	FGL_ASSERT( false, "Should have been unreachable!" );                                                              \
 	std::unreachable()
 #else
 #define FGL_UNREACHABLE() std::unreachable()

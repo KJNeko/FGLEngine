@@ -140,6 +140,7 @@ namespace fgl::engine
 		//m_terrain_system.pass( frame_info );
 
 		m_entity_renderer.pass( frame_info );
+		m_line_drawer.pass( frame_info );
 
 		m_composition_system.pass( frame_info );
 

@@ -53,8 +53,11 @@ namespace fgl::engine
 		static void setVertexInputType( PipelineConfigInfo& info, const VertexInputType type );
 
 		static void disableVertexInput( PipelineConfigInfo& info );
+
 		static void setTriangleListTopo( PipelineConfigInfo& info );
 		static void setTriangleStripTopo( PipelineConfigInfo& info );
+		static void setLineTopo( PipelineConfigInfo& info );
+
 		static void setQuadTesselation( PipelineConfigInfo& info );
 		static void setPointPatch( PipelineConfigInfo& info );
 		static void defaultConfig( PipelineConfigInfo& info );

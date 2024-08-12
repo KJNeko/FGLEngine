@@ -9,7 +9,7 @@
 namespace fgl::engine::interface
 {
 
-	class NormalVector;
+	struct NormalVector;
 
 	//! Dummy class to allow for inheriting to pass 'is_bounding_box[
 	struct BoundingBox

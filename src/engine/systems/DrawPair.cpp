@@ -44,13 +44,15 @@ namespace fgl::engine
 
 				for ( const auto* model_component_ptr : model_components )
 				{
+					const auto& model_transform { model_component_ptr->m_transform };
+
 					const auto& comp { *model_component_ptr };
 					for ( const Primitive& primitive : comp->m_primitives )
 					{
 						if ( !primitive.ready() ) continue;
 
 						// Does this primitive pass the bounds check
-						if ( !frustum.intersects( primitive.getWorldBounds() ) ) continue;
+						if ( !frustum.intersects( model_transform.mat() * primitive.getBoundingBox() ) ) continue;
 
 						//assert( primitive.m_texture );
 						const ModelMatrixInfo matrix_info { .model_matrix = obj.getTransform().mat4(),

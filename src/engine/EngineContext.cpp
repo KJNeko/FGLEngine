@@ -12,12 +12,10 @@
 #include <iostream>
 
 #include "KeyboardMovementController.hpp"
-#include "buffers/HostSingleT.hpp"
 #include "camera/Camera.hpp"
 #include "camera/CameraManager.hpp"
 #include "engine/Average.hpp"
 #include "engine/assets/TransferManager.hpp"
-#include "engine/debug/drawers.hpp"
 #include "engine/literals/size.hpp"
 #include "model/builders/SceneBuilder.hpp"
 

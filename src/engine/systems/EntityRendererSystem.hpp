@@ -38,9 +38,6 @@ namespace fgl::engine
 
 		using ModelMatrixInfoBufferSuballocation = HostVector< ModelMatrixInfo >;
 
-		template < typename T >
-		using PerFrameArray = std::array< T, SwapChain::MAX_FRAMES_IN_FLIGHT >;
-
 		// Simple parameter buffers
 		PerFrameArray< std::unique_ptr< DrawParameterBufferSuballocation > > m_draw_simple_parameter_buffers {};
 		PerFrameArray< std::unique_ptr< ModelMatrixInfoBufferSuballocation > > m_simple_model_matrix_info_buffers {};

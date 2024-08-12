@@ -7,7 +7,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
-#include "engine/debug/drawers.hpp"
+#include <stdexcept>
 
 namespace fgl::engine
 {
@@ -58,9 +58,11 @@ namespace fgl::engine
 	Rotation::Rotation( const float pitch, const float roll, const float yaw ) :
 	  glm::quat( buildQuat( { pitch, roll, yaw } ) )
 	{
-		FGL_ASSERT( ::fgl::engine::pitch( *this ) - pitch < glm::epsilon< float >() );
-		FGL_ASSERT( ::fgl::engine::yaw( *this ) - yaw < glm::epsilon< float >() );
-		FGL_ASSERT( ::fgl::engine::roll( *this ) - roll < glm::epsilon< float >() );
+		FGL_ASSERT(
+			::fgl::engine::pitch( *this ) - pitch < glm::epsilon< float >(), "Rotation axis does not match input" );
+		FGL_ASSERT( ::fgl::engine::yaw( *this ) - yaw < glm::epsilon< float >(), "Rotation axis does not match input" );
+		FGL_ASSERT(
+			::fgl::engine::roll( *this ) - roll < glm::epsilon< float >(), "Rotation axis does not match input" );
 	}
 
 	RotationModifier< RotationModifierType::Roll > Rotation::roll()

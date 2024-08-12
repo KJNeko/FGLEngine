@@ -9,6 +9,7 @@
 #include "engine/systems/CompositionSystem.hpp"
 #include "engine/systems/CullingSystem.hpp"
 #include "engine/systems/EntityRendererSystem.hpp"
+#include "engine/systems/LineDrawer.hpp"
 
 namespace fgl::engine
 {
@@ -26,6 +27,7 @@ namespace fgl::engine
 		// SubPass 0
 		//TerrainSystem m_terrain_system { Device::getInstance(), m_renderpass };
 		EntityRendererSystem m_entity_renderer { Device::getInstance(), m_renderpass };
+		LineDrawer m_line_drawer { Device::getInstance(), m_renderpass };
 
 		// SubPass 1
 		CompositionSystem m_composition_system { Device::getInstance(), m_renderpass };

@@ -74,8 +74,6 @@ namespace fgl::engine
 
 		PrimitiveTextures m_textures;
 
-		std::optional< TransformComponent > m_transform;
-
 		//! Returns true if the primitive is ready to be rendered (must have all textures, vertex buffer, and index buffer ready)
 		bool ready() const { return m_textures.ready() && m_vertex_buffer.ready() && m_index_buffer.ready(); }
 
@@ -88,9 +86,10 @@ namespace fgl::engine
 		  m_index_buffer( std::move( index_buffer ) ),
 		  m_bounding_box( bounding_box ),
 		  m_mode( mode ),
-		  m_textures(),
-		  m_transform()
-		{}
+		  m_textures()
+		{
+			assert( m_bounding_box.scale != glm::vec3( 0.0f ) );
+		}
 
 		Primitive(
 			VertexBufferSuballocation&& vertex_buffer,
@@ -102,9 +101,10 @@ namespace fgl::engine
 		  m_index_buffer( std::move( index_buffer ) ),
 		  m_bounding_box( bounding_box ),
 		  m_mode( mode ),
-		  m_textures( std::forward< decltype( m_textures ) >( textures ) ),
-		  m_transform()
-		{}
+		  m_textures( std::forward< decltype( m_textures ) >( textures ) )
+		{
+			assert( m_bounding_box.scale != glm::vec3( 0.0f ) );
+		}
 
 		Primitive() = delete;
 		Primitive( const Primitive& other ) = delete;
@@ -119,7 +119,8 @@ namespace fgl::engine
 
 		TextureID getAlbedoTextureID() const;
 		TextureID getNormalTextureID() const;
-		OrientedBoundingBox< CoordinateSpace::World > getWorldBounds() const;
+
+		OrientedBoundingBox< CoordinateSpace::Model > getBoundingBox() const;
 	};
 
 } // namespace fgl::engine

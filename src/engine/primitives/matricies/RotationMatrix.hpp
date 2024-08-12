@@ -12,7 +12,7 @@
 namespace fgl::engine
 {
 
-	class NormalVector;
+	struct NormalVector;
 	class Vector;
 
 	class RotationMatrix : public glm::mat3

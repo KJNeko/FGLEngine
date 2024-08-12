@@ -4,11 +4,11 @@
 
 #include "Frustum.hpp"
 
-#include "engine/debug/drawers.hpp"
 #include "engine/primitives/boxes/AxisAlignedBoundingBox.hpp"
 #include "engine/primitives/boxes/AxisAlignedBoundingCube.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"
 #include "lines/InfiniteLine.hpp"
+#include "lines/LineSegment.hpp"
 
 namespace fgl::engine
 {
@@ -19,15 +19,16 @@ namespace fgl::engine
 
 		float dot { glm::dot( vector_between, direction.vec() ) };
 
-		assert( !std::isnan( dot ) );
+		if ( std::isnan( dot ) ) return 0.0f;
+
 		assert( !std::isinf( dot ) );
 
 		return dot;
 	}
 
 	void processPlane(
-		const Plane< CoordinateSpace::World > plane,
-		const LineSegment< CoordinateSpace::World > line,
+		const Plane< CoordinateSpace::World >& plane,
+		const LineSegment< CoordinateSpace::World >& line,
 		std::vector< WorldCoordinate >& out_enter_intersections,
 		std::vector< WorldCoordinate >& out_exit_intersections )
 	{
@@ -54,7 +55,7 @@ namespace fgl::engine
 	}
 
 	WorldCoordinate getFirstExit(
-		const std::vector< WorldCoordinate >& exit_intersections, const LineSegment< CoordinateSpace::World > line )
+		const std::vector< WorldCoordinate >& exit_intersections, const LineSegment< CoordinateSpace::World >& line )
 	{
 		assert( exit_intersections.size() > 0 );
 
@@ -77,7 +78,7 @@ namespace fgl::engine
 	}
 
 	WorldCoordinate getLastEnter(
-		const std::vector< WorldCoordinate >& enter_intersections, const LineSegment< CoordinateSpace::World > line )
+		const std::vector< WorldCoordinate >& enter_intersections, const LineSegment< CoordinateSpace::World >& line )
 	{
 		assert( enter_intersections.size() > 0 );
 
@@ -118,9 +119,6 @@ namespace fgl::engine
 		processPlane( top, line, enter_intersections, exit_intersections );
 		processPlane( bottom, line, enter_intersections, exit_intersections );
 
-		assert( enter_intersections.size() > 1 );
-		assert( exit_intersections.size() > 1 );
-
 		if ( enter_intersections.size() == 0 ) return false;
 		if ( exit_intersections.size() == 0 ) return false;
 
@@ -132,10 +130,7 @@ namespace fgl::engine
 
 		if ( show_intersect ) [[unlikely]]
 		{
-			debug::world::drawVector(
-				last_enter, line.getDirection(), std::to_string( distance_to_enter ), glm::vec3( 0.f, 1.f, 0.0f ) );
-			debug::world::drawVector(
-				first_exit, line.getDirection(), std::to_string( distance_to_exit ), glm::vec3( 1.f, 0.f, 0.0f ) );
+			//TODO:
 		}
 
 		return distance_to_exit >= distance_to_enter;

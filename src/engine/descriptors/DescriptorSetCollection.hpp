@@ -76,4 +76,30 @@ namespace fgl::engine::descriptors
 		using PushConstantT = BindingSet< 0 >;
 	};
 
+	template <>
+	struct DescriptorSetCollection<>
+	{
+		using DescriptorSetTuple = std::tuple< void >;
+
+		static constexpr auto SIZE { 0 };
+
+		static constexpr std::uint64_t DescriptorSetCount { 0 };
+
+		//If the first descriptor set is a constant range, then the pipeline has a constant range
+		static constexpr bool has_constant_range { false };
+
+		static constexpr std::uint16_t binding_sets { 0 };
+
+		static constexpr std::uint16_t max_binding_set { 0 };
+
+		static constexpr std::uint16_t set_count { 0 };
+
+		static constexpr std::uint16_t empty_sets { 0 };
+
+		template < std::uint64_t BindingIDX >
+		using BindingSet = void;
+
+		static std::vector< vk::raii::DescriptorSetLayout > createDescriptorSets() { return {}; }
+	};
+
 } // namespace fgl::engine::descriptors

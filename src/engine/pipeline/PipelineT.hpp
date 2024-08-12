@@ -21,18 +21,18 @@ namespace fgl::engine
 		constexpr static std::uint16_t binding_sets { DescriptorSetCollection::binding_sets };
 		constexpr static bool has_binding_sets { binding_sets != 0 };
 
-		//! Returns the binding type assocaited with the index
-		template < std::uint16_t binding_set_idx >
-		using BindingSet = typename DescriptorSetCollection::template BindingSet< binding_set_idx >;
-
 		constexpr static std::uint16_t max_binding_set { DescriptorSetCollection::max_binding_set };
 
 		constexpr static std::uint16_t set_count { DescriptorSetCollection::set_count };
 
 		constexpr static std::uint16_t empty_sets { DescriptorSetCollection::empty_sets };
 
+		//! Returns the binding type assocaited with the index
+		template < std::uint16_t binding_set_idx >
+		using BindingSet = typename DescriptorSetCollection::template BindingSet< binding_set_idx >;
+
 		static_assert(
-			( set_count == 0 && has_constant_range ) || ( set_count == ( max_binding_set + 1 ) ),
+			set_count == 0 || ( set_count == ( max_binding_set + 1 ) ),
 			"Binding sets must not have any spaces (Use EmptySet<idx>)" );
 
 		template < std::uint16_t idx >

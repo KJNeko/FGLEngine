@@ -19,6 +19,11 @@ namespace fgl::engine
 		info.assembly_info.topology = vk::PrimitiveTopology::eTriangleStrip;
 	}
 
+	void PipelineConfigInfo::setLineTopo( PipelineConfigInfo& info )
+	{
+		info.assembly_info.topology = vk::PrimitiveTopology::eLineList;
+	}
+
 	void PipelineConfigInfo::setPointPatch( PipelineConfigInfo& info )
 	{
 		info.assembly_info.topology = vk::PrimitiveTopology::ePatchList;

@@ -48,6 +48,7 @@ namespace fgl::engine::memory
 	void* BufferSuballocation::ptr() const
 	{
 		assert( m_handle != nullptr );
+		FGL_ASSERT( m_handle->mapped, "Buffer must be mappable to use `ptr()`" );
 		return m_handle->mapped;
 	}
 

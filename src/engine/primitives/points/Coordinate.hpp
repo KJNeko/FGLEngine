@@ -17,7 +17,7 @@
 namespace fgl::engine
 {
 	class Vector;
-	class NormalVector;
+	struct NormalVector;
 
 	template < CoordinateSpace CType >
 	class Coordinate : private glm::vec3

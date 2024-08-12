@@ -111,4 +111,7 @@ namespace fgl::engine
 			submitCommandBuffers( const vk::raii::CommandBuffer& buffers, PresentIndex present_index );
 	};
 
+	template < typename T >
+	using PerFrameArray = std::array< T, SwapChain::MAX_FRAMES_IN_FLIGHT >;
+
 } // namespace fgl::engine
