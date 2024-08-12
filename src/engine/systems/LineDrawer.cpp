@@ -52,15 +52,7 @@ namespace fgl::engine
 		auto& command_buffer { setupSystem( info ) };
 		TracyVkZone( info.tracy_ctx, *command_buffer, "Draw debug lines" );
 
-		if ( m_lines.size() == 0 )
-		{
-			VertexLine line;
-			auto& [ p1, p2 ] = line;
-			p1.m_position = constants::WORLD_CENTER;
-			p2.m_position = constants::WORLD_FORWARD * 20.0f;
-
-			m_lines.emplace_back( line );
-		}
+		if ( m_lines.size() == 0 ) return;
 
 		auto& line_vertex_buffer { m_line_vertex_buffer[ info.frame_idx ] };
 
