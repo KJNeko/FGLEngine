@@ -78,6 +78,8 @@ namespace fgl::engine
 							std::make_pair( matrix_info.albedo_id, primitive.m_index_buffer.getOffset() )
 						};
 
+						debug::drawBoundingBox( matrix * primitive.m_bounding_box );
+
 						assert( primitive.m_index_buffer.size() > 0 );
 
 						if ( auto itter = draw_pairs.find( key ); itter != draw_pairs.end() )

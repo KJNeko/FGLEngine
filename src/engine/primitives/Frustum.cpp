@@ -4,6 +4,7 @@
 
 #include "Frustum.hpp"
 
+#include "engine/debug/drawers.hpp"
 #include "engine/primitives/boxes/AxisAlignedBoundingBox.hpp"
 #include "engine/primitives/boxes/AxisAlignedBoundingCube.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"
@@ -178,6 +179,34 @@ namespace fgl::engine
 		const auto p7 { l3.intersection( near ) };
 
 		return { { p0, p1, p2, p3, p4, p5, p6, p7 } };
+	}
+
+	template < CoordinateSpace CType >
+	std::array< LineSegment< CType >, ( ( 4 * 2 ) / 2 ) * 3 > Frustum< CType >::lines() const
+	{
+		const auto points { this->points() };
+
+		std::array< LineSegment< CType >, ( ( 4 * 2 ) / 2 ) * 3 > lines;
+
+		//Top
+		lines[ 0 ] = LineSegment< CType >( points[ 0 ], points[ 1 ] );
+		lines[ 1 ] = LineSegment< CType >( points[ 1 ], points[ 2 ] );
+		lines[ 2 ] = LineSegment< CType >( points[ 2 ], points[ 3 ] );
+		lines[ 3 ] = LineSegment< CType >( points[ 3 ], points[ 0 ] );
+
+		//Bottom
+		lines[ 4 ] = LineSegment< CType >( points[ 4 ], points[ 5 ] );
+		lines[ 5 ] = LineSegment< CType >( points[ 5 ], points[ 6 ] );
+		lines[ 6 ] = LineSegment< CType >( points[ 6 ], points[ 7 ] );
+		lines[ 7 ] = LineSegment< CType >( points[ 7 ], points[ 4 ] );
+
+		//Sides
+		lines[ 8 ] = LineSegment< CType >( points[ 0 ], points[ 4 ] );
+		lines[ 9 ] = LineSegment< CType >( points[ 1 ], points[ 5 ] );
+		lines[ 10 ] = LineSegment< CType >( points[ 2 ], points[ 6 ] );
+		lines[ 11 ] = LineSegment< CType >( points[ 3 ], points[ 7 ] );
+
+		return lines;
 	}
 
 	template <>
@@ -379,6 +408,17 @@ namespace fgl::engine
 
 		return coordinate;
 	}
+
+	namespace debug
+	{
+		void drawFrustum( const Frustum< CoordinateSpace::World >& frustum )
+		{
+			for ( const auto& line : frustum.lines() )
+			{
+				debug::drawLine( line );
+			}
+		}
+	} // namespace debug
 
 	template struct Frustum< CoordinateSpace::World >;
 

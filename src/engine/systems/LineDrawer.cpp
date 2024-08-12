@@ -60,11 +60,10 @@ namespace fgl::engine
 
 		command_buffer.bindVertexBuffers( 0, line_vertex_buffer->getVkBuffer(), { line_vertex_buffer->getOffset() } );
 
-		command_buffer.draw( m_lines.size() * 2, m_lines.size(), 0, 0 );
-	}
+		command_buffer.setLineWidth( 5.0f );
 
-	void cleanupLineQueue()
-	{
+		command_buffer.draw( m_lines.size() * 2, m_lines.size(), 0, 0 );
+
 		m_lines.clear();
 	}
 

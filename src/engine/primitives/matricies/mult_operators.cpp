@@ -24,4 +24,6 @@ namespace fgl::engine
 		return Vector( static_cast< glm::mat3 >( rot_mat ) * vec.vec() );
 	}
 
+
+
 } // namespace fgl::engine

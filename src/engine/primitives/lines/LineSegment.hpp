@@ -38,6 +38,8 @@ namespace fgl::engine
 
 		Coordinate< CType > getPosition() const { return start; }
 
+		Coordinate< CType > getStart() const { return start; }
+
 		Coordinate< CType > getEnd() const { return end; }
 
 		LineSegment flip() const { return LineSegment( end, start ); }

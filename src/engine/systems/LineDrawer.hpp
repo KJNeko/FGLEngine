@@ -41,6 +41,4 @@ namespace fgl::engine
 		~LineDrawer();
 	};
 
-	void cleanupLineQueue();
-
 } // namespace fgl::engine

@@ -97,6 +97,7 @@ namespace fgl::engine
 		Coordinate< CType > intersection( const T& t ) const;
 
 		std::array< Coordinate< CType >, 4 * 2 > points() const;
+		std::array< LineSegment< CType >, ( ( 4 * 2 ) / 2 ) * 3 > lines() const;
 	};
 
 #ifdef EXPOSE_FRUSTUM_INTERNALS

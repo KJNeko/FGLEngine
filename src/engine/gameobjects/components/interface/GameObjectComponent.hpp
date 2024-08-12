@@ -5,7 +5,6 @@
 #pragma once
 
 #include "ComponentEngineInterface.hpp"
-#include "engine/gameobjects/components/ComponentIDS.hpp"
 #include "engine/primitives/TransformComponent.hpp"
 
 #define COMPONENT_CLASS( class_name, id_name ) class class_name final : public GameObjectComponent< id_name >

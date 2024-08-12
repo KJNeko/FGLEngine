@@ -11,8 +11,6 @@ namespace fgl::engine
 	{
 		const glm::mat3 rotation_mat { rotation.mat() };
 
-		//TODO: This uses the Tait-Bryan angles stuff, It should use the respective function.
-		// Or maybe something else can be done here
 		return glm::mat4 { { scale.x * rotation_mat[ 0 ], 0.0f },
 			               { scale.y * rotation_mat[ 1 ], 0.0f },
 			               { scale.z * rotation_mat[ 2 ], 0.0f },

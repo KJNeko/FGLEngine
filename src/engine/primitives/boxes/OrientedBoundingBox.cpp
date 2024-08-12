@@ -88,8 +88,6 @@ namespace fgl::engine
 	template < CoordinateSpace CType >
 	std::array< Coordinate< CType >, interface::BoundingBox::POINT_COUNT > OrientedBoundingBox< CType >::points() const
 	{
-		assert( middle.vec() != constants::DEFAULT_VEC3 );
-		assert( scale != glm::vec3( 0.0f ) );
 		std::array< Coordinate< CType >, POINT_COUNT > points {};
 
 		// xp == x positive (Highest x point)
@@ -163,13 +161,13 @@ namespace fgl::engine
 	OrientedBoundingBox< CType > OrientedBoundingBox< CType >::combine( const OrientedBoundingBox< CType >& other )
 		const
 	{
+		ZoneScoped;
 		assert( middle.vec() != constants::DEFAULT_VEC3 );
 		assert( scale != glm::vec3( 0.0f ) );
 
 		assert( other.middle.vec() != constants::DEFAULT_VEC3 );
 		assert( other.scale != glm::vec3( 0.0f ) );
 
-		ZoneScoped;
 		const auto& other_points { other.points() };
 		const auto points { this->points() };
 		std::array< Coordinate< CType >, interface::BoundingBox::POINT_COUNT * 2 > combined_points {};

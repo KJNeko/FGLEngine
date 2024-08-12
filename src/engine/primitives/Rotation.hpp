@@ -40,7 +40,7 @@ namespace fgl::engine
 	template < RotationModifierType ModifierType >
 	using ConstRotationModifier = RotationModifier< ModifierType, true >;
 
-	struct Rotation : private glm::quat
+	struct Rotation : public glm::quat
 	{
 		template < RotationModifierType ModifierType, bool is_const >
 		friend class RotationModifier;
@@ -51,7 +51,7 @@ namespace fgl::engine
 
 		Rotation( const Rotation& other ) = default;
 
-		explicit Rotation( const glm::quat other ) : glm::quat( other ) {}
+		explicit Rotation( const glm::quat other ) : glm::quat( glm::normalize( other ) ) {}
 
 		explicit Rotation( const float scalar ) : Rotation( scalar, scalar, scalar ) {}
 
@@ -95,6 +95,11 @@ namespace fgl::engine
 
 		bool operator==( const Rotation& other ) const = default;
 	};
+
+	inline Rotation operator*( const glm::quat quat, const Rotation rotation )
+	{
+		return Rotation( quat * static_cast< glm::quat >( rotation ) );
+	}
 
 	template < RotationModifierType MT >
 	glm::vec3 getModifierAxis()

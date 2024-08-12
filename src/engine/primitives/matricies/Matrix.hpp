@@ -35,9 +35,16 @@ namespace fgl::engine
 	{
 	  public:
 
+		glm::mat3 rotmat() const { return glm::mat3( *this ); }
+
 		explicit Matrix( const float i_value = 1.0f ) : glm::mat4( i_value ) {}
 
 		explicit Matrix( const glm::mat4& matrix ) : glm::mat4( matrix ) {}
+
+		Matrix operator*( const Matrix& other )
+		{
+			return Matrix( static_cast< glm::mat4 >( *this ) * static_cast< glm::mat4 >( other ) );
+		}
 	};
 
 	//Lines
