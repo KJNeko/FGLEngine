@@ -138,7 +138,6 @@ namespace fgl::engine::memory
 
 	bool TransferData::performRawBufferStage( Buffer& staging_buffer, CopyRegionMap& copy_regions )
 	{
-		log::debug( "Raw buffer -> Buffer staging" );
 		if ( !convertRawToBuffer( staging_buffer ) ) return false;
 		return performBufferStage( copy_regions );
 	}
@@ -233,9 +232,6 @@ namespace fgl::engine::memory
 	  m_source( source ),
 	  m_target( target )
 	{
-		log::debug(
-			"[TransferManager]: Queued buffer -> buffer transfer: {}",
-			fgl::literals::size_literals::to_string( source->m_size ) );
 		markBad();
 	}
 
@@ -246,10 +242,6 @@ namespace fgl::engine::memory
 	  m_source( std::forward< std::vector< std::byte > >( source ) ),
 	  m_target( target )
 	{
-		log::debug(
-			"[TransferManager]: Queued raw -> buffer transfer: {}",
-			literals::size_literals::to_string( std::get< RawData >( m_source ).size() ) );
-		assert( std::get< RawData >( m_source ).size() > 0 );
 		markBad();
 	}
 
@@ -260,9 +252,6 @@ namespace fgl::engine::memory
 	  m_source( source ),
 	  m_target( target )
 	{
-		log::debug(
-			"[TransferManager]: Queued image -> image transfer: {}",
-			fgl::literals::size_literals::to_string( source->m_size ) );
 		markBad();
 	}
 
@@ -272,9 +261,6 @@ namespace fgl::engine::memory
 	  m_source( std::forward< std::vector< std::byte > >( source ) ),
 	  m_target( target )
 	{
-		log::debug(
-			"[TransferManager]: Queued raw -> image transfer: {}",
-			literals::size_literals::to_string( std::get< RawData >( m_source ).size() ) );
 		assert( std::get< RawData >( m_source ).size() > 0 );
 		markBad();
 	}

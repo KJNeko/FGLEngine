@@ -41,15 +41,6 @@ namespace fgl::engine::memory
 		copy.size = std::min( this->m_size, target.m_size );
 		copy.srcOffset = this->getOffset();
 		copy.dstOffset = target.getOffset();
-
-		log::debug(
-			"Created buffer copy of size {} from offset [{:X}]:{} to [{:X}]:{}",
-			copy.size,
-			reinterpret_cast< std::size_t >( static_cast< VkBuffer >( this->getVkBuffer() ) ),
-			copy.srcOffset,
-			reinterpret_cast< std::size_t >( static_cast< VkBuffer >( target.getVkBuffer() ) ),
-			copy.dstOffset );
-
 		return copy;
 	}
 
@@ -62,4 +53,4 @@ namespace fgl::engine::memory
 		cmd_buffer.copyBuffer( this->getVkBuffer(), other.getVkBuffer(), copy_regions );
 	}
 
-} // namespace fgl::engine
+} // namespace fgl::engine::memory
