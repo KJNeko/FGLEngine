@@ -31,7 +31,7 @@ namespace fgl::engine::internal
 		vk::raii::Pipeline createGraphicsPipeline(
 			std::vector< std::unique_ptr< ShaderHandle > >& shaders,
 			const PipelineConfigInfo& info,
-			vk::raii::PipelineLayout& layout );
+			const vk::raii::PipelineLayout& layout );
 
 	  public:
 

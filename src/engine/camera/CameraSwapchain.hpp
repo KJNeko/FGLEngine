@@ -46,6 +46,7 @@ namespace fgl::engine
 	  public:
 
 		CameraSwapchain( vk::raii::RenderPass& renderpass, vk::Extent2D extent );
+		~CameraSwapchain();
 
 		const std::vector< vk::ClearValue >& getClearValues();
 

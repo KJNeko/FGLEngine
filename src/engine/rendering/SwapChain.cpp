@@ -419,6 +419,9 @@ namespace fgl::engine
 		}
 	}
 
+	SwapChain::~SwapChain()
+	{}
+
 	descriptors::DescriptorSet& SwapChain::getInputDescriptor( const PresentIndex present_index )
 	{
 		assert( present_index < m_input_descriptors.size() );

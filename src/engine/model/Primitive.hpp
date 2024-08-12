@@ -6,7 +6,7 @@
 
 #include <cstdint>
 
-#include "Vertex.hpp"
+#include "ModelVertex.hpp"
 #include "engine/buffers/vector/DeviceVector.hpp"
 #include "engine/primitives/CoordinateSpace.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"
@@ -21,7 +21,7 @@
 
 namespace fgl::engine
 {
-	using VertexBufferSuballocation = DeviceVector< Vertex >;
+	using VertexBufferSuballocation = DeviceVector< ModelVertex >;
 
 	using IndexBufferSuballocation = DeviceVector< std::uint32_t >;
 
@@ -111,7 +111,7 @@ namespace fgl::engine
 		Primitive( Primitive&& other ) = default;
 
 		static Primitive fromVerts(
-			const std::vector< Vertex >&& verts,
+			const std::vector< ModelVertex >&& verts,
 			PrimitiveMode mode,
 			const std::vector< std::uint32_t >&& indicies,
 			memory::Buffer& vertex_buffer,

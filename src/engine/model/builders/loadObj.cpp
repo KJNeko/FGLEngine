@@ -12,8 +12,8 @@
 #include <unordered_map>
 
 #include "ModelBuilder.hpp"
+#include "engine/model/ModelVertex.hpp"
 #include "engine/model/Primitive.hpp"
-#include "engine/model/Vertex.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"
 
 namespace fgl::engine
@@ -41,16 +41,16 @@ namespace fgl::engine
 
 		if ( !error.empty() ) log::error( "While loading model {}: {}", filepath, error );
 
-		std::unordered_map< Vertex, std::uint32_t > unique_verts {};
+		std::unordered_map< ModelVertex, std::uint32_t > unique_verts {};
 
-		std::vector< Vertex > verts {};
+		std::vector< ModelVertex > verts {};
 		std::vector< std::uint32_t > indicies {};
 
 		for ( const auto& shape : shapes )
 		{
 			for ( const auto& index : shape.mesh.indices )
 			{
-				Vertex vert {};
+				ModelVertex vert {};
 				if ( index.vertex_index >= 0 )
 				{
 					vert.m_position = {

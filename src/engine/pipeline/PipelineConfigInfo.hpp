@@ -15,6 +15,13 @@
 namespace fgl::engine
 {
 
+	enum VertexInputType
+	{
+		None,
+		Simple,
+		Textured
+	};
+
 	struct PipelineConfigInfo
 	{
 		vk::PipelineViewportStateCreateInfo viewport_info {};
@@ -43,6 +50,8 @@ namespace fgl::engine
 		PipelineConfigInfo& operator=( PipelineConfigInfo&& other ) = default;
 		PipelineConfigInfo( PipelineConfigInfo&& other ) = default;
 
+		static void setVertexInputType( PipelineConfigInfo& info, const VertexInputType type );
+
 		static void disableVertexInput( PipelineConfigInfo& info );
 		static void setTriangleListTopo( PipelineConfigInfo& info );
 		static void setTriangleStripTopo( PipelineConfigInfo& info );
@@ -50,8 +59,10 @@ namespace fgl::engine
 		static void setPointPatch( PipelineConfigInfo& info );
 		static void defaultConfig( PipelineConfigInfo& info );
 		static void enableAlphaBlending( PipelineConfigInfo& config );
-		static void addColorAttachmentConfig( PipelineConfigInfo& info );
 		static void disableCulling( PipelineConfigInfo& info );
+		static void addColorAttachmentConfig( PipelineConfigInfo& info );
+
+		static void addGBufferAttachmentsConfig( PipelineConfigInfo& config );
 	};
 
 } // namespace fgl::engine

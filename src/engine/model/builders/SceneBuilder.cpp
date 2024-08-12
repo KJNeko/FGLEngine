@@ -272,14 +272,14 @@ namespace fgl::engine
 		return prim.attributes.contains( std::string( str ) );
 	}
 
-	std::vector< Vertex > SceneBuilder::
+	std::vector< ModelVertex > SceneBuilder::
 		extractVertexInfo( const tinygltf::Primitive& prim, const tinygltf::Model& root )
 	{
 		ZoneScoped;
 		log::debug( "Extracting vert info" );
 		const auto pos { extractPositionInfo( prim, root ) };
 
-		std::vector< Vertex > verts {};
+		std::vector< ModelVertex > verts {};
 
 		verts.reserve( pos.size() );
 
@@ -295,7 +295,7 @@ namespace fgl::engine
 
 		for ( std::size_t i = 0; i < pos.size(); ++i )
 		{
-			Vertex vert {};
+			ModelVertex vert {};
 			vert.m_position = pos[ i ];
 			vert.m_normal = has_normals ? normals[ i ] : glm::vec3();
 			vert.m_uv = has_uv ? uvs[ i ] : glm::vec2();
@@ -347,7 +347,7 @@ namespace fgl::engine
 				[[fallthrough]];
 			case TRI_FAN:
 				{
-					std::vector< Vertex > verts { extractVertexInfo( prim, root ) };
+					std::vector< ModelVertex > verts { extractVertexInfo( prim, root ) };
 					std::vector< std::uint32_t > indicies { extractIndicies( prim, root ) };
 
 					Primitive primitive_mesh { Primitive::fromVerts(

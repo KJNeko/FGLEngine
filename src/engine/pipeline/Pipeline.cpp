@@ -15,7 +15,7 @@ namespace fgl::engine::internal
 	vk::raii::Pipeline Pipeline::createGraphicsPipeline(
 		std::vector< std::unique_ptr< ShaderHandle > >& shaders,
 		const PipelineConfigInfo& info,
-		vk::raii::PipelineLayout& layout )
+		const vk::raii::PipelineLayout& layout )
 	{
 		assert( info.render_pass != VK_NULL_HANDLE && "Cannot create graphics pipeline: no render pass provided" );
 

@@ -78,6 +78,8 @@ namespace fgl::engine
 		SwapChain( const SwapChain& ) = delete;
 		SwapChain& operator=( const SwapChain& ) = delete;
 
+		~SwapChain();
+
 		descriptors::DescriptorSet& getInputDescriptor( const PresentIndex present_index );
 
 		Image& getInputImage( PresentIndex present_index ) const;

@@ -8,15 +8,12 @@
 #include <vulkan/vulkan_handles.hpp>
 
 #include <array>
-#include <chrono>
 #include <iostream>
 #include <stdexcept>
-#include <thread>
 
 #include "Device.hpp"
 #include "SwapChain.hpp"
 #include "engine/Window.hpp"
-#include "engine/descriptors/DescriptorSet.hpp"
 
 //clang-format: off
 #include <tracy/TracyVulkan.hpp>
@@ -37,11 +34,25 @@ namespace fgl::engine
 		range.levelCount = 1;
 		range.baseMipLevel = 0;
 
+		/*
 		command_buffer.clearColorImage(
 			image.getVkImage(),
-			vk::ImageLayout::eShaderReadOnlyOptimal,
+			vk::ImageLayout::eTransferDstOptimal,
 			vk::ClearColorValue( 0.0f, 0.0f, 0.0f, 0.0f ),
 			{ range } );
+		*/
+
+		// Transition the image back to readOnly
+		vk::ImageMemoryBarrier barrier {};
+		barrier.oldLayout = vk::ImageLayout::eUndefined;
+		barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		barrier.image = image.getVkImage();
+		barrier.subresourceRange = range;
+		barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+		barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+
+		command_buffer.pipelineBarrier(
+			vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader, {}, {}, {}, { barrier } );
 	}
 
 	Renderer::Renderer( Window& window, PhysicalDevice& phy_device ) :

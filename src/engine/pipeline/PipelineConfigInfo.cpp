@@ -76,8 +76,30 @@ namespace fgl::engine
 		info.dynamic_state_info.dynamicStateCount = static_cast< std::uint32_t >( info.dynamic_state_enables.size() );
 		//info.dynamic_state_info.flags = 0;
 
-		info.binding_descriptions = Vertex::getBindingDescriptions();
-		info.attribute_descriptions = Vertex::getAttributeDescriptions();
+		info.binding_descriptions = ModelVertex::getBindingDescriptions();
+		info.attribute_descriptions = ModelVertex::getAttributeDescriptions();
+	}
+
+	void PipelineConfigInfo::setVertexInputType( PipelineConfigInfo& info, const VertexInputType type )
+	{
+		switch ( type )
+		{
+			case None:
+				disableVertexInput( info );
+			case Simple:
+				{
+					info.binding_descriptions = SimpleVertex::getBindingDescriptions();
+					info.attribute_descriptions = SimpleVertex::getAttributeDescriptions();
+				}
+				break;
+			case Textured:
+				{
+					info.binding_descriptions = ModelVertex::getBindingDescriptions();
+					info.attribute_descriptions = ModelVertex::getAttributeDescriptions();
+				}
+				break;
+			default:;
+		}
 	}
 
 	void PipelineConfigInfo::disableVertexInput( PipelineConfigInfo& info )
@@ -120,6 +142,11 @@ namespace fgl::engine
 
 		info.color_blend_info.pAttachments = info.color_blend_attachment.data();
 		info.color_blend_info.attachmentCount = static_cast< std::uint32_t >( info.color_blend_attachment.size() );
+	}
+
+	void PipelineConfigInfo::addGBufferAttachmentsConfig( PipelineConfigInfo& config )
+	{
+		for ( int i = 0; i < 3; ++i ) addColorAttachmentConfig( config );
 	}
 
 	void PipelineConfigInfo::disableCulling( PipelineConfigInfo& info )

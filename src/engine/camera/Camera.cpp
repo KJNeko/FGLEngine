@@ -121,6 +121,7 @@ namespace fgl::engine
 	void Camera::remakeSwapchain( vk::Extent2D extent )
 	{
 		this->setPerspectiveProjection( m_fov_y, aspectRatio(), constants::NEAR_PLANE, constants::FAR_PLANE );
+		m_old_swapchain = m_swapchain;
 		m_swapchain = std::make_shared< CameraSwapchain >( camera_renderer->getRenderpass(), extent );
 	}
 

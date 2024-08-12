@@ -28,17 +28,23 @@ namespace fgl::engine
 	EntityRendererSystem::EntityRendererSystem( Device& device, vk::raii::RenderPass& render_pass ) : m_device( device )
 	{
 		ZoneScoped;
-		PipelineConfigInfo standard_info { render_pass };
-		for ( int i = 0; i < 3; ++i ) PipelineConfigInfo::addColorAttachmentConfig( standard_info );
-		standard_info.subpass = 0;
-		m_standard_pipeline = std::make_unique< StandardPipeline >( m_device, std::move( standard_info ) );
-		m_standard_pipeline->setDebugName( "Standard entity pipeline" );
+		{
+			PipelineConfigInfo standard_info { render_pass };
+			PipelineConfigInfo::addGBufferAttachmentsConfig( standard_info );
 
-		PipelineConfigInfo textured_info { render_pass };
-		for ( int i = 0; i < 3; ++i ) PipelineConfigInfo::addColorAttachmentConfig( textured_info );
-		textured_info.subpass = 0;
-		m_textured_pipeline = std::make_unique< TexturedPipeline >( m_device, std::move( textured_info ) );
-		m_textured_pipeline->setDebugName( "Textured entity pipeline" );
+			standard_info.subpass = 0;
+			m_standard_pipeline = std::make_unique< StandardPipeline >( m_device, std::move( standard_info ) );
+			m_standard_pipeline->setDebugName( "Standard entity pipeline" );
+		}
+
+		{
+			PipelineConfigInfo textured_info { render_pass };
+			PipelineConfigInfo::addGBufferAttachmentsConfig( textured_info );
+
+			textured_info.subpass = 0;
+			m_textured_pipeline = std::make_unique< TexturedPipeline >( m_device, std::move( textured_info ) );
+			m_textured_pipeline->setDebugName( "Textured entity pipeline" );
+		}
 
 		using namespace fgl::literals::size_literals;
 

@@ -9,6 +9,7 @@
 #include <variant>
 
 #include "engine/buffers/BufferSuballocation.hpp"
+#include "engine/rendering/types.hpp"
 
 namespace fgl::engine
 {
@@ -62,6 +63,8 @@ namespace fgl::engine::descriptors
 		DescriptorSet( DescriptorSet&& other ) noexcept;
 		DescriptorSet& operator=( DescriptorSet&& other ) noexcept;
 
+		~DescriptorSet();
+
 		void bindImage(
 			std::uint32_t binding_idx,
 			ImageView& view,
@@ -80,5 +83,10 @@ namespace fgl::engine::descriptors
 
 		void setName( const std::string& str );
 	};
+
+	//! Queues a descriptor to be deleted.
+	//
+	void queueDescriptorDeletion( std::unique_ptr< DescriptorSet > set );
+	void deleteQueuedDescriptors();
 
 } // namespace fgl::engine::descriptors

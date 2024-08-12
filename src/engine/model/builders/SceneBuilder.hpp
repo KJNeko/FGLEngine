@@ -21,7 +21,7 @@
 namespace fgl::engine
 {
 	struct PrimitiveTextures;
-	struct Vertex;
+	struct ModelVertex;
 	class Model;
 	struct Primitive;
 	class Texture;
@@ -64,7 +64,7 @@ namespace fgl::engine
 
 		std::vector< std::uint32_t > extractIndicies( const tinygltf::Primitive& prim, const tinygltf::Model& model );
 
-		std::vector< Vertex > extractVertexInfo( const tinygltf::Primitive& prim, const tinygltf::Model& root );
+		std::vector< ModelVertex > extractVertexInfo( const tinygltf::Primitive& prim, const tinygltf::Model& root );
 
 		std::vector< glm::vec3 > extractPositionInfo( const tinygltf::Primitive& prim, const tinygltf::Model& root );
 

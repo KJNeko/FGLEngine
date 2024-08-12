@@ -7,10 +7,12 @@
 #include <vulkan/vulkan.hpp>
 
 #include <iostream>
+#include <queue>
 
 #include "DescriptorPool.hpp"
 #include "engine/buffers/BufferSuballocation.hpp"
 #include "engine/image/ImageView.hpp"
+#include "engine/rendering/SwapChain.hpp"
 #include "engine/texture/Texture.hpp"
 
 namespace fgl::engine::descriptors
@@ -117,6 +119,9 @@ namespace fgl::engine::descriptors
 		reset();
 	}
 
+	DescriptorSet::~DescriptorSet()
+	{}
+
 	void DescriptorSet::reset()
 	{
 		m_infos.clear();
@@ -165,4 +170,27 @@ namespace fgl::engine::descriptors
 
 		Device::getInstance().setDebugUtilsObjectName( info );
 	}
+
+	inline static std::vector< std::pair< std::uint_fast8_t, std::unique_ptr< DescriptorSet > > > queue {};
+
+	void queueDescriptorDeletion( std::unique_ptr< DescriptorSet > set )
+	{
+		queue.emplace_back( std::make_pair( 0, std::move( set ) ) );
+	}
+
+	void deleteQueuedDescriptors()
+	{
+		for ( auto itter = queue.begin(); itter != queue.end(); itter = itter++ )
+		{
+			auto& [ counter, set ] = *itter;
+			// Prevent deleting a descriptor until we are sure it's been here long enough
+			if ( counter > SwapChain::MAX_FRAMES_IN_FLIGHT + 1 )
+			{
+				itter = queue.erase( itter );
+			}
+			else
+				++counter;
+		}
+	}
+
 } // namespace fgl::engine::descriptors

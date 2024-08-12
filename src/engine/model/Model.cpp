@@ -112,7 +112,7 @@ namespace fgl::engine
 	}
 
 	std::shared_ptr< Model > Model::createModelFromVerts(
-		std::vector< Vertex > verts,
+		std::vector< ModelVertex > verts,
 		std::vector< std::uint32_t > indicies,
 		memory::Buffer& vertex_buffer,
 		memory::Buffer& index_buffer )

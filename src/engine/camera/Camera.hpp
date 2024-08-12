@@ -68,6 +68,8 @@ namespace fgl::engine
 		// Camera info is expected at binding 0
 		std::vector< descriptors::DescriptorSet > m_camera_info_descriptors {};
 
+		// TODO: Remove this old swapchain and instead do a proper deffered cleanup of it.
+		std::shared_ptr< CameraSwapchain > m_old_swapchain { nullptr };
 		std::shared_ptr< CameraSwapchain > m_swapchain;
 
 		std::string name;

@@ -22,7 +22,7 @@ namespace fgl::engine
 	template < CoordinateSpace CType >
 	class LineSegment;
 
-	struct Vertex;
+	struct ModelVertex;
 
 	template < CoordinateSpace CType >
 	struct OrientedBoundingBox : public interface::BoundingBox
@@ -83,7 +83,7 @@ namespace fgl::engine
 		return OrientedBoundingBox< EvolvedType< MType >() >( new_middle, new_scale, new_rot );
 	}
 
-	OrientedBoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< Vertex >& verts );
+	OrientedBoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< ModelVertex >& verts );
 
 	using ModelBoundingBox = OrientedBoundingBox< CoordinateSpace::Model >;
 

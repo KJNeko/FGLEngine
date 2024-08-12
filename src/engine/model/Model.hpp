@@ -15,7 +15,6 @@
 #include <vector>
 
 #include "Primitive.hpp"
-#include "engine/primitives/TransformComponent.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"
 
 namespace fgl::engine
@@ -58,14 +57,14 @@ namespace fgl::engine
 
 		std::vector< Primitive > m_primitives {};
 
-		std::vector< vk::DrawIndexedIndirectCommand > getDrawCommand( const std::uint32_t index ) const;
+		std::vector< vk::DrawIndexedIndirectCommand > getDrawCommand( std::uint32_t index ) const;
 
 		//TODO: Switch to using shared_ptr instead of unique_ptr
 		static std::shared_ptr< Model > createModel(
 			const std::filesystem::path& path, memory::Buffer& vertex_buffer, memory::Buffer& index_buffer );
 
 		static std::shared_ptr< Model > createModelFromVerts(
-			std::vector< Vertex > verts,
+			std::vector< ModelVertex > verts,
 			std::vector< std::uint32_t > indicies,
 			memory::Buffer& vertex_buffer,
 			memory::Buffer& index_buffer );
@@ -73,13 +72,11 @@ namespace fgl::engine
 		const std::string& getName() const { return m_name; }
 
 		Model(
-			ModelBuilder& builder,
-			const OrientedBoundingBox< CoordinateSpace::Model > bounding_box,
-			std::string name = {} );
+			ModelBuilder& builder, OrientedBoundingBox< CoordinateSpace::Model > bounding_box, std::string name = {} );
 
 		Model(
 			std::vector< Primitive >&& primitives,
-			const OrientedBoundingBox< CoordinateSpace::Model > bounding_box,
+			OrientedBoundingBox< CoordinateSpace::Model > bounding_box,
 			std::string name = {} );
 
 		~Model() = default;

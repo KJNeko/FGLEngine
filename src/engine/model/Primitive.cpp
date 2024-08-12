@@ -8,7 +8,7 @@ namespace fgl::engine
 {
 
 	Primitive Primitive::fromVerts(
-		const std::vector< Vertex >&& verts,
+		const std::vector< ModelVertex >&& verts,
 		const PrimitiveMode mode,
 		const std::vector< std::uint32_t >&& indicies,
 		memory::Buffer& vertex_buffer,

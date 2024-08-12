@@ -11,7 +11,7 @@ namespace fgl::engine
 
 	std::shared_ptr< Model > generateTerrainModel( memory::Buffer& vertex_buffer, memory::Buffer& index_buffer )
 	{
-		std::vector< Vertex > verts {};
+		std::vector< ModelVertex > verts {};
 
 		constexpr glm::vec3 TOP_LEFT { -0.5f, 0.5f, 0.0f };
 		constexpr glm::vec3 TOP_RIGHT { 0.5f, 0.5f, 0.0f };

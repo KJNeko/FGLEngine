@@ -12,19 +12,18 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "SimpleVertex.hpp"
+
 namespace fgl::engine
 {
 
-	struct Vertex
+	struct ModelVertex : public SimpleVertex
 	{
-		glm::vec3 m_position { 0.0f, 0.0f, 0.0f };
-		glm::vec3 m_color { 1.0f, 1.0f, 1.0f };
 		glm::vec3 m_normal { 0.0f, 0.0f, 0.0f };
 		glm::vec2 m_uv { 0.0f, 0.0f };
 
-		Vertex( const glm::vec3 pos, const glm::vec3 color, const glm::vec3 norm, const glm::vec2 uv ) noexcept :
-		  m_position( pos ),
-		  m_color( color ),
+		ModelVertex( const glm::vec3 pos, const glm::vec3 color, const glm::vec3 norm, const glm::vec2 uv ) noexcept :
+		  SimpleVertex( pos, color ),
 		  m_normal( norm ),
 		  m_uv( uv )
 		{}
@@ -32,10 +31,12 @@ namespace fgl::engine
 		static std::vector< vk::VertexInputBindingDescription > getBindingDescriptions();
 		static std::vector< vk::VertexInputAttributeDescription > getAttributeDescriptions();
 
-		Vertex() noexcept = default;
+		ModelVertex() noexcept = default;
 
-		bool operator==( const Vertex& other ) const;
+		bool operator==( const ModelVertex& other ) const;
 	};
+
+	static_assert( offsetof( ModelVertex, m_normal ) > offsetof( SimpleVertex, m_color ) );
 
 } // namespace fgl::engine
 
@@ -43,9 +44,9 @@ namespace std
 {
 
 	template <>
-	struct hash< fgl::engine::Vertex >
+	struct hash< fgl::engine::ModelVertex >
 	{
-		std::size_t operator()( const fgl::engine::Vertex& vertex ) const;
+		std::size_t operator()( const fgl::engine::ModelVertex& vertex ) const;
 	};
 
 } // namespace std

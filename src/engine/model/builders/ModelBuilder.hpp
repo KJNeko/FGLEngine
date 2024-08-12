@@ -11,7 +11,7 @@
 
 namespace fgl::engine
 {
-	struct Vertex;
+	struct ModelVertex;
 	struct Primitive;
 
 	namespace memory
@@ -36,7 +36,7 @@ namespace fgl::engine
 		void loadModel( const std::filesystem::path& filepath );
 		void loadObj( const std::filesystem::path& filepath );
 		void loadGltf( const std::filesystem::path& filepath );
-		void loadVerts( std::vector< Vertex > verts, std::vector< std::uint32_t > indicies );
+		void loadVerts( std::vector< ModelVertex > verts, std::vector< std::uint32_t > indicies );
 	};
 
 } // namespace fgl::engine

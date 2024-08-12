@@ -9,7 +9,7 @@
 #include <array>
 
 #include "engine/logging/logging.hpp"
-#include "engine/model/Vertex.hpp"
+#include "engine/model/ModelVertex.hpp"
 #include "engine/primitives/lines/LineSegment.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 
@@ -236,7 +236,7 @@ namespace fgl::engine
 		return { Coordinate< CType >( midpoint ), scale };
 	}
 
-	OrientedBoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< Vertex >& verts )
+	OrientedBoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< ModelVertex >& verts )
 	{
 		assert( verts.size() > 0 );
 		log::debug( "Generating bounding box for {} verts", verts.size() );
