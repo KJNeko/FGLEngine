@@ -8,6 +8,7 @@
 
 #include <unordered_map>
 
+#include "engine/debug/drawers.hpp"
 #include "engine/gameobjects/components/ModelComponent.hpp"
 #include "engine/model/Model.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
@@ -51,11 +52,14 @@ namespace fgl::engine
 					{
 						if ( !primitive.ready() ) continue;
 
+						const Matrix< MatrixType::ModelToWorld > matrix { obj.getTransform().mat()
+							                                              * model_transform.mat() };
+
 						// Does this primitive pass the bounds check
-						if ( !frustum.intersects( model_transform.mat() * primitive.getBoundingBox() ) ) continue;
+						if ( !frustum.intersects( matrix * primitive.getBoundingBox() ) ) continue;
 
 						//assert( primitive.m_texture );
-						const ModelMatrixInfo matrix_info { .model_matrix = obj.getTransform().mat4(),
+						const ModelMatrixInfo matrix_info { .model_matrix = matrix,
 							                                .albedo_id = primitive.getAlbedoTextureID(),
 							                                .normal_id = primitive.getNormalTextureID() };
 
