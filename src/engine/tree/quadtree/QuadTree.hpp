@@ -18,7 +18,7 @@ namespace fgl::engine
 	class QuadTreeNode;
 
 	template < CoordinateSpace CType >
-	struct Frusutm;
+	struct Frustum;
 
 	using QuadTreeNodeArray = std::array< std::array< std::unique_ptr< QuadTreeNode >, 2 >, 2 >;
 	using QuadTreeNodeLeaf = std::vector< GameObject >;
