@@ -76,9 +76,14 @@ namespace fgl::engine
 		assert( bounding_box.scale != glm::vec3( 0.0f ) );
 
 		const Coordinate< EvolvedType< MType >() > new_middle { matrix * bounding_box.middle };
-		const glm::vec3 new_scale { matrix * glm::vec4( bounding_box.scale, 0.0f ) };
-		//TODO: Fix this stupid rot shit
-		const Rotation new_rot { bounding_box.rotation };
+
+		const glm::vec3 matrix_scale { glm::length( glm::vec3( matrix[ 0 ] ) ),
+			                           glm::length( glm::vec3( matrix[ 1 ] ) ),
+			                           glm::length( glm::vec3( matrix[ 2 ] ) ) };
+
+		const glm::vec3 new_scale { bounding_box.scale * matrix_scale };
+
+		const Rotation new_rot { glm::quat_cast( matrix.rotmat() ) * bounding_box.rotation };
 
 		return OrientedBoundingBox< EvolvedType< MType >() >( new_middle, new_scale, new_rot );
 	}
