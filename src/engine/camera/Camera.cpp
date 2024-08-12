@@ -260,6 +260,8 @@ namespace fgl::engine
 		view_matrix = Matrix< MatrixType::WorldToCamera >( glm::lookAtLH( pos.vec(), center_pos.vec(), -camera_up ) );
 
 		inverse_view_matrix = glm::inverse( view_matrix );
+
+		updateFrustum();
 	}
 
 	FGL_FLATTEN_HOT void Camera::setView( const WorldCoordinate pos, const Rotation& rotation, const ViewMode mode )
