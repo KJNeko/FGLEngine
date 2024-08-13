@@ -51,7 +51,7 @@ namespace fgl::engine
 	void EngineContext::tickDeltaTime()
 	{
 		// Get delta time
-		const auto now { std::chrono::high_resolution_clock::now() };
+		const auto now { fgl::clock::now() };
 		const std::chrono::duration< double, std::chrono::seconds::period > time_diff { now - last_tick };
 		last_tick = now;
 
@@ -163,9 +163,9 @@ namespace fgl::engine
 
 		KeyboardMovementController camera_controller {};
 
-		auto current_time { std::chrono::high_resolution_clock::now() };
+		auto current_time { fgl::clock::now() };
 
-		auto previous_frame_start { std::chrono::high_resolution_clock::now() };
+		auto previous_frame_start { fgl::clock::now() };
 
 		camera_controller.moveInPlaneXZ( m_window.window(), 0.0, viewer );
 
@@ -178,7 +178,7 @@ namespace fgl::engine
 			ZoneScopedN( "Poll" );
 			glfwPollEvents();
 
-			const auto new_time { std::chrono::high_resolution_clock::now() };
+			const auto new_time { fgl::clock::now() };
 
 			auto delta_time { std::chrono::duration< float >( new_time - current_time ).count() };
 

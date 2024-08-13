@@ -33,9 +33,9 @@ namespace fgl::engine
 
 			if ( ImGui::Button( "Reorganize Octtree" ) )
 			{
-				const auto start { std::chrono::high_resolution_clock::now() };
+				const auto start { fgl::clock::now() };
 				number_moved = info.game_objects.reorganize();
-				const auto end { std::chrono::high_resolution_clock::now() };
+				const auto end { fgl::clock::now() };
 				const auto time_diff { end - start };
 				time = std::chrono::duration_cast< std::chrono::microseconds >( time_diff );
 			}

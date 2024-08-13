@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Window.hpp"
+#include "clock.hpp"
 #include "engine/literals/size.hpp"
 #include "engine/rendering/Renderer.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
@@ -61,9 +62,7 @@ namespace fgl::engine
 		memory::Buffer m_matrix_info_pool;
 		memory::Buffer m_draw_parameter_pool;
 
-		std::chrono::time_point< std::chrono::high_resolution_clock > last_tick {
-			std::chrono::high_resolution_clock::now()
-		};
+		std::chrono::time_point< fgl::clock > last_tick { fgl::clock::now() };
 		double m_delta_time;
 
 		void loadGameObjects();
