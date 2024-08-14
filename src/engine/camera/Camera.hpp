@@ -36,7 +36,7 @@ namespace fgl::engine
 	class CameraSwapchain;
 	class Camera;
 
-	Frustum< CoordinateSpace::Model > createFrustum( float aspect, float fovy, float near, float far );
+	FrustumBase createFrustum( float aspect, float fovy, float near, float far );
 
 	using CameraIDX = std::uint8_t;
 
@@ -54,8 +54,8 @@ namespace fgl::engine
 
 		//! Frustum of the camera in model space relative to the camera
 		//! @note Must be transformed by the inverse view matrix to get the frustum in world space
-		Frustum< CoordinateSpace::Model > base_frustum {};
-		Frustum< CoordinateSpace::World > frustum {};
+		FrustumBase base_frustum {};
+		Frustum frustum {};
 		WorldCoordinate last_frustum_pos { constants::WORLD_CENTER };
 
 		WorldTransform m_transform;
@@ -115,10 +115,10 @@ namespace fgl::engine
 
 		WorldCoordinate getFrustumPosition() const;
 
-		const Frustum< CoordinateSpace::Model >& getBaseFrustum() const { return base_frustum; }
+		const FrustumBase& getBaseFrustum() const { return base_frustum; }
 
 		//! Returns the frustum of the camera in world space
-		const Frustum< CoordinateSpace::World >& getFrustumBounds() const { return frustum; }
+		const Frustum& getFrustumBounds() const { return frustum; }
 
 		const Matrix< MatrixType::CameraToScreen >& getProjectionMatrix() const { return projection_matrix; }
 

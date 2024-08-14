@@ -334,8 +334,7 @@ namespace fgl::engine
 		m_target_extent = extent;
 	}
 
-	Frustum< CoordinateSpace::Model >
-		createFrustum( const float aspect, const float fov_y, const float near, const float far )
+	FrustumBase createFrustum( const float aspect, const float fov_y, const float near, const float far )
 	{
 		const Plane< CoordinateSpace::Model > near_plane { ModelCoordinate( constants::WORLD_FORWARD * near ),
 			                                               NormalVector( constants::WORLD_FORWARD ) };

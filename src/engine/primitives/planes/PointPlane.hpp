@@ -46,4 +46,7 @@ namespace fgl::engine
 	template < CoordinateSpace CType >
 	using Plane = PointPlane< CType >;
 
+	using ModelPlane = Plane< CoordinateSpace::Model >;
+	using WorldPlane = Plane< CoordinateSpace::World >;
+
 } // namespace fgl::engine

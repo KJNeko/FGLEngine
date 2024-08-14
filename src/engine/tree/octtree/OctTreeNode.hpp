@@ -17,7 +17,6 @@ namespace fgl::engine
 	constexpr std::size_t STARTING_DEPTH { 4 };
 	constexpr float ROOT_SPAN { std::numeric_limits< float >::max() };
 
-	template < CoordinateSpace CType >
 	struct Frustum;
 
 	constexpr std::uint8_t TOP { 0 };
@@ -86,7 +85,7 @@ namespace fgl::engine
 
 		GameObject extract( const GameObject& obj ) { return this->extract( obj.getId() ); }
 
-		bool isInFrustum( const Frustum< CoordinateSpace::World >& frustum ) const;
+		bool isInFrustum( const Frustum& frustum ) const;
 
 		bool isEmpty() const
 		{
@@ -97,8 +96,7 @@ namespace fgl::engine
 		auto getGameObjectItter( GameObject::GameObjectID id );
 
 		void getAllLeafs( std::vector< OctTreeNodeLeaf* >& out_leafs );
-		void getAllLeafsInFrustum(
-			const Frustum< CoordinateSpace::World >& frustum, std::vector< OctTreeNodeLeaf* >& out_leafs );
+		void getAllLeafsInFrustum( const Frustum& frustum, std::vector< OctTreeNodeLeaf* >& out_leafs );
 
 		bool contains( WorldCoordinate coord ) const;
 
@@ -120,8 +118,7 @@ namespace fgl::engine
 			return leafs;
 		}
 
-		[[nodiscard]] std::vector< OctTreeNodeLeaf* > getAllLeafsInFrustum( const Frustum< CoordinateSpace::World >&
-		                                                                        frustum )
+		[[nodiscard]] std::vector< OctTreeNodeLeaf* > getAllLeafsInFrustum( const Frustum& frustum )
 		{
 			ZoneScoped;
 			std::vector< OctTreeNodeLeaf* > leafs {};

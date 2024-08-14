@@ -16,6 +16,6 @@ namespace fgl::engine::debug
 
 	void drawBoundingBox( const AxisAlignedBoundingBox< CoordinateSpace::World >& bounding_box );
 	void drawBoundingBox( const OrientedBoundingBox< CoordinateSpace::World >& bounding_box );
-	void drawFrustum( const Frustum< CoordinateSpace::World >& frustum );
+	void drawFrustum( const Frustum& frustum );
 
 } // namespace fgl::engine::debug

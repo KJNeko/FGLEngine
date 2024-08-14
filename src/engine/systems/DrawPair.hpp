@@ -40,7 +40,7 @@ namespace fgl::engine
 
 	std::pair< std::vector< vk::DrawIndexedIndirectCommand >, std::vector< ModelMatrixInfo > > getDrawCallsFromTree(
 		OctTreeNode& root,
-		const Frustum< CoordinateSpace::World >& frustum,
+		const Frustum& frustum,
 		GameObjectFlagType game_object_flags,
 		TreeFilterFlags tree_flags = DEFAULT_FLAGS,
 		std::function< bool( const GameObject& ) > filterFunc = &defaultTrueFunc );

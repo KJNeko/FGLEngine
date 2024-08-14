@@ -49,8 +49,7 @@ namespace fgl::engine
 #endif*/
 	}
 
-	void OctTreeNode::getAllLeafsInFrustum(
-		const Frustum< CoordinateSpace::World >& frustum, std::vector< OctTreeNodeLeaf* >& out_leafs )
+	void OctTreeNode::getAllLeafsInFrustum( const Frustum& frustum, std::vector< OctTreeNodeLeaf* >& out_leafs )
 	{
 		//Check if we are inside of the frustum.
 		if ( !isInFrustum( frustum ) ) return;
@@ -213,7 +212,7 @@ namespace fgl::engine
 		return ( *this )[ obj.getPosition() ].addGameObject( std::forward< GameObject >( obj ) );
 	}
 
-	bool OctTreeNode::isInFrustum( const Frustum< CoordinateSpace::World >& frustum ) const
+	bool OctTreeNode::isInFrustum( const Frustum& frustum ) const
 	{
 #if ENABLE_IMGUI
 		if ( !isEmpty() && frustum.intersects( m_fit_bounding_box ) )

@@ -14,6 +14,15 @@
 namespace fgl::engine
 {
 
+	Frustum operator*( const Matrix< MatrixType::ModelToWorld >& matrix, const FrustumBase& frustum )
+	{
+		Frustum result { matrix * frustum.near,      matrix * frustum.far,   matrix * frustum.top,
+			             matrix * frustum.bottom,    matrix * frustum.right, matrix * frustum.left,
+			             matrix * frustum.m_position };
+
+		return result;
+	}
+
 	float signedDistance( const NormalVector direction, const WorldCoordinate& point, const WorldCoordinate& origin )
 	{
 		const glm::vec3 vector_between { point.vec() - origin.vec() };
@@ -107,8 +116,7 @@ namespace fgl::engine
 	inline static bool show_intersect { false };
 
 	template <>
-	template <>
-	bool Frustum< CoordinateSpace::World >::intersects( const LineSegment< CoordinateSpace::World >& line ) const
+	bool Frustum::intersects( const LineSegment< CoordinateSpace::World >& line ) const
 	{
 		std::vector< WorldCoordinate > enter_intersections { line.getPosition() };
 		std::vector< WorldCoordinate > exit_intersections { line.getEnd() };
@@ -137,26 +145,22 @@ namespace fgl::engine
 		return distance_to_exit >= distance_to_enter;
 	}
 
-	template < CoordinateSpace CType >
-	FGL_FORCE_INLINE inline NormalVector Frustum< CType >::forwardVec() const
+	FGL_FORCE_INLINE inline NormalVector Frustum::forwardVec() const
 	{
 		return near.getDirection();
 	}
 
-	template < CoordinateSpace CType >
-	FGL_FORCE_INLINE inline NormalVector Frustum< CType >::upVec() const
+	FGL_FORCE_INLINE inline NormalVector Frustum::upVec() const
 	{
 		return NormalVector( glm::cross( forwardVec().vec(), left.getDirection().vec() ) );
 	}
 
-	template < CoordinateSpace CType >
-	FGL_FORCE_INLINE inline NormalVector Frustum< CType >::rightVec() const
+	FGL_FORCE_INLINE inline NormalVector Frustum::rightVec() const
 	{
 		return NormalVector( glm::cross( forwardVec().vec(), upVec().vec() ) );
 	}
 
-	template < CoordinateSpace CType >
-	std::array< Coordinate< CType >, 4 * 2 > Frustum< CType >::points() const
+	std::array< Coordinate< CoordinateSpace::World >, 4 * 2 > Frustum::points() const
 	{
 		const NormalVector pv0 { glm::cross( top.getDirection().vec(), left.getDirection().vec() ) };
 		const NormalVector pv1 { glm::cross( top.getDirection().vec(), right.getDirection().vec() ) };
@@ -181,37 +185,35 @@ namespace fgl::engine
 		return { { p0, p1, p2, p3, p4, p5, p6, p7 } };
 	}
 
-	template < CoordinateSpace CType >
-	std::array< LineSegment< CType >, ( ( 4 * 2 ) / 2 ) * 3 > Frustum< CType >::lines() const
+	std::array< LineSegment< CoordinateSpace::World >, ( ( 4 * 2 ) / 2 ) * 3 > Frustum::lines() const
 	{
 		const auto points { this->points() };
 
-		std::array< LineSegment< CType >, ( ( 4 * 2 ) / 2 ) * 3 > lines;
+		std::array< LineSegment< CoordinateSpace::World >, ( ( 4 * 2 ) / 2 ) * 3 > lines;
 
 		//Top
-		lines[ 0 ] = LineSegment< CType >( points[ 0 ], points[ 1 ] );
-		lines[ 1 ] = LineSegment< CType >( points[ 1 ], points[ 2 ] );
-		lines[ 2 ] = LineSegment< CType >( points[ 2 ], points[ 3 ] );
-		lines[ 3 ] = LineSegment< CType >( points[ 3 ], points[ 0 ] );
+		lines[ 0 ] = LineSegment< CoordinateSpace::World >( points[ 0 ], points[ 1 ] );
+		lines[ 1 ] = LineSegment< CoordinateSpace::World >( points[ 1 ], points[ 2 ] );
+		lines[ 2 ] = LineSegment< CoordinateSpace::World >( points[ 2 ], points[ 3 ] );
+		lines[ 3 ] = LineSegment< CoordinateSpace::World >( points[ 3 ], points[ 0 ] );
 
 		//Bottom
-		lines[ 4 ] = LineSegment< CType >( points[ 4 ], points[ 5 ] );
-		lines[ 5 ] = LineSegment< CType >( points[ 5 ], points[ 6 ] );
-		lines[ 6 ] = LineSegment< CType >( points[ 6 ], points[ 7 ] );
-		lines[ 7 ] = LineSegment< CType >( points[ 7 ], points[ 4 ] );
+		lines[ 4 ] = LineSegment< CoordinateSpace::World >( points[ 4 ], points[ 5 ] );
+		lines[ 5 ] = LineSegment< CoordinateSpace::World >( points[ 5 ], points[ 6 ] );
+		lines[ 6 ] = LineSegment< CoordinateSpace::World >( points[ 6 ], points[ 7 ] );
+		lines[ 7 ] = LineSegment< CoordinateSpace::World >( points[ 7 ], points[ 4 ] );
 
 		//Sides
-		lines[ 8 ] = LineSegment< CType >( points[ 0 ], points[ 4 ] );
-		lines[ 9 ] = LineSegment< CType >( points[ 1 ], points[ 5 ] );
-		lines[ 10 ] = LineSegment< CType >( points[ 2 ], points[ 6 ] );
-		lines[ 11 ] = LineSegment< CType >( points[ 3 ], points[ 7 ] );
+		lines[ 8 ] = LineSegment< CoordinateSpace::World >( points[ 0 ], points[ 4 ] );
+		lines[ 9 ] = LineSegment< CoordinateSpace::World >( points[ 1 ], points[ 5 ] );
+		lines[ 10 ] = LineSegment< CoordinateSpace::World >( points[ 2 ], points[ 6 ] );
+		lines[ 11 ] = LineSegment< CoordinateSpace::World >( points[ 3 ], points[ 7 ] );
 
 		return lines;
 	}
 
 	template <>
-	template <>
-	bool Frustum< CoordinateSpace::World >::intersects( const WorldCoordinate& t ) const
+	bool Frustum::intersects( const WorldCoordinate& t ) const
 	{
 		return pointInside( t );
 	}
@@ -245,8 +247,7 @@ namespace fgl::engine
 	}
 
 	template <>
-	template <>
-	bool Frustum< CoordinateSpace::World >::intersects( const std::vector< WorldCoordinate >& point_cloud ) const
+	bool Frustum::intersects( const std::vector< WorldCoordinate >& point_cloud ) const
 	{
 		for ( const auto point : point_cloud )
 		{
@@ -297,7 +298,7 @@ namespace fgl::engine
 	//! Can plot line between frustum and a given set of points
 	template < CoordinateSpace CType, std::uint64_t FrustumPointCount, std::uint64_t BoundingBoxPointCount >
 	FGL_FLATTEN_HOT bool canPlotLine(
-		const Frustum< CType >& frustum,
+		const Frustum& frustum,
 		const std::array< Coordinate< CType >, FrustumPointCount >& frustum_points,
 		const std::array< Coordinate< CType >, BoundingBoxPointCount >& bounding_points )
 	{
@@ -311,9 +312,7 @@ namespace fgl::engine
 	}
 
 	template <>
-	template <>
-	FGL_FLATTEN bool Frustum< CoordinateSpace::World >::intersects( const OrientedBoundingBox< CoordinateSpace::World >&
-	                                                                    bounding_box ) const
+	FGL_FLATTEN bool Frustum::intersects( const OrientedBoundingBox< CoordinateSpace::World >& bounding_box ) const
 	{
 		const auto box_points { bounding_box.points() };
 
@@ -332,9 +331,7 @@ namespace fgl::engine
 	}
 
 	template <>
-	template <>
-	FGL_FLATTEN bool Frustum< CoordinateSpace::World >::intersects( const AxisAlignedBoundingBox<
-																	CoordinateSpace::World >& bounding_box ) const
+	FGL_FLATTEN bool Frustum::intersects( const AxisAlignedBoundingBox< CoordinateSpace::World >& bounding_box ) const
 	{
 		const auto box_points { bounding_box.points() };
 
@@ -353,9 +350,7 @@ namespace fgl::engine
 	}
 
 	template <>
-	template <>
-	FGL_FLATTEN bool Frustum< CoordinateSpace::World >::intersects( const AxisAlignedBoundingCube<
-																	CoordinateSpace::World >& bounding_box ) const
+	FGL_FLATTEN bool Frustum::intersects( const AxisAlignedBoundingCube< CoordinateSpace::World >& bounding_box ) const
 	{
 		const auto box_points { bounding_box.points() };
 
@@ -371,47 +366,11 @@ namespace fgl::engine
 		if ( testAxis( bounding_box.up(), frustum_points, box_points ) ) return false;
 
 		return true;
-	}
-
-	template <>
-	template <>
-	Coordinate< CoordinateSpace::World > Frustum<
-		CoordinateSpace::World >::intersection( const Line< CoordinateSpace::World >& line ) const
-	{
-		Coordinate< CoordinateSpace::World > coordinate { line.getEnd() };
-		const float max_dist { signedDistance( line.getDirection(), coordinate, line.getPosition() ) };
-
-		//Test each. Whatever the line enters exists first is the point to return
-		auto testPlane = [ & ]( const Plane< CoordinateSpace::World >& plane )
-		{
-			const float old_distance { signedDistance( line.getDirection(), coordinate, line.getPosition() ) };
-			const auto intersection { line.intersection( plane ) };
-
-			if ( std::isnan( intersection.x ) || std::isnan( intersection.y ) || std::isnan( intersection.z ) ) return;
-
-			const auto intersection_distance {
-				signedDistance( line.getDirection(), intersection, line.getPosition() )
-			};
-
-			if ( intersection_distance < 0.0f ) return;
-			if ( intersection_distance > max_dist ) return;
-
-			if ( old_distance > intersection_distance ) coordinate = intersection;
-		};
-
-		testPlane( this->right );
-		testPlane( this->left );
-		testPlane( this->near );
-		testPlane( this->far );
-		testPlane( this->top );
-		testPlane( this->bottom );
-
-		return coordinate;
 	}
 
 	namespace debug
 	{
-		void drawFrustum( const Frustum< CoordinateSpace::World >& frustum )
+		void drawFrustum( const Frustum& frustum )
 		{
 			for ( const auto& line : frustum.lines() )
 			{
@@ -419,7 +378,5 @@ namespace fgl::engine
 			}
 		}
 	} // namespace debug
-
-	template struct Frustum< CoordinateSpace::World >;
 
 } // namespace fgl::engine

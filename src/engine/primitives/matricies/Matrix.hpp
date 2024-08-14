@@ -64,6 +64,7 @@ namespace fgl::engine
 
 	//Lines
 	template < CoordinateSpace CType, MatrixType MType >
+		requires can_be_evolved< CType, MType >
 	LineSegment< EvolvedType< MType >() > operator*( const Matrix< MType > mat, const LineSegment< CType > );
 
 	template < CoordinateSpace CType, MatrixType MType >
@@ -71,14 +72,17 @@ namespace fgl::engine
 
 	//Planes
 	template < CoordinateSpace CType, MatrixType MType >
+		requires can_be_evolved< CType, MType >
 	OriginDistancePlane< EvolvedType< MType >() >
 		operator*( const Matrix< MType > mat, const OriginDistancePlane< CType > );
 
 	template < CoordinateSpace CType, MatrixType MType >
+		requires can_be_evolved< CType, MType >
 	PointPlane< EvolvedType< MType >() > operator*( const Matrix< MType > mat, const PointPlane< CType > );
 
 	//Coordinates
 	template < CoordinateSpace CType, MatrixType MType >
+		requires can_be_evolved< CType, MType >
 	Coordinate< EvolvedType< MType >() > operator*( const Matrix< MType > mat, const Coordinate< CType > );
 
 	//Vector

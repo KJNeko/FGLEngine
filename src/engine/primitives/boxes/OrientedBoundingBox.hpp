@@ -17,7 +17,6 @@
 
 namespace fgl::engine
 {
-	template < CoordinateSpace CType >
 	struct Frustum;
 
 	template < CoordinateSpace CType >
@@ -85,9 +84,9 @@ namespace fgl::engine
 
 		// Here's to hoping anything I don't use here (skew, perspecitve) doesn't cost any extra performance
 		// Compiler optimizer plz
-		[[maybe_unused]] glm::vec3 scale, translation, skew;
+		[[maybe_unused]] glm::vec3 scale {}, translation {}, skew {};
 		glm::quat quat;
-		[[maybe_unused]] glm::vec4 perspective;
+		[[maybe_unused]] glm::vec4 perspective {};
 		glm::decompose( matrix, scale, quat, translation, skew, perspective );
 
 		glm::mat4 mat { 1.0f };
