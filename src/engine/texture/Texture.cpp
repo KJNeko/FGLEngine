@@ -179,7 +179,6 @@ namespace fgl::engine
 
 	void Texture::createImGuiSet()
 	{
-#if ENABLE_IMGUI
 		if ( !this->ready() )
 		{
 			log::debug( "Unable to create ImGui set. Texture was not ready" );
@@ -199,9 +198,6 @@ namespace fgl::engine
 		VkSampler vk_sampler { *( view->getSampler() ) };
 
 		m_imgui_set = ImGui_ImplVulkan_AddTexture( vk_sampler, vk_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
-#else
-		FGL_UNREACHABLE();
-#endif
 	}
 
 	vk::DescriptorSet& Texture::getImGuiDescriptorSet()
