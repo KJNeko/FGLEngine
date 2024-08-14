@@ -7,7 +7,8 @@
 namespace fgl::engine
 {
 
-	glm::mat4 TransformComponent::mat4() const
+	template < CoordinateSpace CType >
+	glm::mat4 TransformComponent< CType >::mat4() const
 	{
 		const glm::mat3 rotation_mat { rotation.mat() };
 
@@ -17,24 +18,31 @@ namespace fgl::engine
 			               { translation.vec().x, translation.vec().y, translation.vec().z, 1.0f } };
 	}
 
-	Matrix< MatrixType::ModelToWorld > TransformComponent::mat() const
+	template < CoordinateSpace CType >
+	Matrix< MatrixTransformType< CType >() > TransformComponent< CType >::mat() const
 	{
-		return Matrix< MatrixType::ModelToWorld >( mat4() );
+		return Matrix< MatrixTransformType< CType >() >( mat4() );
 	}
 
-	NormalVector TransformComponent::forward() const
+	template < CoordinateSpace CType >
+	NormalVector TransformComponent< CType >::forward() const
 	{
 		return rotation.forward();
 	}
 
-	NormalVector TransformComponent::right() const
+	template < CoordinateSpace CType >
+	NormalVector TransformComponent< CType >::right() const
 	{
 		return rotation.right();
 	}
 
-	NormalVector TransformComponent::up() const
+	template < CoordinateSpace CType >
+	NormalVector TransformComponent< CType >::up() const
 	{
 		return rotation.up();
 	}
+
+	template struct TransformComponent< CoordinateSpace::World >;
+	template struct TransformComponent< CoordinateSpace::Model >;
 
 } // namespace fgl::engine

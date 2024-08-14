@@ -70,6 +70,12 @@ TEST_CASE( "Rotation", "[vector][transforms]" )
 	WHEN( "Rotation is default constructed" )
 	{
 		Rotation rot {};
+
+		THEN( "Should match a default quaternion" )
+		{
+			REQUIRE( static_cast< glm::quat >( rot ) == glm::quat( 1.0f, 0.0f, 0.0f, 0.0f ) );
+		}
+
 		THEN( "Yaw should be 0.0f" )
 		{
 			REQUIRE( rot.yaw() == 0.0f );
@@ -112,7 +118,17 @@ TEST_CASE( "Rotation", "[vector][transforms]" )
 		{
 			Rotation rotation { rad_90, 0.0f, 0.0f };
 
-			REQUIRE( rotation.pitch() == Catch::Approx( rad_90 ).epsilon( 0.01 ) );
+			THEN( "Pitch should return 90" )
+			{
+				REQUIRE( rotation.pitch() == Catch::Approx( rad_90 ).epsilon( 0.01 ) );
+			}
+
+			/*
+			THEN( "Quaternion should be valid" )
+			{
+				REQUIRE( static_cast< glm::quat >( rotation ) == glm::quat( 0.7071068, 0.7071068, 0, 0 ) );
+			}
+			*/
 		}
 
 		AND_WHEN( "Given 90.0f yaw" )
@@ -127,6 +143,23 @@ TEST_CASE( "Rotation", "[vector][transforms]" )
 			Rotation rotation { 0.0f, 0.0f, rad_90 };
 
 			REQUIRE( rotation.roll() == Catch::Approx( rad_90 ).epsilon( 0.01 ) );
+		}
+	}
+
+	GIVEN( "A default identity matrix" )
+	{
+		const Matrix< MatrixType::ModelToWorld > matrix { 1.0f };
+
+		THEN( "The matrix rot() function should match a default rotation" )
+		{
+			const Rotation default_rot {};
+			REQUIRE( default_rot.mat() == matrix.rotmat() );
+		}
+
+		WHEN( "Multiplied with a default rotation" )
+		{
+			THEN( "Nothing should happen" )
+			{}
 		}
 	}
 

@@ -43,20 +43,25 @@ namespace fgl::engine
 
 				const auto model_components { obj.getComponents< ModelComponent >() };
 
+				const Matrix< MatrixType::ModelToWorld > obj_matrix { obj.getTransform().mat() };
+
 				for ( const auto* model_component_ptr : model_components )
 				{
 					const auto& model_transform { model_component_ptr->m_transform };
+
+					const Matrix< MatrixType::ModelToWorld > matrix { model_transform.mat() * obj_matrix };
 
 					const auto& comp { *model_component_ptr };
 					for ( const Primitive& primitive : comp->m_primitives )
 					{
 						if ( !primitive.ready() ) continue;
 
-						const Matrix< MatrixType::ModelToWorld > matrix { obj.getTransform().mat()
-							                                              * model_transform.mat() };
-
 						// Does this primitive pass the bounds check
-						if ( !frustum.intersects( matrix * primitive.getBoundingBox() ) ) continue;
+						const OrientedBoundingBox< CoordinateSpace::World > world_bounding_box {
+							matrix * primitive.getBoundingBox()
+						};
+
+						if ( !frustum.intersects( world_bounding_box ) ) continue;
 
 						//assert( primitive.m_texture );
 						const ModelMatrixInfo matrix_info { .model_matrix = matrix,

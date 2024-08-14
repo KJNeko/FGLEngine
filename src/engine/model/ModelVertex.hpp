@@ -36,8 +36,6 @@ namespace fgl::engine
 		bool operator==( const ModelVertex& other ) const;
 	};
 
-	static_assert( offsetof( ModelVertex, m_normal ) > offsetof( SimpleVertex, m_color ) );
-
 } // namespace fgl::engine
 
 namespace std

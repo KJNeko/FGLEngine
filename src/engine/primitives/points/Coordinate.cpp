@@ -12,30 +12,30 @@ namespace fgl::engine
 {
 
 	template < CoordinateSpace CType >
-	Coordinate< CType >::Coordinate( const Vector vector ) : glm::vec3( vector.vec() )
+	Coordinate< CType >::Coordinate( const Vector& vector ) : glm::vec3( vector.vec() )
 	{}
 
 	template < CoordinateSpace CType >
-	Coordinate< CType > Coordinate< CType >::operator+( const Vector other ) const
+	Coordinate< CType > Coordinate< CType >::operator+( const Vector& other ) const
 	{
 		return Coordinate< CType >( vec() + other.vec() );
 	}
 
 	template < CoordinateSpace CType >
-	Coordinate< CType > Coordinate< CType >::operator-( const Vector other ) const
+	Coordinate< CType > Coordinate< CType >::operator-( const Vector& other ) const
 	{
 		return Coordinate< CType >( vec() - other.vec() );
 	}
 
 	template < CoordinateSpace CType >
-	Coordinate< CType >& Coordinate< CType >::operator+=( const Vector other )
+	Coordinate< CType >& Coordinate< CType >::operator+=( const Vector& other )
 	{
 		this->vec() += other.vec();
 		return *this;
 	}
 
 	template < CoordinateSpace CType >
-	Coordinate< CType >& Coordinate< CType >::operator-=( const Vector other )
+	Coordinate< CType >& Coordinate< CType >::operator-=( const Vector& other )
 	{
 		this->vec() -= other.vec();
 		return *this;

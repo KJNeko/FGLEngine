@@ -9,8 +9,9 @@
 
 #include "BoundingBox.hpp"
 #include "engine/constants.hpp"
-#include "engine/primitives/Rotation.hpp"
+#include "engine/logging/logging.hpp"
 #include "engine/primitives/Scale.hpp"
+#include "engine/primitives/TransformComponent.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 
@@ -25,31 +26,38 @@ namespace fgl::engine
 	struct ModelVertex;
 
 	template < CoordinateSpace CType >
-	struct OrientedBoundingBox : public interface::BoundingBox
+	struct OrientedBoundingBox final : public interface::BoundingBox
 	{
-		Coordinate< CType > middle;
-		glm::vec3 scale;
-		Rotation rotation;
+		TransformComponent< CType > m_transform;
 
-		OrientedBoundingBox() : middle( constants::DEFAULT_VEC3 ), scale( 0.0f ), rotation() {}
+		OrientedBoundingBox() : m_transform( Coordinate< CType >( constants::DEFAULT_VEC3 ) ) {}
 
-		OrientedBoundingBox(
-			const Coordinate< CType > pos, glm::vec3 inital_scale, const Rotation inital_rotation = {} ) :
-		  middle( pos ),
-		  scale( inital_scale ),
-		  rotation( inital_rotation )
+		OrientedBoundingBox( const Coordinate< CType > pos, const glm::vec3 inital_scale ) :
+		  m_transform( pos, Scale( inital_scale ) )
 		{
 			assert( pos.vec() != constants::DEFAULT_VEC3 );
 			assert( inital_scale != constants::DEFAULT_VEC3 );
 		}
 
+		OrientedBoundingBox( const TransformComponent< CType >& transform ) : m_transform( transform )
+		{
+			assert( m_transform.translation.vec() != constants::DEFAULT_VEC3 );
+			assert( m_transform.scale != constants::DEFAULT_VEC3 );
+		}
+
 	  public:
 
 		//! Returns the top left (-x, -y, -z) coordinate
-		inline Coordinate< CType > bottomLeftBack() const { return middle - Scale( glm::abs( scale ) ); }
+		Coordinate< CType > bottomLeftBack() const
+		{
+			return m_transform.translation - Scale( glm::abs( static_cast< glm::vec3 >( m_transform.scale ) ) );
+		}
 
 		//! Returns the bottom right (x, y, z) coordinate
-		inline Coordinate< CType > topRightForward() const { return middle + Scale( glm::abs( scale ) ); }
+		Coordinate< CType > topRightForward() const
+		{
+			return m_transform.translation + Scale( glm::abs( static_cast< glm::vec3 >( m_transform.scale ) ) );
+		}
 
 		// 6 sides, 2 triangles each, 3 verts per triangle
 		constexpr static std::uint32_t indicies_count { 6 * 2 * 3 };
@@ -59,11 +67,11 @@ namespace fgl::engine
 		std::array< Coordinate< CType >, POINT_COUNT > points() const;
 		std::array< LineSegment< CType >, LINE_COUNT > lines() const;
 
-		NormalVector forward() const { return rotation.forward(); }
+		NormalVector forward() const { return m_transform.forward(); }
 
-		NormalVector right() const { return rotation.right(); }
+		NormalVector right() const { return m_transform.right(); }
 
-		NormalVector up() const { return rotation.up(); }
+		NormalVector up() const { return m_transform.up(); }
 
 		OrientedBoundingBox combine( const OrientedBoundingBox& other ) const;
 	};
@@ -72,20 +80,30 @@ namespace fgl::engine
 	OrientedBoundingBox< EvolvedType< MType >() >
 		operator*( const Matrix< MType > matrix, const OrientedBoundingBox< CType > bounding_box )
 	{
-		assert( bounding_box.middle.vec() != constants::DEFAULT_VEC3 );
-		assert( bounding_box.scale != glm::vec3( 0.0f ) );
+		assert( bounding_box.m_transform.translation.vec() != constants::DEFAULT_VEC3 );
+		assert( bounding_box.m_transform.scale != glm::vec3( 0.0f ) );
 
-		const Coordinate< EvolvedType< MType >() > new_middle { matrix * bounding_box.middle };
+		// Here's to hoping anything I don't use here (skew, perspecitve) doesn't cost any extra performance
+		// Compiler optimizer plz
+		[[maybe_unused]] glm::vec3 scale, translation, skew;
+		glm::quat quat;
+		[[maybe_unused]] glm::vec4 perspective;
+		glm::decompose( matrix, scale, quat, translation, skew, perspective );
 
-		const glm::vec3 matrix_scale { glm::length( glm::vec3( matrix[ 0 ] ) ),
-			                           glm::length( glm::vec3( matrix[ 1 ] ) ),
-			                           glm::length( glm::vec3( matrix[ 2 ] ) ) };
+		glm::mat4 mat { 1.0f };
+		mat = glm::scale( mat, scale );
+		mat = glm::translate( mat, translation );
 
-		const glm::vec3 new_scale { bounding_box.scale * matrix_scale };
+		const Coordinate< EvolvedType< MType >() > new_middle { Matrix< MType >( mat )
+			                                                    * bounding_box.m_transform.translation };
 
-		const Rotation new_rot { glm::quat_cast( matrix.rotmat() ) * bounding_box.rotation };
+		const glm::vec3 new_scale { bounding_box.m_transform.scale * scale };
 
-		return OrientedBoundingBox< EvolvedType< MType >() >( new_middle, new_scale, new_rot );
+		const Rotation new_rot { quat * static_cast< glm::quat >( bounding_box.m_transform.rotation ) };
+
+		TransformComponent< EvolvedType< MType >() > transform { new_middle, new_scale, new_rot };
+
+		return OrientedBoundingBox< EvolvedType< MType >() >( transform );
 	}
 
 	OrientedBoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< ModelVertex >& verts );

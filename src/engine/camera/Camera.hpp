@@ -58,7 +58,7 @@ namespace fgl::engine
 		Frustum< CoordinateSpace::World > frustum {};
 		WorldCoordinate last_frustum_pos { constants::WORLD_CENTER };
 
-		TransformComponent m_transform;
+		WorldTransform m_transform;
 
 		vk::Extent2D m_target_extent;
 		float m_fov_y { glm::radians( 90.0f ) };
@@ -109,9 +109,9 @@ namespace fgl::engine
 
 		Rotation& getRotation() { return m_transform.rotation; }
 
-		const TransformComponent& getTransform() const { return m_transform; }
+		const WorldTransform& getTransform() const { return m_transform; }
 
-		TransformComponent& getTransform() { return m_transform; }
+		WorldTransform& getTransform() { return m_transform; }
 
 		WorldCoordinate getFrustumPosition() const;
 

@@ -26,7 +26,7 @@ namespace fgl::engine
 	{
 		class DescriptorSet;
 	}
-	struct TransformComponent;
+
 	class SwapChain;
 	class Camera;
 

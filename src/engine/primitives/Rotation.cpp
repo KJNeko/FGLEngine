@@ -11,7 +11,7 @@
 
 namespace fgl::engine
 {
-	Rotation::Rotation() : glm::quat( 1.0f, 0.0f, 0.0f, 0.0f )
+	Rotation::Rotation() : Rotation( 0.0f, 0.0f, 0.0f )
 	{}
 
 	inline glm::quat buildQuat( const glm::vec3 euler )

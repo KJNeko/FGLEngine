@@ -40,7 +40,7 @@ namespace fgl::engine
 
 		explicit Coordinate( const float value ) : glm::vec3( value ) {}
 
-		explicit Coordinate( Vector vector );
+		explicit Coordinate( const Vector& vector );
 
 		float& up() { return z; }
 
@@ -58,10 +58,10 @@ namespace fgl::engine
 
 		const glm::vec3& vec() const { return static_cast< const glm::vec3& >( *this ); }
 
-		Coordinate operator+( Vector other ) const;
-		Coordinate operator-( Vector other ) const;
-		Coordinate& operator+=( Vector other );
-		Coordinate& operator-=( Vector other );
+		Coordinate operator+( const Vector& other ) const;
+		Coordinate operator-( const Vector& other ) const;
+		Coordinate& operator+=( const Vector& other );
+		Coordinate& operator-=( const Vector& other );
 
 		Coordinate operator+( NormalVector other ) const;
 		Coordinate operator-( NormalVector other ) const;

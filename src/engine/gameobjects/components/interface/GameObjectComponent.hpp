@@ -12,7 +12,7 @@
 namespace fgl::engine
 {
 
-	struct ComponentTransform final : public TransformComponent
+	struct ComponentTransform final : public TransformComponent< CoordinateSpace::World >
 	{
 		enum Mode
 		{

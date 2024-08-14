@@ -93,8 +93,8 @@ namespace fgl::engine
 		// xp == x positive (Highest x point)
 		// xn == x negative (Lowest x point)
 
-		const glm::vec3 xp_yp_zp { middle.vec() + scale };
-		const glm::vec3 xn_yn_zn { middle.vec() - scale };
+		const glm::vec3 xp_yp_zp { m_transform.translation.vec() + static_cast< glm::vec3 >( m_transform.scale ) };
+		const glm::vec3 xn_yn_zn { m_transform.translation.vec() - static_cast< glm::vec3 >( m_transform.scale ) };
 
 		const auto xn { xn_yn_zn.x };
 		const auto yn { xn_yn_zn.y };
@@ -152,7 +152,13 @@ namespace fgl::engine
 		points[ 6 ] = Coordinate< CType >( xn_yn_zn );
 		points[ 7 ] = Coordinate< CType >( xp_yn_zn );
 
-		//Rotate all the points around middle using the rotation
+		for ( auto i = 0; i < points.size(); ++i )
+		{
+			const glm::mat3 rot_mat { m_transform.rotation.mat() };
+			const glm::vec3 point { points[ i ].vec() };
+
+			points[ i ] = Coordinate< CType >( rot_mat * point );
+		}
 
 		return points;
 	}
@@ -162,11 +168,11 @@ namespace fgl::engine
 		const
 	{
 		ZoneScoped;
-		assert( middle.vec() != constants::DEFAULT_VEC3 );
-		assert( scale != glm::vec3( 0.0f ) );
+		assert( m_transform.translation.vec() != constants::DEFAULT_VEC3 );
+		assert( m_transform.scale != glm::vec3( 0.0f ) );
 
-		assert( other.middle.vec() != constants::DEFAULT_VEC3 );
-		assert( other.scale != glm::vec3( 0.0f ) );
+		assert( other.m_transform.translation.vec() != constants::DEFAULT_VEC3 );
+		assert( other.m_transform.scale != glm::vec3( 0.0f ) );
 
 		const auto& other_points { other.points() };
 		const auto points { this->points() };
@@ -259,7 +265,7 @@ namespace fgl::engine
 		const glm::vec3 midpoint { ( top_right_forward + bottom_left_back ) / glm::vec3( 2.0f ) };
 		const glm::vec3 scale { bottom_left_back - midpoint };
 
-		return { Coordinate< CoordinateSpace::Model >( midpoint ), scale };
+		return OrientedBoundingBox< CoordinateSpace::Model >( Coordinate< CoordinateSpace::Model >( midpoint ), scale );
 	}
 
 	//Synthesize the template

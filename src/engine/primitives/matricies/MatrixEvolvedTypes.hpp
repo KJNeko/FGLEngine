@@ -11,6 +11,7 @@ namespace fgl::engine
 
 	enum class MatrixType
 	{
+		InvalidMatrix,
 		ModelToWorld,
 
 		WorldToCamera,

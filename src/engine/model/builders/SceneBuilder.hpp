@@ -56,7 +56,7 @@ namespace fgl::engine
 		void handleScene( const tinygltf::Scene& scene, const tinygltf::Model& root );
 		void handleNode( const int node_idx, const tinygltf::Model& root );
 
-		TransformComponent loadTransform( int node_idx, const tinygltf::Model& root );
+		WorldTransform loadTransform( int node_idx, const tinygltf::Model& root );
 		std::shared_ptr< Model > loadModel( const int mesh_idx, const tinygltf::Model& root );
 		Primitive loadPrimitive( const tinygltf::Primitive& prim, const tinygltf::Model& model );
 

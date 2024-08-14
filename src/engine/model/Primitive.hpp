@@ -88,7 +88,7 @@ namespace fgl::engine
 		  m_mode( mode ),
 		  m_textures()
 		{
-			assert( m_bounding_box.scale != glm::vec3( 0.0f ) );
+			assert( m_bounding_box.m_transform.scale != glm::vec3( 0.0f ) );
 		}
 
 		Primitive(
@@ -103,7 +103,7 @@ namespace fgl::engine
 		  m_mode( mode ),
 		  m_textures( std::forward< decltype( m_textures ) >( textures ) )
 		{
-			assert( m_bounding_box.scale != glm::vec3( 0.0f ) );
+			assert( m_bounding_box.m_transform.scale != glm::vec3( 0.0f ) );
 		}
 
 		Primitive() = delete;

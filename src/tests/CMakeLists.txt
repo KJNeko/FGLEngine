@@ -12,7 +12,7 @@ if (FGL_ENABLE_TESTS)
 	set(CMAKE_CXX_STANDARD_REQUIRED 23)
 
 	add_executable(FGLTests ${FGL_TEST_SOURCES})
-	target_link_libraries(FGLTests PRIVATE FGLEngine Catch2::Catch2WithMain)
+	target_link_libraries(FGLTests PUBLIC FGLEngine Catch2::Catch2WithMain)
 	target_compile_definitions(FGLTests PUBLIC GLM_FORCE_RADIANS GLM_FORCE_DEPTH_ZERO_TO_ONE GLM_FORCE_LEFT_HANDED)
 	target_compile_features(FGLTests PRIVATE cxx_std_23)
 

@@ -49,6 +49,15 @@ namespace Catch
 		}
 	};
 
+	template <>
+	struct StringMaker< glm::quat >
+	{
+		static std::string convert( const glm::quat& quat )
+		{
+			return std::format( "({},{},{},{})", quat.w, quat.x, quat.y, quat.z );
+		}
+	};
+
 	template < fgl::engine::MatrixType MType >
 	struct StringMaker< fgl::engine::Matrix< MType > >
 	{

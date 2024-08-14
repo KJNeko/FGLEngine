@@ -116,7 +116,8 @@ namespace fgl::engine
 	  m_top_right_forward( constants::DEFAULT_VEC3 ),
 	  m_bottom_left_back( -constants::DEFAULT_VEC3 )
 	{
-		if ( oobb.rotation == Rotation() ) // If default rotation then we can simply just take it as the box is
+		if ( oobb.m_transform.rotation
+		     == Rotation() ) // If default rotation then we can simply just take it as the box is
 		{
 			assert( oobb.topRightForward().vec() != constants::DEFAULT_VEC3 );
 			assert( oobb.bottomLeftBack().vec() != -constants::DEFAULT_VEC3 );

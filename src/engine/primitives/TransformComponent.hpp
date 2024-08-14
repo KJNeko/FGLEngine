@@ -13,18 +13,37 @@ namespace fgl::engine
 	template < MatrixType >
 	class Matrix;
 
+	template < CoordinateSpace CType >
+	consteval MatrixType MatrixTransformType()
+	{
+		switch ( CType )
+		{
+			case CoordinateSpace::Model:
+				return MatrixType::InvalidMatrix;
+			case CoordinateSpace::World:
+				return MatrixType::ModelToWorld;
+			case CoordinateSpace::Camera:
+				FGL_UNREACHABLE();
+			case CoordinateSpace::Screen:
+				FGL_UNREACHABLE();
+			default:
+				FGL_UNREACHABLE();
+		}
+		FGL_UNREACHABLE();
+	};
+
 	//TransformComponent is always in world space
+	template < CoordinateSpace CType = CoordinateSpace::World >
 	struct TransformComponent
 	{
-		WorldCoordinate translation { constants::WORLD_CENTER };
+		Coordinate< CType > translation { constants::WORLD_CENTER };
 		Scale scale { 1.0f, 1.0f, 1.0f };
-
 		Rotation rotation { 0.0f, 0.0f, 0.0f };
 
 		//TODO: Figure this out and replace TransformComponent with a template of CType instead
 		glm::mat4 mat4() const;
 
-		Matrix< MatrixType::ModelToWorld > mat() const;
+		Matrix< MatrixTransformType< CType >() > mat() const;
 
 		NormalVector forward() const;
 
@@ -38,5 +57,10 @@ namespace fgl::engine
 
 		NormalVector down() const { return -up(); }
 	};
+
+	// A game object will be going from world to camera space
+	using GameObjectTransform = TransformComponent< CoordinateSpace::World >;
+	// using ModelTransform = TransformComponent< CoordinateSpace::Model >;
+	using WorldTransform = TransformComponent< CoordinateSpace::World >;
 
 } // namespace fgl::engine

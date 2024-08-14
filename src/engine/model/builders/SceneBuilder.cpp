@@ -15,6 +15,7 @@
 #include <engine/logging/logging.hpp>
 
 #include "engine/assets/stores.hpp"
+#include "engine/camera/Camera.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/gameobjects/GameObject.hpp"
 #include "engine/image/ImageView.hpp"
@@ -393,7 +394,7 @@ namespace fgl::engine
 			     static_cast< float >( data[ 2 ] ) };
 	}
 
-	TransformComponent SceneBuilder::loadTransform( int node_idx, const tinygltf::Model& root )
+	WorldTransform SceneBuilder::loadTransform( int node_idx, const tinygltf::Model& root )
 	{
 		const auto node { root.nodes[ node_idx ] };
 
@@ -404,7 +405,7 @@ namespace fgl::engine
 			                       static_cast< float >( node.rotation[ 3 ] ) };
 		const glm::vec3 scale { convertToVec3( node.scale ) };
 
-		TransformComponent transform_component {};
+		WorldTransform transform_component {};
 		transform_component.rotation = rotation;
 		transform_component.scale = scale;
 		transform_component.translation = WorldCoordinate( translation );

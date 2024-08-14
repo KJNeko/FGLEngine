@@ -43,7 +43,7 @@ namespace fgl::engine
 
 		GameObjectID m_id { INVALID_ID };
 		GameObjectFlagType object_flags { GameObjectFlagMask::MASK_DEFAULT };
-		TransformComponent m_transform {};
+		GameObjectTransform m_transform {};
 
 		std::vector< GameObjectComponentPtr > components {};
 
@@ -121,9 +121,9 @@ namespace fgl::engine
 		void removeFlag( GameObjectFlagType flag ) { object_flags &= ( ~flag ); }
 
 		//Transform
-		TransformComponent& getTransform() { return m_transform; }
+		GameObjectTransform& getTransform() { return m_transform; }
 
-		const TransformComponent& getTransform() const { return m_transform; }
+		const GameObjectTransform& getTransform() const { return m_transform; }
 
 		const WorldCoordinate& getPosition() const { return m_transform.translation; }
 
