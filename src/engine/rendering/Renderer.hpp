@@ -9,7 +9,6 @@
 #include <cassert>
 #include <memory>
 
-#include "Device.hpp"
 #include "SwapChain.hpp"
 
 //clang-format: off

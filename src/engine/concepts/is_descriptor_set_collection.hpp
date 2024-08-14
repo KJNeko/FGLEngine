@@ -4,9 +4,11 @@
 
 #pragma once
 
+#include <concepts>
+#include <cstdint>
+
 namespace fgl::engine
 {
-
 
 	template < typename T >
 	concept is_descriptor_set_collection = requires( T t ) {
@@ -16,4 +18,4 @@ namespace fgl::engine
 		} -> std::same_as< const std::uint64_t& >;
 	};
 
-}
+} // namespace fgl::engine

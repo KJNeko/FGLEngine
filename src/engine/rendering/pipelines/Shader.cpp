@@ -4,8 +4,8 @@
 
 #include "Shader.hpp"
 
-#include "engine/rendering/Device.hpp"
-#include "engine/shaders/Compiler.hpp"
+#include "engine/rendering/devices/Device.hpp"
+#include "shaders/Compiler.hpp"
 
 namespace fgl::engine
 {

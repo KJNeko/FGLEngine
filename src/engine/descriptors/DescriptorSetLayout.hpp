@@ -9,7 +9,7 @@
 #include "engine/concepts/is_descriptor.hpp"
 #include "engine/concepts/is_descriptor_set.hpp"
 #include "engine/concepts/is_empty_descriptor_set.hpp"
-#include "engine/rendering/Device.hpp"
+#include "engine/rendering/devices/Device.hpp"
 
 namespace fgl::engine::descriptors
 {

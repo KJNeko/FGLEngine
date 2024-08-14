@@ -18,11 +18,9 @@
 #include "engine/debug/DEBUG_NAMES.hpp"
 #include "engine/descriptors/DescriptorPool.hpp"
 #include "engine/model/Model.hpp"
-#include "engine/rendering/Device.hpp"
 #include "engine/rendering/Renderer.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
 #include "gui_window_names.hpp"
-#include "helpers.hpp"
 #include "safe_include.hpp"
 
 namespace fgl::engine::gui
@@ -207,30 +205,6 @@ namespace fgl::engine::gui
 		ImGui::End();
 	}
 
-	void drawObject( GameObject& game_object )
-	{
-		static std::string name_input_temp { "" };
-		name_input_temp = game_object.getName();
-		ImGui::InputText( "Name", &name_input_temp );
-		if ( game_object.getName() != name_input_temp ) game_object.setName( name_input_temp );
-
-		// Transform - Position
-		dragFloat3( "Position", game_object.getTransform().translation.vec() );
-
-		dragFloat3Rot( "Rotation", game_object.getRotation() );
-
-		dragFloat3( "Scale", game_object.getScale() );
-	}
-
-	void drawComponents( const GameObject& game_object )
-	{
-		for ( ComponentEditorInterface* component : game_object.getComponents() )
-		{
-			ImGui::Separator();
-			component->drawImGui();
-		}
-	}
-
 	void drawEntityInfo( [[maybe_unused]] FrameInfo& info )
 	{
 		ZoneScoped;
@@ -243,7 +217,7 @@ namespace fgl::engine::gui
 		}
 
 		drawObject( *selected_object );
-		drawComponents( *selected_object );
+		drawComponentsList( *selected_object );
 
 		ImGui::End();
 	}

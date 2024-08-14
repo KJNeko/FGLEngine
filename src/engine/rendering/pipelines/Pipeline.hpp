@@ -8,10 +8,10 @@
 #include <vector>
 
 #include "PipelineConfigInfo.hpp"
-#include "engine/rendering/Device.hpp"
 
 namespace fgl::engine
 {
+	class Device;
 	struct ShaderHandle;
 }
 

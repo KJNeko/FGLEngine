@@ -170,7 +170,7 @@ namespace fgl::engine
 
 		global_device = this;
 
-		DescriptorPool::init( *global_device );
+		DescriptorPool::init();
 	}
 
 	Device::~Device()

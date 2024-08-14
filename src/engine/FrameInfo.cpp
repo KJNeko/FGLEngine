@@ -6,7 +6,7 @@
 
 #include "camera/Camera.hpp"
 #include "camera/CameraSwapchain.hpp"
-#include "pipeline/Pipeline.hpp"
+#include "rendering/pipelines/Pipeline.hpp"
 
 namespace fgl::engine
 {

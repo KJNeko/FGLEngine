@@ -22,28 +22,16 @@ namespace fgl::engine
 		ModelComponent( std::shared_ptr< Model > && model ) : m_model( std::forward< decltype( m_model ) >( model ) )
 		{}
 
-#ifdef TITOR_EDITOR
 		void drawImGui() override;
 
-		std::string_view name() const override
-		{
-			//TODO: Get name of component
-			return "TEST NAME";
-		}
-#endif
+		std::string_view name() const override;
 
 		virtual ~ModelComponent() override
 		{}
 
-		Model* operator->()
-		{
-			return m_model.get();
-		}
+		Model* operator->();
 
-		const Model* operator->() const
-		{
-			return m_model.get();
-		}
+		const Model* operator->() const;
 	};
 
 	static_assert( is_component< ModelComponent > );

@@ -6,7 +6,7 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include "engine/rendering/Device.hpp"
+#include "engine/rendering/devices/Device.hpp"
 
 namespace fgl::engine
 {

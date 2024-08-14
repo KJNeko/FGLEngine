@@ -7,7 +7,7 @@
 #include <fstream>
 
 #include "Shader.hpp"
-#include "engine/model/Model.hpp"
+#include "engine/rendering/devices/Device.hpp"
 
 namespace fgl::engine::internal
 {

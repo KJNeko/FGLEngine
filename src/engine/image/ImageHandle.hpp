@@ -9,7 +9,7 @@
 #include <memory>
 
 #include "engine/logging/logging.hpp"
-#include "engine/rendering/Device.hpp"
+#include "engine/rendering/devices/Device.hpp"
 #include "vma/vma_impl.hpp"
 #include "vulkan/vulkan.hpp"
 

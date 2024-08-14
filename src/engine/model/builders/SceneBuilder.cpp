@@ -433,7 +433,8 @@ namespace fgl::engine
 
 		const auto bounding_box { createModelBoundingBox( finished_primitives ) };
 
-		return std::make_shared< Model >( std::move( finished_primitives ), bounding_box, mesh.name );
+		return std::make_shared<
+			Model >( std::move( finished_primitives ), bounding_box, mesh.name.empty() ? "Unnamed Model" : mesh.name );
 	}
 
 	void SceneBuilder::handleNode( const int node_idx, const tinygltf::Model& root )

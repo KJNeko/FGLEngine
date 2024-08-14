@@ -4,11 +4,11 @@
 
 #pragma once
 
+#include "../../concepts/is_descriptor_set_collection.hpp"
+#include "../../concepts/is_empty_descriptor_set.hpp"
+#include "../../descriptors/DescriptorSet.hpp"
 #include "Pipeline.hpp"
 #include "Shader.hpp"
-#include "engine/concepts/is_descriptor_set_collection.hpp"
-#include "engine/concepts/is_empty_descriptor_set.hpp"
-#include "engine/descriptors/DescriptorSet.hpp"
 
 namespace fgl::engine
 {

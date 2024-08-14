@@ -25,7 +25,7 @@ namespace fgl::engine::descriptors
 	{
 		vk::raii::DescriptorPool m_pool;
 
-		DescriptorPool( Device& device, std::uint32_t set_count );
+		DescriptorPool( std::uint32_t set_count );
 
 	  public:
 
@@ -38,7 +38,7 @@ namespace fgl::engine::descriptors
 
 		VkDescriptorPool operator*() { return *m_pool; }
 
-		static DescriptorPool& init( Device& device );
+		static DescriptorPool& init();
 		[[nodiscard]] static DescriptorPool& getInstance();
 
 		[[nodiscard]] vk::raii::DescriptorSet allocateSet( vk::raii::DescriptorSetLayout& layout );

@@ -6,8 +6,8 @@
 
 #include <vulkan/vulkan_raii.hpp>
 
-#include "QueuePool.hpp"
 #include "engine/FGL_DEFINES.hpp"
+#include "engine/rendering/QueuePool.hpp"
 
 namespace fgl::engine
 {

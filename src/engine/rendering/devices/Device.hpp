@@ -5,10 +5,10 @@
 
 #include <vector>
 
-#include "Instance.hpp"
 #include "PhysicalDevice.hpp"
-#include "Surface.hpp"
 #include "engine/Window.hpp"
+#include "engine/rendering/Instance.hpp"
+#include "engine/rendering/Surface.hpp"
 #include "vma/vma_impl.hpp"
 
 namespace fgl::engine

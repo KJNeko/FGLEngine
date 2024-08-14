@@ -4,7 +4,7 @@
 
 #include "PipelineConfigInfo.hpp"
 
-#include "engine/model/Model.hpp"
+#include "../../model/Model.hpp"
 
 namespace fgl::engine
 {
@@ -91,6 +91,7 @@ namespace fgl::engine
 		{
 			case None:
 				disableVertexInput( info );
+				break;
 			case Simple:
 				{
 					info.binding_descriptions = SimpleVertex::getBindingDescriptions();

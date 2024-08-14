@@ -4,9 +4,9 @@
 
 #include "PhysicalDevice.hpp"
 
-#include "Instance.hpp"
-#include "Surface.hpp"
 #include "engine/logging/logging.hpp"
+#include "engine/rendering/Instance.hpp"
+#include "engine/rendering/Surface.hpp"
 
 namespace fgl::engine
 {

@@ -67,11 +67,7 @@ namespace fgl::engine
 
 		void loadGameObjects();
 
-#ifdef TITOR_EDITOR
-
 	  public:
-
-#endif
 
 		FGL_FORCE_INLINE_FLATTEN void hookInitImGui( const std::function< void( Window&, Renderer& ) >& func )
 		{

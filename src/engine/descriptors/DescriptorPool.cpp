@@ -4,12 +4,12 @@
 
 #include "DescriptorPool.hpp"
 
-#include "engine/rendering/Device.hpp"
+#include "engine/rendering/devices/Device.hpp"
 
 namespace fgl::engine::descriptors
 {
 
-	vk::raii::DescriptorPool createPool( Device& device, std::uint32_t set_count )
+	vk::raii::DescriptorPool createPool( std::uint32_t set_count )
 	{
 		std::vector< vk::DescriptorPoolSize > pool_sizes {};
 		for ( auto& [ type, ratio ] : descriptor_allocation_ratios )
@@ -24,11 +24,10 @@ namespace fgl::engine::descriptors
 		pool_info.setFlags(
 			vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet | vk::DescriptorPoolCreateFlagBits::eUpdateAfterBind );
 
-		return device->createDescriptorPool( pool_info );
+		return Device::getInstance()->createDescriptorPool( pool_info );
 	}
 
-	DescriptorPool::DescriptorPool( Device& device, std::uint32_t set_count ) :
-	  m_pool( createPool( device, set_count ) )
+	DescriptorPool::DescriptorPool( std::uint32_t set_count ) : m_pool( createPool( set_count ) )
 	{}
 
 	[[nodiscard]] vk::raii::DescriptorSet DescriptorPool::allocateSet( vk::raii::DescriptorSetLayout& layout )
@@ -48,10 +47,10 @@ namespace fgl::engine::descriptors
 
 	static DescriptorPool* s_pool { nullptr };
 
-	DescriptorPool& DescriptorPool::init( Device& device )
+	DescriptorPool& DescriptorPool::init()
 	{
 		assert( !s_pool && "Descriptor pool already initialized" );
-		s_pool = new DescriptorPool( device, 1000 );
+		s_pool = new DescriptorPool( 1000 );
 		return *s_pool;
 	}
 

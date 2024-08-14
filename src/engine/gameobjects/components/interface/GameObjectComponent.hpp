@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "ComponentEngineInterface.hpp"
 #include "engine/primitives/TransformComponent.hpp"
 
@@ -16,7 +18,7 @@ namespace fgl::engine
 	{
 		enum Mode
 		{
-			//! Object is non moving,
+			//! Object is non moving, When this is set only the transform on the component should be used.
 			Static,
 			//! Object moves in relation to it's parent
 			Local,
@@ -26,7 +28,13 @@ namespace fgl::engine
 	};
 
 	struct GameObjectComponentBase : public ComponentEditorInterface, public ComponentEngineInterface
-	{};
+	{
+		std::vector< GameObjectComponentBase* > m_children {};
+
+		void drawNode( GameObjectComponentBase*& selected_out );
+
+		void drawChildren( GameObjectComponentBase*& selected_out );
+	};
 
 	using GameObjectComponentPtr = GameObjectComponentBase*;
 
@@ -44,7 +52,9 @@ namespace fgl::engine
 	template < typename T >
 	concept is_component = requires( T t ) {
 		std::is_base_of_v< T, ComponentEngineInterface >;
-		{ t.ID } -> std::same_as< const ComponentEngineInterface::ComponentID& >;
+		{
+			t.ID
+		} -> std::same_as< const ComponentEngineInterface::ComponentID& >;
 	};
 
 } // namespace fgl::engine

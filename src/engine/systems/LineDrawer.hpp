@@ -3,11 +3,11 @@
 //
 
 #pragma once
+#include "../rendering/pipelines/PipelineT.hpp"
 #include "engine/buffers/vector/HostVector.hpp"
 #include "engine/camera/CameraDescriptor.hpp"
 #include "engine/descriptors/Descriptor.hpp"
 #include "engine/descriptors/DescriptorSetCollection.hpp"
-#include "engine/pipeline/PipelineT.hpp"
 #include "engine/rendering/SwapChain.hpp"
 
 namespace fgl::engine

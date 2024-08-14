@@ -5,7 +5,7 @@
 #include "CameraRenderer.hpp"
 
 #include "CameraSwapchain.hpp"
-#include "engine/rendering/RenderPass.hpp"
+#include "engine/rendering/renderpass/RenderPass.hpp"
 
 namespace fgl::engine
 {

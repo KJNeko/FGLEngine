@@ -11,7 +11,6 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "Device.hpp"
 #include "SwapChain.hpp"
 #include "engine/Window.hpp"
 

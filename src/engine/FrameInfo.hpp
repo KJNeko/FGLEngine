@@ -12,8 +12,8 @@
 
 #include "descriptors/Descriptor.hpp"
 #include "descriptors/DescriptorSetLayout.hpp"
-#include "pipeline/Pipeline.hpp"
 #include "primitives/Frustum.hpp"
+#include "rendering/pipelines/Pipeline.hpp"
 #include "rendering/types.hpp"
 
 #define MAX_LIGHTS 10

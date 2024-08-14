@@ -6,6 +6,7 @@
 
 namespace fgl::engine
 {
+	class GameObject;
 	class Device;
 	class Renderer;
 	class Window;
@@ -22,6 +23,10 @@ namespace fgl::engine::gui
 
 	void drawEntityInfo( FrameInfo& );
 	void drawFilesystemGUI( FrameInfo& info );
+
+	void drawObject( GameObject& game_object );
+	void drawComponentsList( GameObject& game_object );
+	void drawSelectedComponent();
 
 	void drawCameraOutputs( FrameInfo& info );
 

@@ -74,6 +74,8 @@ namespace fgl::engine
 
 		PrimitiveTextures m_textures;
 
+		std::string m_name { "Unnamed Primitive" };
+
 		//! Returns true if the primitive is ready to be rendered (must have all textures, vertex buffer, and index buffer ready)
 		bool ready() const { return m_textures.ready() && m_vertex_buffer.ready() && m_index_buffer.ready(); }
 

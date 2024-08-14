@@ -7,11 +7,10 @@
 #include <limits>
 #include <stdexcept>
 
-#include "Attachment.hpp"
-#include "RenderPass.hpp"
-#include "Subpass.hpp"
 #include "engine/assets/TransferManager.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
+#include "pipelines/Attachment.hpp"
+#include "renderpass/RenderPass.hpp"
 
 namespace fgl::engine
 {

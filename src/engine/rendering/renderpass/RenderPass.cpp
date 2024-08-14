@@ -4,7 +4,7 @@
 
 #include "RenderPass.hpp"
 
-#include "Device.hpp"
+#include "engine/rendering/devices/Device.hpp"
 
 namespace fgl::engine::rendering
 {

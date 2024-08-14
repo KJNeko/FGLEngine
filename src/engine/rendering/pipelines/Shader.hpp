@@ -8,7 +8,7 @@
 
 #include <fstream>
 
-#include "engine/logging/logging.hpp"
+#include "../../logging/logging.hpp"
 
 namespace fgl::engine
 {

@@ -9,8 +9,8 @@
 #include <array>
 #include <cstdint>
 
-#include "Attachment.hpp"
 #include "engine/concepts/is_attachment.hpp"
+#include "pipelines/Attachment.hpp"
 
 namespace fgl::engine
 {

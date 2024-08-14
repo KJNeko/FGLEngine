@@ -72,12 +72,14 @@ namespace fgl::engine
 		const std::string& getName() const { return m_name; }
 
 		Model(
-			ModelBuilder& builder, OrientedBoundingBox< CoordinateSpace::Model > bounding_box, std::string name = {} );
+			ModelBuilder& builder,
+			const OrientedBoundingBox< CoordinateSpace::Model >& bounding_box,
+			const std::string& name = {} );
 
 		Model(
 			std::vector< Primitive >&& primitives,
-			OrientedBoundingBox< CoordinateSpace::Model > bounding_box,
-			std::string name = {} );
+			const OrientedBoundingBox< CoordinateSpace::Model >& bounding_box,
+			const std::string& name = {} );
 
 		~Model() = default;
 

@@ -3,10 +3,10 @@
 #include <memory>
 #include <vector>
 
-#include "Attachment.hpp"
-#include "Device.hpp"
+#include "devices/Device.hpp"
 #include "engine/FrameInfo.hpp"
 #include "engine/texture/Texture.hpp"
+#include "pipelines/Attachment.hpp"
 #include "types.hpp"
 
 namespace fgl::engine
