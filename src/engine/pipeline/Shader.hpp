@@ -107,7 +107,7 @@ namespace fgl::engine
 			requires( IDX < ShaderCount )
 		using Shader = std::tuple_element_t< IDX, ShaderTuple >;
 
-		static_assert( ShaderCount >= 2, "Shader count must be two, Missing vertex or fragment?" );
+		static_assert( ShaderCount >= 1, "Shader count must be two, Missing vertex or fragment?" );
 
 		static std::vector< std::unique_ptr< ShaderHandle > > loadShaders()
 		{
