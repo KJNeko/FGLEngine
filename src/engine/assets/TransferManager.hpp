@@ -10,7 +10,7 @@
 
 #include "TransferData.hpp"
 #include "engine/FGL_DEFINES.hpp"
-#include "engine/buffers/vector/concepts.hpp"
+#include "engine/memory/buffers/vector/concepts.hpp"
 
 namespace fgl::engine
 {

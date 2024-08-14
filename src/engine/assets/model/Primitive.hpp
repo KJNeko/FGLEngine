@@ -7,7 +7,7 @@
 #include <cstdint>
 
 #include "ModelVertex.hpp"
-#include "engine/buffers/vector/DeviceVector.hpp"
+#include "engine/memory/buffers/vector/DeviceVector.hpp"
 #include "engine/primitives/CoordinateSpace.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"
 #include "engine/texture/Texture.hpp"

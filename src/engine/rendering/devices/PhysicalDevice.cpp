@@ -4,7 +4,7 @@
 
 #include "PhysicalDevice.hpp"
 
-#include "engine/logging/logging.hpp"
+#include "engine/debug/logging/logging.hpp"
 #include "engine/rendering/Instance.hpp"
 #include "engine/rendering/Surface.hpp"
 

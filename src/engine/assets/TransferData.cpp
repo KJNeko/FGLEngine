@@ -4,11 +4,11 @@
 
 #include "TransferData.hpp"
 
-#include "engine/buffers/exceptions.hpp"
-#include "engine/buffers/vector/HostVector.hpp"
-#include "engine/image/ImageHandle.hpp"
-#include "engine/literals/size.hpp"
-#include "engine/logging/logging.hpp"
+#include "engine/memory/buffers/exceptions.hpp"
+#include "engine/memory/buffers/vector/HostVector.hpp"
+#include "engine/assets/image/ImageHandle.hpp"
+#include "engine/math/literals/size.hpp"
+#include "engine/debug/logging/logging.hpp"
 #include "engine/utils.hpp"
 
 namespace fgl::engine::memory

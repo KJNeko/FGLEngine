@@ -3,11 +3,11 @@
 //
 
 #pragma once
-#include "../rendering/pipelines/PipelineT.hpp"
-#include "../rendering/pipelines/Shader.hpp"
 #include "engine/FrameInfo.hpp"
 #include "engine/descriptors/DescriptorSetCollection.hpp"
 #include "engine/descriptors/DescriptorSetLayout.hpp"
+#include "engine/rendering/pipelines/PipelineT.hpp"
+#include "engine/rendering/pipelines/Shader.hpp"
 
 namespace fgl::engine
 {

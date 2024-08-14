@@ -16,8 +16,8 @@
 #include "camera/CameraManager.hpp"
 #include "engine/Average.hpp"
 #include "engine/assets/TransferManager.hpp"
-#include "engine/literals/size.hpp"
-#include "model/builders/SceneBuilder.hpp"
+#include "engine/assets/model/builders/SceneBuilder.hpp"
+#include "engine/math/literals/size.hpp"
 
 namespace fgl::engine
 {

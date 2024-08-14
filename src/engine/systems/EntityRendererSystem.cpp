@@ -9,7 +9,7 @@
 
 #include "DrawPair.hpp"
 #include "engine/camera/Camera.hpp"
-#include "engine/profiling/counters.hpp"
+#include "engine/debug/profiling/counters.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
 
 namespace fgl::engine

@@ -12,8 +12,8 @@
 #include <glm/gtx/string_cast.hpp>
 #pragma GCC diagnostic pop
 
-#include "engine/buffers/HostSingleT.hpp"
-#include "engine/buffers/UniqueFrameSuballocation.hpp"
+#include "engine/memory/buffers/HostSingleT.hpp"
+#include "engine/memory/buffers/UniqueFrameSuballocation.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/primitives/Frustum.hpp"
 #include "engine/primitives/Rotation.hpp"

@@ -3,8 +3,8 @@
 //
 
 #pragma once
-#include "../rendering/pipelines/PipelineT.hpp"
-#include "engine/buffers/vector/HostVector.hpp"
+#include "engine/rendering/pipelines/PipelineT.hpp"
+#include "engine/memory/buffers/vector/HostVector.hpp"
 #include "engine/camera/CameraDescriptor.hpp"
 #include "engine/descriptors/Descriptor.hpp"
 #include "engine/descriptors/DescriptorSetCollection.hpp"

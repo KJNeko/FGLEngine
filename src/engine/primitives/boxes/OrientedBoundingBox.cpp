@@ -8,8 +8,8 @@
 
 #include <array>
 
-#include "engine/logging/logging.hpp"
-#include "engine/model/ModelVertex.hpp"
+#include "engine/debug/logging/logging.hpp"
+#include "engine/assets/model/ModelVertex.hpp"
 #include "engine/primitives/lines/LineSegment.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 

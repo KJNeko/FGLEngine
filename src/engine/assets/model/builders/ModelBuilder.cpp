@@ -4,7 +4,7 @@
 
 #include "ModelBuilder.hpp"
 
-#include "engine/model/Primitive.hpp"
+#include "engine/assets/model/Primitive.hpp"
 
 namespace fgl::engine
 {

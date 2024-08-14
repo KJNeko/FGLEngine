@@ -6,9 +6,8 @@
 
 #include <vulkan/vulkan_raii.hpp>
 
+#include <filesystem>
 #include <fstream>
-
-#include "../../logging/logging.hpp"
 
 namespace fgl::engine
 {
@@ -39,8 +38,8 @@ namespace fgl::engine
 
 		vk::raii::ShaderModule shader_module;
 
-		std::vector< std::byte > loadData( const std::filesystem::path& );
-		vk::ShaderModuleCreateInfo createModuleInfo();
+		static std::vector< std::byte > loadData( const std::filesystem::path& );
+		vk::ShaderModuleCreateInfo createModuleInfo() const;
 
 		ShaderHandle( const std::filesystem::path& path, const vk::PipelineShaderStageCreateInfo& info );
 

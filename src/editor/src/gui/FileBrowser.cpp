@@ -7,10 +7,10 @@
 #include <cmath>
 
 #include "engine/assets/stores.hpp"
+#include "engine/debug/logging/logging.hpp"
 #include "engine/filesystem/scanner/FileScanner.hpp"
 #include "engine/filesystem/types.hpp"
-#include "engine/image/ImageView.hpp"
-#include "engine/logging/logging.hpp"
+#include "engine/assets/image/ImageView.hpp"
 #include "engine/texture/Texture.hpp"
 #include "safe_include.hpp"
 

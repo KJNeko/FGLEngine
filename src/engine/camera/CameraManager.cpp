@@ -6,7 +6,7 @@
 
 #include "Camera.hpp"
 #include "engine/debug/DEBUG_NAMES.hpp"
-#include "engine/literals/size.hpp"
+#include "engine/math/literals/size.hpp"
 
 namespace fgl::engine
 {

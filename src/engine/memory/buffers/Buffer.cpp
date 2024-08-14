@@ -6,8 +6,8 @@
 
 #include "BufferSuballocationHandle.hpp"
 #include "align.hpp"
-#include "engine/buffers/exceptions.hpp"
-#include "engine/literals/size.hpp"
+#include "engine/memory/buffers/exceptions.hpp"
+#include "engine/math/literals/size.hpp"
 #include "engine/rendering/devices/Device.hpp"
 
 namespace fgl::engine::memory

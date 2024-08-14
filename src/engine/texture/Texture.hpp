@@ -9,8 +9,8 @@
 #include <filesystem>
 
 #include "engine/assets/AssetManager.hpp"
-#include "engine/image/ImageView.hpp"
-#include "engine/image/Sampler.hpp"
+#include "engine/assets/image/ImageView.hpp"
+#include "engine/assets/image/Sampler.hpp"
 
 namespace fgl::engine
 {

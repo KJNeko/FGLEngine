@@ -10,8 +10,8 @@
 #include <queue>
 
 #include "DescriptorPool.hpp"
-#include "engine/buffers/BufferSuballocation.hpp"
-#include "engine/image/ImageView.hpp"
+#include "engine/memory/buffers/BufferSuballocation.hpp"
+#include "engine/assets/image/ImageView.hpp"
 #include "engine/rendering/SwapChain.hpp"
 #include "engine/texture/Texture.hpp"
 

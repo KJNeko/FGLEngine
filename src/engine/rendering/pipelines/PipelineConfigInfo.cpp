@@ -4,7 +4,7 @@
 
 #include "PipelineConfigInfo.hpp"
 
-#include "../../model/Model.hpp"
+#include "engine/assets/model/Model.hpp"
 
 namespace fgl::engine
 {

@@ -6,7 +6,7 @@
 
 #include <cstdint>
 
-#include "engine/buffers/Buffer.hpp"
+#include "engine/memory/buffers/Buffer.hpp"
 #include "engine/concepts/is_descriptor.hpp"
 
 namespace fgl::engine::descriptors

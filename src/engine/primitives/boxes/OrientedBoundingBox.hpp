@@ -9,7 +9,6 @@
 
 #include "BoundingBox.hpp"
 #include "engine/constants.hpp"
-#include "engine/logging/logging.hpp"
 #include "engine/primitives/Scale.hpp"
 #include "engine/primitives/TransformComponent.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"

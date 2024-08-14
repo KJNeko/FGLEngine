@@ -4,12 +4,12 @@
 
 #include "TransferManager.hpp"
 
-#include "engine/buffers/Buffer.hpp"
-#include "engine/buffers/BufferSuballocation.hpp"
-#include "engine/buffers/vector/HostVector.hpp"
-#include "engine/image/Image.hpp"
-#include "engine/image/ImageHandle.hpp"
-#include "engine/literals/size.hpp"
+#include "engine/memory/buffers/Buffer.hpp"
+#include "engine/memory/buffers/BufferSuballocation.hpp"
+#include "engine/memory/buffers/vector/HostVector.hpp"
+#include "engine/assets/image/Image.hpp"
+#include "engine/assets/image/ImageHandle.hpp"
+#include "engine/math/literals/size.hpp"
 #include "engine/texture/Texture.hpp"
 
 namespace fgl::engine::memory

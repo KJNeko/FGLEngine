@@ -4,7 +4,7 @@
 
 #include "terrainModel.hpp"
 
-#include "engine/model/Model.hpp"
+#include "engine/assets/model/Model.hpp"
 
 namespace fgl::engine
 {

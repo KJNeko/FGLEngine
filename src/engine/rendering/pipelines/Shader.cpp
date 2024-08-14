@@ -4,6 +4,7 @@
 
 #include "Shader.hpp"
 
+#include "engine/debug/logging/logging.hpp"
 #include "engine/rendering/devices/Device.hpp"
 #include "shaders/Compiler.hpp"
 
@@ -33,7 +34,7 @@ namespace fgl::engine
 		}
 	}
 
-	vk::ShaderModuleCreateInfo ShaderHandle::createModuleInfo()
+	vk::ShaderModuleCreateInfo ShaderHandle::createModuleInfo() const
 	{
 		vk::ShaderModuleCreateInfo module_info {};
 		module_info.flags = {};

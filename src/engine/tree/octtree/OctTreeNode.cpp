@@ -8,7 +8,7 @@
 #include <engine/FrameInfo.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-#include "engine/model/Model.hpp"
+#include "engine/assets/model/Model.hpp"
 #include "engine/primitives/Frustum.hpp"
 
 namespace fgl::engine

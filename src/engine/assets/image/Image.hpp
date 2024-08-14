@@ -6,7 +6,7 @@
 
 #include <memory>
 
-#include "engine/image/ImageHandle.hpp"
+#include "engine/assets/image/ImageHandle.hpp"
 
 namespace fgl::engine
 {

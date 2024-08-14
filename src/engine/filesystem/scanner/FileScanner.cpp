@@ -8,8 +8,10 @@
 
 #include "FileScanner.hpp"
 
+#include <unordered_map>
+
 #include "engine/FGL_DEFINES.hpp"
-#include "engine/logging/logging.hpp"
+#include "engine/debug/logging/logging.hpp"
 
 namespace fgl::engine::filesystem
 {

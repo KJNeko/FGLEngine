@@ -8,7 +8,7 @@
 
 #include <variant>
 
-#include "engine/buffers/BufferSuballocation.hpp"
+#include "engine/memory/buffers/BufferSuballocation.hpp"
 #include "engine/rendering/types.hpp"
 
 namespace fgl::engine

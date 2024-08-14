@@ -5,10 +5,10 @@
 #include "LineDrawer.hpp"
 
 #include "engine/FrameInfo.hpp"
-#include "engine/buffers/vector/HostVector.hpp"
+#include "engine/memory/buffers/vector/HostVector.hpp"
 #include "engine/camera/CameraDescriptor.hpp"
-#include "engine/model/ModelVertex.hpp"
-#include "engine/model/SimpleVertex.hpp"
+#include "engine/assets/model/ModelVertex.hpp"
+#include "engine/assets/model/SimpleVertex.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 
 namespace fgl::engine

@@ -17,7 +17,7 @@
 #include "FileBrowser.hpp"
 #include "engine/debug/DEBUG_NAMES.hpp"
 #include "engine/descriptors/DescriptorPool.hpp"
-#include "engine/model/Model.hpp"
+#include "engine/assets/model/Model.hpp"
 #include "engine/rendering/Renderer.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
 #include "gui_window_names.hpp"

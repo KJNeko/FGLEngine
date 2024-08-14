@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "engine/buffers/BufferSuballocation.hpp"
+#include "engine/memory/buffers/BufferSuballocation.hpp"
 
 namespace fgl::engine::memory
 {

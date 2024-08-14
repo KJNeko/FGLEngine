@@ -9,9 +9,9 @@
 #include "engine/FrameInfo.hpp"
 #include "engine/assets/TransferManager.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
-#include "engine/image/Image.hpp"
-#include "engine/image/ImageView.hpp"
-#include "engine/logging/logging.hpp"
+#include "engine/assets/image/Image.hpp"
+#include "engine/assets/image/ImageView.hpp"
+#include "engine/debug/logging/logging.hpp"
 #include "engine/math/noise/perlin/generator.hpp"
 
 #pragma GCC diagnostic push

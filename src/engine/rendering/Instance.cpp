@@ -9,7 +9,7 @@
 #include <iostream>
 #include <unordered_set>
 
-#include "engine/logging/logging.hpp"
+#include "engine/debug/logging/logging.hpp"
 
 PFN_vkCreateDebugUtilsMessengerEXT pfnVkCreateDebugUtilsMessengerEXT { nullptr };
 PFN_vkDestroyDebugUtilsMessengerEXT pfnVkDestroyDebugUtilsMessengerEXT { nullptr };

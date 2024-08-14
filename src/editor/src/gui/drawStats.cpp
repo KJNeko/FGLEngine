@@ -2,9 +2,9 @@
 #include <vulkan/vulkan.hpp>
 
 #include "core.hpp"
-#include "engine/buffers/Buffer.hpp"
-#include "engine/literals/size.hpp"
-#include "engine/profiling/counters.hpp"
+#include "engine/memory/buffers/Buffer.hpp"
+#include "engine/math/literals/size.hpp"
+#include "engine/debug/profiling/counters.hpp"
 #include "safe_include.hpp"
 
 namespace fgl::engine::gui

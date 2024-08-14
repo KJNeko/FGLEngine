@@ -4,7 +4,7 @@
 
 #include "SceneBuilder.hpp"
 
-#include "engine/model/Model.hpp"
+#include "engine/assets/model/Model.hpp"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -12,13 +12,12 @@
 #include "objectloaders/tiny_gltf.h"
 #pragma GCC diagnostic pop
 
-#include <engine/logging/logging.hpp>
-
 #include "engine/assets/stores.hpp"
 #include "engine/camera/Camera.hpp"
+#include "engine/debug/logging/logging.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/gameobjects/GameObject.hpp"
-#include "engine/image/ImageView.hpp"
+#include "engine/assets/image/ImageView.hpp"
 
 namespace fgl::engine
 {

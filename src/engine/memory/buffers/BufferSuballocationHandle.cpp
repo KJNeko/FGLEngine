@@ -6,7 +6,7 @@
 
 #include "Buffer.hpp"
 #include "BufferSuballocation.hpp"
-#include "engine/logging/logging.hpp"
+#include "engine/debug/logging/logging.hpp"
 
 namespace fgl::engine::memory
 {

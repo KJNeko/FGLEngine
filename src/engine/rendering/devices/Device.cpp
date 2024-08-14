@@ -10,7 +10,7 @@
 #include <set>
 #include <unordered_set>
 
-#include "engine/logging/logging.hpp"
+#include "engine/debug/logging/logging.hpp"
 
 namespace fgl::engine
 {

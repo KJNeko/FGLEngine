@@ -7,8 +7,8 @@
 #include "BufferVector.hpp"
 #include "concepts.hpp"
 #include "engine/assets/TransferManager.hpp"
-#include "engine/literals/size.hpp"
-#include "engine/logging/logging.hpp"
+#include "engine/math/literals/size.hpp"
+#include "engine/debug/logging/logging.hpp"
 
 namespace fgl::engine
 {

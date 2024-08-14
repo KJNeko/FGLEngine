@@ -5,7 +5,7 @@
 #include "engine/gameobjects/components/ModelComponent.hpp"
 
 #include "engine/gameobjects/components/drawers.hpp"
-#include "engine/model/Model.hpp"
+#include "engine/assets/model/Model.hpp"
 #include "gui/safe_include.hpp"
 
 namespace fgl::engine

@@ -9,8 +9,8 @@
 
 #include "builders/ModelBuilder.hpp"
 #include "builders/SceneBuilder.hpp"
-#include "engine/buffers/Buffer.hpp"
-#include "engine/image/ImageView.hpp"
+#include "engine/memory/buffers/Buffer.hpp"
+#include "engine/assets/image/ImageView.hpp"
 
 namespace fgl::engine
 {

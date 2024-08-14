@@ -12,8 +12,8 @@
 #include <unordered_map>
 
 #include "ModelBuilder.hpp"
-#include "engine/model/ModelVertex.hpp"
-#include "engine/model/Primitive.hpp"
+#include "engine/assets/model/ModelVertex.hpp"
+#include "engine/assets/model/Primitive.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"
 
 namespace fgl::engine

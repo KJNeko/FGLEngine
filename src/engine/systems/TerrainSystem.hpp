@@ -4,13 +4,13 @@
 
 #pragma once
 
-#include "../rendering/pipelines/PipelineT.hpp"
+#include "engine/rendering/pipelines/PipelineT.hpp"
 #include "concepts.hpp"
 #include "engine/FrameInfo.hpp"
-#include "engine/buffers/vector/HostVector.hpp"
+#include "engine/memory/buffers/vector/HostVector.hpp"
 #include "engine/camera/Camera.hpp"
 #include "engine/descriptors/DescriptorSetCollection.hpp"
-#include "engine/model/Model.hpp"
+#include "engine/assets/model/Model.hpp"
 #include "engine/rendering/SwapChain.hpp"
 
 namespace fgl::engine
