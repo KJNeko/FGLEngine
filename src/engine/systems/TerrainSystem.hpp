@@ -2,8 +2,7 @@
 // Created by kj16609 on 3/11/24.
 //
 
-#ifndef GAME_TERRAINSYSTEM_HPP
-#define GAME_TERRAINSYSTEM_HPP
+#pragma once
 
 #include "concepts.hpp"
 #include "engine/FrameInfo.hpp"
@@ -80,5 +79,3 @@ namespace fgl::engine
 	*/
 
 } // namespace fgl::engine
-
-#endif //GAME_TERRAINSYSTEM_HPP
