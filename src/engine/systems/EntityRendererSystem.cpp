@@ -9,22 +9,11 @@
 
 #include "DrawPair.hpp"
 #include "engine/camera/Camera.hpp"
-#include "engine/literals/size.hpp"
 #include "engine/profiling/counters.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
 
 namespace fgl::engine
 {
-	std::unique_ptr< memory::Buffer > m_global_draw_parameter_buffer { nullptr };
-
-	void initDrawParameterBuffer( std::uint32_t size )
-	{
-		m_global_draw_parameter_buffer = std::make_unique< memory::Buffer >(
-			size,
-			vk::BufferUsageFlagBits::eIndirectBuffer,
-			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eDeviceLocal );
-	}
-
 	EntityRendererSystem::EntityRendererSystem( Device& device, vk::raii::RenderPass& render_pass ) : m_device( device )
 	{
 		ZoneScoped;
@@ -45,10 +34,6 @@ namespace fgl::engine
 			m_textured_pipeline = std::make_unique< TexturedPipeline >( m_device, std::move( textured_info ) );
 			m_textured_pipeline->setDebugName( "Textured entity pipeline" );
 		}
-
-		using namespace fgl::literals::size_literals;
-
-		initDrawParameterBuffer( 1_KiB );
 	}
 
 	vk::raii::CommandBuffer& EntityRendererSystem::setupSystem( FrameInfo& info )
