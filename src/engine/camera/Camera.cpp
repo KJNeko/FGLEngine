@@ -69,6 +69,15 @@ namespace fgl::engine
 
 	void Camera::pass( FrameInfo& frame_info )
 	{
+		if ( m_cold && m_swapchain )
+		{
+			//TODO: Make some way to destroy the swapchain in a deffered manner.
+			m_old_swapchain = m_swapchain;
+			m_swapchain = nullptr;
+		}
+
+		if ( !m_active ) return;
+
 		assert( frame_info.camera == nullptr );
 		frame_info.camera = this;
 

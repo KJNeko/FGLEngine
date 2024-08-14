@@ -12,9 +12,9 @@
 #include <glm/gtx/string_cast.hpp>
 #pragma GCC diagnostic pop
 
+#include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/memory/buffers/HostSingleT.hpp"
 #include "engine/memory/buffers/UniqueFrameSuballocation.hpp"
-#include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/primitives/Frustum.hpp"
 #include "engine/primitives/Rotation.hpp"
 #include "engine/primitives/TransformComponent.hpp"
@@ -43,6 +43,13 @@ namespace fgl::engine
 	class Camera
 	{
 		inline static CameraIDX camera_counter { 0 };
+
+		//! True if the camera is active and to be rendered
+		bool m_active { true };
+
+		//! If true, The camera's swapchain is to be destroyed in order to preserve memory.
+		//! This is here to allow us to set a camera cold when it's not likely to be used soon
+		bool m_cold { false };
 
 		// Const is acceptable, Since this value should never change. EVER
 		const CameraIDX camera_idx { camera_counter++ };
