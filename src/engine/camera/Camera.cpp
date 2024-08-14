@@ -74,6 +74,7 @@ namespace fgl::engine
 			//TODO: Make some way to destroy the swapchain in a deffered manner.
 			m_old_swapchain = m_swapchain;
 			m_swapchain = nullptr;
+			m_active = false;
 		}
 
 		if ( !m_active ) return;
