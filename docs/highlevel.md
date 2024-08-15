@@ -35,3 +35,13 @@ Anything marked with (P) means that it should be capable of being recorded (comm
 
 - GBuffer composition (P)
 - Cameras within the view of other cameras are composited (How the ***FUCK*** do I do this? *No idea*)
+
+## Rendering
+
+Each renderable object (Model) will contain a handle to the kind of pipeline it wishes to use.
+
+When rendering the object will be placed into a map with it's pipeline idx as the key.
+This will then be used to collect all the models needing to use that pipeline, And they will be batched as calls depending on the call max size of the pipeline call (Defined by the pipeline).
+Objects will be split into groups and send to threads to begin the recording process.
+
+
