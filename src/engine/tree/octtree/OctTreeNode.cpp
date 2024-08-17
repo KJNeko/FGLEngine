@@ -167,7 +167,7 @@ namespace fgl::engine
 		new_nodes[ RIGHT ][ BACK ][ BOTTOM ] =
 			std::make_unique< OctTreeNode >( WorldCoordinate( right_x, backward_y, bottom_z ), half_span, this );
 
-		[[assume( game_objects.size() <= MAX_NODES_IN_LEAF )]];
+		FGL_ASSUME( game_objects.size() <= MAX_NODES_IN_LEAF )
 
 		for ( GameObject& obj : game_objects )
 		{
@@ -394,11 +394,11 @@ namespace fgl::engine
 
 			AxisAlignedBoundingBox< CoordinateSpace::World > new_bounds { game_objects[ 0 ].getPosition() };
 
-			[[assume( game_objects.size() <= MAX_NODES_IN_LEAF )]];
+			FGL_ASSUME( game_objects.size() <= MAX_NODES_IN_LEAF );
 
 			for ( std::size_t i = 1; i < game_objects.size(); ++i )
 			{
-				[[assume( i <= MAX_NODES_IN_LEAF )]];
+				FGL_ASSUME( i <= MAX_NODES_IN_LEAF ));
 				new_bounds.combine( game_objects[ i ].getBoundingBox() );
 			}
 

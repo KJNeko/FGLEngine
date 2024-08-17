@@ -42,7 +42,7 @@ namespace fgl::engine
 
 		m_node_data = std::move( new_nodes );
 
-		[[assume( leaf_data.size() <= MAX_QUAD_NODES_IN_LEAF )]];
+		FGL_ASSUME( leaf_data.size() <= MAX_QUAD_NODES_IN_LEAF );
 
 		for ( auto& item : leaf_data )
 		{
