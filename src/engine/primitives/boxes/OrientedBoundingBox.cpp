@@ -165,11 +165,11 @@ namespace fgl::engine
 
 		for ( auto i = 0; i < const_points.size(); ++i )
 		{
+			FGL_ASSUME( i < POINT_COUNT + 1 );
 			const glm::mat4 rot_mat { m_transform.mat4() };
 			const glm::vec3 point { const_points[ i ].vec() };
 
 			points[ i ] = Coordinate< CType >( rot_mat * glm::vec4( point, 1.0f ) );
-			FGL_ASSUME( i < POINT_COUNT );
 		}
 
 		return points;
