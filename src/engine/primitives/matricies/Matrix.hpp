@@ -39,17 +39,6 @@ namespace fgl::engine
 
 		glm::mat3 rotmat() const { return glm::mat3( *this ); }
 
-		// When extracting a quaternion from a matrix the matrix ***MUST*** be pure. No scale or translation is able to be in the same matrix
-		glm::quat quat() const
-		{
-			// Here's to hoping the compiler will properly optimize this function to oblivion?
-			[[maybe_unused]] glm::vec3 scale, translation, skew;
-			glm::quat quat;
-			[[maybe_unused]] glm::vec4 perspective;
-			glm::decompose( *this, scale, quat, translation, skew, perspective );
-			return quat;
-		}
-
 		explicit Matrix( const float i_value = 1.0f ) : glm::mat4( i_value ) {}
 
 		explicit Matrix( const glm::mat4& matrix ) : glm::mat4( matrix ) {}

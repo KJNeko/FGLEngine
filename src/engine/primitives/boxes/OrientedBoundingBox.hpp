@@ -81,27 +81,9 @@ namespace fgl::engine
 		assert( bounding_box.m_transform.translation.vec() != constants::DEFAULT_VEC3 );
 		assert( bounding_box.m_transform.scale != glm::vec3( 0.0f ) );
 
-		// Here's to hoping anything I don't use here (skew, perspecitve) doesn't cost any extra performance
-		// Compiler optimizer plz
-		[[maybe_unused]] glm::vec3 scale {}, translation {}, skew {};
-		glm::quat quat;
-		[[maybe_unused]] glm::vec4 perspective {};
-		glm::decompose( matrix, scale, quat, translation, skew, perspective );
+		const auto new_transform { matrix * bounding_box.m_transform };
 
-		glm::mat4 mat { 1.0f };
-		mat = glm::scale( mat, scale );
-		mat = glm::translate( mat, translation );
-
-		const Coordinate< EvolvedType< MType >() > new_middle { Matrix< MType >( mat )
-			                                                    * bounding_box.m_transform.translation };
-
-		const glm::vec3 new_scale { bounding_box.m_transform.scale * scale };
-
-		const Rotation new_rot { quat * static_cast< glm::quat >( bounding_box.m_transform.rotation ) };
-
-		TransformComponent< EvolvedType< MType >() > transform { new_middle, new_scale, new_rot };
-
-		return OrientedBoundingBox< EvolvedType< MType >() >( transform );
+		return OrientedBoundingBox< EvolvedType< MType >() >( new_transform );
 	}
 
 	OrientedBoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< ModelVertex >& verts );

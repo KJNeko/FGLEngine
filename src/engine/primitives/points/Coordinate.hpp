@@ -28,17 +28,18 @@ namespace fgl::engine
 		using glm::vec3::y;
 		using glm::vec3::z;
 
-		Coordinate( const Coordinate& other ) noexcept = default;
-		Coordinate( Coordinate&& other ) = default;
+		constexpr Coordinate( const Coordinate& other ) noexcept = default;
+		constexpr Coordinate( Coordinate&& other ) = default;
 
-		Coordinate() noexcept : glm::vec3( constants::DEFAULT_VEC3 ) {}
+		constexpr Coordinate() noexcept : glm::vec3( constants::DEFAULT_VEC3 ) {}
 
-		explicit Coordinate( const glm::vec3 position ) noexcept : glm::vec3( position ) {}
+		constexpr explicit Coordinate( const glm::vec3 position ) noexcept : glm::vec3( position ) {}
 
-		explicit Coordinate( const float i_x, const float i_y, const float i_z ) noexcept : glm::vec3( i_x, i_y, i_z )
+		constexpr explicit Coordinate( const float i_x, const float i_y, const float i_z ) noexcept :
+		  glm::vec3( i_x, i_y, i_z )
 		{}
 
-		explicit Coordinate( const float value ) : glm::vec3( value ) {}
+		constexpr explicit Coordinate( const float value ) : glm::vec3( value ) {}
 
 		explicit Coordinate( const Vector& vector );
 

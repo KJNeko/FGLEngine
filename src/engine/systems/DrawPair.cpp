@@ -8,9 +8,9 @@
 
 #include <unordered_map>
 
+#include "engine/assets/model/Model.hpp"
 #include "engine/debug/drawers.hpp"
 #include "engine/gameobjects/components/ModelComponent.hpp"
-#include "engine/assets/model/Model.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
 
 namespace fgl::engine

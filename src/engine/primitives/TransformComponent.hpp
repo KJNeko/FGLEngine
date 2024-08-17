@@ -58,6 +58,20 @@ namespace fgl::engine
 		NormalVector down() const { return -up(); }
 	};
 
+	template < MatrixType MType, CoordinateSpace CType >
+	TransformComponent< EvolvedType< MType >() >
+		operator*( const Matrix< MType >& matrix, const TransformComponent< CType >& transform )
+	{
+		const auto combined_matrix { matrix * transform.mat() };
+
+		[[maybe_unused]] glm::vec3 scale {}, translation {}, skew {};
+		glm::quat quat {};
+		[[maybe_unused]] glm::vec4 perspective {};
+		glm::decompose( combined_matrix, scale, quat, translation, skew, perspective );
+
+		return { Coordinate< EvolvedType< MType >() >( translation ), Scale( scale ), Rotation( quat ) };
+	}
+
 	// A game object will be going from world to camera space
 	using GameObjectTransform = TransformComponent< CoordinateSpace::World >;
 	// using ModelTransform = TransformComponent< CoordinateSpace::Model >;

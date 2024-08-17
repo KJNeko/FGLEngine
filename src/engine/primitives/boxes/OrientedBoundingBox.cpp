@@ -8,8 +8,8 @@
 
 #include <array>
 
-#include "engine/debug/logging/logging.hpp"
 #include "engine/assets/model/ModelVertex.hpp"
+#include "engine/debug/logging/logging.hpp"
 #include "engine/primitives/lines/LineSegment.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 
@@ -88,26 +88,27 @@ namespace fgl::engine
 	template < CoordinateSpace CType >
 	std::array< Coordinate< CType >, interface::BoundingBox::POINT_COUNT > OrientedBoundingBox< CType >::points() const
 	{
-		std::array< Coordinate< CType >, POINT_COUNT > points {};
-
 		// xp == x positive (Highest x point)
 		// xn == x negative (Lowest x point)
 
-		const glm::vec3 xp_yp_zp { m_transform.translation.vec() + static_cast< glm::vec3 >( m_transform.scale ) };
-		const glm::vec3 xn_yn_zn { m_transform.translation.vec() - static_cast< glm::vec3 >( m_transform.scale ) };
+		//const glm::vec3 xp_yp_zp { m_transform.translation.vec() + static_cast< glm::vec3 >( m_transform.scale ) };
+		//const glm::vec3 xn_yn_zn { m_transform.translation.vec() - static_cast< glm::vec3 >( m_transform.scale ) };
 
-		const auto xn { xn_yn_zn.x };
-		const auto yn { xn_yn_zn.y };
-		const auto zn { xn_yn_zn.z };
+		constexpr glm::vec3 xp_yp_zp { 1.0f, 1.0f, 1.0f };
+		constexpr glm::vec3 xn_yn_zn { -xp_yp_zp };
 
-		const auto xp { xp_yp_zp.x };
-		const auto yp { xp_yp_zp.y };
-		const auto zp { xp_yp_zp.z };
+		constexpr auto xn { xn_yn_zn.x };
+		constexpr auto yn { xn_yn_zn.y };
+		constexpr auto zn { xn_yn_zn.z };
+
+		constexpr auto xp { xp_yp_zp.x };
+		constexpr auto yp { xp_yp_zp.y };
+		constexpr auto zp { xp_yp_zp.z };
 
 		//Top
-		const glm::vec3 xn_yp_zp { xn, yp, zp }; // (- + +)
-		const glm::vec3 xn_yp_zn { xn, yp, zn }; // (- + -)
-		const glm::vec3 xp_yp_zn { xp, yp, zn }; // (+ + -)
+		constexpr glm::vec3 xn_yp_zp { xn, yp, zp }; // (- + +)
+		constexpr glm::vec3 xn_yp_zn { xn, yp, zn }; // (- + -)
+		constexpr glm::vec3 xp_yp_zn { xp, yp, zn }; // (+ + -)
 
 		/*
 		 * Top-Down view (X,Y,Z)
@@ -129,15 +130,15 @@ namespace fgl::engine
 		 * 6 =========== 7
 		 */
 
-		points[ 0 ] = Coordinate< CType >( xp_yp_zp );
-		points[ 1 ] = Coordinate< CType >( xn_yp_zp );
-		points[ 2 ] = Coordinate< CType >( xn_yp_zn );
-		points[ 3 ] = Coordinate< CType >( xp_yp_zn );
+		// points[ 0 ] = Coordinate< CType >( xp_yp_zp );
+		// points[ 1 ] = Coordinate< CType >( xn_yp_zp );
+		// points[ 2 ] = Coordinate< CType >( xn_yp_zn );
+		// points[ 3 ] = Coordinate< CType >( xp_yp_zn );
 
 		//Bottom
-		const glm::vec3 xn_yn_zp { xn, yn, zp }; // (- - +)
-		const glm::vec3 xp_yn_zn { xp, yn, zn }; // (+ - -)
-		const glm::vec3 xp_yn_zp { xp, yn, zp }; // (+ - +)
+		constexpr glm::vec3 xn_yn_zp { xn, yn, zp }; // (- - +)
+		constexpr glm::vec3 xp_yn_zn { xp, yn, zn }; // (+ - -)
+		constexpr glm::vec3 xp_yn_zp { xp, yn, zp }; // (+ - +)
 
 		/*
 		 * Bottom-Top view (X,Y,Z)
@@ -147,17 +148,28 @@ namespace fgl::engine
 		 * (-,-,-) =========== (+,-,-)
 		 */
 
-		points[ 4 ] = Coordinate< CType >( xp_yn_zp );
-		points[ 5 ] = Coordinate< CType >( xn_yn_zp );
-		points[ 6 ] = Coordinate< CType >( xn_yn_zn );
-		points[ 7 ] = Coordinate< CType >( xp_yn_zn );
+		// points[ 4 ] = Coordinate< CType >( xp_yn_zp );
+		// points[ 5 ] = Coordinate< CType >( xn_yn_zp );
+		// points[ 6 ] = Coordinate< CType >( xn_yn_zn );
+		// points[ 7 ] = Coordinate< CType >( xp_yn_zn );
 
-		for ( auto i = 0; i < points.size(); ++i )
+		constexpr static std::array< Coordinate< CType >, POINT_COUNT > const_points {
+			Coordinate< CType >( xp_yp_zp ), Coordinate< CType >( xn_yp_zp ), Coordinate< CType >( xn_yp_zn ),
+			Coordinate< CType >( xp_yp_zn ), Coordinate< CType >( xp_yn_zp ), Coordinate< CType >( xn_yn_zp ),
+			Coordinate< CType >( xn_yn_zn ), Coordinate< CType >( xp_yn_zn )
+		};
+
+		std::array< Coordinate< CType >, POINT_COUNT > points {};
+
+		static_assert( const_points.size() == points.size() );
+
+		for ( auto i = 0; i < const_points.size(); ++i )
 		{
-			const glm::mat3 rot_mat { m_transform.rotation.mat() };
-			const glm::vec3 point { points[ i ].vec() };
+			const glm::mat4 rot_mat { m_transform.mat4() };
+			const glm::vec3 point { const_points[ i ].vec() };
 
-			points[ i ] = Coordinate< CType >( rot_mat * point );
+			points[ i ] = Coordinate< CType >( rot_mat * glm::vec4( point, 1.0f ) );
+			FGL_ASSUME( i < POINT_COUNT );
 		}
 
 		return points;
