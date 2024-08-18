@@ -4,11 +4,11 @@
 
 #pragma once
 
+#include "Pipeline.hpp"
+#include "Shader.hpp"
 #include "engine/concepts/is_descriptor_set_collection.hpp"
 #include "engine/concepts/is_empty_descriptor_set.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
-#include "Pipeline.hpp"
-#include "Shader.hpp"
 
 namespace fgl::engine
 {
@@ -107,9 +107,9 @@ namespace fgl::engine
 			vk::raii::CommandBuffer& cmd_buffer, std::uint16_t set_idx, descriptors::DescriptorSet& descriptor )
 		{
 			const std::vector< vk::DescriptorSet > sets { *descriptor };
-			const std::vector< std::uint32_t > offsets {};
+			constexpr std::vector< std::uint32_t > dynamic_offsets {};
 
-			cmd_buffer.bindDescriptorSets( vk::PipelineBindPoint::eGraphics, m_layout, set_idx, sets, offsets );
+			cmd_buffer.bindDescriptorSets( vk::PipelineBindPoint::eGraphics, m_layout, set_idx, sets, dynamic_offsets );
 		}
 
 		template < typename TPushData >
