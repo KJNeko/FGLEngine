@@ -1,4 +1,15 @@
 version = 1
 
+test_patterns = ["src/tests/**"]
+
+exclude_patterns = [
+  "src/objectloaders/tiny_gltf.h",
+  "src/objectloaders/tiny_obj_loader.h",
+  "src/objectloaders/json.hpp"
+]
+
 [[analyzers]]
 name = "cxx"
+
+[[transformers]]
+name = "clang-format"
