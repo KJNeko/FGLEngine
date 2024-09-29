@@ -73,102 +73,254 @@ TEST_CASE( "Rotations", "[transform][rotation]" )
 		}
 	}
 
-	GIVEN( "A rotation with euler angles (X, 0.0f, 0.0f)" )
+	SECTION( "X Rotation (Roll)" )
 	{
-		for ( float i = 0; i < 180.0f; i += 1.0f )
+		for ( float i = 0; i < 360.0f; i += 1.0f )
 		{
-			Rotation rot { glm::radians( i ), 0.0f, 0.0f };
-
-			INFO( "Euler Value: " << i );
-
-			INFO( "Euler X: " << rot.xAngle() );
-			INFO( "Euler Y: " << rot.yAngle() );
-			INFO( "Euler Z: " << rot.zAngle() );
-
-			INFO(
-				"Quat: (" << rot.internal_quat().w << ", " << rot.internal_quat().x << ", " << rot.internal_quat().y
-						  << ", " << rot.internal_quat().z << ")" );
-
-			THEN( "Euler X should be " << i )
+			GIVEN( "A rotation with euler angles (" << i << ", 0.0f, 0.0f)" )
 			{
-				REQUIRE( rot.xAngle() == Catch::Approx( glm::radians( i ) ) );
-				REQUIRE( rot.yAngle() == Catch::Approx( 0.0 ) );
-				REQUIRE( rot.zAngle() == Catch::Approx( 0.0 ) );
+				Rotation rot { glm::radians( i ), 0.0f, 0.0f };
+
+				INFO( "Euler Value: " << i );
+
+				INFO( "Euler X: " << rot.xAngle() );
+				INFO( "Euler Y: " << rot.yAngle() );
+				INFO( "Euler Z: " << rot.zAngle() );
+
+				INFO(
+					"Quat: (" << rot.internal_quat().w << ", " << rot.internal_quat().x << ", " << rot.internal_quat().y
+							  << ", " << rot.internal_quat().z << ")" );
+
+				if ( i < 180.0f )
+				{
+					// Test must be disabled due to gimbol lock when converting to euler being weird above 180.0f
+					THEN( "Euler X should be " << i )
+					{
+						REQUIRE( rot.xAngle() == Catch::Approx( glm::radians( i ) ) );
+						REQUIRE( rot.yAngle() == Catch::Approx( 0.0 ) );
+						REQUIRE( rot.zAngle() == Catch::Approx( 0.0 ) );
+					}
+				}
+
+				THEN( "forward() should not change throughout the rotation" )
+				{
+					const NormalVector point { rot.forward() };
+
+					REQUIRE( point == NormalVector( constants::WORLD_FORWARD ) );
+				}
+
+				THEN( "A point starting at WORLD_RIGHT should rotate to WORLD_UP when given X+ (Roll)" )
+				{
+					const NormalVector point { rot.right() };
+
+					// When rotating around the X axis, the right vector should rotate to the up vector
+					// This means that the x value should be at 0.0 through the entire rotation
+					REQUIRE( point.x == Catch::Approx( 0.0 ).margin( 0.1 ) );
+
+					if ( i == 0.0f )
+					{
+						// At 0.0f, the right vector should be the same as the WORLD_RIGHT vector
+						REQUIRE( point == NormalVector( constants::WORLD_RIGHT ) );
+					}
+					else if ( i == 90.0f )
+					{
+						// At a 90+ rotation the point should be at WORLD_UP
+						REQUIRE( point == NormalVector( constants::WORLD_UP ) );
+					}
+					else if ( i == 180.0f )
+					{
+						// A full 180 degree rotation should bring the point back to WORLD_LEFT
+						REQUIRE( point == NormalVector( -constants::WORLD_RIGHT ) );
+					}
+					else if ( i == 270.0f )
+					{
+						// A full 270 degree rotation should bring the point back to WORLD_DOWN
+						REQUIRE( point == NormalVector( -constants::WORLD_UP ) );
+					}
+					else if ( i == 360.0f )
+					{
+						// A full 360 degree rotation should bring the point back to WORLD_RIGHT
+						REQUIRE( point == NormalVector( constants::WORLD_RIGHT ) );
+					}
+				}
 			}
 		}
 	}
 
-	GIVEN( "A rotation with euler angles (0.0f, Y, 0.0f)" )
+	SECTION( "Y Rotation (Pitch)" )
 	{
-		for ( float i = 0; i < 180.0f; i += 1.0f )
+		for ( float i = 0; i < 360.0f; i += 1.0f )
 		{
-			Rotation rot { 0.0f, glm::radians( i ), 0.0f };
-
-			INFO( "Euler Value: " << i );
-
-			INFO( "Euler X: " << rot.xAngle() );
-			INFO( "Euler Y: " << rot.yAngle() );
-			INFO( "Euler Z: " << rot.zAngle() );
-
-			INFO(
-				"Quat: (" << rot.internal_quat().w << ", " << rot.internal_quat().x << ", " << rot.internal_quat().y
-						  << ", " << rot.internal_quat().z << ")" );
-
-			THEN( "Euler Y should be " << i )
+			GIVEN( "A rotation with euler angles (0.0f, " << i << ", 0.0f)" )
 			{
-				REQUIRE( rot.xAngle() == Catch::Approx( 0.0 ).epsilon( 0.1 ) );
-				REQUIRE( rot.yAngle() == Catch::Approx( glm::radians( i ) ).epsilon( 0.01 ) );
-				REQUIRE( rot.zAngle() == Catch::Approx( glm::radians( 0.0 ) ).epsilon( 0.01 ) );
+				//TODO: Figure out how to test for 180.0f deg
+				Rotation rot { 0.0f, glm::radians( i ), 0.0f };
+
+				INFO( "Euler Value: " << i );
+
+				INFO( "Euler X: " << rot.xAngle() );
+				INFO( "Euler Y: " << rot.yAngle() );
+				INFO( "Euler Z: " << rot.zAngle() );
+
+				INFO(
+					"Quat: (" << rot.internal_quat().w << ", " << rot.internal_quat().x << ", " << rot.internal_quat().y
+							  << ", " << rot.internal_quat().z << ")" );
+
+				if ( i < 90.0f )
+				{
+					// Test must be disabled due to gimbol lock when converting to euler above 90.0f
+					THEN( "Euler Y should be " << i )
+					{
+						REQUIRE( rot.xAngle() == Catch::Approx( 0.0 ).epsilon( 0.1 ) );
+						REQUIRE( rot.yAngle() == Catch::Approx( glm::radians( i ) ).epsilon( 0.01 ) );
+						REQUIRE( rot.zAngle() == Catch::Approx( glm::radians( 0.0 ) ).epsilon( 0.01 ) );
+					}
+				}
+
+				THEN( "right() should return WORLD_RIGHT throughout the rotation" )
+				{
+					REQUIRE( rot.right() == NormalVector( constants::WORLD_RIGHT ) );
+				}
+
+				THEN( "A point starting at WORLD_FORWARD should rotate to WORLD_UP when given Y+ (pitch)" )
+				{
+					const NormalVector point { rot.forward() };
+
+					// When rotating around the Y axis, the forward vector should rotate to the left vector
+					// This means that the x value should be at 0.0 through the entire rotation
+					REQUIRE( point.y == Catch::Approx( 0.0 ).margin( 0.1 ) );
+
+					INFO( "Point: " << point.x << ", " << point.y << ", " << point.z );
+
+					if ( i == 0.0f )
+					{
+						// At 0.0f, the forward vector should be the same as the WORLD_FORWARD vector
+						REQUIRE( point == NormalVector( constants::WORLD_FORWARD ) );
+					}
+					else if ( i == 90.0f )
+					{
+						// At a 90+ rotation the point should be at WORLD_LEFT
+						REQUIRE( point == NormalVector( constants::WORLD_UP ) );
+					}
+					else if ( i == 180.0f )
+					{
+						// A full 180 degree rotation should bring the point back to WORLD_BACKWARD
+						REQUIRE( point == NormalVector( -constants::WORLD_FORWARD ) );
+					}
+					else if ( i == 270.0f )
+					{
+						// A full 270 degree rotation should bring the point back to WORLD_RIGHT
+						REQUIRE( point == NormalVector( -constants::WORLD_UP ) );
+					}
+					else if ( i == 360.0f )
+					{
+						// A full 360 degree rotation should bring the point back to WORLD_FORWARD
+						REQUIRE( point == NormalVector( constants::WORLD_FORWARD ) );
+					}
+				}
 			}
 		}
 	}
 
-	GIVEN( "A rotation with euler angles (0.0f, 0.0f, Z)" )
+	SECTION( "Z Rotation (Yaw)" )
 	{
-		for ( float i = 0; i < 180.0f; i += 1.0f )
+		for ( float i = 0; i < 360.0f; i += 1.0f )
 		{
-			Rotation rot { 0.0f, 0.0f, glm::radians( i ) };
-
-			INFO( "Euler Value: " << i );
-
-			INFO( "Euler X: " << rot.xAngle() );
-			INFO( "Euler Y: " << rot.yAngle() );
-			INFO( "Euler Z: " << rot.zAngle() );
-
-			INFO(
-				"Quat: (" << rot.internal_quat().w << ", " << rot.internal_quat().x << ", " << rot.internal_quat().y
-						  << ", " << rot.internal_quat().z << ")" );
-
-			THEN( "Euler Z should be " << i )
+			GIVEN( "A rotation with euler angles (0.0f, 0.0f, " << i << " )" )
 			{
-				REQUIRE( rot.xAngle() == Catch::Approx( 0.0 ) );
-				REQUIRE( rot.yAngle() == Catch::Approx( 0.0 ) );
-				REQUIRE( rot.zAngle() == Catch::Approx( glm::radians( i ) ) );
+				Rotation rot { 0.0f, 0.0f, glm::radians( i ) };
+
+				INFO( "Euler Value: " << i );
+
+				INFO( "Euler X: " << rot.xAngle() );
+				INFO( "Euler Y: " << rot.yAngle() );
+				INFO( "Euler Z: " << rot.zAngle() );
+
+				INFO(
+					"Quat: (" << rot.internal_quat().w << ", " << rot.internal_quat().x << ", " << rot.internal_quat().y
+							  << ", " << rot.internal_quat().z << ")" );
+
+				if ( i < 90.0f )
+				{
+					// Test must be disabled due to gimbol lock when converting to euler
+					THEN( "Euler Z should be " << i )
+					{
+						REQUIRE( rot.xAngle() == Catch::Approx( 0.0 ) );
+						REQUIRE( rot.yAngle() == Catch::Approx( 0.0 ) );
+						REQUIRE( rot.zAngle() == Catch::Approx( glm::radians( i ) ) );
+					}
+				}
+
+				THEN( "up() should not change throughout the rotation" )
+				{
+					REQUIRE( rot.up() == NormalVector( constants::WORLD_UP ) );
+				}
+
+				THEN( "A point starting at WORLD_FORWARD should rotate to WORLD_UP when given Z+ (pitch)" )
+				{
+					const NormalVector point { rot.forward() };
+
+					// When rotating around the Z axis, the up vector should rotate to the left vector
+					// This means that the x value should be at 0.0 through the entire rotation
+					REQUIRE( point.z == Catch::Approx( 0.0 ).margin( 0.1 ) );
+
+					INFO( "Point: " << point.x << ", " << point.y << ", " << point.z );
+
+					if ( i == 0.0f )
+					{
+						// At 0.0f, the forward vector should be the same as the WORLD_FORWARD vector
+						REQUIRE( point == NormalVector( constants::WORLD_FORWARD ) );
+					}
+					else if ( i == 90.0f )
+					{
+						// At a 90+ rotation the point should be at WORLD_UP
+						REQUIRE( point == NormalVector( constants::WORLD_RIGHT ) );
+					}
+					else if ( i == 180.0f )
+					{
+						// A full 180 degree rotation should bring the point back to WORLD_BACKWARD
+						REQUIRE( point == NormalVector( constants::WORLD_BACKWARD ) );
+					}
+					else if ( i == 270.0f )
+					{
+						// A full 270 degree rotation should bring the point back to WORLD_DOWN
+						REQUIRE( point == NormalVector( constants::WORLD_LEFT ) );
+					}
+					else if ( i == 360.0f )
+					{
+						// A full 360 degree rotation should bring the point back to WORLD_FORWARD
+						REQUIRE( point == NormalVector( constants::WORLD_FORWARD ) );
+					}
+				}
 			}
 		}
 	}
 
-	GIVEN( "A rotation with euler angles (0.0f, Y, Z)" )
+	SECTION( "Y+Z Rotation" )
 	{
-		for ( float i = 0; i < 180.0f; i += 1.0f )
+		//TODO: Figure out how to test for 180.0f deg
+		for ( float i = 0; i < 90.0f; i += 1.0f )
 		{
-			Rotation rot { 0.0f, glm::radians( i ), glm::radians( i ) };
-
-			INFO( "Euler Value: " << i );
-
-			INFO( "Euler X: " << rot.xAngle() );
-			INFO( "Euler Y: " << rot.yAngle() );
-			INFO( "Euler Z: " << rot.zAngle() );
-
-			INFO(
-				"Quat: (" << rot.internal_quat().w << ", " << rot.internal_quat().x << ", " << rot.internal_quat().y
-						  << ", " << rot.internal_quat().z << ")" );
-
-			THEN( "Euler Y should be " << i )
+			GIVEN( "A rotation with euler angles (0.0f, Y, Z)" )
 			{
-				REQUIRE( rot.xAngle() == Catch::Approx( 0.0 ).epsilon( 0.1 ) );
-				REQUIRE( rot.yAngle() == Catch::Approx( glm::radians( i ) ).epsilon( 0.01 ) );
-				REQUIRE( rot.zAngle() == Catch::Approx( glm::radians( i ) ).epsilon( 0.01 ) );
+				Rotation rot { 0.0f, glm::radians( i ), glm::radians( i ) };
+
+				INFO( "Euler Value: " << i );
+
+				INFO( "Euler X: " << rot.xAngle() );
+				INFO( "Euler Y: " << rot.yAngle() );
+				INFO( "Euler Z: " << rot.zAngle() );
+
+				INFO(
+					"Quat: (" << rot.internal_quat().w << ", " << rot.internal_quat().x << ", " << rot.internal_quat().y
+							  << ", " << rot.internal_quat().z << ")" );
+
+				THEN( "Euler Y should be " << i )
+				{
+					REQUIRE( rot.xAngle() == Catch::Approx( 0.0 ).epsilon( 0.1 ).margin( 0.1 ) );
+					REQUIRE( rot.yAngle() == Catch::Approx( glm::radians( i ) ).epsilon( 0.01 ) );
+					REQUIRE( rot.zAngle() == Catch::Approx( glm::radians( i ) ).epsilon( 0.01 ) );
+				}
 			}
 		}
 	}

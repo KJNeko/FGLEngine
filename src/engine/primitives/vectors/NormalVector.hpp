@@ -39,6 +39,10 @@ namespace fgl::engine
 	//! A vector that must be a distance of 1
 	struct NormalVector : private glm::vec3
 	{
+		using glm::vec3::x;
+		using glm::vec3::y;
+		using glm::vec3::z;
+
 		constexpr NormalVector() : glm::vec3( normalize( glm::vec3( 1.0f ) ) ) {}
 
 		explicit NormalVector( const Vector vec );

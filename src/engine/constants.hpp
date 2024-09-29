@@ -45,5 +45,8 @@ namespace fgl::engine::constants
 	constexpr glm::vec3 WORLD_FORWARD { WORLD_X };
 	constexpr glm::vec3 WORLD_RIGHT { WORLD_Y };
 	constexpr glm::vec3 WORLD_UP { WORLD_Z };
+	constexpr glm::vec3 WORLD_BACKWARD { -WORLD_FORWARD };
+	constexpr glm::vec3 WORLD_LEFT { -WORLD_RIGHT };
+	constexpr glm::vec3 WORLD_DOWN { -WORLD_UP };
 
 } // namespace fgl::engine::constants

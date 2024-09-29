@@ -29,10 +29,10 @@ namespace fgl::engine
 		q.z = cos.x * cos.y * sin.z - sin.x * sin.y * cos.z;
 		*/
 
-		const glm::quat identity { 1.0f, 0.0f, 0.0f, 0.0f };
-		const glm::quat q_x { glm::rotate( identity, roll, constants::WORLD_X ) }; // Roll
-		const glm::quat q_y { glm::rotate( identity, pitch, constants::WORLD_Y ) }; // Pitch
-		const glm::quat q_z { glm::rotate( identity, yaw, constants::WORLD_Z ) }; // Yaw
+		const glm::quat q_x { glm::angleAxis( roll, constants::WORLD_X ) }; // Roll
+		const glm::quat q_y { glm::angleAxis( -pitch, constants::WORLD_Y ) }; // Pitch
+		// In order to get it so that PITCH+ is UP we must invert the pitch
+		const glm::quat q_z { glm::angleAxis( yaw, constants::WORLD_Z ) }; // Yaw
 
 		const glm::quat q { q_z * q_y * q_x };
 
@@ -79,7 +79,8 @@ namespace fgl::engine
 		const float sinp { std::sqrt( 1.0f + 2.0f * ( w * y - x * z ) ) };
 		const float cosp { std::sqrt( 1.0f - 2.0f * ( w * y - x * z ) ) };
 
-		return 2.0f * std::atan2( sinp, cosp ) - std::numbers::pi_v< float > / 2.0f;
+		// We must invert the pitch in order to 'fix' it after being flipped in the constructor and add functions
+		return -( 2.0f * std::atan2( sinp, cosp ) - std::numbers::pi_v< float > / 2.0f );
 	}
 
 	float Rotation::zAngle() const
@@ -108,7 +109,7 @@ namespace fgl::engine
 	void Rotation::addY( const float value )
 	{
 		// Because the camera is flipped. We must also flip the pitch rotation
-		const glm::quat q { glm::angleAxis( value, -constants::WORLD_Y ) };
+		const glm::quat q { glm::angleAxis( -value, constants::WORLD_Y ) };
 		*this = *this * q;
 	}
 
