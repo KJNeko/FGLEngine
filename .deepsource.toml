@@ -5,7 +5,10 @@ test_patterns = ["src/tests/**"]
 exclude_patterns = [
   "src/objectloaders/tiny_gltf.h",
   "src/objectloaders/tiny_obj_loader.h",
-  "src/objectloaders/json.hpp"
+  "src/objectloaders/json.hpp",
+  "src/objectloaders/stb_image.h",
+  "src/objectloaders/stb_image_write.h",
+  "dependencies/**",
 ]
 
 [[analyzers]]
