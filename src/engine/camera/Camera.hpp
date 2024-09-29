@@ -147,26 +147,20 @@ namespace fgl::engine
 
 		Coordinate< CoordinateSpace::World > getPosition() const;
 
-		FGL_FORCE_INLINE Vector getUp() const { return -getDown(); }
+		FGL_FORCE_INLINE NormalVector getUp() const { return -getDown(); }
 
-		FGL_FORCE_INLINE Vector getRight() const
+		FGL_FORCE_INLINE NormalVector getRight() const { return NormalVector( glm::vec3( inverse_view_matrix[ 0 ] ) ); }
+
+		FGL_FORCE_INLINE NormalVector getForward() const
 		{
-			return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 0 ] ) ) );
+			return -NormalVector( glm::vec3( inverse_view_matrix[ 2 ] ) );
 		}
 
-		FGL_FORCE_INLINE Vector getForward() const
-		{
-			return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 2 ] ) ) );
-		}
+		FGL_FORCE_INLINE NormalVector getLeft() const { return -getRight(); }
 
-		FGL_FORCE_INLINE Vector getLeft() const { return -getRight(); }
+		FGL_FORCE_INLINE NormalVector getBackward() const { return -getForward(); }
 
-		FGL_FORCE_INLINE Vector getBackward() const { return -getForward(); }
-
-		FGL_FORCE_INLINE Vector getDown() const
-		{
-			return Vector( glm::normalize( glm::vec3( inverse_view_matrix[ 1 ] ) ) );
-		}
+		FGL_FORCE_INLINE NormalVector getDown() const { return NormalVector( glm::vec3( inverse_view_matrix[ 1 ] ) ); }
 
 		//! Updates the required info for rendering
 		void updateInfo( FrameIndex frame_index );
