@@ -42,12 +42,12 @@ namespace fgl::engine::gui
 
 		if ( ImGui::IsKeyDown( ImGuiKey_RightArrow ) )
 		{
-			pitch_change.addZ( delta_time * yaw_rate );
+			pitch_change.addZWorld( delta_time * yaw_rate );
 		}
 
 		if ( ImGui::IsKeyDown( ImGuiKey_LeftArrow ) )
 		{
-			pitch_change.addZ( -( delta_time * yaw_rate ) );
+			pitch_change.addZWorld( -( delta_time * yaw_rate ) );
 		}
 
 		Vector move_dir { 0.0f };

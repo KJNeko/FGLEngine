@@ -119,4 +119,22 @@ namespace fgl::engine
 		*this = *this * q;
 	}
 
+	void Rotation::addXWorld( const float value )
+	{
+		const glm::quat q { glm::angleAxis( value, constants::WORLD_X ) };
+		*this = q * *this;
+	}
+
+	void Rotation::addYWorld( const float value )
+	{
+		const glm::quat q { glm::angleAxis( value, constants::WORLD_Y ) };
+		*this = q * *this;
+	}
+
+	void Rotation::addZWorld( const float value )
+	{
+		const glm::quat q { glm::angleAxis( value, constants::WORLD_Z ) };
+		*this = q * *this;
+	}
+
 } // namespace fgl::engine

@@ -54,9 +54,15 @@ namespace fgl::engine
 		void setY( float );
 		void setZ( float );
 
+		// These will add a rotation using the local axis
 		void addX( float );
 		void addY( float );
 		void addZ( float );
+
+		// These will add a rotation using the world axis
+		void addXWorld( float );
+		void addYWorld( float );
+		void addZWorld( float );
 
 		// internal
 		inline glm::quat internal_quat() const { return static_cast< glm::quat >( *this ); }
