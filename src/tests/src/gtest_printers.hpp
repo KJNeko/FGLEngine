@@ -10,7 +10,9 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include "engine/primitives/Rotation.hpp"
+#include "engine/primitives/Scale.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
+#include "engine/primitives/points/Coordinate.hpp"
 #include "engine/primitives/vectors/Vector.hpp"
 
 namespace Catch
@@ -35,7 +37,7 @@ namespace Catch
 	{
 		static std::string convert( const fgl::engine::Rotation& rot )
 		{
-			return StringMaker< glm::vec3 >::convert( { rot.pitch(), rot.roll(), rot.yaw() } );
+			return StringMaker< glm::vec3 >::convert( { rot.xAngle(), rot.yAngle(), rot.zAngle() } );
 		}
 	};
 
@@ -68,11 +70,29 @@ namespace Catch
 	};
 
 	template <>
-	struct StringMaker< fgl::engine::NormalVector >
+	struct StringMaker< ::fgl::engine::NormalVector >
 	{
 		static std::string convert( const fgl::engine::NormalVector vec )
 		{
 			return StringMaker< fgl::engine::Vector >::convert( static_cast< fgl::engine::Vector >( vec ) );
+		}
+	};
+
+	template <>
+	struct StringMaker< ::fgl::engine::Scale >
+	{
+		static std::string convert( const fgl::engine::Scale scale )
+		{
+			return StringMaker< glm::vec3 >::convert( static_cast< glm::vec3 >( scale ) );
+		}
+	};
+
+	template <>
+	struct StringMaker< ::fgl::engine::ModelCoordinate >
+	{
+		static std::string convert( const fgl::engine::ModelCoordinate coord )
+		{
+			return StringMaker< glm::vec3 >::convert( coord.vec() );
 		}
 	};
 

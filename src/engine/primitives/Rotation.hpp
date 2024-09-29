@@ -11,6 +11,9 @@
 #include <glm/gtc/quaternion.hpp>
 #pragma GCC diagnostic pop
 
+#include <glm/gtx/euler_angles.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 #include <numbers>
 #include <utility>
 
@@ -25,127 +28,51 @@ namespace fgl::engine
 
 namespace fgl::engine
 {
-	enum class RotationModifierType
+
+	struct Rotation : private glm::quat
 	{
-		Pitch = 0,
-		Roll = 1,
-		Yaw = 2,
-	};
-
-	struct Rotation;
-
-	template < RotationModifierType ModifierType, bool is_const = false >
-	class RotationModifier;
-
-	template < RotationModifierType ModifierType >
-	using ConstRotationModifier = RotationModifier< ModifierType, true >;
-
-	struct Rotation : public glm::quat
-	{
-		template < RotationModifierType ModifierType, bool is_const >
-		friend class RotationModifier;
-
 		Rotation();
 
-		explicit Rotation( float pitch, float roll, float yaw );
+		Rotation( float x, float y, float z );
 
-		Rotation( const Rotation& other ) = default;
+		Rotation( float value );
 
-		explicit Rotation( const glm::quat other ) : glm::quat( glm::normalize( other ) ) {}
+		Rotation( const glm::quat& quat ) : glm::quat( quat ) {}
 
-		explicit Rotation( const float scalar ) : Rotation( scalar, scalar, scalar ) {}
-
-		enum RotationReference
-		{
-			Local,
-			Global
-		};
-
-		RotationModifier< RotationModifierType::Pitch > pitch();
-		ConstRotationModifier< RotationModifierType::Pitch > pitch() const;
-
-		RotationModifier< RotationModifierType::Roll > roll();
-		ConstRotationModifier< RotationModifierType::Roll > roll() const;
-
-		RotationModifier< RotationModifierType::Yaw > yaw();
-		ConstRotationModifier< RotationModifierType::Yaw > yaw() const;
-
-		glm::vec3 euler() const;
-
-		Rotation& operator=( const Rotation& rotation );
-		Rotation& operator=( const glm::quat& rotation );
-
-		Rotation& operator+=( const Rotation& rotation );
+		RotationMatrix mat() const { return { glm::toMat3( *this ) }; }
 
 		NormalVector forward() const;
-
-		NormalVector back() const { return -forward(); }
-
 		NormalVector right() const;
-
-		NormalVector left() const { return -right(); }
-
 		NormalVector up() const;
 
-		NormalVector down() const { return -up(); }
+		glm::vec3 euler() const;
+		float xAngle() const;
+		float yAngle() const;
+		float zAngle() const;
 
-		RotationMatrix mat() const;
+		void setX( float );
+		void setY( float );
+		void setZ( float );
 
-		Rotation operator*( const Rotation& other ) const;
+		void addX( float );
+		void addY( float );
+		void addZ( float );
 
-		bool operator==( const Rotation& other ) const = default;
-	};
+		// internal
+		inline glm::quat internal_quat() const { return static_cast< glm::quat >( *this ); }
 
-	inline Rotation operator*( const glm::quat quat, const Rotation rotation )
-	{
-		return Rotation( quat * static_cast< glm::quat >( rotation ) );
-	}
-
-	template < RotationModifierType MT >
-	glm::vec3 getModifierAxis()
-	{
-		switch ( MT )
+		bool operator==( const Rotation& rot ) const
 		{
-			case RotationModifierType::Pitch:
-				return constants::WORLD_RIGHT;
-			case RotationModifierType::Roll:
-				return constants::WORLD_FORWARD;
-			case RotationModifierType::Yaw:
-				return -constants::WORLD_UP;
-			default:
-				FGL_UNREACHABLE();
+			return static_cast< glm::quat >( *this ) == static_cast< glm::quat >( rot );
 		}
 
-		FGL_UNREACHABLE();
-	}
-
-	template < RotationModifierType ModifierType, bool is_const >
-	class RotationModifier
-	{
-		using enum RotationModifierType;
-
-		using RotationType = std::conditional_t< is_const, const Rotation&, Rotation& >;
-
-		RotationType rot;
-
-		friend struct Rotation;
-
-		RotationModifier() = delete;
-
-		explicit RotationModifier( RotationType& i_rot ) : rot( i_rot ) {}
-
-	  public:
-
-		Rotation& operator+=( const float scalar );
-
-		Rotation& operator-=( const float scalar );
-
-		Rotation& operator=( const float scalar );
-
-		operator float() const;
-
-		float value() const;
+		friend bool operator==( const Rotation&, const glm::quat& );
 	};
+
+	inline bool operator==( const Rotation& rot, const glm::quat& quat )
+	{
+		return static_cast< glm::quat >( rot ) == quat;
+	}
 
 	namespace constants
 	{

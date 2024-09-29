@@ -44,17 +44,17 @@ namespace fgl::engine::gui
 
 		if ( changed[ Pitch ] )
 		{
-			rot.pitch() = dat[ Pitch ];
+			//TODO: rot.xAngle() = dat[ Pitch ];
 		}
 
 		if ( changed[ Roll ] )
 		{
-			rot.roll() = dat[ Roll ];
+			//TODO: rot.zAngle() = dat[ Roll ];
 		}
 
 		if ( changed[ Yaw ] )
 		{
-			rot.yaw() = dat[ Yaw ];
+			//TODO: rot.yAngle() = dat[ Yaw ];
 		}
 	}
 

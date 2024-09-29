@@ -5,237 +5,45 @@
 #include "Rotation.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/quaternion.hpp>
 
 #include <stdexcept>
 
 namespace fgl::engine
 {
-	Rotation::Rotation() : Rotation( 0.0f, 0.0f, 0.0f )
+	Rotation::Rotation() : Rotation( 0.0f )
 	{}
 
-	inline glm::quat buildQuat( const glm::vec3 euler )
+	glm::quat toQuat( const float roll, const float pitch, const float yaw )
 	{
-		// euler should be in `pitch, roll, yaw` order
-		const auto pitch { glm::angleAxis( euler.x, constants::WORLD_RIGHT ) };
-		const auto roll { glm::angleAxis( euler.y, constants::WORLD_FORWARD ) };
-		const auto yaw { glm::angleAxis( euler.z, constants::WORLD_UP ) };
+		/*
+		const glm::vec3 euler { x / 2.0f, y / 2.0f, z / 2.0f };
+		const glm::vec3 sin { glm::sin( euler ) };
+		const glm::vec3 cos { glm::cos( euler ) };
 
-		return pitch * roll * yaw;
+		glm::quat q {};
+		q.w = cos.x * cos.y * cos.z + sin.x * sin.y * sin.z;
+		q.x = sin.x * cos.y * cos.z - cos.x * sin.y * sin.z;
+		q.y = cos.x * sin.y * cos.z + sin.x * cos.y * sin.z;
+		q.z = cos.x * cos.y * sin.z - sin.x * sin.y * cos.z;
+		*/
+
+		const glm::quat identity { 1.0f, 0.0f, 0.0f, 0.0f };
+		const glm::quat q_x { glm::rotate( identity, roll, constants::WORLD_X ) }; // Roll
+		const glm::quat q_y { glm::rotate( identity, pitch, constants::WORLD_Y ) }; // Pitch
+		const glm::quat q_z { glm::rotate( identity, yaw, constants::WORLD_Z ) }; // Yaw
+
+		const glm::quat q { q_z * q_y * q_x };
+
+		return q;
 	}
 
-	inline float pitch( const glm::quat& q )
-	{
-		const float y { 2.0f * ( q.y * q.z + q.w * q.x ) };
-		const float x { q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z };
+	Rotation::Rotation( const float x, const float y, const float z ) : glm::quat( toQuat( x, y, z ) )
+	{}
 
-		if ( glm::all( glm::equal( glm::vec2( x, y ), glm::vec2( 0.0f ), glm::epsilon< float >() ) ) ) return 0.0f;
-
-		return glm::atan( y, x );
-	}
-
-	inline float roll( const glm::quat& q )
-	{
-		return std::asin( glm::clamp( -2.0f * ( q.x * q.z - q.w * q.y ), -1.0f, 1.0f ) );
-	}
-
-	inline float yaw( const glm::quat& q )
-	{
-		const float y { 2.0f * ( q.x * q.y + q.w * q.z ) };
-		const float x { q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z };
-
-		if ( glm::all( glm::equal( glm::vec2( x, y ), glm::vec2( 0.0f ), glm::epsilon< float >() ) ) ) return 0.0f;
-
-		return glm::atan( y, x );
-	}
-
-	inline glm::vec3 eulerAngles( const glm::quat& quat )
-	{
-		return { pitch( quat ), roll( quat ), yaw( quat ) };
-	}
-
-	// Because of how glm does stuff. We need to invert the roll.
-	Rotation::Rotation( const float pitch, const float roll, const float yaw ) :
-	  glm::quat( buildQuat( { pitch, roll, yaw } ) )
-	{
-		FGL_ASSERT(
-			::fgl::engine::pitch( *this ) - pitch < glm::epsilon< float >(), "Rotation axis does not match input" );
-		FGL_ASSERT( ::fgl::engine::yaw( *this ) - yaw < glm::epsilon< float >(), "Rotation axis does not match input" );
-		FGL_ASSERT(
-			::fgl::engine::roll( *this ) - roll < glm::epsilon< float >(), "Rotation axis does not match input" );
-	}
-
-	RotationModifier< RotationModifierType::Roll > Rotation::roll()
-	{
-		return RotationModifier< RotationModifierType::Roll >( *this );
-	}
-
-	ConstRotationModifier< RotationModifierType::Pitch > Rotation::pitch() const
-	{
-		return ConstRotationModifier< RotationModifierType::Pitch >( *this );
-	}
-
-	RotationModifier< RotationModifierType::Pitch > Rotation::pitch()
-	{
-		return RotationModifier< RotationModifierType::Pitch >( *this );
-	}
-
-	ConstRotationModifier< RotationModifierType::Roll > Rotation::roll() const
-	{
-		return ConstRotationModifier< RotationModifierType::Roll >( *this );
-	}
-
-	RotationModifier< RotationModifierType::Yaw > Rotation::yaw()
-	{
-		return RotationModifier< RotationModifierType::Yaw >( *this );
-	}
-
-	ConstRotationModifier< RotationModifierType::Yaw > Rotation::yaw() const
-	{
-		return ConstRotationModifier< RotationModifierType::Yaw >( *this );
-	}
-
-	template < RotationModifierType ModifierType, bool is_const >
-	Rotation& RotationModifier< ModifierType, is_const >::operator+=( const float scalar )
-	{
-		if constexpr ( is_const )
-		{
-			// We should never be in this function if we are attempting to modify a const rotation
-			FGL_UNREACHABLE();
-		}
-		else
-		{
-			const glm::quat modifier { glm::angleAxis( scalar, getModifierAxis< ModifierType >() ) };
-
-			switch ( ModifierType )
-			{
-				case Pitch:
-					[[fallthrough]];
-				case Roll:
-					rot = static_cast< glm::quat >( rot ) * modifier; // local
-					break;
-				case Yaw:
-					rot = modifier * static_cast< glm::quat >( rot ); // global
-					break;
-				default:
-					FGL_UNREACHABLE();
-			}
-
-			return rot;
-		}
-	}
-
-	template < RotationModifierType ModifierType, bool is_const >
-	Rotation& RotationModifier< ModifierType, is_const >::operator-=( const float scalar )
-	{
-		if constexpr ( is_const )
-		{
-			// We should never be in this function if we are attempting to modify a const rotation
-			FGL_UNREACHABLE();
-		}
-		else
-		{
-			const auto modifier { glm::angleAxis( -scalar, getModifierAxis< ModifierType >() ) };
-
-			switch ( ModifierType )
-			{
-				case Pitch:
-					[[fallthrough]];
-				case Roll:
-					rot = static_cast< glm::quat >( rot ) * modifier; // local
-					break;
-				case Yaw:
-					rot = modifier * static_cast< glm::quat >( rot ); // global
-					break;
-				default:
-					FGL_UNREACHABLE();
-			}
-			return rot;
-		}
-	}
-
-	template < RotationModifierType ModifierType, bool is_const >
-	Rotation& RotationModifier< ModifierType, is_const >::operator=( const float scalar )
-	{
-		if constexpr ( is_const )
-		{
-			// We should never be in this function if we are attempting to modify a const rotation
-			FGL_UNREACHABLE();
-		}
-		else
-		{
-			glm::vec3 euler { ::fgl::engine::eulerAngles( rot ) };
-
-			switch ( ModifierType )
-			{
-				default:
-					FGL_UNREACHABLE();
-				case Pitch:
-					euler.x = scalar;
-					break;
-				case Roll:
-					euler.y = scalar;
-					break;
-				case Yaw:
-					euler.z = scalar;
-					break;
-			}
-
-			rot = { euler };
-
-			return rot;
-		}
-	}
-
-	template < RotationModifierType ModifierType, bool is_const >
-	FGL_FORCE_INLINE_FLATTEN inline RotationModifier< ModifierType, is_const >::operator float() const
-	{
-		return value();
-	}
-
-	template < RotationModifierType ModifierType, bool is_const >
-	float RotationModifier< ModifierType, is_const >::value() const
-	{
-		switch ( ModifierType )
-		{
-			default:
-				FGL_UNREACHABLE();
-			case Pitch:
-				return glm::pitch( rot );
-			case Roll:
-				return glm::roll( rot );
-			case Yaw:
-				return glm::yaw( rot );
-		}
-
-		FGL_UNREACHABLE();
-	}
-
-	glm::vec3 Rotation::euler() const
-	{
-		return { pitch(), roll(), yaw() };
-	}
-
-	Rotation& Rotation::operator=( const Rotation& rotation )
-	{
-		glm::quat::operator=( rotation );
-		return *this;
-	}
-
-	Rotation& Rotation::operator=( const glm::quat& rotation )
-	{
-		glm::quat::operator=( rotation );
-		return *this;
-	}
-
-	Rotation& Rotation::operator+=( const Rotation& rotation )
-	{
-		glm::quat::operator+=( rotation );
-
-		*this = glm::normalize( *this );
-
-		return *this;
-	}
+	Rotation::Rotation( const float value ) : Rotation( value, value, value )
+	{}
 
 	NormalVector Rotation::forward() const
 	{
@@ -252,21 +60,62 @@ namespace fgl::engine
 		return mat() * NormalVector( constants::WORLD_UP );
 	}
 
-	RotationMatrix Rotation::mat() const
+	glm::vec3 Rotation::euler() const
 	{
-		return { glm::mat3_cast( *this ) };
+		return { xAngle(), yAngle(), zAngle() };
 	}
 
-	Rotation Rotation::operator*( const Rotation& other ) const
+	float Rotation::xAngle() const
 	{
-		return Rotation( glm::normalize( static_cast< glm::quat >( *this ) * static_cast< glm::quat >( other ) ) );
+		//Extract X angle from quaternion
+		const float sinr_cosp { 2.0f * ( w * x + y * z ) };
+		const float cosr_cosp { 1.0f - 2.0f * ( x * x + y * y ) };
+		return std::atan2( sinr_cosp, cosr_cosp );
 	}
 
-	template class RotationModifier< RotationModifierType::Pitch, false >;
-	template class RotationModifier< RotationModifierType::Roll, false >;
-	template class RotationModifier< RotationModifierType::Yaw, false >;
-	template class RotationModifier< RotationModifierType::Pitch, true >;
-	template class RotationModifier< RotationModifierType::Roll, true >;
-	template class RotationModifier< RotationModifierType::Yaw, true >;
+	float Rotation::yAngle() const
+	{
+		// Extract Y angle from quaternion
+		const float sinp { std::sqrt( 1.0f + 2.0f * ( w * y - x * z ) ) };
+		const float cosp { std::sqrt( 1.0f - 2.0f * ( w * y - x * z ) ) };
+
+		return 2.0f * std::atan2( sinp, cosp ) - std::numbers::pi_v< float > / 2.0f;
+	}
+
+	float Rotation::zAngle() const
+	{
+		// Extract Z angle from quaternion
+		const float siny_cosp { 2.0f * ( w * z + x * y ) };
+		const float cosy_cosp { 1.0f - 2.0f * ( y * y + z * z ) };
+		return std::atan2( siny_cosp, cosy_cosp );
+	}
+
+	void Rotation::setX( const float value )
+	{}
+
+	void Rotation::setY( const float value )
+	{}
+
+	void Rotation::setZ( const float value )
+	{}
+
+	void Rotation::addX( const float value )
+	{
+		const glm::quat q { glm::angleAxis( value, constants::WORLD_X ) };
+		*this = *this * q;
+	}
+
+	void Rotation::addY( const float value )
+	{
+		// Because the camera is flipped. We must also flip the pitch rotation
+		const glm::quat q { glm::angleAxis( value, -constants::WORLD_Y ) };
+		*this = *this * q;
+	}
+
+	void Rotation::addZ( const float value )
+	{
+		const glm::quat q { glm::angleAxis( value, constants::WORLD_Z ) };
+		*this = *this * q;
+	}
 
 } // namespace fgl::engine

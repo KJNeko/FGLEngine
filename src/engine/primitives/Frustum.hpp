@@ -18,12 +18,12 @@ namespace fgl::engine
 	//! Frustum constructed in model space (To be translated to a World space frustum later)
 	struct FrustumBase
 	{
-		ModelPlane near { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_FORWARD ) };
-		ModelPlane far { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_FORWARD ) };
-		ModelPlane top { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_FORWARD ) };
-		ModelPlane bottom { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_FORWARD ) };
-		ModelPlane right { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_FORWARD ) };
-		ModelPlane left { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_FORWARD ) };
+		ModelPlane near { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		ModelPlane far { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		ModelPlane top { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		ModelPlane bottom { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		ModelPlane right { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		ModelPlane left { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
 
 		ModelCoordinate m_position {};
 
@@ -49,12 +49,12 @@ namespace fgl::engine
 
 	struct Frustum
 	{
-		WorldPlane near { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_FORWARD ) };
-		WorldPlane far { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_FORWARD ) };
-		WorldPlane top { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_FORWARD ) };
-		WorldPlane bottom { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_FORWARD ) };
-		WorldPlane right { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_FORWARD ) };
-		WorldPlane left { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_FORWARD ) };
+		WorldPlane near { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		WorldPlane far { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		WorldPlane top { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		WorldPlane bottom { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		WorldPlane right { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		WorldPlane left { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
 
 		WorldCoordinate m_position {};
 

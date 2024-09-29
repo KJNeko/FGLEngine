@@ -8,6 +8,7 @@
 
 #include <array>
 
+#include "AxisAlignedBoundingBox.hpp"
 #include "engine/assets/model/ModelVertex.hpp"
 #include "engine/debug/logging/logging.hpp"
 #include "engine/primitives/lines/LineSegment.hpp"
@@ -197,6 +198,27 @@ namespace fgl::engine
 	}
 
 	template < CoordinateSpace CType >
+	AxisAlignedBoundingBox< CType > OrientedBoundingBox< CType >::alignToWorld()
+	{
+		const auto points { this->points() };
+		glm::vec3 max { std::numeric_limits< glm::vec3::type >::infinity() };
+		glm::vec3 min { -std::numeric_limits< glm::vec3::type >::infinity() };
+
+		for ( const auto& point : points )
+		{
+			max.x = glm::max( max.x, point.x );
+			max.y = glm::max( max.y, point.y );
+			max.z = glm::max( max.z, point.z );
+
+			min.x = glm::min( min.x, point.x );
+			min.y = glm::min( min.y, point.y );
+			min.z = glm::min( min.z, point.z );
+		}
+
+		return AxisAlignedBoundingBox< CType >( Coordinate< CType >( max ), Coordinate< CType >( min ) );
+	}
+
+	template < CoordinateSpace CType >
 	std::array< LineSegment< CType >, interface::BoundingBox::LINE_COUNT > OrientedBoundingBox< CType >::lines() const
 	{
 		const auto points { this->points() };
@@ -229,25 +251,38 @@ namespace fgl::engine
 	{
 		ZoneScoped;
 
+		constexpr auto inf_float { std::numeric_limits< float >::infinity() };
+
 		// neg (min)
-		glm::vec3 top_right_forward { points[ 0 ].vec() };
+		glm::vec3 top_right_forward { -inf_float };
 		// pos (max)
-		glm::vec3 bottom_left_back { points[ 0 ].vec() };
+		glm::vec3 bottom_left_back { inf_float };
+
+		assert( points.size() > 0 );
 
 		for ( const auto& pos : points )
 		{
-			top_right_forward.x = std::max( pos.vec().x, top_right_forward.x );
-			top_right_forward.y = std::max( pos.vec().y, top_right_forward.y );
-			top_right_forward.z = std::max( pos.vec().z, top_right_forward.z );
+			const auto vec { pos.vec() };
+			top_right_forward.x = std::max( vec.x, top_right_forward.x );
+			top_right_forward.y = std::max( vec.y, top_right_forward.y );
+			top_right_forward.z = std::max( vec.z, top_right_forward.z );
 
-			bottom_left_back.x = std::min( pos.vec().x, bottom_left_back.x );
-			bottom_left_back.y = std::min( pos.vec().y, bottom_left_back.y );
-			bottom_left_back.z = std::min( pos.vec().z, bottom_left_back.z );
+			bottom_left_back.x = std::min( vec.x, bottom_left_back.x );
+			bottom_left_back.y = std::min( vec.y, bottom_left_back.y );
+			bottom_left_back.z = std::min( vec.z, bottom_left_back.z );
 		}
+
+		assert( top_right_forward.x != -inf_float );
+		assert( top_right_forward.y != -inf_float );
+		assert( top_right_forward.z != -inf_float );
+
+		assert( bottom_left_back.x != inf_float );
+		assert( bottom_left_back.y != inf_float );
+		assert( bottom_left_back.z != inf_float );
 
 		//Calculate midpoint
 		const glm::vec3 midpoint { ( top_right_forward + bottom_left_back ) / glm::vec3( 2.0f ) };
-		const glm::vec3 scale { bottom_left_back - midpoint };
+		const glm::vec3 scale { glm::abs( bottom_left_back - midpoint ) };
 
 		return { Coordinate< CType >( midpoint ), scale };
 	}
@@ -256,10 +291,12 @@ namespace fgl::engine
 	{
 		assert( verts.size() > 0 );
 		log::debug( "Generating bounding box for {} verts", verts.size() );
+
+		constexpr auto inf_float { std::numeric_limits< float >::infinity() };
 		// neg (min)
-		glm::vec3 top_right_forward { verts[ 0 ].m_position };
+		glm::vec3 top_right_forward { -inf_float };
 		// pos (max)
-		glm::vec3 bottom_left_back { verts[ 0 ].m_position };
+		glm::vec3 bottom_left_back { inf_float };
 
 		for ( const auto& vert : verts )
 		{
@@ -273,9 +310,17 @@ namespace fgl::engine
 			bottom_left_back.z = std::min( pos.z, bottom_left_back.z );
 		}
 
+		assert( top_right_forward.x != -inf_float );
+		assert( top_right_forward.y != -inf_float );
+		assert( top_right_forward.z != -inf_float );
+
+		assert( bottom_left_back.x != inf_float );
+		assert( bottom_left_back.y != inf_float );
+		assert( bottom_left_back.z != inf_float );
+
 		//Calculate midpoint
 		const glm::vec3 midpoint { ( top_right_forward + bottom_left_back ) / glm::vec3( 2.0f ) };
-		const glm::vec3 scale { bottom_left_back - midpoint };
+		const glm::vec3 scale { glm::abs( bottom_left_back - midpoint ) };
 
 		return OrientedBoundingBox< CoordinateSpace::Model >( Coordinate< CoordinateSpace::Model >( midpoint ), scale );
 	}

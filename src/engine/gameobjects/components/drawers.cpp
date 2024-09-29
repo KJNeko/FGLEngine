@@ -38,17 +38,17 @@ namespace fgl::engine
 
 		if ( changed[ Pitch ] )
 		{
-			rot.pitch() = dat[ Pitch ];
+			rot.setX( dat[ Pitch ] );
 		}
 
 		if ( changed[ Roll ] )
 		{
-			rot.roll() = dat[ Roll ];
+			rot.setZ( dat[ Roll ] );
 		}
 
 		if ( changed[ Yaw ] )
 		{
-			rot.yaw() = dat[ Yaw ];
+			rot.setY( dat[ Yaw ] );
 		}
 	}
 

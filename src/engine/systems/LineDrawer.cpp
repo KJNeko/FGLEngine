@@ -5,10 +5,11 @@
 #include "LineDrawer.hpp"
 
 #include "engine/FrameInfo.hpp"
-#include "engine/memory/buffers/vector/HostVector.hpp"
-#include "engine/camera/CameraDescriptor.hpp"
 #include "engine/assets/model/ModelVertex.hpp"
 #include "engine/assets/model/SimpleVertex.hpp"
+#include "engine/camera/CameraDescriptor.hpp"
+#include "engine/debug/drawers.hpp"
+#include "engine/memory/buffers/vector/HostVector.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 
 namespace fgl::engine
@@ -48,6 +49,8 @@ namespace fgl::engine
 
 	void LineDrawer::pass( FrameInfo& info )
 	{
+		debug::drawAxisHelper();
+
 		ZoneScopedN( "Debug line drawing" );
 		auto& command_buffer { setupSystem( info ) };
 		TracyVkZone( info.tracy_ctx, *command_buffer, "Draw debug lines" );
@@ -69,13 +72,15 @@ namespace fgl::engine
 
 	namespace debug
 	{
-		void drawLine( const WorldCoordinate& p1, const WorldCoordinate& p2 )
+		void drawLine( const WorldCoordinate& p1, const WorldCoordinate& p2, const glm::vec3 color )
 		{
 			VertexLine line {};
 			auto& [ p1v, p2v ] = line;
 
 			p1v.m_position = p1.vec();
+			p1v.m_color = color;
 			p2v.m_position = p2.vec();
+			p2v.m_color = color;
 
 			m_lines.emplace_back( std::move( line ) );
 		}

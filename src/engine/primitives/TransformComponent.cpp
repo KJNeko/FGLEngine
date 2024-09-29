@@ -12,6 +12,8 @@ namespace fgl::engine
 	{
 		const glm::mat3 rotation_mat { rotation.mat() };
 
+		// We must flip the z axis in order to match vulkan. Where 0,0 is the top left of the screen and Z+ is down
+
 		return glm::mat4 { { scale.x * rotation_mat[ 0 ], 0.0f },
 			               { scale.y * rotation_mat[ 1 ], 0.0f },
 			               { scale.z * rotation_mat[ 2 ], 0.0f },

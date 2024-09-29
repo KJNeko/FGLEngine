@@ -4,6 +4,7 @@
 
 #pragma once
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/mat4x4.hpp>
@@ -54,32 +55,31 @@ namespace fgl::engine
 	//Lines
 	template < CoordinateSpace CType, MatrixType MType >
 		requires can_be_evolved< CType, MType >
-	LineSegment< EvolvedType< MType >() > operator*( const Matrix< MType > mat, const LineSegment< CType > );
+	LineSegment< EvolvedType< MType >() > operator*( Matrix< MType > mat, LineSegment< CType > );
 
 	template < CoordinateSpace CType, MatrixType MType >
-	InfiniteLine< EvolvedType< MType >() > operator*( const Matrix< MType > mat, const InfiniteLine< CType > );
+	InfiniteLine< EvolvedType< MType >() > operator*( Matrix< MType > mat, InfiniteLine< CType > );
 
 	//Planes
 	template < CoordinateSpace CType, MatrixType MType >
 		requires can_be_evolved< CType, MType >
-	OriginDistancePlane< EvolvedType< MType >() >
-		operator*( const Matrix< MType > mat, const OriginDistancePlane< CType > );
+	OriginDistancePlane< EvolvedType< MType >() > operator*( Matrix< MType > mat, OriginDistancePlane< CType > );
 
 	template < CoordinateSpace CType, MatrixType MType >
 		requires can_be_evolved< CType, MType >
-	PointPlane< EvolvedType< MType >() > operator*( const Matrix< MType > mat, const PointPlane< CType > );
+	PointPlane< EvolvedType< MType >() > operator*( Matrix< MType > mat, PointPlane< CType > );
 
 	//Coordinates
 	template < CoordinateSpace CType, MatrixType MType >
 		requires can_be_evolved< CType, MType >
-	Coordinate< EvolvedType< MType >() > operator*( const Matrix< MType > mat, const Coordinate< CType > );
+	Coordinate< EvolvedType< MType >() > operator*( Matrix< MType > mat, Coordinate< CType > );
 
 	//Vector
 	template < MatrixType MType >
-	Vector operator*( const Matrix< MType > mat, const Vector vec );
+	Vector operator*( Matrix< MType > mat, Vector vec );
 
 	template < MatrixType MType >
-	NormalVector operator*( const Matrix< MType > mat, const NormalVector );
+	NormalVector operator*( Matrix< MType > mat, NormalVector );
 
 	inline Matrix< MatrixType::WorldToScreen >
 		operator*( const Matrix< MatrixType::CameraToScreen > lhs, const Matrix< MatrixType::WorldToCamera > rhs )

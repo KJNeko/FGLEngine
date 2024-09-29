@@ -12,7 +12,7 @@ namespace fgl::engine
 	template < CoordinateSpace CType >
 	PointPlane< CType >::PointPlane() :
 	  coordinate( constants::WORLD_CENTER ),
-	  vector( NormalVector( constants::WORLD_FORWARD ) )
+	  vector( NormalVector( constants::WORLD_Y ) )
 	{}
 
 	template < CoordinateSpace CType >

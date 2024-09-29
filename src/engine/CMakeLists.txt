@@ -33,10 +33,11 @@ target_compile_definitions(FGLEngine PUBLIC VULKAN_HPP_FLAGS_MASK_TYPE_AS_PUBLIC
 include(dependencies/spdlog)
 include(dependencies/imgui)
 
-target_link_libraries(FGLEngine PUBLIC Vulkan::Vulkan glfw glm ImGui Tracy::TracyClient VMA FGLLoader spdlog shaderc)
+target_link_libraries(FGLEngine PUBLIC Vulkan::Vulkan glm ImGui FGLLoader spdlog shaderc)
+target_link_libraries(FGLEngine PUBLIC glfw Tracy::TracyClient VMA)
 target_include_directories(FGLEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
 set_target_properties(FGLEngine PROPERTIES COMPILE_FLAGS ${FGL_FLAGS})
-target_compile_features(FGLEngine PRIVATE cxx_std_23)
+target_compile_features(FGLEngine PUBLIC cxx_std_23)
 
 string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_UPPER_BUILD_TYPE)
 
@@ -56,7 +57,6 @@ endif ()
 
 if (DEFINED FGL_ENABLE_TESTS AND FGL_ENABLE_TESTS)
 	target_compile_definitions(FGLEngine PUBLIC FGL_TESTS=1)
-	target_link_libraries(FGLEngine PUBLIC Catch2)
 else ()
 	target_compile_definitions(FGLEngine PUBLIC FGL_TESTS=0)
 endif ()
@@ -67,7 +67,7 @@ target_compile_definitions(FGLEngine PUBLIC TRACK_BUFFERS)
 
 #GLM settings
 # GLM_FORCE_NO_CTOR_INIT
-target_compile_definitions(FGLEngine PUBLIC GLM_FORCE_RADIANS GLM_FORCE_DEPTH_ZERO_TO_ONE GLM_FORCE_LEFT_HANDED)
+target_compile_definitions(FGLEngine PUBLIC GLM_FORCE_RADIANS GLM_FORCE_DEPTH_ZERO_TO_ONE)
 
 if (DEFINED FGL_ENABLE_CALIBRATED_PROFILING AND FGL_ENABLE_CALIBRATED_PROFILING)
 	target_compile_definitions(FGLEngine PUBLIC ENABLE_CALIBRATED_PROFILING=1)

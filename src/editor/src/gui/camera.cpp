@@ -28,24 +28,26 @@ namespace fgl::engine::gui
 		constexpr double pitch_rate { 1.0 };
 		constexpr double yaw_rate { 1.0 };
 
-		if ( ImGui::IsKeyDown( ImGuiKey_DownArrow ) )
-		{
-			yaw_change.pitch() -= ( delta_time * pitch_rate );
-		}
-
 		if ( ImGui::IsKeyDown( ImGuiKey_UpArrow ) )
 		{
-			yaw_change.pitch() += ( delta_time * pitch_rate );
+			// yaw_change.xAngle() += ( delta_time * pitch_rate );
+			yaw_change.addY( delta_time * pitch_rate );
 		}
 
-		if ( ImGui::IsKeyDown( ImGuiKey_LeftArrow ) )
+		if ( ImGui::IsKeyDown( ImGuiKey_DownArrow ) )
 		{
-			pitch_change.yaw() -= ( delta_time * yaw_rate );
+			// yaw_change.xAngle() -= ( delta_time * pitch_rate );
+			yaw_change.addY( -( delta_time * pitch_rate ) );
 		}
 
 		if ( ImGui::IsKeyDown( ImGuiKey_RightArrow ) )
 		{
-			pitch_change.yaw() += ( delta_time * yaw_rate );
+			pitch_change.addZ( delta_time * yaw_rate );
+		}
+
+		if ( ImGui::IsKeyDown( ImGuiKey_LeftArrow ) )
+		{
+			pitch_change.addZ( -( delta_time * yaw_rate ) );
 		}
 
 		Vector move_dir { 0.0f };

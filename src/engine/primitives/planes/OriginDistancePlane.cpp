@@ -13,7 +13,7 @@ namespace fgl::engine
 	template < CoordinateSpace CType >
 	OriginDistancePlane< CType >::OriginDistancePlane() :
 	  m_distance( std::numeric_limits< float >::infinity() ),
-	  m_direction( constants::WORLD_FORWARD )
+	  m_direction( constants::WORLD_Y )
 	{}
 
 	template < CoordinateSpace CType >

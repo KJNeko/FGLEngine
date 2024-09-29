@@ -28,11 +28,11 @@ namespace fgl::engine
 
 		float span() const { return this->scale().x; }
 
-		constexpr NormalVector right() const { return NormalVector( constants::WORLD_RIGHT ); }
+		constexpr NormalVector right() const { return NormalVector( constants::WORLD_X ); }
 
-		constexpr NormalVector up() const { return NormalVector( constants::WORLD_UP ); }
+		constexpr NormalVector up() const { return NormalVector( constants::WORLD_Z ); }
 
-		constexpr NormalVector forward() const { return NormalVector( constants::WORLD_FORWARD ); }
+		constexpr NormalVector forward() const { return NormalVector( constants::WORLD_Y ); }
 	};
 
 } // namespace fgl::engine

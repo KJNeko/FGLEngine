@@ -2,43 +2,58 @@
 // Created by kj16609 on 2/14/24.
 //
 
+#include <catch2/catch_all.hpp>
+
+#include "engine/assets/model/ModelVertex.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"
+#include "gtest_printers.hpp"
 
 using namespace fgl::engine;
 
-#include <catch2/catch_all.hpp>
+ModelVertex createTestVert( const float x, const float y, const float z )
+{
+	ModelVertex vert {};
+	vert.m_position = { x, y, z };
 
-#include "gtest_printers.hpp"
+	return vert;
+}
 
 TEST_CASE( "BoundingBox", "[boundingbox]" )
 {
 	SECTION( "Combine test" )
 	{
-		std::vector< Coordinate< CoordinateSpace::Model > > model_points {};
+		std::vector< ModelVertex > model_points {};
 
-		//Top left
-		model_points.push_back( Coordinate< CoordinateSpace::Model >( -1.0f, 1.0f, 1.0f ) );
+		// Top left
+		model_points.push_back( createTestVert( 1.0f, 1.0f, 1.0f ) );
+
 		// Bottom right
-		model_points.push_back( Coordinate< CoordinateSpace::Model >( 1.0f, -1.0f, -1.0f ) );
+		model_points.push_back( createTestVert( -1.0f, -1.0f, -1.0f ) );
 
-		OrientedBoundingBox< CoordinateSpace::Model > model_box( generateBoundingFromPoints( model_points ) );
+		OrientedBoundingBox< CoordinateSpace::Model > model_box( generateBoundingFromVerts( model_points ) );
+
+		THEN( "The bounding box center must be at 0,0,0" )
+		{
+			REQUIRE( model_box.center().vec() == glm::vec3( 0.0f, 0.0f, 0.0f ) );
+		}
 
 		model_points.clear();
 
-		//Top left
-		model_points.push_back( Coordinate< CoordinateSpace::Model >( -2.0f, 1.0f, 2.0f ) );
-		// Bottom right
-		model_points.push_back( Coordinate< CoordinateSpace::Model >( 2.0f, -1.0f, -2.0f ) );
+		// Top left
+		model_points.push_back( createTestVert( 2.0f, 1.0f, 2.0f ) );
 
-		OrientedBoundingBox< CoordinateSpace::Model > model_box2( generateBoundingFromPoints( model_points ) );
+		// Bottom right
+		model_points.push_back( createTestVert( -2.0f, -1.0f, -2.0f ) );
+
+		OrientedBoundingBox< CoordinateSpace::Model > model_box2( generateBoundingFromVerts( model_points ) );
 
 		auto combined_box = model_box.combine( model_box2 );
 
 		//Check that the points are correct
 		//The middle point should not change
-		REQUIRE( combined_box.middle == model_box.middle );
+		REQUIRE( combined_box.center() == model_box.center() );
 		//The scale should be the max of the two boxes
-		REQUIRE( combined_box.scale == glm::vec3( 2.0f, 1.0f, 2.0f ) );
+		REQUIRE( combined_box.m_transform.scale == glm::vec3( 2.0f, 1.0f, 2.0f ) );
 
 		//Check that the points are correct
 

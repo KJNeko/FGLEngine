@@ -42,8 +42,8 @@
 
 #ifndef NDEBUG
 #include <stdexcept>
-#define FGL_ASSERT( test, msg )                                                                                        \
-	if ( !( test ) ) throw std::runtime_error( msg );
+#define FGL_ASSERT( test, msg ) assert( ( test ) && "msg" );
+//if ( !( test ) ) throw std::runtime_error( msg );
 #else
 #define FGL_ASSERT( test, msg )
 #endif

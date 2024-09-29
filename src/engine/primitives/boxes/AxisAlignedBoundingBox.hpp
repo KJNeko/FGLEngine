@@ -46,7 +46,7 @@ namespace fgl::engine
 		explicit AxisAlignedBoundingBox( const OrientedBoundingBox< CType >& oobb );
 
 		AxisAlignedBoundingBox& combine( const AxisAlignedBoundingBox& other );
-		AxisAlignedBoundingBox& combine( const OrientedBoundingBox< CType >& other );
+		//AxisAlignedBoundingBox& combine( const OrientedBoundingBox< CType >& other );
 
 		bool operator==( const AxisAlignedBoundingBox< CType >& other ) const
 		{
@@ -67,11 +67,11 @@ namespace fgl::engine
 		std::array< Coordinate< CType >, POINT_COUNT > points() const;
 		std::array< LineSegment< CType >, LINE_COUNT > lines() const;
 
-		constexpr NormalVector right() const { return NormalVector( constants::WORLD_RIGHT ); }
+		constexpr NormalVector right() const { return NormalVector( constants::WORLD_X ); }
 
-		constexpr NormalVector up() const { return NormalVector( constants::WORLD_UP ); }
+		constexpr NormalVector up() const { return NormalVector( constants::WORLD_Z ); }
 
-		constexpr NormalVector forward() const { return NormalVector( constants::WORLD_FORWARD ); }
+		constexpr NormalVector forward() const { return NormalVector( constants::WORLD_Y ); }
 	};
 
 } // namespace fgl::engine

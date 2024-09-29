@@ -104,7 +104,7 @@
 				AppendFlag("-fdiagnostics-show-template-tree") # Shows the template diagnostic info as a tree instead.
 				AppendFlag("-fdiagnostics-path-format=inline-events")
 
-				set(FGL_CONFIG "-std=c++23 -fmax-errors=6 -fconcepts-diagnostics-depth=8 -flto=auto -ftree-vectorize")
+				set(FGL_CONFIG "-std=c++23 -fmax-errors=6 -fconcepts-diagnostics-depth=8 -ftree-vectorize")
 
 				if (DEFINED USE_WERROR)
 					set(FGL_CONFIG "${FGL_CONFIG} -Werror")
@@ -128,7 +128,7 @@
 				#set(FGL_FLAGS "${FGL_OPTIMIZATION_FLAGS_${UPPER_BUILD_TYPE}}" PARENT_SCOPE)
 				set(FGL_CHILD_FLAGS "${FGL_OPTIMIZATION_FLAGS_RELEASE}" PARENT_SCOPE) # Child flags for adding optimization to anything we build ourselves but doesn't follow our standard
 				# We use release flags since we really don't need to be using debug flags for anything not ours
-				set(CMAKE_CXX_FLAGS "${FGL_CHILD_FLAGS}")
+				#set(CMAKE_CXX_FLAGS "${FGL_CHILD_FLAGS}")
 			endif ()
 		endfunction()
 

@@ -78,19 +78,13 @@ namespace fgl::engine
 
 		if ( cursor_enabled )
 		{
-			const auto& original_rotation { target.getTransform().rotation };
-			Rotation yaw_rotation {};
-			Rotation pitch_rotation {};
-
 			if ( pitch_change > std::numeric_limits< float >::epsilon()
 			     || pitch_change < -std::numeric_limits< float >::epsilon() )
-				pitch_rotation.pitch() += dt * pitch_change;
+				target.getTransform().rotation.addX( dt * pitch_change );
 
 			if ( yaw_change > std::numeric_limits< float >::epsilon()
 			     || yaw_change < -std::numeric_limits< float >::epsilon() )
-				yaw_rotation.yaw() += dt * yaw_change;
-
-			target.getTransform().rotation = yaw_rotation * original_rotation * pitch_rotation;
+				target.getTransform().rotation.addY( dt * yaw_change );
 		}
 		else // No cursor
 		{
@@ -100,8 +94,8 @@ namespace fgl::engine
 
 			Rotation target_rotation { target.getTransform().rotation };
 
-			target_rotation.yaw() += ( xpos * 0.006f ) * look_speed;
-			target_rotation.pitch() -= ( ypos * 0.006f ) * look_speed;
+			target_rotation.addZ( ( xpos * 0.006f ) * look_speed );
+			target_rotation.addX( ( ypos * 0.006f ) * look_speed );
 
 			target.getTransform().rotation = target_rotation;
 

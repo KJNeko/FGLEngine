@@ -44,7 +44,7 @@ namespace fgl::engine
 
 		constexpr explicit Vector( const float i_x, const float i_y, const float i_z ) : glm::vec3( i_x, i_y, i_z ) {}
 
-		glm::vec3 right( const Vector up = Vector( constants::WORLD_UP ) ) const;
+		glm::vec3 right( const Vector up = Vector( constants::WORLD_Z ) ) const;
 		glm::vec3 forward() const;
 
 		Vector operator*( const float scalar ) const { return Vector( static_cast< glm::vec3 >( *this ) * scalar ); }

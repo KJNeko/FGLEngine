@@ -19,11 +19,11 @@ namespace fgl::engine
 		constexpr glm::vec3 BOTTOM_LEFT { -0.5f, -0.5f, 0.0f };
 		constexpr float dist_mulpt { 2.0f };
 
-		verts.emplace_back( TOP_LEFT * dist_mulpt, glm::vec3( 1.0f ), constants::WORLD_UP, glm::vec2( 0.0f, 0.0f ) );
-		verts.emplace_back( TOP_RIGHT * dist_mulpt, glm::vec3( 1.0f ), constants::WORLD_UP, glm::vec2( 1.0f, 0.0f ) );
+		verts.emplace_back( TOP_LEFT * dist_mulpt, glm::vec3( 1.0f ), constants::WORLD_Z, glm::vec2( 0.0f, 0.0f ) );
+		verts.emplace_back( TOP_RIGHT * dist_mulpt, glm::vec3( 1.0f ), constants::WORLD_Z, glm::vec2( 1.0f, 0.0f ) );
 		verts
-			.emplace_back( BOTTOM_RIGHT * dist_mulpt, glm::vec3( 1.0f ), constants::WORLD_UP, glm::vec2( 1.0f, 1.0f ) );
-		verts.emplace_back( BOTTOM_LEFT * dist_mulpt, glm::vec3( 1.0f ), constants::WORLD_UP, glm::vec2( 0.0f, 1.0f ) );
+			.emplace_back( BOTTOM_RIGHT * dist_mulpt, glm::vec3( 1.0f ), constants::WORLD_Z, glm::vec2( 1.0f, 1.0f ) );
+		verts.emplace_back( BOTTOM_LEFT * dist_mulpt, glm::vec3( 1.0f ), constants::WORLD_Z, glm::vec2( 0.0f, 1.0f ) );
 
 		std::vector< std::uint32_t > indicies { 0, 1, 2, 3 };
 

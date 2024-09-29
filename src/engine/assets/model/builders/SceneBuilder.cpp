@@ -12,12 +12,12 @@
 #include "objectloaders/tiny_gltf.h"
 #pragma GCC diagnostic pop
 
+#include "engine/assets/image/ImageView.hpp"
 #include "engine/assets/stores.hpp"
 #include "engine/camera/Camera.hpp"
 #include "engine/debug/logging/logging.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/gameobjects/GameObject.hpp"
-#include "engine/assets/image/ImageView.hpp"
 
 namespace fgl::engine
 {
@@ -173,8 +173,9 @@ namespace fgl::engine
 		const auto mat_idx { prim.material };
 		if ( mat_idx == -1 )
 		{
-			//There is no material for this
-			throw std::runtime_error( "No material for primitive. One was expected" );
+			//There is no textures for this material
+			// throw std::runtime_error( "No material for primitive. One was expected" );
+			return {};
 		}
 
 		const tinygltf::Material& materials { root.materials[ mat_idx ] };

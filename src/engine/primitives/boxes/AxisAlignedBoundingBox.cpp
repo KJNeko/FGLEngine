@@ -147,6 +147,7 @@ namespace fgl::engine
 		}
 	}
 
+	/*
 	template < CoordinateSpace CType >
 	AxisAlignedBoundingBox< CType >& AxisAlignedBoundingBox< CType >::combine( const OrientedBoundingBox< CType >&
 	                                                                               other )
@@ -160,6 +161,7 @@ namespace fgl::engine
 			return this->combine( aabb );
 		}
 	}
+	*/
 
 	template class AxisAlignedBoundingBox< CoordinateSpace::Model >;
 	template class AxisAlignedBoundingBox< CoordinateSpace::World >;

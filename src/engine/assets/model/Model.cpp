@@ -9,8 +9,8 @@
 
 #include "builders/ModelBuilder.hpp"
 #include "builders/SceneBuilder.hpp"
-#include "engine/memory/buffers/Buffer.hpp"
 #include "engine/assets/image/ImageView.hpp"
+#include "engine/memory/buffers/Buffer.hpp"
 
 namespace fgl::engine
 {
@@ -21,8 +21,13 @@ namespace fgl::engine
 		std::vector< vk::DrawIndexedIndirectCommand > draw_parameters {};
 		draw_parameters.reserve( primitives.size() );
 
+		//TODO: Perhaps building the parameter list using the model instead of keeping a list already here would be better in order to reduce allocations
+
 		for ( const auto& primitive : primitives )
 		{
+			// Skip drawing this primitive if draw flag is not set
+			if ( !primitive.draw ) continue;
+
 			vk::DrawIndexedIndirectCommand cmd;
 			cmd.indexCount = primitive.m_index_buffer.size();
 			cmd.firstIndex = primitive.m_index_buffer.getOffsetCount();

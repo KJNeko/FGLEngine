@@ -12,24 +12,39 @@
 namespace fgl::engine::debug
 {
 
-	void drawLine( const LineSegment< CoordinateSpace::World >& line )
+	void drawLine( const LineSegment< CoordinateSpace::World >& line, const glm::vec3 color )
 	{
 		drawLine( line.getStart(), line.getEnd() );
 	}
 
-	void drawBoundingBox( const AxisAlignedBoundingBox< CoordinateSpace::World >& bounding_box )
+	void drawBoundingBox( const AxisAlignedBoundingBox< CoordinateSpace::World >& bounding_box, const glm::vec3 color )
 	{
 		for ( const auto& line : bounding_box.lines() )
 		{
-			drawLine( line.getStart(), line.getEnd() );
+			drawLine( line.getStart(), line.getEnd(), color );
 		}
 	}
 
 	void drawBoundingBox( const OrientedBoundingBox< CoordinateSpace::World >& bounding_box )
 	{
+		constexpr glm::vec3 bounding_box_color { 1.0f, 0.0f, 0.0f };
+
 		for ( const auto& line : bounding_box.lines() )
 		{
-			drawLine( line.getStart(), line.getEnd() );
+			drawLine( line.getStart(), line.getEnd(), bounding_box_color );
 		}
 	}
+
+	void drawAxisHelper()
+	{
+		constexpr WorldCoordinate center { constants::WORLD_CENTER };
+		constexpr WorldCoordinate right { constants::WORLD_X };
+		constexpr WorldCoordinate up { constants::WORLD_Z };
+		constexpr WorldCoordinate forward { constants::WORLD_Y };
+
+		drawLine( center, right, constants::WORLD_X );
+		drawLine( center, up, constants::WORLD_Z );
+		drawLine( center, forward, constants::WORLD_Y );
+	}
+
 } // namespace fgl::engine::debug

@@ -21,6 +21,9 @@ namespace fgl::engine
 	template < CoordinateSpace CType >
 	class LineSegment;
 
+	template < CoordinateSpace CType >
+	class AxisAlignedBoundingBox;
+
 	struct ModelVertex;
 
 	template < CoordinateSpace CType >
@@ -71,7 +74,11 @@ namespace fgl::engine
 
 		NormalVector up() const { return m_transform.up(); }
 
+		Coordinate< CType > center() { return m_transform.translation; }
+
 		OrientedBoundingBox combine( const OrientedBoundingBox& other ) const;
+
+		AxisAlignedBoundingBox< CType > alignToWorld();
 	};
 
 	template < CoordinateSpace CType, MatrixType MType >
@@ -81,9 +88,9 @@ namespace fgl::engine
 		assert( bounding_box.m_transform.translation.vec() != constants::DEFAULT_VEC3 );
 		assert( bounding_box.m_transform.scale != glm::vec3( 0.0f ) );
 
-		const auto new_transform { matrix * bounding_box.m_transform };
+		const TransformComponent< EvolvedType< MType >() > new_transform { matrix * bounding_box.m_transform };
 
-		return OrientedBoundingBox< EvolvedType< MType >() >( new_transform );
+		return { new_transform };
 	}
 
 	OrientedBoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< ModelVertex >& verts );

@@ -64,7 +64,8 @@ namespace fgl::engine
 	{
 		const auto combined_matrix { matrix * transform.mat() };
 
-		[[maybe_unused]] glm::vec3 scale {}, translation {}, skew {};
+		glm::vec3 scale {}, translation {};
+		[[maybe_unused]] glm::vec3 skew {};
 		glm::quat quat {};
 		[[maybe_unused]] glm::vec4 perspective {};
 		glm::decompose( combined_matrix, scale, quat, translation, skew, perspective );

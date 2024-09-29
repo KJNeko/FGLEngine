@@ -345,16 +345,16 @@ namespace fgl::engine
 
 	FrustumBase createFrustum( const float aspect, const float fov_y, const float near, const float far )
 	{
-		const Plane< CoordinateSpace::Model > near_plane { ModelCoordinate( constants::WORLD_Y * near ),
-			                                               NormalVector( constants::WORLD_Y ) };
-		const Plane< CoordinateSpace::Model > far_plane { ModelCoordinate( constants::WORLD_Y * far ),
-			                                              NormalVector( constants::WORLD_Y_NEG ) };
+		const Plane< CoordinateSpace::Model > near_plane { ModelCoordinate( constants::WORLD_FORWARD * near ),
+			                                               NormalVector( constants::WORLD_FORWARD ) };
+		const Plane< CoordinateSpace::Model > far_plane { ModelCoordinate( constants::WORLD_FORWARD * far ),
+			                                              NormalVector( -constants::WORLD_FORWARD ) };
 
 		const float half_height { far * glm::tan( fov_y / 2.0f ) };
 		const float half_width { half_height * aspect };
 
-		const ModelCoordinate far_forward { constants::WORLD_Y * far };
-		const ModelCoordinate right_half { constants::WORLD_X * half_width };
+		const ModelCoordinate far_forward { constants::WORLD_FORWARD * far };
+		const ModelCoordinate right_half { constants::WORLD_RIGHT * half_width };
 
 		const Vector right_forward { ( far_forward + right_half ).vec() };
 		const Vector left_forward { ( far_forward - right_half ).vec() };
@@ -375,12 +375,12 @@ namespace fgl::engine
 
 		const Plane< CoordinateSpace::Model > top_plane {
 			ModelCoordinate( constants::WORLD_CENTER ),
-			NormalVector( glm::cross( top_forward.vec(), constants::WORLD_X ) )
+			NormalVector( glm::cross( top_forward.vec(), constants::WORLD_RIGHT ) )
 		};
 
 		const Plane< CoordinateSpace::Model > bottom_plane {
 			ModelCoordinate( constants::WORLD_CENTER ),
-			NormalVector( glm::cross( bottom_forward.vec(), constants::WORLD_X_NEG ) )
+			NormalVector( glm::cross( bottom_forward.vec(), -constants::WORLD_RIGHT ) )
 		};
 
 		return { near_plane,

@@ -67,6 +67,7 @@ namespace fgl::engine
 
 	struct Primitive
 	{
+		bool draw { true };
 		VertexBufferSuballocation m_vertex_buffer;
 		IndexBufferSuballocation m_index_buffer;
 		OrientedBoundingBox< CoordinateSpace::Model > m_bounding_box;
