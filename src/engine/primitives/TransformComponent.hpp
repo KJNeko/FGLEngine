@@ -61,14 +61,28 @@ namespace fgl::engine
 
 	template < MatrixType MType, CoordinateSpace CType >
 	TransformComponent< EvolvedType< MType >() >
-		operator*( const Matrix< MType >& matrix, const TransformComponent< CType >& transform )
+		operator*( Matrix< MType > matrix, TransformComponent< CType > transform )
 	{
+		// TODO: HACKY FIX! The performance for this is probably dogshit. So we need to probably make sure scale is never completely zero
+
+		// if any of the values in scale is zero then we need to set it to something very small
+		// otherwise the decompose function will fail
+		if ( transform.scale.x == 0.0f ) transform.scale.x = constants::EPSILON;
+		if ( transform.scale.y == 0.0f ) transform.scale.y = constants::EPSILON;
+		if ( transform.scale.z == 0.0f ) transform.scale.z = constants::EPSILON;
+
+		// Do the same for the matrix
+		if ( matrix[ 0 ][ 0 ] == 0.0f ) matrix[ 0 ][ 0 ] = constants::EPSILON;
+		if ( matrix[ 1 ][ 1 ] == 0.0f ) matrix[ 1 ][ 1 ] = constants::EPSILON;
+		if ( matrix[ 2 ][ 2 ] == 0.0f ) matrix[ 2 ][ 2 ] = constants::EPSILON;
+
 		const auto combined_matrix { matrix * transform.mat() };
 
 		glm::vec3 scale {}, translation {};
 		[[maybe_unused]] glm::vec3 skew {};
 		glm::quat quat {};
 		[[maybe_unused]] glm::vec4 perspective {};
+
 		glm::decompose( combined_matrix, scale, quat, translation, skew, perspective );
 
 		return { Coordinate< EvolvedType< MType >() >( translation ), Scale( scale ), Rotation( quat ) };

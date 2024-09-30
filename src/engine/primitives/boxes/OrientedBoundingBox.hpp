@@ -90,6 +90,9 @@ namespace fgl::engine
 
 		const TransformComponent< EvolvedType< MType >() > new_transform { matrix * bounding_box.m_transform };
 
+		assert( bounding_box.m_transform.translation.vec() != constants::DEFAULT_VEC3 );
+		assert( bounding_box.m_transform.scale != glm::vec3( 0.0f ) );
+
 		return { new_transform };
 	}
 
