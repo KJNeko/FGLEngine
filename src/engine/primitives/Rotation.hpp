@@ -24,6 +24,8 @@ namespace fgl::engine
 namespace fgl::engine
 {
 
+	//TODO: Add in ability to use `operator+=` on return values for xAngle for local and world rotations
+
 	struct Rotation : private glm::quat
 	{
 		Rotation();
@@ -60,7 +62,7 @@ namespace fgl::engine
 		void addZWorld( float );
 
 		// internal
-		inline glm::quat internal_quat() const { return static_cast< glm::quat >( *this ); }
+		inline glm::quat internal_quat() const { return *this; }
 
 		bool operator==( const Rotation& rot ) const
 		{

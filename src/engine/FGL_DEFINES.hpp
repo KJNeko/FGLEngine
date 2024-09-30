@@ -25,7 +25,7 @@
 #ifndef NDEBUG
 #define FGL_ASSUME( ... )                                                                                              \
 	FGL_ASSERT( ( __VA_ARGS__ ), "FGL_ASSUME: Check failed!" );                                                        \
-	[[gnu::assume( __VA_ARGS__ )]]
+	[[gnu::assume( __VA_ARGS__ )]];
 #else
 #define FGL_ASSUME( ... ) [[gnu::assume( __VA_ARGS__ )]]
 #endif

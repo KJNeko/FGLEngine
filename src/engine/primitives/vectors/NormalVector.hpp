@@ -20,14 +20,14 @@ namespace fgl::engine
 
 	class Vector;
 
-	inline constexpr float length( glm::vec3 vec )
+	inline constexpr float length( const glm::vec3 vec )
 	{
-		return std::sqrt( std::pow( vec.x, 2 ) + std::pow( vec.y, 2 ) + std::pow( vec.z, 2 ) );
+		return std::sqrt( std::pow( vec.x, 2.0f ) + std::pow( vec.y, 2.0f ) + std::pow( vec.z, 2.0f ) );
 	}
 
-	inline constexpr glm::vec3 normalize( glm::vec3 vec )
+	inline constexpr glm::vec3 normalize( const glm::vec3 vec )
 	{
-		if constexpr ( std::is_constant_evaluated() )
+		if ( std::is_constant_evaluated() )
 		{
 			const auto len { length( vec ) };
 			return glm::vec3( vec.x / len, vec.y / len, vec.z / len );

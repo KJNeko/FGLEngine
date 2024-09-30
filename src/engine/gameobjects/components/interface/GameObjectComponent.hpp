@@ -24,7 +24,13 @@ namespace fgl::engine
 			Local,
 			//! Object moves in relation to the world
 			Global
-		} m_mode;
+		} m_mode { Global };
+
+		ComponentTransform() = default;
+
+		ComponentTransform( const WorldCoordinate position_i, const Scale scale_i, const Rotation rotation_i ) :
+		  TransformComponent( position_i, scale_i, rotation_i )
+		{}
 	};
 
 	struct GameObjectComponentBase : public ComponentEditorInterface, public ComponentEngineInterface
