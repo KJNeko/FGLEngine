@@ -6,6 +6,7 @@
 
 #include "Rotation.hpp"
 #include "Scale.hpp"
+#include "engine/FGL_DEFINES.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 
 namespace fgl::engine

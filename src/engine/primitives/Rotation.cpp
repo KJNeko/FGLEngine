@@ -10,6 +10,8 @@
 
 #include <stdexcept>
 
+#include "engine/constants.hpp"
+
 namespace fgl::engine
 {
 	Rotation::Rotation() : Rotation( 0.0f )

@@ -11,15 +11,10 @@
 #include <glm/gtc/quaternion.hpp>
 #pragma GCC diagnostic pop
 
-#include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/quaternion.hpp>
-
-#include <numbers>
-#include <utility>
 
 #include "engine/primitives/matricies/RotationMatrix.hpp"
 #include "engine/primitives/vectors/NormalVector.hpp"
-#include "engine/primitives/vectors/Vector.hpp"
 
 namespace fgl::engine
 {
