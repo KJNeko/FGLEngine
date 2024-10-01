@@ -7,6 +7,7 @@
 #include "Rotation.hpp"
 #include "Scale.hpp"
 #include "engine/FGL_DEFINES.hpp"
+#include "engine/debug/logging/logging.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 
 namespace fgl::engine
@@ -67,6 +68,7 @@ namespace fgl::engine
 
 		// if any of the values in scale is zero then we need to set it to something very small
 		// otherwise the decompose function will fail
+		/*
 		if ( transform.scale.x == 0.0f ) transform.scale.x = constants::EPSILON;
 		if ( transform.scale.y == 0.0f ) transform.scale.y = constants::EPSILON;
 		if ( transform.scale.z == 0.0f ) transform.scale.z = constants::EPSILON;
@@ -75,15 +77,31 @@ namespace fgl::engine
 		if ( matrix[ 0 ][ 0 ] == 0.0f ) matrix[ 0 ][ 0 ] = constants::EPSILON;
 		if ( matrix[ 1 ][ 1 ] == 0.0f ) matrix[ 1 ][ 1 ] = constants::EPSILON;
 		if ( matrix[ 2 ][ 2 ] == 0.0f ) matrix[ 2 ][ 2 ] = constants::EPSILON;
+		*/
 
-		const auto combined_matrix { matrix * transform.mat() };
+		auto combined_matrix { matrix * transform.mat() };
 
-		glm::vec3 scale {}, translation {};
-		[[maybe_unused]] glm::vec3 skew {};
-		glm::quat quat {};
-		[[maybe_unused]] glm::vec4 perspective {};
+		if ( combined_matrix[ 0 ][ 0 ] == 0.0f ) combined_matrix[ 0 ][ 0 ] = constants::EPSILON;
+		if ( combined_matrix[ 1 ][ 1 ] == 0.0f ) combined_matrix[ 1 ][ 1 ] = constants::EPSILON;
+		if ( combined_matrix[ 2 ][ 2 ] == 0.0f ) combined_matrix[ 2 ][ 2 ] = constants::EPSILON;
 
-		glm::decompose( combined_matrix, scale, quat, translation, skew, perspective );
+		const auto NaN { std::numeric_limits< float >::quiet_NaN() };
+
+		glm::vec3 scale { NaN }, translation { NaN };
+		[[maybe_unused]] glm::vec3 skew { NaN };
+		glm::quat quat { NaN, NaN, NaN, NaN };
+		[[maybe_unused]] glm::vec4 perspective { NaN };
+
+		if ( !glm::decompose( combined_matrix, scale, quat, translation, skew, perspective ) )
+		{
+			log::warn(
+				"Failed to decompose matrix:\n{},\n{}",
+				static_cast< glm::mat4 >( matrix ),
+				static_cast< glm::mat4 >( combined_matrix ) );
+		}
+
+		assert( !std::isnan( scale.x ) );
+		assert( scale != glm::vec3( 0.0f, 0.0f, 0.0f ) );
 
 		return { Coordinate< EvolvedType< MType >() >( translation ), Scale( scale ), Rotation( quat ) };
 	}

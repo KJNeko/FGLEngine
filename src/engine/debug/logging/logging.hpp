@@ -12,6 +12,7 @@
 #pragma GCC diagnostic pop
 
 #include "formatters/filesystem.hpp"
+#include "formatters/matrix.hpp"
 
 namespace fgl::engine::log
 {
