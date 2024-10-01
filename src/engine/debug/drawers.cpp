@@ -38,13 +38,13 @@ namespace fgl::engine::debug
 	void drawAxisHelper()
 	{
 		constexpr WorldCoordinate center { constants::WORLD_CENTER };
-		constexpr WorldCoordinate right { constants::WORLD_X };
+		constexpr WorldCoordinate right { constants::WORLD_Y };
+		constexpr WorldCoordinate forward { constants::WORLD_X };
 		constexpr WorldCoordinate up { constants::WORLD_Z };
-		constexpr WorldCoordinate forward { constants::WORLD_Y };
 
-		drawLine( center, right, constants::WORLD_X );
-		drawLine( center, up, constants::WORLD_Z );
-		drawLine( center, forward, constants::WORLD_Y );
+		drawLine( center, right, right.vec() );
+		drawLine( center, up, up.vec() );
+		drawLine( center, forward, forward.vec() );
 	}
 
 } // namespace fgl::engine::debug
