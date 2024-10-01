@@ -11,6 +11,7 @@
 #include <glm/gtc/quaternion.hpp>
 #pragma GCC diagnostic pop
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
 #include "engine/primitives/matricies/RotationMatrix.hpp"
