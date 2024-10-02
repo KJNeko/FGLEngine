@@ -54,22 +54,22 @@ namespace fgl::engine
 		std::vector< T > data {};
 		data.reserve( accessor.count );
 
-		std::uint16_t copy_size { 0 };
+		std::uint16_t byte_count { 0 };
 		switch ( accessor.componentType )
 		{
 			default:
 				throw std::runtime_error( "Unhandled access size" );
 			case TINYGLTF_COMPONENT_TYPE_FLOAT:
-				copy_size = 32 / 8;
+				byte_count = 32 / 8;
 				break;
 			case TINYGLTF_COMPONENT_TYPE_BYTE:
-				copy_size = 8 / 8;
+				byte_count = 8 / 8;
 				break;
 			case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
-				copy_size = 32 / 8;
+				byte_count = 32 / 8;
 				break;
 			case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
-				copy_size = 16 / 8;
+				byte_count = 16 / 8;
 				break;
 		}
 
@@ -78,24 +78,87 @@ namespace fgl::engine
 			default:
 				throw std::runtime_error( "Unhandled access type" );
 			case TINYGLTF_TYPE_VEC3:
-				copy_size *= 3;
+				byte_count *= 3;
 				break;
 			case TINYGLTF_TYPE_VEC2:
-				copy_size *= 2;
+				byte_count *= 2;
 				break;
 			case TINYGLTF_TYPE_SCALAR:
-				copy_size *= 1;
+				byte_count *= 1;
 				break;
 		}
 
+		// Size of the type we are extracting into
 		constexpr auto T_SIZE { sizeof( T ) };
 
-		if ( T_SIZE != copy_size )
-			throw std::runtime_error(
-				std::string( "Accessor copy values not matching sizeof(T): sizeof(T) == " ) + std::to_string( T_SIZE )
-				+ " vs copy_size = " + std::to_string( copy_size ) );
+		// If the type size is smaller then we need. Then we need to throw an error
+		if ( T_SIZE != byte_count )
+		{
+			// If the type is scalar type we can still safely use it without any major worries
+			if ( accessor.type == TINYGLTF_TYPE_SCALAR && T_SIZE >= byte_count )
+			{
+				// If the type is a smaller scalar then we want can still copy the data.
+				log::warn( "Attempting to copy data of size {} into type of size {}", byte_count, T_SIZE );
 
-		const auto real_size { copy_size * accessor.count };
+				switch ( byte_count )
+				{
+					default:
+						throw std::runtime_error( "Unknown size" );
+					case 1:
+						for ( std::size_t i = 0; i < accessor.count; ++i )
+						{
+							std::uint8_t tmp {};
+							std::memcpy(
+								&tmp,
+								buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset + ( i * byte_count ),
+								byte_count );
+							data.emplace_back( static_cast< T >( tmp ) );
+						}
+						return data;
+					case 2:
+						for ( std::size_t i = 0; i < accessor.count; ++i )
+						{
+							std::uint16_t tmp {};
+							std::memcpy(
+								&tmp,
+								buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset + ( i * byte_count ),
+								byte_count );
+							data.emplace_back( static_cast< T >( tmp ) );
+						}
+						return data;
+					case 4:
+						for ( std::size_t i = 0; i < accessor.count; ++i )
+						{
+							std::uint32_t tmp {};
+							std::memcpy(
+								&tmp,
+								buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset + ( i * byte_count ),
+								byte_count );
+							data.emplace_back( static_cast< T >( tmp ) );
+						}
+						return data;
+					case 8:
+						for ( std::size_t i = 0; i < accessor.count; ++i )
+						{
+							std::uint64_t tmp {};
+							std::memcpy(
+								&tmp,
+								buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset + ( i * byte_count ),
+								byte_count );
+							data.emplace_back( static_cast< T >( tmp ) );
+						}
+						return data;
+				}
+			}
+			else
+			{
+				throw std::runtime_error(
+					std::format( "Tried extracting data of size {} into type of size {}", byte_count, T_SIZE ) );
+			}
+		}
+
+		// Size matches perfectly. We can copy the data directly
+		const auto real_size { byte_count * accessor.count };
 
 		data.resize( accessor.count );
 
@@ -119,7 +182,7 @@ namespace fgl::engine
 			//TODO: Figure out any time we can use a smaller indicies value instead of a 32 bit number all the time
 			std::vector< std::uint32_t > indicies {};
 
-			const auto tmp { extractData< std::uint16_t >( model, indicies_accessor ) };
+			const auto tmp { extractData< std::uint32_t >( model, indicies_accessor ) };
 
 			indicies.reserve( tmp.size() );
 
