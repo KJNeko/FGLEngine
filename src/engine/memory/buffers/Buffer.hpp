@@ -49,6 +49,12 @@ namespace fgl::engine::memory
 		vk::BufferUsageFlags m_usage;
 		vk::MemoryPropertyFlags m_memory_properties;
 
+	  public:
+
+		std::string m_debug_name { "Debug name" };
+
+	  private:
+
 		void alloc( vk::DeviceSize memory_size );
 		void dealloc();
 

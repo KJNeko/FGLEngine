@@ -39,6 +39,12 @@ namespace fgl::engine
 		using namespace fgl::literals::size_literals;
 
 		memory::TransferManager::createInstance( device, 128_MiB );
+
+		m_matrix_info_pool.setDebugName( "Matrix info pool" );
+		m_draw_parameter_pool.setDebugName( "Draw parameter pool" );
+
+		m_vertex_buffer->setDebugName( "Vertex buffer" );
+		m_index_buffer->setDebugName( "Index buffer" );
 	}
 
 	static Average< float, 60 * 15 > rolling_ms_average;

@@ -2,9 +2,9 @@
 #include <vulkan/vulkan.hpp>
 
 #include "core.hpp"
-#include "engine/memory/buffers/Buffer.hpp"
-#include "engine/math/literals/size.hpp"
 #include "engine/debug/profiling/counters.hpp"
+#include "engine/math/literals/size.hpp"
+#include "engine/memory/buffers/Buffer.hpp"
 #include "safe_include.hpp"
 
 namespace fgl::engine::gui
@@ -81,7 +81,7 @@ namespace fgl::engine::gui
 		{
 			for ( const auto* buffer : memory::getActiveBuffers() )
 			{
-				ImGui::Text( "Name: %s", "FIXME" );
+				ImGui::Text( "Name: %s", buffer->m_debug_name.c_str() );
 				ImGui::Text(
 					"Allocated: %s/%s (%2.1f\%)",
 					to_string( buffer->used() ).c_str(),

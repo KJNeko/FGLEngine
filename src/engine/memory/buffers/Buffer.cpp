@@ -6,8 +6,8 @@
 
 #include "BufferSuballocationHandle.hpp"
 #include "align.hpp"
-#include "engine/memory/buffers/exceptions.hpp"
 #include "engine/math/literals/size.hpp"
+#include "engine/memory/buffers/exceptions.hpp"
 #include "engine/rendering/devices/Device.hpp"
 
 namespace fgl::engine::memory
@@ -299,6 +299,8 @@ namespace fgl::engine::memory
 		info.objectType = vk::ObjectType::eBuffer;
 		info.pObjectName = str.c_str();
 		info.objectHandle = reinterpret_cast< std::uint64_t >( static_cast< VkBuffer >( this->m_buffer ) );
+
+		m_debug_name = str;
 
 		Device::getInstance().setDebugUtilsObjectName( info );
 	}
