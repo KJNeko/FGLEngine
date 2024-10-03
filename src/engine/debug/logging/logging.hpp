@@ -13,6 +13,7 @@
 
 #include "formatters/filesystem.hpp"
 #include "formatters/matrix.hpp"
+#include "formatters/glm.hpp"
 
 namespace fgl::engine::log
 {

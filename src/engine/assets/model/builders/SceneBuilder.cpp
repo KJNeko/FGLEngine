@@ -461,17 +461,50 @@ namespace fgl::engine
 	{
 		const auto node { root.nodes[ node_idx ] };
 
-		const glm::vec3 translation { convertToVec3( node.translation ) };
-		const glm::quat rotation { static_cast< float >( node.rotation[ 0 ] ),
-			                       static_cast< float >( node.rotation[ 1 ] ),
-			                       static_cast< float >( node.rotation[ 2 ] ),
-			                       static_cast< float >( node.rotation[ 3 ] ) };
-		const glm::vec3 scale { convertToVec3( node.scale ) };
+		FGL_ASSERT( node.matrix.size() == 0, "No matrix handler in loadTransform" );
 
 		WorldTransform transform_component {};
-		transform_component.rotation = rotation;
-		transform_component.scale = scale;
-		transform_component.translation = WorldCoordinate( translation );
+
+		if ( node.rotation.size() == 4 )
+		{
+			const auto& x { node.rotation[ 0 ] };
+			const auto& y { node.rotation[ 1 ] };
+			const auto& z { node.rotation[ 2 ] };
+			const auto& w { node.rotation[ 3 ] };
+
+			// Quat is stored as (x,y,z,w) in gltf
+			const glm::quat rotation { static_cast< float >( w ),
+				                       static_cast< float >( x ),
+				                       static_cast< float >( y ),
+				                       static_cast< float >( z ) };
+
+			transform_component.rotation = rotation;
+		}
+		else if ( node.rotation.size() != 0 )
+		{
+			log::warn( "Invalid rotation size: {}", node.rotation.size() );
+			throw std::runtime_error( "Invalid rotation size" );
+		}
+
+		if ( node.scale.size() == 3 )
+		{
+			const glm::vec3 scale { convertToVec3( node.scale ) };
+			transform_component.scale = scale;
+		}
+		else if ( node.scale.size() != 0 )
+		{
+			log::warn( "Odd scale size: {}", node.scale.size() );
+		}
+
+		if ( node.translation.size() == 3 )
+		{
+			const glm::vec3 translation { convertToVec3( node.translation ) };
+			transform_component.translation = WorldCoordinate( translation );
+		}
+		else if ( node.translation.size() != 0 )
+		{
+			log::warn( "Odd translation size: {}", node.translation.size() );
+		}
 
 		return transform_component;
 	}
@@ -523,29 +556,9 @@ namespace fgl::engine
 
 		obj.addFlag( IS_VISIBLE | IS_ENTITY );
 
-		//TODO: Set transform from node
-		const std::vector< double > translation { node.translation };
-		const std::vector< double > rotation { node.rotation };
-		const std::vector< double > scale { node.scale };
+		const auto transform { loadTransform( node_idx, root ) };
 
-		if ( rotation.size() == 4 )
-			obj.getTransform().rotation = glm::quat(
-				static_cast< float >( rotation[ 0 ] ),
-				static_cast< float >( rotation[ 1 ] ),
-				static_cast< float >( rotation[ 2 ] ),
-				static_cast< float >( rotation[ 3 ] ) );
-
-		if ( scale.size() == 3 )
-			obj.getTransform().scale = glm::vec3(
-				static_cast< float >( scale[ 0 ] ),
-				static_cast< float >( scale[ 1 ] ),
-				static_cast< float >( scale[ 2 ] ) );
-
-		if ( translation.size() == 3 )
-			obj.getTransform().translation = WorldCoordinate(
-				static_cast< float >( translation[ 0 ] ),
-				static_cast< float >( translation[ 1 ] ),
-				static_cast< float >( translation[ 2 ] ) );
+		obj.getTransform() = transform;
 
 		if ( node.name.empty() )
 			obj.setName( "Unnamed Game Object" );
