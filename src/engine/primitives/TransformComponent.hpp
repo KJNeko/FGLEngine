@@ -131,58 +131,6 @@ namespace fgl::engine
 		return { Coordinate< CType >( translation ), Scale( scale ), Rotation( rotation ) };
 	}
 
-	template < MatrixType MType, CoordinateSpace CType >
-	TransformComponent< EvolvedType< MType >() >
-		operator*( Matrix< MType > matrix, TransformComponent< CType > transform )
-	{
-		// TODO: HACKY FIX! The performance for this is probably dogshit. So we need to probably make sure scale is never completely zero
-
-		// if any of the values in scale is zero then we need to set it to something very small
-		// otherwise the decompose function will fail
-		if ( transform.scale.x == 0.0f ) transform.scale.x = constants::EPSILON;
-		if ( transform.scale.y == 0.0f ) transform.scale.y = constants::EPSILON;
-		if ( transform.scale.z == 0.0f ) transform.scale.z = constants::EPSILON;
-
-		// Do the same for the matrix
-		if ( matrix[ 0 ][ 0 ] == 0.0f ) matrix[ 0 ][ 0 ] = constants::EPSILON;
-		if ( matrix[ 1 ][ 1 ] == 0.0f ) matrix[ 1 ][ 1 ] = constants::EPSILON;
-		if ( matrix[ 2 ][ 2 ] == 0.0f ) matrix[ 2 ][ 2 ] = constants::EPSILON;
-
-		// For some reason GLM decompose doesn't seem to work with left handed coordinate systems. So we just made our own!
-		// This probably is shittily written and likely full of bugs. But hey, It works for now
-		// TODO: Verify with entry
-		/*
-		auto combined_matrix { matrix * transform.mat() };
-
-		if ( combined_matrix[ 0 ][ 0 ] == 0.0f ) combined_matrix[ 0 ][ 0 ] = constants::EPSILON * 2;
-		if ( combined_matrix[ 1 ][ 1 ] == 0.0f ) combined_matrix[ 1 ][ 1 ] = constants::EPSILON * 2;
-		if ( combined_matrix[ 2 ][ 2 ] == 0.0f ) combined_matrix[ 2 ][ 2 ] = constants::EPSILON * 2;
-
-		const auto NaN { std::numeric_limits< float >::quiet_NaN() };
-
-		glm::vec3 scale { NaN }, translation { NaN };
-		[[maybe_unused]] glm::vec3 skew { NaN };
-		glm::quat quat { NaN, NaN, NaN, NaN };
-		[[maybe_unused]] glm::vec4 perspective { NaN };
-
-		if ( !glm::decompose( combined_matrix, scale, quat, translation, skew, perspective ) )
-		{
-			log::warn(
-				"Failed to decompose matrix:\n{},\n{}",
-				static_cast< glm::mat4 >( matrix ),
-				static_cast< glm::mat4 >( combined_matrix ) );
-		}
-
-		assert( !std::isnan( scale.x ) );
-		assert( scale != glm::vec3( 0.0f, 0.0f, 0.0f ) );
-		*/
-
-		auto combined_matrix { matrix * transform.mat() };
-
-		return decompose< EvolvedType< MType >(), MType >( combined_matrix );
-		// return { Coordinate< EvolvedType< MType >() >( translation ), Scale( scale ), Rotation( quat ) };
-	}
-
 	// A game object will be going from world to camera space
 	using GameObjectTransform = TransformComponent< CoordinateSpace::World >;
 	// using ModelTransform = TransformComponent< CoordinateSpace::Model >;

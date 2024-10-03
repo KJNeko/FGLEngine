@@ -9,6 +9,8 @@
 #include <glm/vec3.hpp>
 #pragma GCC diagnostic pop
 
+#include <cmath>
+
 namespace fgl::engine
 {
 
@@ -18,7 +20,12 @@ namespace fgl::engine
 		using glm::vec3::y;
 		using glm::vec3::z;
 
-		Scale( const glm::vec3 value ) : glm::vec3( value ) {}
+		Scale( const glm::vec3 value ) : glm::vec3( value )
+		{
+			assert( !std::isnan( x ) );
+			assert( !std::isnan( y ) );
+			assert( !std::isnan( z ) );
+		}
 
 		Scale( const float value ) : glm::vec3( value ) {}
 

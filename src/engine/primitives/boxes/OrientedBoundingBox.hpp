@@ -29,35 +29,65 @@ namespace fgl::engine
 	template < CoordinateSpace CType >
 	struct OrientedBoundingBox final : public interface::BoundingBox
 	{
-		TransformComponent< CType > m_transform;
+		enum class TransformMode
+		{
+			Transform,
+			Matrix
+		} transform_mode;
 
-		OrientedBoundingBox() : m_transform( Coordinate< CType >( constants::DEFAULT_VEC3 ) ) {}
+		union
+		{
+			TransformComponent< CType > m_transform;
+			glm::mat4 m_matrix;
+		};
+
+		OrientedBoundingBox() :
+		  m_transform( Coordinate< CType >( constants::DEFAULT_VEC3 ) ),
+		  transform_mode( TransformMode::Transform )
+		{}
 
 		OrientedBoundingBox( const Coordinate< CType > pos, const glm::vec3 inital_scale ) :
+		  transform_mode( TransformMode::Transform ),
 		  m_transform( pos, Scale( inital_scale ) )
 		{
 			assert( pos.vec() != constants::DEFAULT_VEC3 );
 			assert( inital_scale != constants::DEFAULT_VEC3 );
 		}
 
-		OrientedBoundingBox( const TransformComponent< CType >& transform ) : m_transform( transform )
+		OrientedBoundingBox( const TransformComponent< CType >& transform ) :
+		  transform_mode( TransformMode::Transform ),
+		  m_transform( transform )
 		{
 			assert( m_transform.translation.vec() != constants::DEFAULT_VEC3 );
 			assert( m_transform.scale != constants::DEFAULT_VEC3 );
 		}
+
+		OrientedBoundingBox( const glm::mat4 matrix ) : transform_mode( TransformMode::Matrix ), m_matrix( matrix ) {}
 
 	  public:
 
 		//! Returns the top left (-x, -y, -z) coordinate
 		Coordinate< CType > bottomLeftBack() const
 		{
-			return m_transform.translation - Scale( glm::abs( static_cast< glm::vec3 >( m_transform.scale ) ) );
+			switch ( transform_mode )
+			{
+				case TransformMode::Transform:
+					return m_transform.translation - Scale( glm::abs( static_cast< glm::vec3 >( m_transform.scale ) ) );
+				case TransformMode::Matrix:
+					return Coordinate< CType >( m_matrix * glm::vec4( -1.0f, -1.0f, -1.0f, 1.0f ) );
+			}
 		}
 
 		//! Returns the bottom right (x, y, z) coordinate
 		Coordinate< CType > topRightForward() const
 		{
-			return m_transform.translation + Scale( glm::abs( static_cast< glm::vec3 >( m_transform.scale ) ) );
+			switch ( transform_mode )
+			{
+				case TransformMode::Transform:
+					return m_transform.translation + Scale( glm::abs( static_cast< glm::vec3 >( m_transform.scale ) ) );
+				case TransformMode::Matrix:
+					return Coordinate< CType >( m_matrix * glm::vec4( 1.0f, 1.0f, 1.0f, 1.0f ) );
+			}
 		}
 
 		// 6 sides, 2 triangles each, 3 verts per triangle
@@ -88,12 +118,16 @@ namespace fgl::engine
 		assert( bounding_box.m_transform.translation.vec() != constants::DEFAULT_VEC3 );
 		assert( bounding_box.m_transform.scale != glm::vec3( 0.0f ) );
 
-		const TransformComponent< EvolvedType< MType >() > new_transform { matrix * bounding_box.m_transform };
-
-		assert( bounding_box.m_transform.translation.vec() != constants::DEFAULT_VEC3 );
-		assert( bounding_box.m_transform.scale != glm::vec3( 0.0f ) );
-
-		return { new_transform };
+		if ( bounding_box.transform_mode == OrientedBoundingBox< CType >::TransformMode::Matrix )
+		{
+			const auto new_matrix { matrix * bounding_box.m_matrix };
+			return { new_matrix };
+		}
+		else
+		{
+			const auto new_matrix { matrix * bounding_box.m_transform.mat() };
+			return { new_matrix };
+		}
 	}
 
 	OrientedBoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< ModelVertex >& verts );
