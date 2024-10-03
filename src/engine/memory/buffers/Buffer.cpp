@@ -111,6 +111,24 @@ namespace fgl::engine::memory
 		return size;
 	}
 
+	decltype( Buffer::m_free_blocks )::iterator Buffer::
+		findAvailableBlock( vk::DeviceSize memory_size, std::uint32_t t_alignment )
+	{
+		//Find a free space.
+		return std::ranges::find_if(
+			m_free_blocks,
+			[ this, memory_size, t_alignment ]( const std::pair< vk::DeviceSize, vk::DeviceSize >& pair )
+			{
+				const auto [ offset, size ] = pair;
+
+				const auto new_offset = align( offset, alignment(), t_alignment );
+				const auto after_size { size - ( new_offset - offset ) };
+
+				// If the size of the block after alignment is greater than or equal to the size of the memory we want to allocate using it.
+				return after_size >= memory_size;
+			} );
+	}
+
 	std::shared_ptr< BufferSuballocationHandle > Buffer::
 		allocate( vk::DeviceSize memory_size, std::uint32_t t_alignment )
 	{
@@ -118,86 +136,26 @@ namespace fgl::engine::memory
 		//Calculate alignment from alignment, ubo_alignment, and atom_size_alignment
 		memory_size = align( memory_size, alignment() );
 
-		auto findBlock = [ this, memory_size, t_alignment ]()
+		//findAvailableBlock( memory_size, t_alignment );
+
+		if ( !canAllocate( memory_size, t_alignment ) )
 		{
-			//Find a free space.
-			return std::find_if(
-				m_free_blocks.begin(),
-				m_free_blocks.end(),
-				[ this, memory_size, t_alignment ]( const std::pair< vk::DeviceSize, vk::DeviceSize >& pair )
-				{
-					const auto [ offset, size ] = pair;
+			//TODO: Write more detailed error message
+			throw BufferOOM();
+		}
 
-					const auto new_offset = align( offset, alignment(), t_alignment );
-					const auto after_size { size - ( new_offset - offset ) };
-
-					// If the size of the block after alignment is greater than or equal to the size of the memory we want to allocate using it.
-					return after_size >= memory_size;
-				} );
-		};
-
-		auto itter = findBlock();
+		auto itter { findAvailableBlock( memory_size, t_alignment ) };
 
 		if ( itter == m_free_blocks.end() )
 		{
 			//If we can't find a block, then we need to merge the free blocks and try again
 			mergeFreeBlocks();
-			itter = findBlock();
+			itter = findAvailableBlock( memory_size, t_alignment );
 		}
 
 		//TODO: Move this error stuff into the exception message
 		if ( itter == m_free_blocks.end() )
 		{
-			std::cout << "========= !!! OOM !!! =========\n"
-						 "========= Free Blocks =========\n";
-
-			for ( auto [ offset, size ] : m_free_blocks )
-			{
-				std::cout << "Offset: " << std::hex << offset << " Size: " << std::dec << size << "\n";
-
-				std::cout << "Aligned offset: " << std::hex << align( offset, alignment(), t_alignment )
-						  << " Size: " << std::dec << size << "\n"
-						  << std::endl;
-			}
-
-			std::cout << "====== Suballocations ======\n";
-
-			for ( auto [ offset, size ] : m_allocations )
-			{
-				std::cout << "Offset: " << std::hex << offset << " Size: " << std::dec << size << "\n";
-			}
-
-			std::cout << "=============================\n"
-					  << "Attempted to allocate block of size: "
-					  << fgl::literals::size_literals::to_string( memory_size ) << std::endl;
-
-			std::uint64_t allocated_memory_counter { 0 };
-			//Sum up all memory to check for leaks
-			for ( auto [ offset, size ] : m_allocations )
-			{
-				allocated_memory_counter += size;
-			}
-
-			std::cout << "Total memory allocated: "
-					  << fgl::literals::size_literals::to_string( allocated_memory_counter ) << std::endl;
-
-			std::uint64_t free_memory_counter { 0 };
-			for ( auto [ offset, size ] : m_free_blocks )
-			{
-				free_memory_counter += size;
-			}
-
-			std::cout << "Total memory free: " << fgl::literals::size_literals::to_string( free_memory_counter )
-					  << std::endl;
-
-			std::cout << "Total memory: " << fgl::literals::size_literals::to_string( m_memory_size ) << std::endl;
-
-			if ( allocated_memory_counter + free_memory_counter != m_memory_size )
-			{
-				std::cout << "Memory size mismatch detected! Difference of: "
-						  << ( allocated_memory_counter + free_memory_counter - memory_size ) << std::endl;
-			}
-
 			throw BufferOOM();
 		}
 
@@ -245,6 +203,21 @@ namespace fgl::engine::memory
 #endif
 
 		return std::make_shared< BufferSuballocationHandle >( *this, offset, memory_size );
+	}
+
+	bool Buffer::canAllocate( const vk::DeviceSize memory_size, const std::uint32_t alignment )
+	{
+		// TODO: This check can be optimized by itterating through and virtually combining blocks that would be combined.
+		// If the combined block is large enough then we should consider it being capable of allocation.
+		// We don't need to care if a block later in the chain is large enough since the allocation would first
+		// check blocks that are already large enough before trying to combine them.
+		if ( findAvailableBlock( memory_size, alignment ) == m_free_blocks.end() )
+		{
+			mergeFreeBlocks();
+			return findAvailableBlock( memory_size, alignment ) != m_free_blocks.end();
+		}
+		else
+			return true;
 	}
 
 	void Buffer::mergeFreeBlocks()

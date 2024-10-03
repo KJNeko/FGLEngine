@@ -4,11 +4,12 @@
 
 #include "TransferData.hpp"
 
+#include "engine/assets/image/ImageHandle.hpp"
+#include "engine/debug/logging/logging.hpp"
+#include "engine/math/literals/size.hpp"
+#include "engine/memory/buffers/Buffer.hpp"
 #include "engine/memory/buffers/exceptions.hpp"
 #include "engine/memory/buffers/vector/HostVector.hpp"
-#include "engine/assets/image/ImageHandle.hpp"
-#include "engine/math/literals/size.hpp"
-#include "engine/debug/logging/logging.hpp"
 #include "engine/utils.hpp"
 
 namespace fgl::engine::memory
@@ -148,21 +149,14 @@ namespace fgl::engine::memory
 		assert( std::holds_alternative< RawData >( m_source ) );
 		assert( std::get< RawData >( m_source ).size() > 0 );
 
-		try
-		{
-			HostVector< std::byte > vector { staging_buffer, std::get< RawData >( m_source ) };
+		// Check if we are capable of allocating into the staging buffer
+		if ( !staging_buffer.canAllocate( std::get< RawData >( m_source ).size(), 1 ) ) return false;
 
-			m_source = vector.getHandle();
+		HostVector< std::byte > vector { staging_buffer, std::get< RawData >( m_source ) };
 
-			return true;
-		}
-		catch ( const BufferOOM& )
-		{
-			log::warn( "Staging buffer full. Aborting stage" );
-			return false;
-		}
+		m_source = vector.getHandle();
 
-		FGL_UNREACHABLE();
+		return true;
 	}
 
 	bool TransferData::stage(

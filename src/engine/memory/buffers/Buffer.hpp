@@ -94,6 +94,8 @@ namespace fgl::engine::memory
 		//! <offset, size>
 		std::vector< std::pair< vk::DeviceSize, vk::DeviceSize > > m_free_blocks {};
 
+		decltype( m_free_blocks )::iterator findAvailableBlock( vk::DeviceSize memory_size, std::uint32_t t_alignment );
+
 	  public:
 
 		//! Returns the vulkan buffer handle for this buffer
@@ -132,6 +134,8 @@ namespace fgl::engine::memory
 		 */
 		std::shared_ptr< BufferSuballocationHandle >
 			allocate( vk::DeviceSize memory_size, std::uint32_t alignment = 1 );
+
+		bool canAllocate( vk::DeviceSize memory_size, std::uint32_t alignment = 1 );
 
 		//! Frees a given suballocation. After calling this the handle is invalid and accessing it is UB
 		void free( BufferSuballocationHandle& info );
