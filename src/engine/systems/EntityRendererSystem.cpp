@@ -36,7 +36,7 @@ namespace fgl::engine
 		}
 	}
 
-	vk::raii::CommandBuffer& EntityRendererSystem::setupSystem( FrameInfo& info )
+	vk::raii::CommandBuffer& EntityRendererSystem::setupSystem( const FrameInfo& info )
 	{
 		auto& command_buffer { info.command_buffer };
 
@@ -61,7 +61,7 @@ namespace fgl::engine
 		texturedPass( info );
 	}
 
-	void EntityRendererSystem::texturelessPass( FrameInfo& info )
+	void EntityRendererSystem::texturelessPass( const FrameInfo& info )
 	{
 		ZoneScopedN( "Textureless pass" );
 		auto& command_buffer { info.command_buffer };
@@ -104,7 +104,7 @@ namespace fgl::engine
 			draw_parameter_buffer->stride() );
 	}
 
-	void EntityRendererSystem::texturedPass( FrameInfo& info )
+	void EntityRendererSystem::texturedPass( const FrameInfo& info )
 	{
 		ZoneScopedN( "Textured pass" );
 		auto& command_buffer { info.command_buffer };

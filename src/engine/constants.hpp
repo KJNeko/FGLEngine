@@ -10,6 +10,8 @@
 #include <glm/vec3.hpp>
 #pragma GCC diagnostic pop
 
+#include "types.hpp"
+
 namespace fgl::engine::constants
 {
 
@@ -35,10 +37,6 @@ namespace fgl::engine::constants
 	constexpr float FAR_PLANE { 1000.0f };
 	constexpr glm::vec3 CENTER { 0.0f, 0.0f, 0.0f };
 
-	constexpr auto EPSILON { std::numeric_limits< float >::epsilon() * 2 };
-
-	constexpr auto FRUSTUM_ORIGIN { constants::WORLD_CENTER };
-
 	constexpr glm::mat4 MAT4_IDENTITY { 1.0f };
 	constexpr glm::mat3 MAT3_IDENTITY { 1.0f };
 
@@ -48,5 +46,9 @@ namespace fgl::engine::constants
 	constexpr glm::vec3 WORLD_BACKWARD { -WORLD_FORWARD };
 	constexpr glm::vec3 WORLD_LEFT { -WORLD_RIGHT };
 	constexpr glm::vec3 WORLD_DOWN { -WORLD_UP };
+
+	constexpr std::uint32_t INVALID_TEX_ID { std::numeric_limits< std::uint32_t >::max() };
+
+	constexpr TextureID INVALID_TEXTURE_ID { 0 };
 
 } // namespace fgl::engine::constants

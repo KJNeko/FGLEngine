@@ -26,7 +26,7 @@ namespace fgl::engine
 		if ( m_textures.albedo )
 			return m_textures.albedo->getID();
 		else
-			return INVALID_TEXTURE_ID;
+			return constants::INVALID_TEXTURE_ID;
 	}
 
 	TextureID Primitive::getNormalTextureID() const
@@ -34,7 +34,7 @@ namespace fgl::engine
 		if ( m_textures.normal )
 			return m_textures.normal->getID();
 		else
-			return INVALID_TEXTURE_ID;
+			return constants::INVALID_TEXTURE_ID;
 	}
 
 	OrientedBoundingBox< CoordinateSpace::Model > Primitive::getBoundingBox() const

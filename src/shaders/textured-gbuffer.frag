@@ -19,25 +19,19 @@ layout (set = 1, binding = 0) uniform CameraInfo {
 
 layout (set = 2, binding = 0) uniform sampler2D tex[];
 
-#define NEAR_PLANE 0.01f
-#define FAR_PLANE 1000.0f
-
 float linearDepth(float depth)
 {
     float z = depth * 2.0f - 1.0f;
     return (2.0f * NEAR_PLANE * FAR_PLANE) / (FAR_PLANE + NEAR_PLANE - z * (FAR_PLANE - NEAR_PLANE));
 }
 
-uint INVALID_TEX_ID = 0;
-
 void main()
 {
     out_position = vec4(in_world_pos, 1.0f);
 
-
     vec3 N = vec3(0.0f);
 
-    if (in_normal_idx == INVALID_TEX_ID)
+    if (in_normal_idx == INVALID_TEXTURE_ID)
     {
         N = normalize(in_normal);
     }

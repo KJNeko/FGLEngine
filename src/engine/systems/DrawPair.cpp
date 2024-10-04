@@ -25,6 +25,7 @@ namespace fgl::engine
 	{
 		ZoneScoped;
 		std::unordered_map< DrawKey, DrawPair > draw_pairs {};
+		draw_pairs.reserve( 512 );
 
 		const auto nodes { root.getAllLeafsInFrustum( frustum ) };
 
@@ -89,6 +90,7 @@ namespace fgl::engine
 
 						if ( auto itter = draw_pairs.find( key ); itter != draw_pairs.end() )
 						{
+							ZoneScopedN( "Accumulate for draw pair" );
 							//Draw command for this mesh already exists. Simply add a count to it
 							auto& [ itter_key, pair ] = *itter;
 							auto& [ existing_cmd, model_matrix ] = pair;
@@ -99,6 +101,7 @@ namespace fgl::engine
 						}
 						else
 						{
+							ZoneScopedN( "Create new draw pair" );
 							vk::DrawIndexedIndirectCommand cmd {};
 
 							cmd.firstIndex = primitive.m_index_buffer.getOffsetCount();

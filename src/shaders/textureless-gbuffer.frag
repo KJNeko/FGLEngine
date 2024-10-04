@@ -17,9 +17,6 @@ layout (set = 1, binding = 0) uniform CameraInfo {
     mat4 inverse_view;
 } ubo;
 
-#define NEAR_PLANE 0.01f
-#define FAR_PLANE 1000.0f
-
 float linearDepth(float depth)
 {
     float z = depth * 2.0f - 1.0f;

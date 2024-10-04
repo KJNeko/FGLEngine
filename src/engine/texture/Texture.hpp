@@ -11,6 +11,8 @@
 #include "engine/assets/AssetManager.hpp"
 #include "engine/assets/image/ImageView.hpp"
 #include "engine/assets/image/Sampler.hpp"
+#include "engine/types.hpp"
+#include "engine/constants.hpp"
 
 namespace fgl::engine
 {
@@ -35,8 +37,7 @@ namespace fgl::engine
 
 	using TextureStore = AssetStore< Texture >;
 
-	using TextureID = std::uint32_t;
-	constexpr TextureID INVALID_TEXTURE_ID { 0 };
+
 
 	//TODO: Implement texture handle map to avoid loading the same texture multiple times
 	class Texture final : public AssetInterface< Texture >

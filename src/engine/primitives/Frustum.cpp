@@ -4,6 +4,8 @@
 
 #include "Frustum.hpp"
 
+#include <tracy/Tracy.hpp>
+
 #include "engine/debug/drawers.hpp"
 #include "engine/primitives/boxes/AxisAlignedBoundingBox.hpp"
 #include "engine/primitives/boxes/AxisAlignedBoundingCube.hpp"
@@ -16,9 +18,9 @@ namespace fgl::engine
 
 	Frustum operator*( const Matrix< MatrixType::ModelToWorld >& matrix, const FrustumBase& frustum )
 	{
-		Frustum result { matrix * frustum.near,      matrix * frustum.far,   matrix * frustum.top,
-			             matrix * frustum.bottom,    matrix * frustum.right, matrix * frustum.left,
-			             matrix * frustum.m_position };
+		const Frustum result { matrix * frustum.near,      matrix * frustum.far,   matrix * frustum.top,
+			                   matrix * frustum.bottom,    matrix * frustum.right, matrix * frustum.left,
+			                   matrix * frustum.m_position };
 
 		return result;
 	}
@@ -27,7 +29,7 @@ namespace fgl::engine
 	{
 		const glm::vec3 vector_between { point.vec() - origin.vec() };
 
-		float dot { glm::dot( vector_between, direction.vec() ) };
+		const float dot { glm::dot( vector_between, direction.vec() ) };
 
 		if ( std::isnan( dot ) ) return 0.0f;
 
@@ -189,7 +191,7 @@ namespace fgl::engine
 	{
 		const auto points { this->points() };
 
-		std::array< LineSegment< CoordinateSpace::World >, ( ( 4 * 2 ) / 2 ) * 3 > lines;
+		std::array< LineSegment< CoordinateSpace::World >, ( ( 4 * 2 ) / 2 ) * 3 > lines {};
 
 		//Top
 		lines[ 0 ] = LineSegment< CoordinateSpace::World >( points[ 0 ], points[ 1 ] );
@@ -261,16 +263,15 @@ namespace fgl::engine
 	std::pair< float, float > minMaxDot( const NormalVector axis, const auto points )
 	{
 		assert( points.size() > 2 );
-		float min { glm::dot( points[ 0 ].vec(), axis.vec() ) };
-		float max { glm::dot( points[ 0 ].vec(), axis.vec() ) };
+		float min { std::numeric_limits< float >::infinity() };
+		float max { -std::numeric_limits< float >::infinity() };
 
 		for ( std::size_t i = 0; i < points.size(); ++i )
 		{
 			const auto value { glm::dot( points[ i ].vec(), axis.vec() ) };
-			if ( value < min )
-				min = value;
-			else if ( value > max )
-				max = value;
+
+			min = std::min( min, value );
+			max = std::max( max, value );
 		}
 
 		return std::make_pair( min, max );

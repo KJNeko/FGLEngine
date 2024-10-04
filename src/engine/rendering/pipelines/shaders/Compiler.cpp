@@ -8,6 +8,7 @@
 #include <fstream>
 
 #include "engine/FGL_DEFINES.hpp"
+#include "engine/constants.hpp"
 #include "engine/debug/logging/logging.hpp"
 
 namespace fgl::engine
@@ -117,6 +118,11 @@ namespace fgl::engine
 #endif
 
 		options.SetVulkanRulesRelaxed( false );
+
+		// Add macro defs to the shader
+		options.AddMacroDefinition( "INVALID_TEXTURE_ID", std::to_string( constants::INVALID_TEXTURE_ID ) );
+		options.AddMacroDefinition( "NEAR_PLANE", std::to_string( constants::NEAR_PLANE ) );
+		options.AddMacroDefinition( "FAR_PLANE", std::to_string( constants::FAR_PLANE ) );
 
 		const shaderc_shader_kind kind { getShaderKindFromName( input_name ) };
 

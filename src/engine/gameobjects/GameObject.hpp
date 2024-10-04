@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <tracy/Tracy.hpp>
+
 #include <unordered_map>
 #include <vector>
 
@@ -73,6 +75,7 @@ namespace fgl::engine
 			requires is_component< T >
 		bool hasComponent() const
 		{
+			ZoneScoped;
 			for ( const GameObjectComponentPtr comp : components )
 			{
 				if ( comp->id() == T::ID ) return true;
@@ -85,6 +88,7 @@ namespace fgl::engine
 			requires is_component< T >
 		std::vector< const T* > getComponents() const
 		{
+			ZoneScopedN( "Get components" );
 			std::vector< const T* > temp {};
 
 			for ( const ComponentEngineInterface* comp : components )
@@ -99,6 +103,7 @@ namespace fgl::engine
 			requires is_component< T >
 		std::vector< T* > getComponents()
 		{
+			ZoneScopedN( "Get components" );
 			std::vector< T* > temp {};
 
 			for ( ComponentEngineInterface* comp : components )

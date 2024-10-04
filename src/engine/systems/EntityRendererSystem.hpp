@@ -46,13 +46,13 @@ namespace fgl::engine
 		PerFrameArray< std::unique_ptr< DrawParameterBufferSuballocation > > m_draw_textured_parameter_buffers {};
 		PerFrameArray< std::unique_ptr< ModelMatrixInfoBufferSuballocation > > m_textured_model_matrix_info_buffers {};
 
-		vk::raii::CommandBuffer& setupSystem( FrameInfo& );
+		vk::raii::CommandBuffer& setupSystem( const FrameInfo& );
 
 	  public:
 
 		void pass( FrameInfo& info );
-		void texturelessPass( FrameInfo& info );
-		void texturedPass( FrameInfo& info );
+		void texturelessPass( const FrameInfo& info );
+		void texturedPass( const FrameInfo& info );
 
 		EntityRendererSystem( Device& device, vk::raii::RenderPass& render_pass );
 		~EntityRendererSystem() = default;

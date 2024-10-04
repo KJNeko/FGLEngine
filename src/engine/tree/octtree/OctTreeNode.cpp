@@ -51,10 +51,12 @@ namespace fgl::engine
 
 	void OctTreeNode::getAllLeafsInFrustum( const Frustum& frustum, std::vector< OctTreeNodeLeaf* >& out_leafs )
 	{
+		ZoneScoped;
 		//Check if we are inside of the frustum.
 		if ( !isInFrustum( frustum ) ) return;
 
 		auto& leafs { out_leafs };
+		leafs.reserve( 256 );
 
 		switch ( m_node_data.index() )
 		{
