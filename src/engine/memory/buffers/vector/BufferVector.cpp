@@ -4,7 +4,7 @@
 
 #include "BufferVector.hpp"
 
-#include "engine/assets/TransferManager.hpp"
+#include "engine/assets/transfer/TransferManager.hpp"
 #include "engine/memory/buffers/Buffer.hpp"
 
 namespace fgl::engine::memory

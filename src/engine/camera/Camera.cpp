@@ -47,6 +47,7 @@ namespace fgl::engine
 
 	void Camera::updateInfo( const FrameIndex frame_index )
 	{
+		ZoneScoped;
 		CameraInfo current_camera_info { .projection = getProjectionMatrix(),
 			                             .view = getViewMatrix(),
 			                             .inverse_view = getInverseViewMatrix() };
@@ -68,6 +69,7 @@ namespace fgl::engine
 
 	void Camera::pass( FrameInfo& frame_info )
 	{
+		ZoneScopedN( "Camera::pass" );
 		if ( m_cold && m_swapchain )
 		{
 			//TODO: Make some way to destroy the swapchain in a deffered manner.

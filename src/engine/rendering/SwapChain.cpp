@@ -7,7 +7,7 @@
 #include <limits>
 #include <stdexcept>
 
-#include "engine/assets/TransferManager.hpp"
+#include "engine/assets/transfer/TransferManager.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "pipelines/Attachment.hpp"
 #include "renderpass/RenderPass.hpp"

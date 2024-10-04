@@ -34,6 +34,7 @@ namespace fgl::engine
 
 	void GuiSystem::pass( FrameInfo& info )
 	{
+		ZoneScopedN( "GuiSystem::pass" );
 		auto& command_buffer { setupSystem( info ) };
 
 		command_buffer.draw( 3, 1, 0, 0 );

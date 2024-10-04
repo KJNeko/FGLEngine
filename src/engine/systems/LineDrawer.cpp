@@ -49,9 +49,9 @@ namespace fgl::engine
 
 	void LineDrawer::pass( FrameInfo& info )
 	{
+		ZoneScopedN( "LineDrawer::pass" );
 		debug::drawAxisHelper();
 
-		ZoneScopedN( "Debug line drawing" );
 		auto& command_buffer { setupSystem( info ) };
 		TracyVkZone( info.tracy_ctx, *command_buffer, "Draw debug lines" );
 

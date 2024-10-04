@@ -129,6 +129,7 @@ namespace fgl::engine
 
 	void CameraRenderer::pass( FrameInfo& frame_info, CameraSwapchain& camera_swapchain )
 	{
+		ZoneScopedN( "CameraRenderer::pass" );
 		m_culling_system.startPass( frame_info );
 
 		auto& command_buffer { frame_info.command_buffer };

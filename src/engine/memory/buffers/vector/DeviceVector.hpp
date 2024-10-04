@@ -6,7 +6,7 @@
 
 #include "BufferVector.hpp"
 #include "concepts.hpp"
-#include "engine/assets/TransferManager.hpp"
+#include "engine/assets/transfer/TransferManager.hpp"
 #include "engine/math/literals/size.hpp"
 #include "engine/debug/logging/logging.hpp"
 

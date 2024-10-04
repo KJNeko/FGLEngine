@@ -7,7 +7,7 @@
 #include <initializer_list>
 
 #include "engine/FrameInfo.hpp"
-#include "engine/assets/TransferManager.hpp"
+#include "engine/assets/transfer/TransferManager.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/assets/image/Image.hpp"
 #include "engine/assets/image/ImageView.hpp"

@@ -14,9 +14,9 @@
 #include "KeyboardMovementController.hpp"
 #include "camera/Camera.hpp"
 #include "camera/CameraManager.hpp"
-#include "engine/Average.hpp"
-#include "engine/assets/TransferManager.hpp"
 #include "engine/assets/model/builders/SceneBuilder.hpp"
+#include "engine/assets/transfer/TransferManager.hpp"
+#include "engine/math/Average.hpp"
 #include "engine/math/literals/size.hpp"
 
 namespace fgl::engine
@@ -56,6 +56,7 @@ namespace fgl::engine
 
 	void EngineContext::tickDeltaTime()
 	{
+		ZoneScoped;
 		// Get delta time
 		const auto now { fgl::clock::now() };
 		const std::chrono::duration< double, std::chrono::seconds::period > time_diff { now - last_tick };
@@ -67,6 +68,7 @@ namespace fgl::engine
 
 	void EngineContext::tickSimulation()
 	{
+		ZoneScoped;
 		// TODO: This is where we'll start doing physics stuff.
 		// The first step here should be culling things that aren't needed to be ticked.
 		// Perhaps implementing a tick system that doesn't care about the refresh rate might be good?
@@ -75,6 +77,7 @@ namespace fgl::engine
 
 	void EngineContext::renderCameras( FrameInfo frame_info )
 	{
+		ZoneScoped;
 		auto& camera_manager { CameraManager::getInstance() };
 		for ( auto& current_camera_ptr : camera_manager.getCameras() )
 		{
@@ -90,9 +93,9 @@ namespace fgl::engine
 
 	void EngineContext::renderFrame()
 	{
+		ZoneScoped;
 		if ( auto& command_buffer = m_renderer.beginFrame(); *command_buffer )
 		{
-			ZoneScopedN( "Render" );
 			const FrameIndex frame_index { m_renderer.getFrameIndex() };
 			const PresentIndex present_idx { m_renderer.getPresentIndex() };
 
@@ -181,8 +184,10 @@ namespace fgl::engine
 		{
 			memory::TransferManager::getInstance().submitNow();
 
-			ZoneScopedN( "Poll" );
-			glfwPollEvents();
+			{
+				ZoneScopedN( "Poll" );
+				glfwPollEvents();
+			}
 
 			const auto new_time { fgl::clock::now() };
 
