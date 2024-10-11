@@ -39,7 +39,7 @@ namespace fgl::engine
 		  glm::vec3( i_x, i_y, i_z )
 		{}
 
-		constexpr explicit Coordinate( const float value ) : glm::vec3( value ) {}
+		constexpr explicit Coordinate( const float val ) : glm::vec3( val ) {}
 
 		explicit Coordinate( const Vector& vector );
 

@@ -7,11 +7,11 @@
 #include <initializer_list>
 
 #include "engine/FrameInfo.hpp"
-#include "engine/assets/transfer/TransferManager.hpp"
-#include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/assets/image/Image.hpp"
 #include "engine/assets/image/ImageView.hpp"
+#include "engine/assets/transfer/TransferManager.hpp"
 #include "engine/debug/logging/logging.hpp"
+#include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/math/noise/perlin/generator.hpp"
 
 #pragma GCC diagnostic push
@@ -90,7 +90,7 @@ namespace fgl::engine
 
 		const ImVec2 imgui_size { static_cast< float >( extent.width ), static_cast< float >( extent.height ) };
 
-		ImGui::Image( static_cast< ImTextureID >( getImGuiDescriptorSet() ), imgui_size );
+		ImGui::Image( getImGuiDescriptorSet(), imgui_size );
 	}
 
 	bool Texture::drawImGuiButton( vk::Extent2D extent )
@@ -113,7 +113,7 @@ namespace fgl::engine
 
 		const ImVec2 imgui_size { static_cast< float >( extent.width ), static_cast< float >( extent.height ) };
 
-		return ImGui::ImageButton( static_cast< ImTextureID >( getImGuiDescriptorSet() ), imgui_size );
+		return ImGui::ImageButton( m_name.c_str(), getImGuiDescriptorSet(), imgui_size );
 	}
 
 	Texture::Texture( std::tuple< std::vector< std::byte >, int, int, vk::Format > tuple ) :
@@ -230,23 +230,19 @@ namespace fgl::engine
 
 	void Texture::setName( const std::string& str )
 	{
-		this->getImageView().setName( str );
+		m_image->setName( str + " Image" );
+		m_image_view->setName( str + " ImageView" );
 	}
 
 	descriptors::DescriptorSet& Texture::getTextureDescriptorSet()
 	{
 		static std::unique_ptr< descriptors::DescriptorSet > set { nullptr };
-		static std::optional< vk::raii::DescriptorSetLayout > set_layout { std::nullopt };
 
 		if ( set )
 			return *set;
 		else
 		{
-			set_layout = TextureDescriptorSet::createLayout();
-
-			if ( !set_layout.has_value() ) throw std::runtime_error( "No set layout made" );
-
-			set = std::make_unique< descriptors::DescriptorSet >( std::move( set_layout.value() ) );
+			set = texture_descriptor_set.create();
 			set->setMaxIDX( 1 );
 			set->setName( "Texture descriptor set" );
 			return *set;

@@ -16,7 +16,8 @@ namespace fgl::engine
 
 		for ( PresentIndex i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
 		{
-			auto set { std::make_unique< descriptors::DescriptorSet >( GBufferDescriptorSet::createLayout() ) };
+			//auto set { std::make_unique< descriptors::DescriptorSet >( GBufferDescriptorSet::createLayout() ) };
+			auto set { gbuffer_set.create() };
 
 			set->setMaxIDX( 2 );
 

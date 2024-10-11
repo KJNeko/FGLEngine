@@ -14,7 +14,7 @@ namespace fgl::engine::debug
 
 	void drawLine( const LineSegment< CoordinateSpace::World >& line, const glm::vec3 color )
 	{
-		drawLine( line.getStart(), line.getEnd() );
+		drawLine( line.getStart(), line.getEnd(), color );
 	}
 
 	void drawBoundingBox( const AxisAlignedBoundingBox< CoordinateSpace::World >& bounding_box, const glm::vec3 color )

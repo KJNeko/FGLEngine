@@ -11,8 +11,8 @@
 #include "engine/assets/AssetManager.hpp"
 #include "engine/assets/image/ImageView.hpp"
 #include "engine/assets/image/Sampler.hpp"
-#include "engine/types.hpp"
 #include "engine/constants.hpp"
+#include "engine/types.hpp"
 
 namespace fgl::engine
 {
@@ -37,8 +37,6 @@ namespace fgl::engine
 
 	using TextureStore = AssetStore< Texture >;
 
-
-
 	//TODO: Implement texture handle map to avoid loading the same texture multiple times
 	class Texture final : public AssetInterface< Texture >
 	{
@@ -60,6 +58,8 @@ namespace fgl::engine
 
 		//! Descriptor set used for displaying the texture in ImGui
 		vk::DescriptorSet m_imgui_set { VK_NULL_HANDLE };
+
+		std::string m_name;
 
 		[[nodiscard]] Texture( std::tuple< std::vector< std::byte >, int, int, vk::Format > );
 
@@ -100,6 +100,8 @@ namespace fgl::engine
 
 		[[nodiscard]] TextureID getID() const;
 		void setName( const std::string& str );
+
+		const std::string& getName() const { return m_name; }
 
 		[[nodiscard]] vk::DescriptorImageInfo getDescriptor() const;
 		[[nodiscard]] vk::DescriptorSet& getImGuiDescriptorSet();

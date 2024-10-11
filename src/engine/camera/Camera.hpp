@@ -73,7 +73,7 @@ namespace fgl::engine
 		PerFrameSuballocation< HostSingleT< CameraInfo > > m_camera_frame_info;
 
 		// Camera info is expected at binding 0
-		std::vector< descriptors::DescriptorSet > m_camera_info_descriptors {};
+		std::vector< std::unique_ptr< descriptors::DescriptorSet > > m_camera_info_descriptors {};
 
 		// TODO: Remove this old swapchain and instead do a proper deffered cleanup of it.
 		std::shared_ptr< CameraSwapchain > m_old_swapchain { nullptr };

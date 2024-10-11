@@ -41,7 +41,7 @@ namespace fgl::engine
 		return q;
 	}
 
-	Rotation::Rotation( const float x, const float y, const float z ) : glm::quat( toQuat( x, y, z ) )
+	Rotation::Rotation( const float x_i, const float y_i, const float z_i ) : glm::quat( toQuat( x_i, y_i, z_i ) )
 	{}
 
 	Rotation::Rotation( const float value ) : Rotation( value, value, value )

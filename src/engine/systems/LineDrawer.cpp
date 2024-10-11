@@ -11,6 +11,8 @@
 #include "engine/debug/drawers.hpp"
 #include "engine/memory/buffers/vector/HostVector.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
+#include "engine/rendering/pipelines/v2/AttachmentBuilder.hpp"
+#include "engine/rendering/pipelines/v2/PipelineBuilder.hpp"
 
 namespace fgl::engine
 {
@@ -25,13 +27,25 @@ namespace fgl::engine
 
 	LineDrawer::LineDrawer( Device& device, vk::raii::RenderPass& render_pass )
 	{
-		PipelineConfigInfo config { render_pass };
+		PipelineBuilder builder { render_pass, 0 };
 
-		PipelineConfigInfo::addGBufferAttachmentsConfig( config );
-		PipelineConfigInfo::setVertexInputType( config, Simple );
-		PipelineConfigInfo::setLineTopo( config );
+		builder.addDescriptorSet( camera_descriptor_set );
 
-		m_pipeline = std::make_unique< LinePipeline >( device, std::move( config ) );
+		builder.addColorAttachment().finish();
+		builder.addColorAttachment().finish();
+		builder.addColorAttachment().finish();
+
+		builder.setAttributeDescriptions( SimpleVertex::getAttributeDescriptions() );
+		builder.setBindingDescriptions( SimpleVertex::getBindingDescriptions() );
+
+		builder.setTopology( vk::PrimitiveTopology::eLineList );
+
+		builder.setVertexShader( Shader::loadVertex( "shaders/line.vert" ) );
+		builder.setFragmentShader( Shader::loadFragment( "shaders/line.frag" ) );
+
+		builder.addDynamicState( vk::DynamicState::eLineWidth );
+
+		m_pipeline = builder.create();
 	}
 
 	LineDrawer::~LineDrawer()
@@ -42,7 +56,7 @@ namespace fgl::engine
 		auto& command_buffer { info.command_buffer };
 		m_pipeline->bind( command_buffer );
 
-		m_pipeline->bindDescriptor( command_buffer, CameraDescriptorSet::m_set_idx, info.getCameraDescriptor() );
+		m_pipeline->bindDescriptor( command_buffer, info.getCameraDescriptor() );
 
 		return command_buffer;
 	}

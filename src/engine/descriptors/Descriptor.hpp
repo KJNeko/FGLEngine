@@ -7,85 +7,81 @@
 #include <cstdint>
 
 #include "engine/memory/buffers/Buffer.hpp"
-#include "engine/concepts/is_descriptor.hpp"
 
 namespace fgl::engine::descriptors
 {
 
-	/**
-	 *
-	 * @tparam binding_idx Index of the descriptor
-	 * @tparam descriptor_type Descriptor flags
-	 * @tparam stage_flags
-	 * @tparam binding_count Number of descriptors to have
-	 * @tparam binding_flags Flags to bind with
-	 */
-	template <
-		std::uint16_t binding_idx,
-		vk::DescriptorType descriptor_type,
-		vk::ShaderStageFlags stage_flags = vk::ShaderStageFlagBits::eAll,
-		std::uint16_t binding_count = 1,
-		vk::DescriptorBindingFlags binding_flags = static_cast< vk::DescriptorBindingFlags >( 0 ) >
 	struct Descriptor
 	{
-		static constexpr std::uint16_t m_binding_idx { binding_idx };
-		static constexpr std::uint16_t m_count { binding_count };
+		std::uint16_t m_index;
+		vk::DescriptorType m_type;
+		vk::ShaderStageFlags m_stage_flags;
+		std::uint16_t m_count;
+		vk::DescriptorBindingFlags m_binding_flags;
 
-		static constexpr vk::DescriptorType m_descriptor_type { descriptor_type };
+		consteval Descriptor() = delete;
 
-		static constexpr auto m_binding_flags { binding_flags };
+		constexpr Descriptor(
+			const std::uint16_t binding_idx,
+			const vk::DescriptorType type,
+			const vk::ShaderStageFlags stage_flags,
+			const std::uint16_t count = 1,
+			const vk::DescriptorBindingFlags binding_flags = static_cast< vk::DescriptorBindingFlags >( 0 ) ) :
+		  m_index( binding_idx ),
+		  m_type( type ),
+		  m_stage_flags( stage_flags ),
+		  m_count( count ),
+		  m_binding_flags( binding_flags )
+		{}
 
-		consteval static vk::DescriptorSetLayoutBinding generateLayoutBinding()
+		constexpr vk::DescriptorSetLayoutBinding generateLayoutBinding()
 		{
-			vk::DescriptorSetLayoutBinding layout_binding {};
-			layout_binding.binding = binding_idx;
-			layout_binding.descriptorType = descriptor_type;
-			layout_binding.descriptorCount = binding_count;
-			layout_binding.stageFlags = stage_flags;
+			vk::DescriptorSetLayoutBinding layout_binding;
+			layout_binding.binding = m_index;
+			layout_binding.descriptorType = m_type;
+			layout_binding.descriptorCount = m_count;
+			layout_binding.stageFlags = m_stage_flags;
 			layout_binding.pImmutableSamplers = VK_NULL_HANDLE;
 			return layout_binding;
 		}
 
-		/**
-		 * The layout binding is used during pipeline creation to provide information to the pipeline about the descriptor set layout.
-		 * This is used to construct the actual layout and can be done at compiletime.
-		 */
-		static constexpr vk::DescriptorSetLayoutBinding m_layout_binding { generateLayoutBinding() };
+		vk::DescriptorSetLayoutBinding m_layout_binding { generateLayoutBinding() };
 	};
 
-	template < std::uint16_t binding_idx, vk::ShaderStageFlags stage_flags >
-	using ImageDescriptor = Descriptor< binding_idx, vk::DescriptorType::eSampledImage, stage_flags >;
-
-	template < std::uint16_t binding_idx, vk::ShaderStageFlags stage_flags >
-	using AttachmentDescriptor = Descriptor< binding_idx, vk::DescriptorType::eInputAttachment, stage_flags >;
-
-	template < std::uint16_t binding_idx, vk::ShaderStageFlags stage_flags >
-	using StorageDescriptor = Descriptor< binding_idx, vk::DescriptorType::eStorageBuffer, stage_flags >;
-
-	template < std::uint16_t binding_idx, vk::ShaderStageFlags stage_flags >
-	using UniformDescriptor = Descriptor< binding_idx, vk::DescriptorType::eUniformBuffer, stage_flags >;
-
-	template < std::uint16_t idx >
-	struct EmptyDescriptor
+	struct ImageDescriptor : Descriptor
 	{
-		static constexpr std::uint16_t m_binding_idx { idx };
-		static constexpr bool is_empty { true };
+		ImageDescriptor() = delete;
+
+		constexpr ImageDescriptor( std::uint16_t idx, vk::ShaderStageFlags stage_flags ) :
+		  Descriptor( idx, vk::DescriptorType::eSampledImage, stage_flags )
+		{}
 	};
 
-	static_assert( is_empty_descriptor< EmptyDescriptor< 0 > > );
-
-	//! Returns the maximum binding index for a list of given descriptors
-	template < is_descriptor Current, is_descriptor... Bindings >
-	consteval std::uint16_t getMaxDescriptorIDX()
+	struct AttachmentDescriptor : Descriptor
 	{
-		if constexpr ( sizeof...( Bindings ) == 0 )
-		{
-			return Current::m_binding_idx;
-		}
-		else
-		{
-			return std::max( Current::m_binding_idx, getMaxDescriptorIDX< Bindings... >() );
-		}
-	}
+		AttachmentDescriptor() = delete;
+
+		constexpr AttachmentDescriptor( std::uint16_t idx, vk::ShaderStageFlags stage_flags ) :
+		  Descriptor( idx, vk::DescriptorType::eInputAttachment, stage_flags )
+		{}
+	};
+
+	struct StorageDescriptor : Descriptor
+	{
+		StorageDescriptor() = delete;
+
+		StorageDescriptor( std::uint16_t idx, vk::ShaderStageFlags stage_flags ) :
+		  Descriptor( idx, vk::DescriptorType::eStorageBuffer, stage_flags )
+		{}
+	};
+
+	struct UniformDescriptor : Descriptor
+	{
+		UniformDescriptor() = delete;
+
+		UniformDescriptor( const std::uint16_t idx, vk::ShaderStageFlags stage_flags ) :
+		  Descriptor( idx, vk::DescriptorType::eUniformBuffer, stage_flags )
+		{}
+	};
 
 } // namespace fgl::engine::descriptors

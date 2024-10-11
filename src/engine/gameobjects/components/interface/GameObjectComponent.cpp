@@ -4,7 +4,11 @@
 
 #include "GameObjectComponent.hpp"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <imgui.h>
+#pragma GCC diagnostic pop
 
 namespace fgl::engine
 {

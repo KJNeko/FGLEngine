@@ -43,8 +43,11 @@ namespace fgl::engine
 		// {location, binding, format, offset}
 		// attribute_descriptions.emplace_back( 0, 0, vk::Format::eR32G32B32Sfloat, offsetof( ModelVertex, m_position ) );
 		// attribute_descriptions.emplace_back( 1, 0, vk::Format::eR32G32B32Sfloat, offsetof( ModelVertex, m_color ) );
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Winvalid-offsetof"
 		attribute_descriptions.emplace_back( 2, 0, vk::Format::eR32G32B32Sfloat, offsetof( ModelVertex, m_normal ) );
 		attribute_descriptions.emplace_back( 3, 0, vk::Format::eR32G32Sfloat, offsetof( ModelVertex, m_uv ) );
+#pragma GCC diagnostic pop
 
 		//Normal Matrix
 		attribute_descriptions.emplace_back( 4, 1, vk::Format::eR32G32B32A32Sfloat, 0 );

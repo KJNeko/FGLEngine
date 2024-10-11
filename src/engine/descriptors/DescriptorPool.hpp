@@ -41,7 +41,7 @@ namespace fgl::engine::descriptors
 		static DescriptorPool& init();
 		[[nodiscard]] static DescriptorPool& getInstance();
 
-		[[nodiscard]] vk::raii::DescriptorSet allocateSet( vk::raii::DescriptorSetLayout& layout );
+		[[nodiscard]] vk::raii::DescriptorSet allocateSet( const vk::raii::DescriptorSetLayout& layout );
 	};
 } // namespace fgl::engine::descriptors
 

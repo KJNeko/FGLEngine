@@ -36,7 +36,7 @@ namespace fgl::engine
 
 		constexpr Vector() : glm::vec3( constants::DEFAULT_VEC3 ) {}
 
-		constexpr explicit Vector( const float value ) : glm::vec3( value ) {}
+		constexpr explicit Vector( const float val ) : glm::vec3( val ) {}
 
 		constexpr explicit Vector( const glm::vec3 i_vec ) : glm::vec3( i_vec ) {}
 
@@ -72,7 +72,6 @@ namespace fgl::engine
 		{
 			return coord - *this;
 		}
-
 	};
 
 	inline Vector operator-( const Vector vec )

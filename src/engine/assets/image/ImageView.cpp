@@ -52,6 +52,24 @@ namespace fgl::engine
 		return info;
 	}
 
+	ImageView::~ImageView()
+	{
+	}
+
+	void ImageView::setName( const std::string str )
+	{
+		m_name = str;
+		m_sampler.setName( str + " Sampler" );
+		m_resource->setName( str + " Resource" );
+
+		vk::DebugUtilsObjectNameInfoEXT info {};
+		info.objectType = vk::ObjectType::eImageView;
+		info.pObjectName = str.c_str();
+		info.setObjectHandle( reinterpret_cast< std::uint64_t >( static_cast< VkImageView >( *m_image_view ) ) );
+
+		Device::getInstance().setDebugUtilsObjectName( info );
+	}
+
 	vk::ImageView ImageView::getVkView()
 	{
 		return *m_image_view;
@@ -60,11 +78,6 @@ namespace fgl::engine
 	vk::Extent2D ImageView::getExtent() const
 	{
 		return m_resource->extent();
-	}
-
-	void ImageView::setName( const std::string& str )
-	{
-		m_resource->setName( str );
 	}
 
 	bool ImageView::ready()

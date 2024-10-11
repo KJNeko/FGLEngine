@@ -9,12 +9,12 @@
 #include "engine/assets/model/Model.hpp"
 #include "engine/memory/buffers/vector/HostVector.hpp"
 #include "engine/rendering/SwapChain.hpp"
-#include "engine/rendering/pipelines/PipelineT.hpp"
 #include "engine/systems/modelRendering/StandardPipeline.hpp"
 #include "engine/systems/modelRendering/TexturedPipeline.hpp"
 
 namespace fgl::engine
 {
+	class Pipeline;
 	class Device;
 
 	namespace memory
@@ -29,10 +29,10 @@ namespace fgl::engine
 		Device& m_device;
 
 		//! Standard pipeline for textureless models
-		std::unique_ptr< StandardPipeline > m_standard_pipeline {};
+		std::unique_ptr< Pipeline > m_standard_pipeline {};
 
 		//! Pipeline for basic textured models (Single texture)
-		std::unique_ptr< TexturedPipeline > m_textured_pipeline {};
+		std::unique_ptr< Pipeline > m_textured_pipeline {};
 
 		using DrawParameterBufferSuballocation = HostVector< vk::DrawIndexedIndirectCommand >;
 
@@ -55,7 +55,7 @@ namespace fgl::engine
 		void texturedPass( const FrameInfo& info );
 
 		EntityRendererSystem( Device& device, vk::raii::RenderPass& render_pass );
-		~EntityRendererSystem() = default;
+		~EntityRendererSystem();
 		EntityRendererSystem( EntityRendererSystem&& other ) = delete;
 		EntityRendererSystem( const EntityRendererSystem& other ) = delete;
 		EntityRendererSystem& operator=( const EntityRendererSystem& other ) = delete;

@@ -4,13 +4,12 @@
 
 #pragma once
 #include "engine/FrameInfo.hpp"
-#include "engine/descriptors/DescriptorSetCollection.hpp"
-#include "engine/rendering/pipelines/PipelineT.hpp"
 #include "engine/rendering/pipelines/Shader.hpp"
 
 namespace fgl::engine
 {
 
+	/*
 	using TexturedPipelineVertexShader = VertexShaderT< "shaders/textured-gbuffer.vert" >;
 	using TexturedPipelineFragShader = FragmentShaderT< "shaders/textured-gbuffer.frag" >;
 	using TexturedPipelineShaders = ShaderCollection< TexturedPipelineVertexShader, TexturedPipelineFragShader >;
@@ -22,5 +21,6 @@ namespace fgl::engine
 
 	//! The standard pipeline is used for models without any form of texturing. They instead rely on Vertex coloring. A UV map is **NOT** expected
 	using TexturedPipeline = PipelineT< TexturedPipelineShaders, TexturedPipelineDescriptorSets >;
+	*/
 
 } // namespace fgl::engine

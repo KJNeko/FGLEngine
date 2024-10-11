@@ -42,29 +42,28 @@ namespace fgl::engine
 		alignas( 16 ) int num_lights { 0 };
 	};
 
-	//using GlobalDescriptorSet = descriptors::DescriptorSetLayout< 0, descriptors::EmptyDescriptor< 0 > >;
+	constexpr descriptors::Descriptor texture_descriptor { 0,
+		                                                   vk::DescriptorType::eCombinedImageSampler,
+		                                                   vk::ShaderStageFlagBits::eAllGraphics,
+		                                                   512,
+		                                                   vk::DescriptorBindingFlagBits::eUpdateAfterBind
+		                                                       | vk::DescriptorBindingFlagBits::ePartiallyBound };
 
-	using TextureDescriptor = descriptors::Descriptor<
-		0,
-		vk::DescriptorType::eCombinedImageSampler,
-		vk::ShaderStageFlagBits::eAllGraphics,
-		512,
-		vk::DescriptorBindingFlagBits::eUpdateAfterBind | vk::DescriptorBindingFlagBits::ePartiallyBound >;
+	inline static descriptors::DescriptorSetLayout texture_descriptor_set { 2, texture_descriptor };
 
-	using TextureDescriptorSet = descriptors::DescriptorSetLayout< 2, TextureDescriptor >;
+	constexpr vk::ShaderStageFlags FRAG_STAGE { vk::ShaderStageFlagBits::eFragment };
 
-	using PositionDescriptor = descriptors::AttachmentDescriptor< 0, vk::ShaderStageFlagBits::eFragment >;
-	using NormalDescriptor = descriptors::AttachmentDescriptor< 1, vk::ShaderStageFlagBits::eFragment >;
-	using AlbedoDescriptor = descriptors::AttachmentDescriptor< 2, vk::ShaderStageFlagBits::eFragment >;
+	constexpr descriptors::AttachmentDescriptor position_descriptor { 0, FRAG_STAGE };
+	constexpr descriptors::AttachmentDescriptor normal_descriptor { 1, FRAG_STAGE };
+	constexpr descriptors::AttachmentDescriptor albedo_descriptor { 2, FRAG_STAGE };
 
-	static_assert( is_descriptor< PositionDescriptor > );
+	inline static descriptors::DescriptorSetLayout gbuffer_set {
+		0, position_descriptor, normal_descriptor, albedo_descriptor
+	};
 
-	using GBufferDescriptorSet =
-		descriptors::DescriptorSetLayout< 0, PositionDescriptor, NormalDescriptor, AlbedoDescriptor >;
+	constexpr descriptors::AttachmentDescriptor input_descriptor { 0, vk::ShaderStageFlagBits::eFragment };
 
-	using InputDescriptor = descriptors::AttachmentDescriptor< 0, vk::ShaderStageFlagBits::eFragment >;
-
-	using GuiInputDescriptorSet = descriptors::DescriptorSetLayout< 0, InputDescriptor >;
+	inline static descriptors::DescriptorSetLayout gui_descriptor_set { 0, input_descriptor };
 
 	class OctTreeNode;
 

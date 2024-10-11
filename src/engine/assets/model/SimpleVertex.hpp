@@ -3,7 +3,11 @@
 //
 
 #pragma once
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 #include <glm/vec3.hpp>
+#pragma GCC diagnostic pop
 
 #include <vector>
 
@@ -11,7 +15,7 @@ namespace vk
 {
 	struct VertexInputAttributeDescription;
 	struct VertexInputBindingDescription;
-}
+} // namespace vk
 
 namespace fgl::engine
 {
@@ -28,5 +32,4 @@ namespace fgl::engine
 		static std::vector< vk::VertexInputAttributeDescription > getAttributeDescriptions();
 	};
 
-
-}
+} // namespace fgl::engine

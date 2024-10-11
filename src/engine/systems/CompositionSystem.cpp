@@ -6,19 +6,42 @@
 
 #include <engine/texture/Texture.hpp>
 
+#include "engine/rendering/pipelines/attachments/AttachmentPresets.hpp"
+#include "engine/rendering/pipelines/v2/AttachmentBuilder.hpp"
+#include "engine/rendering/pipelines/v2/Pipeline.hpp"
+#include "engine/rendering/pipelines/v2/PipelineBuilder.hpp"
+
 namespace fgl::engine
 {
 
 	CompositionSystem::CompositionSystem( [[maybe_unused]] Device& device, vk::raii::RenderPass& render_pass )
 	{
+		/*
 		PipelineConfigInfo composition_info { render_pass };
 		PipelineConfigInfo::addColorAttachmentConfig( composition_info );
 		PipelineConfigInfo::disableVertexInput( composition_info );
 		PipelineConfigInfo::disableCulling( composition_info );
 		composition_info.subpass = 1;
+		*/
 
-		m_composite_pipeline =
-			std::make_unique< CompositionPipeline >( Device::getInstance(), std::move( composition_info ) );
+		constexpr std::size_t SUBPASS { 1 };
+
+		PipelineBuilder builder { render_pass, SUBPASS };
+
+		FGL_ASSERT( gbuffer_set.count() == 3, "Aaaa" );
+
+		builder.addDescriptorSet( gbuffer_set );
+
+		builder.addColorAttachment().finish();
+
+		builder.setVertexShader( Shader::loadVertex( "shaders/fullscreen.vert" ) );
+		builder.setFragmentShader( Shader::loadFragment( "shaders/composition.frag" ) );
+
+		builder.disableCulling();
+		builder.disableVertexInput();
+
+		m_composite_pipeline = builder.create();
+
 		m_composite_pipeline->setDebugName( "Composition pipeline" );
 	}
 
@@ -30,8 +53,7 @@ namespace fgl::engine
 
 		m_composite_pipeline->bind( command_buffer );
 
-		m_composite_pipeline
-			->bindDescriptor( command_buffer, GBufferDescriptorSet::m_set_idx, info.getGBufferDescriptor() );
+		m_composite_pipeline->bindDescriptor( command_buffer, info.getGBufferDescriptor() );
 
 		return info.command_buffer;
 	}

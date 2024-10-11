@@ -64,7 +64,8 @@ namespace fgl::engine
 
 		for ( PresentIndex i = 0; i < imageCount(); ++i )
 		{
-			auto set { std::make_unique< descriptors::DescriptorSet >( GuiInputDescriptorSet::createLayout() ) };
+			auto set { gui_descriptor_set.create() };
+			//auto set { std::make_unique< descriptors::DescriptorSet >( GuiInputDescriptorSet::createLayout() ) };
 
 			set->setMaxIDX( 0 );
 

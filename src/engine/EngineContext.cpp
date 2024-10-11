@@ -18,6 +18,7 @@
 #include "engine/assets/transfer/TransferManager.hpp"
 #include "engine/math/Average.hpp"
 #include "engine/math/literals/size.hpp"
+#include "engine/rendering/pipelines/v2/Pipeline.hpp"
 
 namespace fgl::engine
 {

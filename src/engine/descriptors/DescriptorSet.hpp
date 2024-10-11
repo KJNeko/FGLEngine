@@ -28,6 +28,7 @@ namespace fgl::engine::descriptors
 
 	class DescriptorSet
 	{
+		std::uint16_t m_set_idx;
 		//TODO: Maybe redo this to not be a monostate variant?
 		std::vector< std::variant< std::monostate, vk::DescriptorImageInfo, vk::DescriptorBufferInfo > > m_infos {};
 		std::vector< vk::WriteDescriptorSet > descriptor_writes {};
@@ -35,7 +36,6 @@ namespace fgl::engine::descriptors
 		std::vector< std::variant< std::shared_ptr< ImageView >, std::shared_ptr< memory::BufferSuballocation > > >
 			m_resources {};
 
-		vk::raii::DescriptorSetLayout m_layout;
 		vk::raii::DescriptorSet m_set;
 
 		std::uint32_t m_max_idx { 0 };
@@ -52,8 +52,10 @@ namespace fgl::engine::descriptors
 
 		VkDescriptorSet getVkDescriptorSet() const { return *m_set; }
 
+		inline std::uint16_t setIDX() const { return m_set_idx; }
+
 		DescriptorSet() = delete;
-		DescriptorSet( vk::raii::DescriptorSetLayout&& layout );
+		DescriptorSet( const vk::raii::DescriptorSetLayout& layout, const std::uint16_t idx );
 
 		//Copy
 		DescriptorSet( const DescriptorSet& other ) = delete;

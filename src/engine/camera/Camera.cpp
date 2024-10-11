@@ -58,7 +58,7 @@ namespace fgl::engine
 	descriptors::DescriptorSet& Camera::getDescriptor( const FrameIndex index )
 	{
 		assert( index < m_camera_info_descriptors.size() );
-		return m_camera_info_descriptors[ index ];
+		return *m_camera_info_descriptors[ index ];
 	}
 
 	void Camera::setFOV( const float fov_y )
@@ -331,10 +331,10 @@ namespace fgl::engine
 
 		for ( std::uint8_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
 		{
-			descriptors::DescriptorSet set { CameraDescriptorSet::createLayout() };
-			set.setMaxIDX( 0 );
-			set.bindUniformBuffer( 0, m_camera_frame_info[ i ] );
-			set.update();
+			auto set { camera_descriptor_set.create() };
+			set->setMaxIDX( 0 );
+			set->bindUniformBuffer( 0, m_camera_frame_info[ i ] );
+			set->update();
 
 			m_camera_info_descriptors.emplace_back( std::move( set ) );
 		}

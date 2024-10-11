@@ -6,25 +6,16 @@
 
 #include "concepts.hpp"
 #include "engine/FrameInfo.hpp"
-#include "engine/descriptors/DescriptorSetCollection.hpp"
-#include "engine/rendering/pipelines/PipelineT.hpp"
 #include "engine/rendering/pipelines/Shader.hpp"
 
 namespace fgl::engine
 {
+		class Pipeline;
 
 	class CompositionSystem
 	{
-		using DescriptorSets = descriptors::DescriptorSetCollection< GBufferDescriptorSet >;
 
-		using VertexShader = VertexShaderT< "shaders/fullscreen.vert" >;
-		using FragmentShader = FragmentShaderT< "shaders/composition.frag" >;
-
-		using Shaders = ShaderCollection< VertexShader, FragmentShader >;
-
-		using CompositionPipeline = PipelineT< Shaders, DescriptorSets >;
-
-		std::unique_ptr< CompositionPipeline > m_composite_pipeline { nullptr };
+		std::unique_ptr< Pipeline > m_composite_pipeline { nullptr };
 
 		vk::raii::CommandBuffer& setupSystem( FrameInfo& info );
 

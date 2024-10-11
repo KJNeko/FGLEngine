@@ -4,8 +4,12 @@
 
 #include "glm.hpp"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wduplicated-branches"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
+#pragma GCC diagnostic pop
 
 std::format_context::iterator std::formatter< glm::qua< float > >::format( const glm::quat& quat, format_context& ctx )
 	const

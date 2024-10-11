@@ -12,7 +12,7 @@
 namespace fgl::engine
 {
 	class Device;
-	struct ShaderHandle;
+	struct Shader;
 }
 
 namespace fgl::engine::internal
@@ -29,7 +29,7 @@ namespace fgl::engine::internal
 		vk::ShaderModule m_frag_shader { VK_NULL_HANDLE };
 
 		vk::raii::Pipeline createGraphicsPipeline(
-			std::vector< std::unique_ptr< ShaderHandle > >& shaders,
+			std::vector< std::unique_ptr< Shader > >& shaders,
 			const PipelineConfigInfo& info,
 			const vk::raii::PipelineLayout& layout );
 
@@ -39,7 +39,7 @@ namespace fgl::engine::internal
 			Device& device,
 			vk::raii::PipelineLayout layout,
 			PipelineConfigInfo info,
-			std::vector< std::unique_ptr< ShaderHandle > > shaders );
+			std::vector< std::unique_ptr< Shader > > shaders );
 
 		Pipeline( const Pipeline& other ) = delete;
 		Pipeline& operator=( const Pipeline& ) = delete;

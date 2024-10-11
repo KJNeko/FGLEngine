@@ -30,7 +30,7 @@ namespace fgl::engine::descriptors
 	DescriptorPool::DescriptorPool( std::uint32_t set_count ) : m_pool( createPool( set_count ) )
 	{}
 
-	[[nodiscard]] vk::raii::DescriptorSet DescriptorPool::allocateSet( vk::raii::DescriptorSetLayout& layout )
+	[[nodiscard]] vk::raii::DescriptorSet DescriptorPool::allocateSet( const vk::raii::DescriptorSetLayout& layout )
 	{
 		vk::DescriptorSetAllocateInfo alloc_info {};
 		alloc_info.setDescriptorPool( m_pool );

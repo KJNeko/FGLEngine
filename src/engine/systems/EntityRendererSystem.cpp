@@ -10,6 +10,9 @@
 #include "DrawPair.hpp"
 #include "engine/camera/Camera.hpp"
 #include "engine/debug/profiling/counters.hpp"
+#include "engine/rendering/pipelines/v2/AttachmentBuilder.hpp"
+#include "engine/rendering/pipelines/v2/Pipeline.hpp"
+#include "engine/rendering/pipelines/v2/PipelineBuilder.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
 
 namespace fgl::engine
@@ -17,24 +20,56 @@ namespace fgl::engine
 	EntityRendererSystem::EntityRendererSystem( Device& device, vk::raii::RenderPass& render_pass ) : m_device( device )
 	{
 		ZoneScoped;
-		{
-			PipelineConfigInfo standard_info { render_pass };
-			PipelineConfigInfo::addGBufferAttachmentsConfig( standard_info );
 
-			standard_info.subpass = 0;
-			m_standard_pipeline = std::make_unique< StandardPipeline >( m_device, std::move( standard_info ) );
+		{
+			// PipelineConfigInfo standard_info { render_pass };
+			// PipelineConfigInfo::addGBufferAttachmentsConfig( standard_info );
+
+			PipelineBuilder builder { render_pass, 0 };
+
+			builder.addDescriptorSet( camera_descriptor_set );
+
+			builder.addColorAttachment().finish();
+			builder.addColorAttachment().finish();
+			builder.addColorAttachment().finish();
+
+			builder.setFragmentShader( Shader::loadFragment( "shaders/textureless-gbuffer.frag" ) );
+			builder.setVertexShader( Shader::loadVertex( "shaders/textureless-gbuffer.vert" ) );
+
+			builder.setAttributeDescriptions( ModelVertex::getAttributeDescriptions() );
+			builder.setBindingDescriptions( ModelVertex::getBindingDescriptions() );
+
+			m_standard_pipeline = builder.create();
+
 			m_standard_pipeline->setDebugName( "Standard entity pipeline" );
 		}
 
 		{
-			PipelineConfigInfo textured_info { render_pass };
-			PipelineConfigInfo::addGBufferAttachmentsConfig( textured_info );
+			// PipelineConfigInfo textured_info { render_pass };
+			// PipelineConfigInfo::addGBufferAttachmentsConfig( textured_info );
 
-			textured_info.subpass = 0;
-			m_textured_pipeline = std::make_unique< TexturedPipeline >( m_device, std::move( textured_info ) );
+			PipelineBuilder builder { render_pass, 0 };
+
+			builder.addColorAttachment().finish();
+			builder.addColorAttachment().finish();
+			builder.addColorAttachment().finish();
+
+			builder.addDescriptorSet( camera_descriptor_set );
+			builder.addDescriptorSet( texture_descriptor_set );
+
+			builder.setFragmentShader( Shader::loadFragment( "shaders/textured-gbuffer.frag" ) );
+			builder.setVertexShader( Shader::loadVertex( "shaders/textured-gbuffer.vert" ) );
+
+			builder.setAttributeDescriptions( ModelVertex::getAttributeDescriptions() );
+			builder.setBindingDescriptions( ModelVertex::getBindingDescriptions() );
+
+			m_textured_pipeline = builder.create();
 			m_textured_pipeline->setDebugName( "Textured entity pipeline" );
 		}
 	}
+
+	EntityRendererSystem::~EntityRendererSystem()
+	{}
 
 	vk::raii::CommandBuffer& EntityRendererSystem::setupSystem( const FrameInfo& info )
 	{
@@ -70,8 +105,7 @@ namespace fgl::engine
 		//Bind pipeline
 		m_standard_pipeline->bind( command_buffer );
 
-		m_standard_pipeline
-			->bindDescriptor( command_buffer, CameraDescriptorSet::m_set_idx, info.getCameraDescriptor() );
+		m_standard_pipeline->bindDescriptor( command_buffer, info.getCameraDescriptor() );
 
 		//Get all commands for drawing anything without a texture
 		auto [ draw_commands, model_matricies ] = getDrawCallsFromTree(
@@ -116,8 +150,8 @@ namespace fgl::engine
 		// m_textured_pipeline
 		// ->bindDescriptor( command_buffer, CameraDescriptorSet::m_set_idx, info.global_descriptor_set );
 
-		m_textured_pipeline
-			->bindDescriptor( command_buffer, TextureDescriptorSet::m_set_idx, Texture::getTextureDescriptorSet() );
+		m_standard_pipeline->bindDescriptor( command_buffer, info.getCameraDescriptor() );
+		m_textured_pipeline->bindDescriptor( command_buffer, Texture::getTextureDescriptorSet() );
 
 		auto [ draw_commands, model_matricies ] =
 			getDrawCallsFromTree( info.game_objects, info.camera->getFrustumBounds(), IS_VISIBLE | IS_ENTITY );

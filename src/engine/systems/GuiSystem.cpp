@@ -5,6 +5,9 @@
 #include "GuiSystem.hpp"
 
 #include "engine/FrameInfo.hpp"
+#include "engine/rendering/pipelines/v2/AttachmentBuilder.hpp"
+#include "engine/rendering/pipelines/v2/Pipeline.hpp"
+#include "engine/rendering/pipelines/v2/PipelineBuilder.hpp"
 
 namespace fgl::engine
 {
@@ -17,7 +20,21 @@ namespace fgl::engine
 		PipelineConfigInfo::disableCulling( info );
 		info.subpass = 0;
 
-		m_pipeline = std::make_unique< Pipeline >( device, std::move( info ) );
+		//descriptors::DescriptorSetCollection descriptors { gui_descriptor_set };
+
+		PipelineBuilder builder { render_pass, 0 };
+
+		builder.addDescriptorSet( gui_descriptor_set );
+
+		builder.setAttributeDescriptions( SimpleVertex::getAttributeDescriptions() );
+		builder.setBindingDescriptions( SimpleVertex::getBindingDescriptions() );
+
+		builder.setVertexShader( Shader::loadVertex( "shaders/fullscreen.vert" ) );
+		builder.setFragmentShader( Shader::loadFragment( "shaders/gui-compose.frag" ) );
+
+		builder.addColorAttachment().finish();
+
+		m_pipeline = builder.create();
 		m_pipeline->setDebugName( "Gui Pipeline" );
 	}
 

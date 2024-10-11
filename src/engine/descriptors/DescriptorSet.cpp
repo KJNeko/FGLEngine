@@ -10,24 +10,24 @@
 #include <queue>
 
 #include "DescriptorPool.hpp"
-#include "engine/memory/buffers/BufferSuballocation.hpp"
 #include "engine/assets/image/ImageView.hpp"
+#include "engine/memory/buffers/BufferSuballocation.hpp"
 #include "engine/rendering/SwapChain.hpp"
 #include "engine/texture/Texture.hpp"
 
 namespace fgl::engine::descriptors
 {
 
-	DescriptorSet::DescriptorSet( vk::raii::DescriptorSetLayout&& layout ) :
-	  m_layout( std::forward< vk::raii::DescriptorSetLayout >( layout ) ),
-	  m_set( DescriptorPool::getInstance().allocateSet( m_layout ) )
+	DescriptorSet::DescriptorSet( const vk::raii::DescriptorSetLayout& layout, std::uint16_t idx ) :
+	  m_set_idx( idx ),
+	  m_set( DescriptorPool::getInstance().allocateSet( layout ) )
 	{}
 
 	DescriptorSet::DescriptorSet( DescriptorSet&& other ) noexcept :
+	  m_set_idx( other.m_set_idx ),
 	  m_infos( std::move( other.m_infos ) ),
 	  descriptor_writes( std::move( other.descriptor_writes ) ),
 	  m_resources( std::move( other.m_resources ) ),
-	  m_layout( std::move( other.m_layout ) ),
 	  m_set( std::move( other.m_set ) ),
 	  m_max_idx( other.m_max_idx )
 	{
@@ -36,10 +36,10 @@ namespace fgl::engine::descriptors
 
 	DescriptorSet& DescriptorSet::operator=( DescriptorSet&& other ) noexcept
 	{
+		m_set_idx = other.m_set_idx;
 		m_infos = std::move( other.m_infos );
 		descriptor_writes = std::move( other.descriptor_writes );
 		m_resources = std::move( other.m_resources );
-		m_layout = std::move( other.m_layout );
 		m_set = std::move( other.m_set );
 		other.m_set = VK_NULL_HANDLE;
 		m_max_idx = other.m_max_idx;

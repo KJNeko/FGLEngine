@@ -42,8 +42,8 @@ namespace fgl::engine
 		};
 
 		OrientedBoundingBox() :
-		  m_transform( Coordinate< CType >( constants::DEFAULT_VEC3 ) ),
-		  transform_mode( TransformMode::Transform )
+		  transform_mode( TransformMode::Transform ),
+		  m_transform( Coordinate< CType >( constants::DEFAULT_VEC3 ) )
 		{}
 
 		OrientedBoundingBox( const Coordinate< CType > pos, const glm::vec3 inital_scale ) :
@@ -76,6 +76,7 @@ namespace fgl::engine
 				case TransformMode::Matrix:
 					return Coordinate< CType >( m_matrix * glm::vec4( -1.0f, -1.0f, -1.0f, 1.0f ) );
 			}
+			FGL_UNREACHABLE();
 		}
 
 		//! Returns the bottom right (x, y, z) coordinate
@@ -88,6 +89,7 @@ namespace fgl::engine
 				case TransformMode::Matrix:
 					return Coordinate< CType >( m_matrix * glm::vec4( 1.0f, 1.0f, 1.0f, 1.0f ) );
 			}
+			FGL_UNREACHABLE();
 		}
 
 		// 6 sides, 2 triangles each, 3 verts per triangle

@@ -4,7 +4,11 @@
 
 #include "matrix.hpp"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wduplicated-branches"
 #include <glm/glm.hpp>
+#pragma GCC diagnostic pop
 
 std::format_context::iterator std::formatter< glm::vec4 >::format( const glm::vec4& vec, format_context& ctx ) const
 {

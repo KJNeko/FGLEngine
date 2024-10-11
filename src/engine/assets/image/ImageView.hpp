@@ -21,10 +21,11 @@ namespace fgl::engine
 		vk::raii::ImageView m_image_view;
 
 		Sampler m_sampler;
+		std::string m_name;
+
+		[[nodiscard]] static vk::raii::ImageView createImageView( const std::shared_ptr< ImageHandle >& img );
 
 	  public:
-
-		void setName( const std::string& str );
 
 		//! Returns true if the resource has been staged
 		bool ready();
@@ -39,8 +40,6 @@ namespace fgl::engine
 		ImageView( ImageView&& other ) = default;
 		ImageView& operator=( ImageView&& other ) = default;
 
-		[[nodiscard]] static vk::raii::ImageView createImageView( const std::shared_ptr< ImageHandle >& img );
-
 		[[nodiscard]] vk::Extent2D getExtent() const;
 
 		[[nodiscard]] vk::ImageView getVkView();
@@ -49,10 +48,16 @@ namespace fgl::engine
 
 		[[nodiscard]] VkImage getVkImage() { return m_resource->getVkImage(); }
 
+		void setSampler( Sampler&& sampler ) { m_sampler = std::forward< Sampler >( sampler ); }
+
 		[[nodiscard]] Sampler& getSampler() { return m_sampler; };
 
 		vk::DescriptorImageInfo descriptorInfo( vk::Sampler sampler, vk::ImageLayout layout ) const;
 		vk::DescriptorImageInfo descriptorInfo( vk::ImageLayout layout ) const;
+
+		~ImageView();
+
+		void setName( std::string str );
 	};
 
 } // namespace fgl::engine

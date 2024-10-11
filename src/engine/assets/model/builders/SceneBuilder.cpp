@@ -100,54 +100,66 @@ namespace fgl::engine
 				// If the type is a smaller scalar then we want can still copy the data.
 				log::warn( "Attempting to copy data of size {} into type of size {}", byte_count, T_SIZE );
 
-				switch ( byte_count )
+				if constexpr ( std::is_scalar_v< T > )
 				{
-					default:
-						throw std::runtime_error( "Unknown size" );
-					case 1:
-						for ( std::size_t i = 0; i < accessor.count; ++i )
-						{
-							std::uint8_t tmp {};
-							std::memcpy(
-								&tmp,
-								buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset + ( i * byte_count ),
-								byte_count );
-							data.emplace_back( static_cast< T >( tmp ) );
-						}
-						return data;
-					case 2:
-						for ( std::size_t i = 0; i < accessor.count; ++i )
-						{
-							std::uint16_t tmp {};
-							std::memcpy(
-								&tmp,
-								buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset + ( i * byte_count ),
-								byte_count );
-							data.emplace_back( static_cast< T >( tmp ) );
-						}
-						return data;
-					case 4:
-						for ( std::size_t i = 0; i < accessor.count; ++i )
-						{
-							std::uint32_t tmp {};
-							std::memcpy(
-								&tmp,
-								buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset + ( i * byte_count ),
-								byte_count );
-							data.emplace_back( static_cast< T >( tmp ) );
-						}
-						return data;
-					case 8:
-						for ( std::size_t i = 0; i < accessor.count; ++i )
-						{
-							std::uint64_t tmp {};
-							std::memcpy(
-								&tmp,
-								buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset + ( i * byte_count ),
-								byte_count );
-							data.emplace_back( static_cast< T >( tmp ) );
-						}
-						return data;
+					switch ( byte_count )
+					{
+						default:
+							throw std::runtime_error( "Unknown size" );
+						case 1:
+							for ( std::size_t i = 0; i < accessor.count; ++i )
+							{
+								std::uint8_t tmp {};
+								std::memcpy(
+									&tmp,
+									buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset
+										+ ( i * byte_count ),
+									byte_count );
+								data.emplace_back( static_cast< T >( tmp ) );
+							}
+							return data;
+						case 2:
+							for ( std::size_t i = 0; i < accessor.count; ++i )
+							{
+								std::uint16_t tmp {};
+								std::memcpy(
+									&tmp,
+									buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset
+										+ ( i * byte_count ),
+									byte_count );
+								data.emplace_back( static_cast< T >( tmp ) );
+							}
+							return data;
+						case 4:
+							for ( std::size_t i = 0; i < accessor.count; ++i )
+							{
+								std::uint32_t tmp {};
+								std::memcpy(
+									&tmp,
+									buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset
+										+ ( i * byte_count ),
+									byte_count );
+								data.emplace_back( static_cast< T >( tmp ) );
+							}
+							return data;
+						case 8:
+							for ( std::size_t i = 0; i < accessor.count; ++i )
+							{
+								std::uint64_t tmp {};
+								std::memcpy(
+									&tmp,
+									buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset
+										+ ( i * byte_count ),
+									byte_count );
+								data.emplace_back( static_cast< T >( tmp ) );
+							}
+							return data;
+					}
+				}
+				else
+				{
+					throw std::runtime_error(
+						std::format( "Tried extracting data of size {} into type of size {}", byte_count, T_SIZE ) );
 				}
 			}
 			else

@@ -21,7 +21,7 @@ namespace fgl::engine
 		return camera->getDescriptor( frame_idx );
 	}
 
-	void FrameInfo::bindCamera( internal::Pipeline& pipeline )
+	void FrameInfo::bindCamera( [[maybe_unused]] internal::Pipeline& pipeline )
 	{
 		//TODO: This
 	}

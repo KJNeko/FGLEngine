@@ -47,12 +47,18 @@ namespace fgl::engine
 			throw std::runtime_error( "drawIndirectFirstInstance not supported by device" );
 		}
 
+		if ( available_features.wideLines != VK_TRUE )
+		{
+			throw std::runtime_error( "wideLines not supported by device" );
+		}
+
 		//Set enabled features
 		vk::PhysicalDeviceFeatures deviceFeatures = {};
 		deviceFeatures.samplerAnisotropy = VK_TRUE;
 		deviceFeatures.multiDrawIndirect = VK_TRUE;
 		deviceFeatures.tessellationShader = VK_TRUE;
 		deviceFeatures.drawIndirectFirstInstance = VK_TRUE;
+		deviceFeatures.wideLines = VK_TRUE;
 
 		return deviceFeatures;
 	}

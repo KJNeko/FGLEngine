@@ -13,7 +13,7 @@ namespace fgl::engine::internal
 {
 
 	vk::raii::Pipeline Pipeline::createGraphicsPipeline(
-		std::vector< std::unique_ptr< ShaderHandle > >& shaders,
+		std::vector< std::unique_ptr< Shader > >& shaders,
 		const PipelineConfigInfo& info,
 		const vk::raii::PipelineLayout& layout )
 	{
@@ -66,7 +66,7 @@ namespace fgl::engine::internal
 		Device& device,
 		vk::raii::PipelineLayout layout,
 		PipelineConfigInfo info,
-		std::vector< std::unique_ptr< ShaderHandle > > shaders ) :
+		std::vector< std::unique_ptr< Shader > > shaders ) :
 	  m_device( device ),
 	  m_layout( std::move( layout ) ),
 	  m_vk_pipeline( createGraphicsPipeline( shaders, info, m_layout ) )

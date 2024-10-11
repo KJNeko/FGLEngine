@@ -7,8 +7,10 @@
 
 namespace fgl::engine
 {
-	using CameraDescriptor =
-		descriptors::Descriptor< 0, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eAllGraphics >;
+	constexpr descriptors::Descriptor camera_descriptor { 0,
+		                                                  vk::DescriptorType::eUniformBuffer,
+		                                                  vk::ShaderStageFlagBits::eAllGraphics };
 
-	using CameraDescriptorSet = descriptors::DescriptorSetLayout< 1, CameraDescriptor >;
+	inline static descriptors::DescriptorSetLayout camera_descriptor_set { 1, camera_descriptor };
+
 } // namespace fgl::engine

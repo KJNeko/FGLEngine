@@ -4,13 +4,12 @@
 
 #pragma once
 #include "engine/FrameInfo.hpp"
-#include "engine/descriptors/DescriptorSetCollection.hpp"
 #include "engine/descriptors/DescriptorSetLayout.hpp"
-#include "engine/rendering/pipelines/PipelineT.hpp"
 #include "engine/rendering/pipelines/Shader.hpp"
 
 namespace fgl::engine
 {
+	class Pipeline;
 	struct FrameInfo;
 
 	/**
@@ -18,16 +17,8 @@ namespace fgl::engine
 	 */
 	class GuiSystem
 	{
-		// Attachment 0 will be the composited image
-		using CompositeDescriptorSets = descriptors::DescriptorSetCollection< GuiInputDescriptorSet >;
 
-		using VertexShader = VertexShaderT< "shaders/fullscreen.vert" >;
-		using FragmentShader = FragmentShaderT< "shaders/gui-compose.frag" >;
-
-		using Shaders = ShaderCollection< VertexShader, FragmentShader >;
-		using Pipeline = PipelineT< Shaders, CompositeDescriptorSets >;
-
-		std::unique_ptr< Pipeline > m_pipeline { nullptr };
+		std::unique_ptr< Pipeline > m_pipeline;
 
 		//Setup isn't needed for this. So we can just never define this safely.
 		[[maybe_unused]] vk::raii::CommandBuffer& setupSystem( FrameInfo& info );

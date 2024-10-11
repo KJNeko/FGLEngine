@@ -3,12 +3,11 @@
 //
 
 #pragma once
-#include "engine/rendering/pipelines/PipelineT.hpp"
-#include "engine/memory/buffers/vector/HostVector.hpp"
 #include "engine/camera/CameraDescriptor.hpp"
 #include "engine/descriptors/Descriptor.hpp"
-#include "engine/descriptors/DescriptorSetCollection.hpp"
+#include "engine/memory/buffers/vector/HostVector.hpp"
 #include "engine/rendering/SwapChain.hpp"
+#include "engine/rendering/pipelines/v2/Pipeline.hpp"
 
 namespace fgl::engine
 {
@@ -18,6 +17,8 @@ namespace fgl::engine
 
 	class LineDrawer
 	{
+		/*
+
 		using VertexShader = VertexShaderT< "shaders/line.vert" >;
 		using FragmentShader = FragmentShaderT< "shaders/line.frag" >;
 
@@ -25,7 +26,10 @@ namespace fgl::engine
 			ShaderCollection< VertexShader, FragmentShader >,
 			descriptors::DescriptorSetCollection< descriptors::EmptyDescriptorSet< 0 >, CameraDescriptorSet > >;
 
-		std::unique_ptr< LinePipeline > m_pipeline {};
+		*/
+
+
+		std::unique_ptr< Pipeline > m_pipeline {};
 
 		PerFrameArray< std::unique_ptr< HostVector< VertexLine > > > m_line_vertex_buffer {};
 

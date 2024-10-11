@@ -12,12 +12,12 @@ namespace fgl::engine
 {
 
 	vk::raii::Sampler createSampler(
-		vk::Filter min_filter,
-		vk::Filter mag_filter,
-		vk::SamplerMipmapMode mipmode,
-		vk::SamplerAddressMode sampler_wrap_u,
-		vk::SamplerAddressMode sampler_wrap_v,
-		vk::SamplerAddressMode sampler_wrap_w )
+		const vk::Filter min_filter,
+		const vk::Filter mag_filter,
+		const vk::SamplerMipmapMode mipmode,
+		const vk::SamplerAddressMode sampler_wrap_u,
+		const vk::SamplerAddressMode sampler_wrap_v,
+		const vk::SamplerAddressMode sampler_wrap_w )
 	{
 		vk::SamplerCreateInfo info;
 
@@ -95,7 +95,7 @@ namespace fgl::engine
 	 * @param wraps x wrap
 	 * @param wrapt y wrap
 	 */
-	Sampler::Sampler( int min_filter, int mag_filter, int wraps, int wrapt ) :
+	Sampler::Sampler( const int min_filter, const int mag_filter, const int wraps, const int wrapt ) :
 	  Sampler(
 		  gl::filterToVk( min_filter ),
 		  gl::filterToVk( mag_filter ),

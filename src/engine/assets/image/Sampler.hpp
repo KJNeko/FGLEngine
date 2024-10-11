@@ -15,7 +15,7 @@ namespace fgl::engine
 
 	class Sampler
 	{
-		vk::raii::Sampler m_sampler { VK_NULL_HANDLE };
+		vk::raii::Sampler m_sampler;
 
 	  public:
 
