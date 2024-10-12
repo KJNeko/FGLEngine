@@ -27,11 +27,11 @@ namespace fgl::engine
 	EngineContext::EngineContext() :
 	  m_ubo_buffer_pool( 512_KiB, vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eHostVisible ),
 	  m_matrix_info_pool(
-		  2_MiB,
+		  256_MiB,
 		  vk::BufferUsageFlagBits::eVertexBuffer,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible ),
 	  m_draw_parameter_pool(
-		  1_MiB,
+		  128_MiB,
 		  vk::BufferUsageFlagBits::eIndirectBuffer,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible ),
 	  m_delta_time( 0.0 )

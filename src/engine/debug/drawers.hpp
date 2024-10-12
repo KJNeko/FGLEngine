@@ -15,7 +15,11 @@ namespace fgl::engine::debug
 	void drawLine( const LineSegment< CoordinateSpace::World >& line, glm::vec3 color = { 1.0f, 1.0f, 1.0f } );
 
 	void drawBoundingBox( const AxisAlignedBoundingBox< CoordinateSpace::World >& bounding_box );
+	void drawBoundingBox( const AxisAlignedBoundingBox< CoordinateSpace::World >& bounding_box, glm::vec3 color );
+
 	void drawBoundingBox( const OrientedBoundingBox< CoordinateSpace::World >& bounding_box );
+	void drawBoundingBox( const OrientedBoundingBox< CoordinateSpace::World >& bounding_box, glm::vec3 color );
+
 	void drawFrustum( const Frustum& frustum );
 
 	void drawAxisHelper();

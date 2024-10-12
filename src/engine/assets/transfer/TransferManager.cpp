@@ -4,12 +4,12 @@
 
 #include "TransferManager.hpp"
 
-#include "engine/memory/buffers/Buffer.hpp"
-#include "engine/memory/buffers/BufferSuballocation.hpp"
-#include "engine/memory/buffers/vector/HostVector.hpp"
 #include "engine/assets/image/Image.hpp"
 #include "engine/assets/image/ImageHandle.hpp"
 #include "engine/math/literals/size.hpp"
+#include "engine/memory/buffers/Buffer.hpp"
+#include "engine/memory/buffers/BufferSuballocation.hpp"
+#include "engine/memory/buffers/vector/HostVector.hpp"
 #include "engine/texture/Texture.hpp"
 
 namespace fgl::engine::memory
@@ -21,8 +21,14 @@ namespace fgl::engine::memory
 
 		if ( queue.size() > 0 ) log::info( "[TransferManager]: Queue size: {}", queue.size() );
 
+		std::size_t counter { 0 };
+		constexpr std::size_t counter_max { 256 };
+
 		while ( queue.size() > 0 )
 		{
+			++counter;
+			if ( counter > counter_max ) break;
+
 			TransferData data { std::move( queue.front() ) };
 			queue.pop();
 

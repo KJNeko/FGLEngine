@@ -96,11 +96,25 @@ namespace fgl::engine
 	template < CoordinateSpace CType >
 	Coordinate< CType > midpoint( const Coordinate< CType > left, const Coordinate< CType > right )
 	{
+		glm::vec3 left_vec { left.vec() };
+		glm::vec3 right_vec { right.vec() };
+
+		left_vec *= 0.5f;
+		right_vec *= 0.5f;
+
+		return Coordinate< CType >( left_vec + right_vec );
+
+		/*
 		const auto x { ( left.vec().x + right.vec().x ) / 2.0f };
 		const auto y { ( left.vec().y + right.vec().y ) / 2.0f };
 		const auto z { ( left.vec().z + right.vec().z ) / 2.0f };
 
+		assert( !std::isinf( x ) );
+		assert( !std::isinf( y ) );
+		assert( !std::isinf( z ) );
+
 		return Coordinate< CType >( x, y, z );
+		*/
 	}
 
 } // namespace fgl::engine

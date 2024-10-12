@@ -8,7 +8,11 @@
 #include <engine/FrameInfo.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+#include <imgui.h>
+
 #include "engine/assets/model/Model.hpp"
+#include "engine/clock.hpp"
+#include "engine/debug/drawers.hpp"
 #include "engine/primitives/Frustum.hpp"
 
 namespace fgl::engine
@@ -18,23 +22,33 @@ namespace fgl::engine
 	static bool draw_leaf_fit_bounds { false };
 	static bool draw_leaf_real_bounds { false };
 	static bool draw_inview_bounds { false };
+	static bool draw_branches { false };
 	static std::size_t number_moved { 0 };
 	static std::optional< std::chrono::microseconds > time { std::nullopt };
 
-	void imGuiOctTreeSettings( FrameInfo& info )
+	void imGuiOctTreeSettings( const FrameInfo& info )
 	{
-		/*
 #if ENABLE_IMGUI
 		if ( ImGui::CollapsingHeader( "OctTree debug settings" ) )
 		{
 			ImGui::Checkbox( "Draw leaf fitted bounding boxes", &draw_leaf_fit_bounds );
 			ImGui::Checkbox( "Draw leaf real bounding boxes", &draw_leaf_real_bounds );
 			ImGui::Checkbox( "Draw ALL in view bounding boxes", &draw_inview_bounds );
+			ImGui::Checkbox( "Draw branches", &draw_branches );
 
 			if ( ImGui::Button( "Reorganize Octtree" ) )
 			{
 				const auto start { fgl::clock::now() };
 				number_moved = info.game_objects.reorganize();
+				const auto end { fgl::clock::now() };
+				const auto time_diff { end - start };
+				time = std::chrono::duration_cast< std::chrono::microseconds >( time_diff );
+			}
+
+			if ( ImGui::Button( "Recalculate Bounds" ) )
+			{
+				const auto start { fgl::clock::now() };
+				info.game_objects.recalculateBounds();
 				const auto end { fgl::clock::now() };
 				const auto time_diff { end - start };
 				time = std::chrono::duration_cast< std::chrono::microseconds >( time_diff );
@@ -46,24 +60,24 @@ namespace fgl::engine
 				ImGui::Text( "Moved %ld objects", number_moved );
 			}
 		}
-#endif*/
+#endif
 	}
 
 	void OctTreeNode::getAllLeafsInFrustum( const Frustum& frustum, std::vector< OctTreeNodeLeaf* >& out_leafs )
 	{
 		ZoneScoped;
-		//Check if we are inside of the frustum.
-		if ( !isInFrustum( frustum ) ) return;
 
 		auto& leafs { out_leafs };
-		leafs.reserve( 256 );
 
 		switch ( m_node_data.index() )
 		{
 			case 0: // NodeArray
 				{
+					//Check if we are inside the frustum.
+					if ( !isInFrustum( frustum ) ) return;
+
 					assert( std::holds_alternative< OctTreeNodeArray >( m_node_data ) );
-					OctTreeNodeArray& node_array { std::get< OctTreeNodeArray >( m_node_data ) };
+					const OctTreeNodeArray& node_array { std::get< OctTreeNodeArray >( m_node_data ) };
 					//Search deeper
 
 					node_array[ LEFT ][ FORWARD ][ TOP ]->getAllLeafsInFrustum( frustum, out_leafs );
@@ -81,8 +95,13 @@ namespace fgl::engine
 				}
 			case 1: // NodeLeaf
 				{
-					assert( std::holds_alternative< OctTreeNodeLeaf >( m_node_data ) );
 					OctTreeNodeLeaf& leaf { std::get< OctTreeNodeLeaf >( m_node_data ) };
+					if ( leaf.size() == 0 ) return;
+
+					//Check if we are inside the frustum.
+					if ( !isInFrustum( frustum ) ) return;
+
+					assert( std::holds_alternative< OctTreeNodeLeaf >( m_node_data ) );
 					leafs.emplace_back( &leaf );
 
 					//debug::world::drawBoundingBox( m_bounds );
@@ -104,18 +123,22 @@ namespace fgl::engine
 	OctTreeNode& OctTreeNode::operator[]( const WorldCoordinate coord )
 	{
 		assert( std::holds_alternative< OctTreeNodeArray >( m_node_data ) );
-		const auto test_dim { glm::greaterThanEqual( coord.vec(), this->m_bounds.getPosition().vec() ) };
+
+		const auto bounds_center { this->m_bounds.getPosition().vec() };
+
+		const auto test_dim { glm::greaterThanEqual( coord.vec(), bounds_center ) };
 
 		auto& node_array { std::get< OctTreeNodeArray >( m_node_data ) };
-		const auto& node { node_array[ test_dim.x ][ test_dim.y ][ test_dim.z ] };
+		const auto& node { node_array[ test_dim.x ? 1 : 0 ][ test_dim.y ? 1 : 0 ][ test_dim.z ? 1 : 0 ] };
 		assert( node );
+		assert( node->canContain( coord ) );
 
 		return *node.get();
 	}
 
-	OctTreeNode::OctTreeNode( const WorldCoordinate center, float span, OctTreeNode* parent ) :
-	  m_fit_bounding_box( center, glm::vec3( span, span, span ) ),
-	  m_bounds( center, span ),
+	OctTreeNode::OctTreeNode( const WorldCoordinate center, const float span, OctTreeNode* parent ) :
+	  m_fit_bounding_box( center, glm::vec3( glm::abs( span ) ) ),
+	  m_bounds( center, glm::abs( span ) ),
 	  m_node_data( OctTreeNodeLeaf() ),
 	  m_parent( parent )
 	{
@@ -123,11 +146,11 @@ namespace fgl::engine
 		std::get< OctTreeNodeLeaf >( m_node_data ).reserve( MAX_NODES_IN_LEAF );
 	}
 
-	void OctTreeNode::split( int depth )
+	void OctTreeNode::split( const int depth )
 	{
 		ZoneScoped;
 		if ( std::holds_alternative< OctTreeNodeArray >( m_node_data ) ) return;
-		auto& game_objects { std::get< OctTreeNodeLeaf >( m_node_data ) };
+		auto game_objects { std::get< OctTreeNodeLeaf >( std::move( m_node_data ) ) };
 
 		//Figure out the half span
 		const float half_span { m_bounds.span() / 2.0f };
@@ -139,11 +162,17 @@ namespace fgl::engine
 		const float left_x { center.x - half_span };
 		const float right_x { center.x + half_span };
 
-		const float forward_y { center.y - half_span };
-		const float backward_y { center.y + half_span };
+		const float forward_y { center.y + half_span };
+		const float backward_y { center.y - half_span };
 
-		const float top_z { center.z - half_span };
-		const float bottom_z { center.z + half_span };
+		const float top_z { center.z + half_span };
+		const float bottom_z { center.z - half_span };
+
+		assert( !std::isinf( left_x ) && !std::isinf( right_x ) );
+		assert( !std::isinf( forward_y ) && !std::isinf( backward_y ) );
+		assert( !std::isinf( top_z ) && !std::isinf( bottom_z ) );
+
+		log::debug( "Splitting node at {}", m_bounds.span() );
 
 		new_nodes[ LEFT ][ FORWARD ][ TOP ] =
 			std::make_unique< OctTreeNode >( WorldCoordinate( left_x, forward_y, top_z ), half_span, this );
@@ -195,7 +224,8 @@ namespace fgl::engine
 	OctTreeNode* OctTreeNode::addGameObject( GameObject&& obj )
 	{
 		assert( this->canContain( obj ) );
-		if ( std::holds_alternative< OctTreeNodeLeaf >( m_node_data ) )
+
+		if ( std::holds_alternative< OctTreeNodeLeaf >( m_node_data ) ) // This node is a leaf
 		{
 			auto& objects { std::get< OctTreeNodeLeaf >( m_node_data ) };
 			assert( objects.capacity() == MAX_NODES_IN_LEAF );
@@ -203,15 +233,21 @@ namespace fgl::engine
 			if ( objects.size() + 1 > MAX_NODES_IN_LEAF )
 			{
 				split();
-				return this->addGameObject( std::move( obj ) );
+				auto* node { this->addGameObject( std::move( obj ) ) };
+				return node;
 			}
 
 			log::debug( "Added game object" );
 			objects.emplace_back( std::move( obj ) );
 			return this;
 		}
+		else if ( std::holds_alternative< OctTreeNodeArray >( m_node_data ) )
+		{
+			auto* node { ( *this )[ obj.getPosition() ].addGameObject( std::forward< GameObject >( obj ) ) };
+			return node;
+		}
 
-		return ( *this )[ obj.getPosition() ].addGameObject( std::forward< GameObject >( obj ) );
+		FGL_UNREACHABLE();
 	}
 
 	bool OctTreeNode::isInFrustum( const Frustum& frustum ) const
@@ -219,10 +255,22 @@ namespace fgl::engine
 #if ENABLE_IMGUI
 		if ( !isEmpty() && frustum.intersects( m_fit_bounding_box ) )
 		{
-			if ( ( draw_inview_bounds || std::holds_alternative< OctTreeNodeLeaf >( this->m_node_data ) ) && m_parent )
+			if ( ( draw_inview_bounds || ( std::holds_alternative< OctTreeNodeLeaf >( this->m_node_data ) )
+			       || draw_branches )
+			     && m_parent ) [[unlikely]]
 			{
-				// if ( draw_leaf_fit_bounds ) debug::world::drawBoundingBox( m_fit_bounding_box );
-				// if ( draw_leaf_real_bounds ) debug::world::drawBoundingBox( m_bounds );
+				if ( draw_leaf_fit_bounds ) [[unlikely]]
+					debug::drawBoundingBox( m_fit_bounding_box );
+				/*
+					debug::drawBoundingBox(
+						m_fit_bounding_box,
+						glm::vec3(
+							m_fit_bounding_box.getPosition().x > 0.0f ? 1.0f : 0.0f,
+							m_fit_bounding_box.getPosition().y > 0.0f ? 1.0f : 0.0f,
+							m_fit_bounding_box.getPosition().z > 0.0f ? 1.0f : 0.0f ) );
+							*/
+				if ( draw_leaf_real_bounds ) [[unlikely]]
+					debug::drawBoundingBox( m_bounds );
 			}
 
 			return true;
@@ -233,6 +281,49 @@ namespace fgl::engine
 #else
 		return !isEmpty() && frustum.intersects( m_fit_bounding_box );
 #endif
+	}
+
+	void OctTreeNode::recalculateBounds()
+	{
+		m_fit_bounding_box = m_bounds;
+
+		if ( std::holds_alternative< NodeDataT >( m_node_data ) )
+		{
+			// We aren't a leaf. So we need to use the bounding box of the children below us
+
+			const auto& nodes { std::get< NodeDataT >( m_node_data ) };
+
+			for ( std::size_t x = 0; x < 2; ++x )
+			{
+				for ( std::size_t y = 0; y < 2; ++y )
+				{
+					for ( std::size_t z = 0; z < 2; ++z )
+					{
+						nodes[ x ][ y ][ z ]->recalculateBounds();
+						m_fit_bounding_box = m_fit_bounding_box.combine( nodes[ x ][ y ][ z ]->m_fit_bounding_box );
+					}
+				}
+			}
+		}
+		else if ( std::holds_alternative< LeafDataT >( m_node_data ) )
+		{
+			const auto& data { std::get< LeafDataT >( m_node_data ) };
+
+			for ( const auto& game_object : data )
+			{
+				auto model_components { game_object.getComponents< ModelComponent >() };
+
+				for ( const auto& model : model_components )
+				{
+					const OrientedBoundingBox model_bounding_box { ( *model )->getBoundingBox() };
+
+					const OrientedBoundingBox< CoordinateSpace::World > world_bounding_box { model->m_transform.mat()
+						                                                                     * model_bounding_box };
+
+					m_fit_bounding_box = m_fit_bounding_box.combine( world_bounding_box.alignToWorld() );
+				}
+			}
+		}
 	}
 
 	OctTreeNode* OctTreeNode::findID( const GameObject::GameObjectID id )
@@ -286,9 +377,14 @@ namespace fgl::engine
 			game_objects.begin(), game_objects.end(), [ id ]( const GameObject& obj ) { return id == obj.getId(); } );
 	}
 
-	bool OctTreeNode::canContain( const GameObject& obj )
+	bool OctTreeNode::canContain( const GameObject& obj ) const
 	{
-		return m_bounds.contains( obj.getTransform().translation );
+		return canContain( obj.getTransform().translation );
+	}
+
+	bool OctTreeNode::canContain( const WorldCoordinate& obj ) const
+	{
+		return m_bounds.contains( obj );
 	}
 
 	GameObject OctTreeNode::extract( const GameObject::GameObjectID id )
@@ -422,6 +518,25 @@ namespace fgl::engine
 	std::size_t OctTreeNode::reorganize()
 	{
 		std::size_t counter { 0 };
+		if ( std::holds_alternative< NodeDataT >( m_node_data ) )
+		{
+			const auto& nodes { std::get< NodeDataT >( m_node_data ) };
+
+			for ( std::size_t x = 0; x < 2; ++x )
+			{
+				for ( std::size_t y = 0; y < 2; ++y )
+				{
+					for ( std::size_t z = 0; z < 2; ++z )
+					{
+						if ( x == 0 && y == 0 && z == 0 ) continue;
+						const auto& node { nodes[ x ][ y ][ z ] };
+						counter += node->reorganize();
+					}
+				}
+			}
+
+			return counter;
+		}
 		if ( std::holds_alternative< LeafDataT >( m_node_data ) )
 		{
 			//Check if any of the nodes in this group need to be moved.
@@ -439,25 +554,6 @@ namespace fgl::engine
 					getRoot()->addGameObject( std::move( moved_game_object ) );
 				}
 			}
-			return counter;
-		}
-		else if ( std::holds_alternative< NodeDataT >( m_node_data ) )
-		{
-			const auto& nodes { std::get< NodeDataT >( m_node_data ) };
-
-			for ( std::size_t x = 0; x < 2; ++x )
-			{
-				for ( std::size_t y = 0; y < 2; ++y )
-				{
-					for ( std::size_t z = 0; z < 2; ++z )
-					{
-						if ( x == 0 && y == 0 && z == 0 ) continue;
-						const auto& node { nodes[ x ][ y ][ z ] };
-						counter += node->reorganize();
-					}
-				}
-			}
-
 			return counter;
 		}
 

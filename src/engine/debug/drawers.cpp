@@ -17,6 +17,11 @@ namespace fgl::engine::debug
 		drawLine( line.getStart(), line.getEnd(), color );
 	}
 
+	void drawBoundingBox( const AxisAlignedBoundingBox< CoordinateSpace::World >& bounding_box )
+	{
+		drawBoundingBox( bounding_box, glm::vec3( 1.0f ) );
+	}
+
 	void drawBoundingBox( const AxisAlignedBoundingBox< CoordinateSpace::World >& bounding_box, const glm::vec3 color )
 	{
 		for ( const auto& line : bounding_box.lines() )
@@ -27,11 +32,14 @@ namespace fgl::engine::debug
 
 	void drawBoundingBox( const OrientedBoundingBox< CoordinateSpace::World >& bounding_box )
 	{
-		constexpr glm::vec3 bounding_box_color { 1.0f, 0.0f, 0.0f };
+		drawBoundingBox( bounding_box, glm::vec3( 1.0f ) );
+	}
 
+	void drawBoundingBox( const OrientedBoundingBox< CoordinateSpace::World >& bounding_box, const glm::vec3 color )
+	{
 		for ( const auto& line : bounding_box.lines() )
 		{
-			drawLine( line.getStart(), line.getEnd(), bounding_box_color );
+			drawLine( line.getStart(), line.getEnd(), color );
 		}
 	}
 

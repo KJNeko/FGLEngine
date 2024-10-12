@@ -14,17 +14,19 @@
 namespace fgl::engine
 {
 	constexpr std::size_t MAX_NODES_IN_LEAF { 32 };
-	constexpr std::size_t STARTING_DEPTH { 4 };
+	constexpr std::size_t STARTING_DEPTH { 1 };
 	constexpr float ROOT_SPAN { std::numeric_limits< float >::max() };
 
 	struct Frustum;
 
-	constexpr std::uint8_t TOP { 0 };
-	constexpr std::uint8_t BOTTOM { 1 };
-	constexpr std::uint8_t LEFT { 0 };
+	constexpr std::uint8_t TOP { 1 };
+	constexpr std::uint8_t BOTTOM { 0 };
+
 	constexpr std::uint8_t RIGHT { 1 };
-	constexpr std::uint8_t FORWARD { 0 };
-	constexpr std::uint8_t BACK { 1 };
+	constexpr std::uint8_t LEFT { 0 };
+
+	constexpr std::uint8_t FORWARD { 1 };
+	constexpr std::uint8_t BACK { 0 };
 
 	class OctTreeNode;
 	class GameObject;
@@ -37,7 +39,7 @@ namespace fgl::engine
 
 	struct FrameInfo;
 
-	void imGuiOctTreeSettings( FrameInfo& info );
+	void imGuiOctTreeSettings( const FrameInfo& info );
 
 	class OctTreeNode
 	{
@@ -79,7 +81,8 @@ namespace fgl::engine
 		OctTreeNode* getRoot();
 
 		//! returns true if this node should contain the given object
-		bool canContain( const GameObject& obj );
+		bool canContain( const GameObject& obj ) const;
+		bool canContain( const WorldCoordinate& obj ) const;
 
 		GameObject extract( GameObject::GameObjectID id );
 
@@ -106,6 +109,8 @@ namespace fgl::engine
 
 		//! Rebuilds the tree checking if nodes have moved.
 		std::size_t reorganize();
+
+		void recalculateBounds();
 
 		constexpr static std::size_t LEAF_RESERVE_SIZE { 1024 };
 

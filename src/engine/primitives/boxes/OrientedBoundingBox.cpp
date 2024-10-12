@@ -200,7 +200,7 @@ namespace fgl::engine
 	}
 
 	template < CoordinateSpace CType >
-	AxisAlignedBoundingBox< CType > OrientedBoundingBox< CType >::alignToWorld()
+	AxisAlignedBoundingBox< CType > OrientedBoundingBox< CType >::alignToWorld() const
 	{
 		const auto points { this->points() };
 		glm::vec3 max { std::numeric_limits< glm::vec3::type >::infinity() };

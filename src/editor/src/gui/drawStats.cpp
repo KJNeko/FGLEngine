@@ -5,6 +5,7 @@
 #include "engine/debug/profiling/counters.hpp"
 #include "engine/math/literals/size.hpp"
 #include "engine/memory/buffers/Buffer.hpp"
+#include "engine/tree/octtree/OctTreeNode.hpp"
 #include "safe_include.hpp"
 
 namespace fgl::engine::gui
@@ -109,6 +110,8 @@ namespace fgl::engine::gui
 		{
 			drawMemoryStats();
 		}
+
+		imGuiOctTreeSettings( info );
 
 		ImGui::End();
 	}

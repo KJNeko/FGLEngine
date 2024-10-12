@@ -112,6 +112,31 @@ namespace fgl::engine
 	}
 
 	template < CoordinateSpace CType >
+	AxisAlignedBoundingBox< CType >& AxisAlignedBoundingBox< CType >::combine( const OrientedBoundingBox< CType >&
+	                                                                               other )
+	{
+		const auto other_trf { other.topRightForward() };
+		const auto other_blb { other.bottomLeftBack() };
+
+		const Coordinate< CType > new_top_right_forward {
+			std::max( this->m_top_right_forward.x, other_trf.x ),
+			std::max( this->m_top_right_forward.y, other_trf.y ),
+			std::max( this->m_top_right_forward.z, other_trf.z ),
+		};
+
+		const Coordinate< CType > new_bottom_left_back {
+			std::min( this->m_bottom_left_back.x, other_blb.x ),
+			std::min( this->m_bottom_left_back.y, other_blb.y ),
+			std::min( this->m_bottom_left_back.z, other_blb.z ),
+		};
+
+		this->m_top_right_forward = new_top_right_forward;
+		this->m_bottom_left_back = new_bottom_left_back;
+
+		return *this;
+	}
+
+	template < CoordinateSpace CType >
 	AxisAlignedBoundingBox< CType >::AxisAlignedBoundingBox( const OrientedBoundingBox< CType >& oobb ) :
 	  m_top_right_forward( constants::DEFAULT_VEC3 ),
 	  m_bottom_left_back( -constants::DEFAULT_VEC3 )

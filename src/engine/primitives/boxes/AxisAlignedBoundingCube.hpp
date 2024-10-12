@@ -33,6 +33,11 @@ namespace fgl::engine
 		constexpr NormalVector up() const { return NormalVector( constants::WORLD_Z ); }
 
 		constexpr NormalVector forward() const { return NormalVector( constants::WORLD_Y ); }
+
+		operator AxisAlignedBoundingBox< CType >() const
+		{
+			return static_cast< AxisAlignedBoundingBox< CType > >( *this );
+		}
 	};
 
 } // namespace fgl::engine

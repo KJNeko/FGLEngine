@@ -46,6 +46,8 @@ namespace fgl::engine
 		explicit AxisAlignedBoundingBox( const OrientedBoundingBox< CType >& oobb );
 
 		AxisAlignedBoundingBox& combine( const AxisAlignedBoundingBox& other );
+		AxisAlignedBoundingBox& combine( const OrientedBoundingBox< CType >& other );
+
 		//AxisAlignedBoundingBox& combine( const OrientedBoundingBox< CType >& other );
 
 		bool operator==( const AxisAlignedBoundingBox< CType >& other ) const
