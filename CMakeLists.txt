@@ -3,6 +3,11 @@
 cmake_minimum_required(VERSION 3.25.0)
 project(TitorGameEngine LANGUAGES CXX C)
 
+find_program(CCACHE_FOUND ccache)
+if (CCACHE_FOUND)
+	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+endif ()
+
 enable_testing()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
