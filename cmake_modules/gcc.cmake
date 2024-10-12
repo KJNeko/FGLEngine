@@ -75,9 +75,9 @@
 				AppendFlag("-Wredundant-decls") #Warns about declarations that happen more then once.
 				AppendFlag("-Wctor-dtor-privacy") #Warns if a class appears unusable due to private ctor/dtors
 				AppendFlag("-Wdelete-non-virtual-dtor") #Warns about using `delete` on a class that has virtual functions without a virtual dtor
-				# Disabled because of older GCC compilers being unhappy with it
 				AppendFlag("-Winvalid-constexpr") #Warns that a function marked as constexpr can't possibly produce a constexpr expression
-				AppendFlag("-Wnoexcept") #Warns when a noexcept expression is false due to throwing
+				# Disabled due to spdlog
+				#AppendFlag("-Wnoexcept") #Warns when a noexcept expression is false due to throwing
 				AppendFlag("-Wnoexcept-type")
 				AppendFlag("-Wclass-memaccess") #Warns about accessing memory of a class. Which is likely invalid
 				AppendFlag("-Wregister") #Warns of use for `register` keyword. Which has been depreicated
@@ -104,7 +104,7 @@
 				AppendFlag("-fdiagnostics-show-template-tree") # Shows the template diagnostic info as a tree instead.
 				AppendFlag("-fdiagnostics-path-format=inline-events")
 
-				set(FGL_CONFIG "-std=c++23 -fmax-errors=6 -fconcepts-diagnostics-depth=8 -ftree-vectorize")
+				set(FGL_CONFIG "-std=c++23 -fmax-errors=3 -fconcepts-diagnostics-depth=8 -ftree-vectorize")
 
 				if (DEFINED USE_WERROR)
 					set(FGL_CONFIG "${FGL_CONFIG} -Werror")

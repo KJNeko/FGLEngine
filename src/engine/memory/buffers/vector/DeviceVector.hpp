@@ -7,8 +7,8 @@
 #include "BufferVector.hpp"
 #include "concepts.hpp"
 #include "engine/assets/transfer/TransferManager.hpp"
-#include "engine/math/literals/size.hpp"
 #include "engine/debug/logging/logging.hpp"
+#include "engine/math/literals/size.hpp"
 
 namespace fgl::engine
 {
@@ -16,7 +16,7 @@ namespace fgl::engine
 	{
 		class Buffer;
 	}
-}
+} // namespace fgl::engine
 
 namespace fgl::engine
 {
@@ -25,10 +25,11 @@ namespace fgl::engine
 	{
 	  public:
 
-		DeviceVector( memory::Buffer& buffer, const std::uint32_t count = 1 ) : BufferVector( buffer, count, sizeof( T ) )
+		DeviceVector( memory::Buffer& buffer, const std::uint32_t count = 1 ) :
+		  BufferVector( buffer, count, sizeof( T ) )
 		{
-			log::debug(
-				"Creating DeviceVector of size {}", fgl::literals::size_literals::to_string( count * sizeof( T ) ) );
+			const auto size_str { fgl::literals::size_literals::to_string( count * sizeof( T ) ) };
+			log::debug( "Creating DeviceVector of size {}", size_str );
 			assert( count != 0 && "BufferSuballocationVector::BufferSuballocationVector() called with count == 0" );
 		}
 
