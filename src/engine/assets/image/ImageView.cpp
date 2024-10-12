@@ -28,7 +28,8 @@ namespace fgl::engine
 	  m_resource( img ),
 	  m_descriptor_info(),
 	  m_image_view( createImageView( img ) ),
-	  m_sampler()
+	  m_sampler(),
+	  m_name( "Unnamed ImageView" )
 	{
 		m_descriptor_info.imageLayout = img->m_final_layout;
 		m_descriptor_info.imageView = m_image_view;
@@ -53,8 +54,7 @@ namespace fgl::engine
 	}
 
 	ImageView::~ImageView()
-	{
-	}
+	{}
 
 	void ImageView::setName( const std::string str )
 	{

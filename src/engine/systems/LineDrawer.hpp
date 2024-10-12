@@ -40,7 +40,7 @@ namespace fgl::engine
 		vk::raii::CommandBuffer& setupSystem( FrameInfo& info );
 		void pass( FrameInfo& info );
 
-		LineDrawer( Device& device, vk::raii::RenderPass& render_pass );
+		LineDrawer( vk::raii::RenderPass& render_pass );
 
 		~LineDrawer();
 	};

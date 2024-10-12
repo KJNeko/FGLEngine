@@ -26,8 +26,6 @@ namespace fgl::engine
 
 	class EntityRendererSystem
 	{
-		Device& m_device;
-
 		//! Standard pipeline for textureless models
 		std::unique_ptr< Pipeline > m_standard_pipeline {};
 
@@ -54,7 +52,7 @@ namespace fgl::engine
 		void texturelessPass( const FrameInfo& info );
 		void texturedPass( const FrameInfo& info );
 
-		EntityRendererSystem( Device& device, vk::raii::RenderPass& render_pass );
+		EntityRendererSystem( vk::raii::RenderPass& render_pass );
 		~EntityRendererSystem();
 		EntityRendererSystem( EntityRendererSystem&& other ) = delete;
 		EntityRendererSystem( const EntityRendererSystem& other ) = delete;

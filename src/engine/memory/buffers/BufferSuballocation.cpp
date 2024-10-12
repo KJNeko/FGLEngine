@@ -113,7 +113,7 @@ namespace fgl::engine::memory
 	  BufferSuballocation( buffer.allocate( size ) )
 	{}
 
-	BufferSuballocation::BufferSuballocation( Buffer& buffer, std::size_t t_size, std::size_t t_align ) :
+	BufferSuballocation::BufferSuballocation( Buffer& buffer, std::size_t t_size, std::uint32_t t_align ) :
 	  BufferSuballocation( buffer.allocate( t_size, t_align ) )
 	{}
 

@@ -25,7 +25,7 @@ namespace fgl::engine
 
 	inline static std::vector< VertexLine > m_lines {};
 
-	LineDrawer::LineDrawer( Device& device, vk::raii::RenderPass& render_pass )
+	LineDrawer::LineDrawer( vk::raii::RenderPass& render_pass )
 	{
 		PipelineBuilder builder { render_pass, 0 };
 
@@ -79,7 +79,8 @@ namespace fgl::engine
 
 		command_buffer.setLineWidth( 5.0f );
 
-		command_buffer.draw( m_lines.size() * 2, m_lines.size(), 0, 0 );
+		command_buffer.draw(
+			static_cast< std::uint32_t >( m_lines.size() * 2 ), static_cast< std::uint32_t >( m_lines.size() ), 0, 0 );
 
 		m_lines.clear();
 	}

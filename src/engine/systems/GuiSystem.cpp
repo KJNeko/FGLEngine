@@ -12,7 +12,7 @@
 namespace fgl::engine
 {
 
-	GuiSystem::GuiSystem( Device& device, vk::raii::RenderPass& render_pass )
+	GuiSystem::GuiSystem( vk::raii::RenderPass& render_pass )
 	{
 		PipelineConfigInfo info { render_pass };
 		PipelineConfigInfo::addColorAttachmentConfig( info );

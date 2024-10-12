@@ -21,7 +21,7 @@ namespace fgl::engine
 
 	  public:
 
-		CompositionSystem( Device& device, vk::raii::RenderPass& render_pass );
+		CompositionSystem(  vk::raii::RenderPass& render_pass );
 		~CompositionSystem() = default;
 
 		void pass( FrameInfo& info );

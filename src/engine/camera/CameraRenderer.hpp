@@ -26,11 +26,11 @@ namespace fgl::engine
 
 		// SubPass 0
 		//TerrainSystem m_terrain_system { Device::getInstance(), m_renderpass };
-		EntityRendererSystem m_entity_renderer { Device::getInstance(), m_renderpass };
-		LineDrawer m_line_drawer { Device::getInstance(), m_renderpass };
+		EntityRendererSystem m_entity_renderer { m_renderpass };
+		LineDrawer m_line_drawer { m_renderpass };
 
 		// SubPass 1
-		CompositionSystem m_composition_system { Device::getInstance(), m_renderpass };
+		CompositionSystem m_composition_system { m_renderpass };
 
 		void beginRenderPass(
 			const vk::raii::CommandBuffer& command_buffer, CameraSwapchain& swapchain, const FrameIndex index );

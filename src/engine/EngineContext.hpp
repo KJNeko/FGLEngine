@@ -49,7 +49,7 @@ namespace fgl::engine
 			vk::MemoryPropertyFlagBits::eDeviceLocal ) };
 
 		// SubPass 0
-		GuiSystem m_gui_system { Device::getInstance(), m_renderer.getSwapChainRenderPass() };
+		GuiSystem m_gui_system { m_renderer.getSwapChainRenderPass() };
 
 		// Temp function
 		std::function< void( FrameInfo& ) > renderGui { []( [[maybe_unused]] FrameInfo& ) noexcept {} };

@@ -155,9 +155,14 @@ namespace fgl::engine
 		// points[ 7 ] = Coordinate< CType >( xp_yn_zn );
 
 		constexpr static std::array< Coordinate< CType >, POINT_COUNT > const_points {
-			Coordinate< CType >( xp_yp_zp ), Coordinate< CType >( xn_yp_zp ), Coordinate< CType >( xn_yp_zn ),
-			Coordinate< CType >( xp_yp_zn ), Coordinate< CType >( xp_yn_zp ), Coordinate< CType >( xn_yn_zp ),
-			Coordinate< CType >( xn_yn_zn ), Coordinate< CType >( xp_yn_zn )
+			{ Coordinate< CType >( xp_yp_zp ),
+			  Coordinate< CType >( xn_yp_zp ),
+			  Coordinate< CType >( xn_yp_zn ),
+			  Coordinate< CType >( xp_yp_zn ),
+			  Coordinate< CType >( xp_yn_zp ),
+			  Coordinate< CType >( xn_yn_zp ),
+			  Coordinate< CType >( xn_yn_zn ),
+			  Coordinate< CType >( xp_yn_zn ) }
 		};
 
 		std::array< Coordinate< CType >, POINT_COUNT > points {};
@@ -166,7 +171,7 @@ namespace fgl::engine
 
 		const glm::mat4 rot_mat { transform_mode == TransformMode::Matrix ? m_matrix : m_transform.mat4() };
 
-		for ( auto i = 0; i < const_points.size(); ++i )
+		for ( std::size_t i = 0; i < const_points.size(); ++i )
 		{
 			FGL_ASSUME( i < POINT_COUNT + 1 );
 

@@ -6,7 +6,6 @@
 
 #include <engine/texture/Texture.hpp>
 
-#include "engine/rendering/pipelines/attachments/AttachmentPresets.hpp"
 #include "engine/rendering/pipelines/v2/AttachmentBuilder.hpp"
 #include "engine/rendering/pipelines/v2/Pipeline.hpp"
 #include "engine/rendering/pipelines/v2/PipelineBuilder.hpp"
@@ -14,16 +13,8 @@
 namespace fgl::engine
 {
 
-	CompositionSystem::CompositionSystem( [[maybe_unused]] Device& device, vk::raii::RenderPass& render_pass )
+	CompositionSystem::CompositionSystem( vk::raii::RenderPass& render_pass )
 	{
-		/*
-		PipelineConfigInfo composition_info { render_pass };
-		PipelineConfigInfo::addColorAttachmentConfig( composition_info );
-		PipelineConfigInfo::disableVertexInput( composition_info );
-		PipelineConfigInfo::disableCulling( composition_info );
-		composition_info.subpass = 1;
-		*/
-
 		constexpr std::size_t SUBPASS { 1 };
 
 		PipelineBuilder builder { render_pass, SUBPASS };

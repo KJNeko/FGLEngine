@@ -29,9 +29,9 @@ namespace fgl::engine
 	struct ModelMatrixInfo
 	{
 		glm::mat4 model_matrix;
+		//MaterialID material_id;
 		std::uint32_t albedo_id;
 		std::uint32_t normal_id;
-		std::uint32_t metallic_roughness;
 	};
 
 	class Model

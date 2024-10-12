@@ -27,7 +27,7 @@ namespace fgl::engine::memory
 
 		void flush( vk::DeviceSize beg, vk::DeviceSize end );
 
-		explicit BufferSuballocation( Buffer& buffer, std::size_t t_size, std::size_t t_align );
+		explicit BufferSuballocation( Buffer& buffer, std::size_t t_size, std::uint32_t t_align );
 
 	  public:
 

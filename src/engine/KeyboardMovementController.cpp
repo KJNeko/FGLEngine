@@ -16,7 +16,7 @@ namespace fgl::engine
 
 	void setCursorPos( GLFWwindow* window, const glm::vec2 pos )
 	{
-		glfwSetCursorPos( window, static_cast< double >( pos.x ), static_cast< double >( pos.y ) );
+		glfwSetCursorPos( window, pos.x, pos.y );
 	}
 
 	glm::vec2 getCursorPos( GLFWwindow* window )
@@ -28,7 +28,7 @@ namespace fgl::engine
 		return { xpos, ypos };
 	}
 
-	void KeyboardMovementController::moveInPlaneXZ( GLFWwindow* window, float dt, fgl::engine::GameObject& target )
+	void KeyboardMovementController::moveInPlaneXZ( GLFWwindow* window, float dt, GameObject& target )
 	{
 		assert( window );
 		constexpr float rotation_rate { 1.0f };

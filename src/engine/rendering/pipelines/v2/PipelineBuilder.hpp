@@ -23,13 +23,13 @@ namespace fgl::engine
 	class PipelineBuilder
 	{
 		vk::raii::RenderPass& m_render_pass;
-		std::size_t subpass_idx;
+		std::uint32_t subpass_idx;
 
 		struct
 		{
-			std::vector< vk::VertexInputBindingDescription > bindings;
-			std::vector< vk::VertexInputAttributeDescription > attributes;
-		} vertex_input_descriptions;
+			std::vector< vk::VertexInputBindingDescription > bindings {};
+			std::vector< vk::VertexInputAttributeDescription > attributes {};
+		} vertex_input_descriptions {};
 
 		struct
 		{
@@ -74,7 +74,7 @@ namespace fgl::engine
 			// Default config
 			Config();
 
-		} config;
+		} config {};
 
 		void setTopology( vk::PrimitiveTopology primitive_topology );
 		void disableVertexInput();
@@ -90,7 +90,7 @@ namespace fgl::engine
 
 		void setAttributeDescriptions( const std::vector< vk::VertexInputAttributeDescription >& descriptions );
 
-		PipelineBuilder( vk::raii::RenderPass& renderpass, std::size_t subpass_stage );
+		PipelineBuilder( vk::raii::RenderPass& renderpass, std::uint32_t subpass_stage );
 
 		void setVertexShader( std::shared_ptr< Shader >&& shader )
 		{

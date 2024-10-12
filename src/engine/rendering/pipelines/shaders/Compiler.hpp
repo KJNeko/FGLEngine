@@ -3,8 +3,13 @@
 //
 
 #pragma once
+#include <string_view>
+#include <vector>
 
-#include <shaderc/shaderc.hpp>
+namespace shaderc
+{
+	class Compiler;
+}
 
 namespace fgl::engine
 {

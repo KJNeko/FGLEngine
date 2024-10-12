@@ -11,7 +11,7 @@
 namespace fgl::engine
 {
 
-	PipelineBuilder::PipelineBuilder( vk::raii::RenderPass& renderpass, std::size_t subpass_stage ) :
+	PipelineBuilder::PipelineBuilder( vk::raii::RenderPass& renderpass, const std::uint32_t subpass_stage ) :
 	  m_render_pass( renderpass ),
 	  subpass_idx( subpass_stage )
 	{
@@ -41,7 +41,7 @@ namespace fgl::engine
 
 		for ( std::size_t i = 0; i < set_layouts.size(); ++i )
 		{
-			auto itter { descriptor_set_layouts.find( i ) };
+			auto itter { descriptor_set_layouts.find( static_cast< SetID >( i ) ) };
 			if ( itter == descriptor_set_layouts.end() )
 			{
 				// Could not find it. Empty
@@ -143,7 +143,7 @@ namespace fgl::engine
 		//info.dynamic_state_info.flags = 0;
 	}
 
-	void PipelineBuilder::setTopology( vk::PrimitiveTopology primitive_topology )
+	void PipelineBuilder::setTopology( const vk::PrimitiveTopology primitive_topology )
 	{
 		config.assembly_info.topology = primitive_topology;
 	}

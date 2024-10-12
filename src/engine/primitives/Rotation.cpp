@@ -10,6 +10,7 @@
 
 #include <stdexcept>
 
+#include "engine/FGL_DEFINES.hpp"
 #include "engine/constants.hpp"
 
 namespace fgl::engine
@@ -93,14 +94,20 @@ namespace fgl::engine
 		return std::atan2( siny_cosp, cosy_cosp );
 	}
 
-	void Rotation::setX( const float value )
-	{}
+	void Rotation::setX( [[maybe_unused]] const float value )
+	{
+		FGL_UNIMPLEMENTED();
+	}
 
-	void Rotation::setY( const float value )
-	{}
+	void Rotation::setY( [[maybe_unused]] const float value )
+	{
+		FGL_UNIMPLEMENTED();
+	}
 
-	void Rotation::setZ( const float value )
-	{}
+	void Rotation::setZ( [[maybe_unused]] const float value )
+	{
+		FGL_UNIMPLEMENTED();
+	}
 
 	void Rotation::addX( const float value )
 	{

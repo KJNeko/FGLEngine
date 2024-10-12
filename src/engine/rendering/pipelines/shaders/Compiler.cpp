@@ -11,6 +11,11 @@
 #include "engine/constants.hpp"
 #include "engine/debug/logging/logging.hpp"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#include <shaderc/shaderc.hpp>
+#pragma GCC diagnostic pop
+
 namespace fgl::engine
 {
 
@@ -54,7 +59,10 @@ namespace fgl::engine
 	};
 
 	shaderc_include_result* Includer::GetInclude(
-		const char* requested_source, shaderc_include_type type, const char* requesting_source, size_t include_depth )
+		const char* requested_source,
+		[[maybe_unused]] shaderc_include_type type,
+		const char* requesting_source,
+		[[maybe_unused]] size_t include_depth )
 	{
 		const std::string_view requsted { requested_source };
 		const std::string_view requster { requesting_source };

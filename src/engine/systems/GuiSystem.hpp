@@ -17,15 +17,14 @@ namespace fgl::engine
 	 */
 	class GuiSystem
 	{
-
-		std::unique_ptr< Pipeline > m_pipeline;
+		std::unique_ptr< Pipeline > m_pipeline {};
 
 		//Setup isn't needed for this. So we can just never define this safely.
 		[[maybe_unused]] vk::raii::CommandBuffer& setupSystem( FrameInfo& info );
 
 	  public:
 
-		GuiSystem( Device& device, vk::raii::RenderPass& render_pass );
+		GuiSystem( vk::raii::RenderPass& render_pass );
 
 		FGL_DELETE_ALL_Ro5( GuiSystem );
 

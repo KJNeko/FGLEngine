@@ -66,7 +66,10 @@ namespace fgl::engine
 	Renderer::~Renderer()
 	{}
 
-	TracyVkCtx createContext( PhysicalDevice& physical_device, Device& device, vk::raii::CommandBuffer& cmd_buffer )
+	TracyVkCtx createContext(
+		[[maybe_unused]] PhysicalDevice& physical_device,
+		[[maybe_unused]] Device& device,
+		[[maybe_unused]] vk::raii::CommandBuffer& cmd_buffer )
 	{
 #if ENABLE_CALIBRATED_PROFILING
 
@@ -109,7 +112,6 @@ namespace fgl::engine
 
 		m_command_buffer = Device::getInstance().device().allocateCommandBuffers( alloc_info );
 
-#if TRACY_ENABLE
 		m_tracy_ctx = createContext( m_phy_device, Device::getInstance(), m_command_buffer[ 0 ] );
 
 		/*
@@ -121,7 +123,6 @@ namespace fgl::engine
 			VULKAN_HPP_DEFAULT_DISPATCHER.vkGetPhysicalDeviceCalibrateableTimeDomainsEXT,
 			VULKAN_HPP_DEFAULT_DISPATCHER.vkGetCalibratedTimestampsEXT );
 		*/
-#endif
 
 		alloc_info.level = vk::CommandBufferLevel::eSecondary;
 

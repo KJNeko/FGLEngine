@@ -48,6 +48,8 @@
 #define FGL_ASSERT( test, msg )
 #endif
 
+#define FGL_UNIMPLEMENTED() FGL_ASSERT( false, "unimplemented" );
+
 #ifndef NDEBUG
 #include <utility>
 #define FGL_UNREACHABLE()                                                                                              \

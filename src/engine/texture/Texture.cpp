@@ -134,7 +134,8 @@ namespace fgl::engine
 		  vk::ImageLayout::eUndefined,
 		  vk::ImageLayout::eShaderReadOnlyOptimal ) ),
 	  m_image_view( m_image->getView() ),
-	  m_extent( extent )
+	  m_extent( extent ),
+	  m_name( "Default Texture Name" )
 	{
 		memory::TransferManager::getInstance()
 			.copyToImage( std::forward< std::vector< std::byte > >( data ), *m_image );
@@ -212,7 +213,8 @@ namespace fgl::engine
 	  m_image(),
 	  m_image_view( image.getView() ),
 	  //TODO: Figure out how to get extents from images.
-	  m_extent()
+	  m_extent(),
+	  m_name( "Default Texture Name" )
 	{
 		m_image_view->getSampler() = std::move( sampler );
 	}

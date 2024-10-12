@@ -8,7 +8,11 @@
 #include <engine/FrameInfo.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
 #include <imgui.h>
+#pragma GCC diagnostic pop
 
 #include "engine/assets/model/Model.hpp"
 #include "engine/clock.hpp"
@@ -373,8 +377,8 @@ namespace fgl::engine
 	{
 		assert( std::holds_alternative< OctTreeNodeLeaf >( this->m_node_data ) );
 		auto& game_objects { std::get< OctTreeNodeLeaf >( this->m_node_data ) };
-		return std::find_if(
-			game_objects.begin(), game_objects.end(), [ id ]( const GameObject& obj ) { return id == obj.getId(); } );
+		return std::ranges::
+			find_if( game_objects, [ id ]( const GameObject& obj ) noexcept { return id == obj.getId(); } );
 	}
 
 	bool OctTreeNode::canContain( const GameObject& obj ) const
@@ -403,18 +407,18 @@ namespace fgl::engine
 		return m_parent->getRoot();
 	}
 
-	void OctTreeNode::getAllLeafs( std::vector< OctTreeNodeLeaf* >& objects )
+	void OctTreeNode::getAllLeafs( std::vector< OctTreeNodeLeaf* >& out_leafs )
 	{
 		ZoneScoped;
 		if ( std::holds_alternative< OctTreeNodeLeaf >( m_node_data ) )
 		{
 			auto& leaf { std::get< OctTreeNodeLeaf >( m_node_data ) };
 			//No point in us giving back an empty leaf
-			if ( leaf.size() > 0 ) objects.emplace_back( &leaf );
+			if ( leaf.size() > 0 ) out_leafs.emplace_back( &leaf );
 		}
 		else
 		{
-			auto& nodes { std::get< OctTreeNodeArray >( m_node_data ) };
+			const auto& nodes { std::get< OctTreeNodeArray >( m_node_data ) };
 
 			for ( std::size_t x = 0; x < 2; ++x )
 			{
@@ -423,7 +427,7 @@ namespace fgl::engine
 					for ( std::size_t z = 0; z < 2; ++z )
 					{
 						auto ret { nodes[ x ][ y ][ z ]->getAllLeafs() };
-						objects.insert( objects.end(), ret.begin(), ret.end() );
+						out_leafs.insert( out_leafs.end(), ret.begin(), ret.end() );
 					}
 				}
 			}

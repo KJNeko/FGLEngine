@@ -4,10 +4,12 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wduplicated-branches"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
-#include <glm/mat4x4.hpp>
+#pragma GCC diagnostic pop
 
 #include "MatrixEvolvedTypes.hpp"
 

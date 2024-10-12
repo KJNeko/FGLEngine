@@ -10,6 +10,8 @@
 namespace fgl::engine
 {
 
+	using DescriptorIDX = std::uint32_t;
+
 	class Pipeline
 	{
 		vk::raii::Pipeline m_pipeline;
@@ -22,9 +24,8 @@ namespace fgl::engine
 
 		void bind( vk::raii::CommandBuffer& );
 
-		void bindDescriptor( vk::raii::CommandBuffer&, std::size_t descriptor_idx, descriptors::DescriptorSet& set );
+		void bindDescriptor( vk::raii::CommandBuffer&, DescriptorIDX descriptor_idx, descriptors::DescriptorSet& set );
 		void bindDescriptor( vk::raii::CommandBuffer& comd_buffer, descriptors::DescriptorSet& set );
-
 
 		void setDebugName( const char* str );
 	};
