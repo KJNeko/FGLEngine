@@ -9,7 +9,6 @@
 #include <variant>
 
 #include "engine/memory/buffers/BufferSuballocation.hpp"
-#include "engine/rendering/types.hpp"
 
 namespace fgl::engine
 {
@@ -26,9 +25,11 @@ namespace fgl::engine
 namespace fgl::engine::descriptors
 {
 
+	using DescriptorIDX = std::uint32_t;
+
 	class DescriptorSet
 	{
-		std::uint16_t m_set_idx;
+		DescriptorIDX m_set_idx;
 		//TODO: Maybe redo this to not be a monostate variant?
 		std::vector< std::variant< std::monostate, vk::DescriptorImageInfo, vk::DescriptorBufferInfo > > m_infos {};
 		std::vector< vk::WriteDescriptorSet > descriptor_writes {};
@@ -52,10 +53,10 @@ namespace fgl::engine::descriptors
 
 		VkDescriptorSet getVkDescriptorSet() const { return *m_set; }
 
-		inline std::uint16_t setIDX() const { return m_set_idx; }
+		inline DescriptorIDX setIDX() const { return m_set_idx; }
 
 		DescriptorSet() = delete;
-		DescriptorSet( const vk::raii::DescriptorSetLayout& layout, const std::uint16_t idx );
+		DescriptorSet( const vk::raii::DescriptorSetLayout& layout, const DescriptorIDX idx );
 
 		//Copy
 		DescriptorSet( const DescriptorSet& other ) = delete;
@@ -74,6 +75,11 @@ namespace fgl::engine::descriptors
 			vk::raii::Sampler sampler = VK_NULL_HANDLE );
 
 		void bindUniformBuffer( std::uint32_t binding_idx, memory::BufferSuballocation& buffer );
+		void bindArray(
+			std::uint32_t binding_idx,
+			const memory::BufferSuballocation& buffer,
+			std::size_t array_idx,
+			std::size_t item_size );
 
 		void bindAttachment(
 			std::uint32_t binding_idx,

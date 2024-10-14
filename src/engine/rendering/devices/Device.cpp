@@ -70,6 +70,7 @@ namespace fgl::engine
 		indexing_features.setDescriptorBindingPartiallyBound( VK_TRUE );
 		indexing_features.setShaderSampledImageArrayNonUniformIndexing( VK_TRUE );
 		indexing_features.setDescriptorBindingSampledImageUpdateAfterBind( VK_TRUE );
+		indexing_features.setDescriptorBindingUniformBufferUpdateAfterBind( VK_TRUE );
 
 		return indexing_features;
 	}

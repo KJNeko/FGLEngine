@@ -64,7 +64,7 @@ namespace fgl::engine::memory
 
 		vk::DeviceSize getOffset() const noexcept { return m_offset; }
 
-		vk::DescriptorBufferInfo descriptorInfo() const;
+		vk::DescriptorBufferInfo descriptorInfo( std::size_t byte_offset = 0 ) const;
 
 		const std::shared_ptr< BufferSuballocationHandle >& getHandle() { return m_handle; }
 

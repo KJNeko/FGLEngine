@@ -5,7 +5,7 @@
 
 #include "devices/Device.hpp"
 #include "engine/FrameInfo.hpp"
-#include "engine/texture/Texture.hpp"
+#include "engine/assets/texture/Texture.hpp"
 #include "pipelines/Attachment.hpp"
 #include "types.hpp"
 
@@ -38,7 +38,7 @@ namespace fgl::engine
 		{
 			ColoredPresentAttachment< 0 > color;
 			DepthAttachment< 1 > depth;
-			InputColorAttachment< 2 > input_color { vk::Format::eR8G8B8A8Unorm };
+			// InputColorAttachment< 2 > input_color { vk::Format::eR8G8B8A8Unorm };
 		} render_attachments;
 
 		vk::raii::RenderPass m_render_pass;
@@ -82,7 +82,7 @@ namespace fgl::engine
 
 		descriptors::DescriptorSet& getInputDescriptor( const PresentIndex present_index );
 
-		Image& getInputImage( PresentIndex present_index ) const;
+		// Image& getInputImage( PresentIndex present_index ) const;
 
 		const std::vector< vk::ClearValue >& getClearValues() const { return m_clear_values; }
 

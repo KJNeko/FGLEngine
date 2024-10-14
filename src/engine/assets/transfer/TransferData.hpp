@@ -73,6 +73,8 @@ namespace fgl::engine::memory
 		//! Target data. Data type depends on m_type
 		TargetData m_target;
 
+		std::size_t m_target_offset;
+
 		//! Performs copy of raw data to the staging buffer
 		bool convertRawToBuffer( Buffer& staging_buffer );
 
@@ -123,8 +125,13 @@ namespace fgl::engine::memory
 		//BUFFER_FROM_X
 		TransferData(
 			const std::shared_ptr< BufferSuballocationHandle >& source,
-			const std::shared_ptr< BufferSuballocationHandle >& target );
-		TransferData( std::vector< std::byte >&& source, const std::shared_ptr< BufferSuballocationHandle >& target );
+			const std::shared_ptr< BufferSuballocationHandle >& target,
+			const std::size_t offset );
+
+		TransferData(
+			std::vector< std::byte >&& source,
+			const std::shared_ptr< BufferSuballocationHandle >& target,
+			const std::size_t offset );
 
 		//IMAGE_FROM_X
 		TransferData(

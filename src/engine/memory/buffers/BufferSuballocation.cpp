@@ -93,12 +93,12 @@ namespace fgl::engine::memory
 		return m_handle->buffer.getVkBuffer();
 	}
 
-	vk::DescriptorBufferInfo BufferSuballocation::descriptorInfo() const
+	vk::DescriptorBufferInfo BufferSuballocation::descriptorInfo( const std::size_t byte_offset ) const
 	{
 		assert( !std::isnan( m_offset ) );
 		assert( !std::isnan( m_byte_size ) );
 
-		return vk::DescriptorBufferInfo( getVkBuffer(), m_offset, m_byte_size );
+		return vk::DescriptorBufferInfo( getVkBuffer(), m_offset + byte_offset, m_byte_size );
 	}
 
 	SuballocationView BufferSuballocation::view( const vk::DeviceSize offset, const vk::DeviceSize size ) const

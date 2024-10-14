@@ -53,7 +53,7 @@ namespace fgl::engine::memory
 
 		BufferVector other { this->getBuffer(), count, m_stride };
 
-		TransferManager::getInstance().copyToVector( *this, other );
+		TransferManager::getInstance().copyToVector( *this, other, 0 );
 
 		*this = std::move( other );
 	}

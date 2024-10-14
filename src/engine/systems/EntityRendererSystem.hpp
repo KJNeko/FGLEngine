@@ -9,8 +9,6 @@
 #include "engine/assets/model/Model.hpp"
 #include "engine/memory/buffers/vector/HostVector.hpp"
 #include "engine/rendering/SwapChain.hpp"
-#include "engine/systems/modelRendering/StandardPipeline.hpp"
-#include "engine/systems/modelRendering/TexturedPipeline.hpp"
 
 namespace fgl::engine
 {

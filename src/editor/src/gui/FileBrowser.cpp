@@ -11,7 +11,7 @@
 #include "engine/filesystem/scanner/FileScanner.hpp"
 #include "engine/filesystem/types.hpp"
 #include "engine/assets/image/ImageView.hpp"
-#include "engine/texture/Texture.hpp"
+#include "engine/assets/texture/Texture.hpp"
 #include "safe_include.hpp"
 
 namespace fgl::engine::filesystem

@@ -28,6 +28,10 @@ namespace vk::raii
 
 namespace fgl::engine
 {
+	namespace descriptors
+	{
+		class DescriptorSetLayout;
+	}
 	class Image;
 	struct FrameInfo;
 	class CameraRenderer;
@@ -185,11 +189,15 @@ namespace fgl::engine
 		void copyOutput( const vk::raii::CommandBuffer& command_buffer, FrameIndex frame_index, Image& target );
 		void updateMatrix();
 
+		static descriptors::DescriptorSetLayout& getDescriptorLayout();
+
 #ifdef EXPOSE_CAMERA_TESTS
 
 		Camera CREATE_TESTING_CAMERA() { return { { 1920, 1080 } }; }
 
 #endif
 	};
+
+	descriptors::DescriptorSetLayout& getCameraDescriptorSet();
 
 } // namespace fgl::engine

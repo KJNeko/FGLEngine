@@ -45,11 +45,11 @@ namespace fgl::engine::memory
 		vk::Buffer getBuffer();
 		vk::Buffer getVkBuffer() const;
 
-		vk::BufferCopy copyRegion( BufferSuballocationHandle& target );
+		vk::BufferCopy copyRegion( BufferSuballocationHandle& target, std::size_t offset );
 
 		vk::DeviceSize getOffset() const { return m_offset; }
 
-		void copyTo( vk::raii::CommandBuffer& cmd_buffer, BufferSuballocationHandle& other );
+		void copyTo( vk::raii::CommandBuffer& cmd_buffer, BufferSuballocationHandle& other, std::size_t offset );
 
 		bool ready() const { return m_staged; }
 

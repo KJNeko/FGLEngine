@@ -18,6 +18,7 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #pragma GCC diagnostic ignored "-Wconversion"
+#include "engine/utility/IDPool.hpp"
 #include "imgui/backends/imgui_impl_vulkan.h"
 #include "objectloaders/stb_image.h"
 #pragma GCC diagnostic pop
@@ -25,24 +26,7 @@
 namespace fgl::engine
 {
 
-	static std::queue< TextureID > unused_ids {};
-
-	TextureID getNextID()
-	{
-		static TextureID id { 1 };
-
-		if ( unused_ids.size() > 0 )
-		{
-			const TextureID pulled_id { unused_ids.front() };
-			unused_ids.pop();
-
-			log::debug( "Gave ID {} to texture", pulled_id );
-
-			return pulled_id;
-		}
-
-		return id++;
-	}
+	static IDPool< TextureID > texture_id_pool { 1 };
 
 	std::tuple< std::vector< std::byte >, int, int, vk::Format >
 		loadTexture( const std::filesystem::path& path, vk::Format format = vk::Format::eUndefined )
@@ -126,7 +110,7 @@ namespace fgl::engine
 	{}
 
 	Texture::Texture( std::vector< std::byte >&& data, const vk::Extent2D extent, const vk::Format format ) :
-	  m_texture_id( getNextID() ),
+	  m_texture_id( texture_id_pool.getID() ),
 	  m_image( std::make_shared< Image >(
 		  extent,
 		  format,
@@ -159,7 +143,7 @@ namespace fgl::engine
 	Texture::~Texture()
 	{
 		if ( m_imgui_set != VK_NULL_HANDLE ) ImGui_ImplVulkan_RemoveTexture( m_imgui_set );
-		unused_ids.push( m_texture_id );
+		texture_id_pool.markUnused( m_texture_id );
 	}
 
 	vk::DescriptorImageInfo Texture::getDescriptor() const
@@ -209,7 +193,7 @@ namespace fgl::engine
 	}
 
 	Texture::Texture( Image& image, Sampler sampler ) :
-	  m_texture_id( getNextID() ),
+	  m_texture_id( texture_id_pool.getID() ),
 	  m_image(),
 	  m_image_view( image.getView() ),
 	  //TODO: Figure out how to get extents from images.
@@ -236,7 +220,14 @@ namespace fgl::engine
 		m_image_view->setName( str + " ImageView" );
 	}
 
-	descriptors::DescriptorSet& Texture::getTextureDescriptorSet()
+	inline static descriptors::DescriptorSetLayout texture_descriptor_set { TEXTURE_SET_ID, texture_descriptor };
+
+	descriptors::DescriptorSetLayout& Texture::getDescriptorLayout()
+	{
+		return texture_descriptor_set;
+	}
+
+	descriptors::DescriptorSet& Texture::getDescriptorSet()
 	{
 		static std::unique_ptr< descriptors::DescriptorSet > set { nullptr };
 

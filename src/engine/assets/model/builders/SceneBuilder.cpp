@@ -215,31 +215,7 @@ namespace fgl::engine
 		getTextureForParameter( const tinygltf::Parameter& parameter, const tinygltf::Model& root )
 	{
 		const auto texture_idx { parameter.TextureIndex() };
-
-		const tinygltf::Texture& tex_info { root.textures[ texture_idx ] };
-
-		const auto source_idx { tex_info.source };
-
-		const tinygltf::Image& source { root.images[ source_idx ] };
-
-		if ( source.uri.empty() ) throw std::runtime_error( "Unsupported loading method for image (Must be a file)" );
-
-		const std::filesystem::path filepath { source.uri };
-		const auto full_path { m_root / filepath };
-
-		const auto sampler_idx { tex_info.sampler };
-		const tinygltf::Sampler& sampler_info { root.samplers[ sampler_idx ] };
-
-		Sampler sampler { sampler_info.minFilter, sampler_info.magFilter, sampler_info.wrapS, sampler_info.wrapT };
-
-		std::shared_ptr< Texture > texture { getTextureStore().load( full_path ) };
-		texture->getImageView().getSampler() = std::move( sampler );
-
-		//Prepare the texture into the global system
-		Texture::getTextureDescriptorSet().bindTexture( 0, texture );
-		Texture::getTextureDescriptorSet().update();
-
-		return texture;
+		return loadTexture( texture_idx, root );
 	}
 
 	PrimitiveTextures SceneBuilder::loadTextures( const tinygltf::Primitive& prim, const tinygltf::Model& root )
@@ -436,7 +412,8 @@ namespace fgl::engine
 					// If we have a texcoord then we have a UV map. Meaning we likely have textures to use
 					if ( !has_texcoord ) return primitive_mesh;
 
-					primitive_mesh.m_textures = loadTextures( prim, root );
+					//primitive_mesh.m_textures = loadTextures( prim, root );
+					primitive_mesh.m_material = loadMaterial( prim, root );
 
 					return primitive_mesh;
 				}
@@ -467,6 +444,14 @@ namespace fgl::engine
 		return { static_cast< float >( data[ 0 ] ),
 			     static_cast< float >( data[ 1 ] ),
 			     static_cast< float >( data[ 2 ] ) };
+	}
+
+	glm::vec4 convertToVec4( const std::vector< double >& data )
+	{
+		return { static_cast< float >( data[ 0 ] ),
+			     static_cast< float >( data[ 1 ] ),
+			     static_cast< float >( data[ 2 ] ),
+			     static_cast< float >( data[ 3 ] ) };
 	}
 
 	WorldTransform SceneBuilder::loadTransform( int node_idx, const tinygltf::Model& root )
@@ -543,6 +528,76 @@ namespace fgl::engine
 
 		return std::make_shared<
 			Model >( std::move( finished_primitives ), bounding_box, mesh.name.empty() ? "Unnamed Model" : mesh.name );
+	}
+
+	std::shared_ptr< Texture > SceneBuilder::loadTexture( const int tex_id, const tinygltf::Model& root )
+	{
+		if ( tex_id == -1 ) return { nullptr };
+
+		const tinygltf::Texture& tex_info { root.textures[ tex_id ] };
+
+		const auto source_idx { tex_info.source };
+
+		const tinygltf::Image& source { root.images[ source_idx ] };
+
+		if ( source.uri.empty() ) throw std::runtime_error( "Unsupported loading method for image (Must be a file)" );
+
+		const std::filesystem::path filepath { source.uri };
+		const auto full_path { m_root / filepath };
+
+		const auto sampler_idx { tex_info.sampler };
+		const tinygltf::Sampler& sampler_info { root.samplers[ sampler_idx ] };
+
+		Sampler sampler { sampler_info.minFilter, sampler_info.magFilter, sampler_info.wrapS, sampler_info.wrapT };
+
+		std::shared_ptr< Texture > texture { getTextureStore().load( full_path ) };
+		texture->getImageView().getSampler() = std::move( sampler );
+
+		//Prepare the texture into the global system
+		Texture::getDescriptorSet().bindTexture( 0, texture );
+		Texture::getDescriptorSet().update();
+
+		return texture;
+	}
+
+	std::shared_ptr< Material > SceneBuilder::
+		loadMaterial( const tinygltf::Primitive& prim, const tinygltf::Model& root )
+	{
+		const auto& material_id { prim.material };
+		const auto& gltf_material { root.materials[ material_id ] };
+
+		auto material { Material::createMaterial() };
+
+		{
+			const auto& metallic_roughness { gltf_material.pbrMetallicRoughness };
+			const auto& pbr_tex_id { metallic_roughness.baseColorTexture.index };
+			material->properties.pbr.color_tex = loadTexture( pbr_tex_id, root );
+			material->properties.pbr.color_factors = convertToVec4( metallic_roughness.baseColorFactor );
+
+			material->properties.pbr.metallic_roughness_tex =
+				loadTexture( metallic_roughness.metallicRoughnessTexture.index, root );
+			material->properties.pbr.metallic_factor = metallic_roughness.metallicFactor;
+			material->properties.pbr.roughness_factor = metallic_roughness.roughnessFactor;
+		}
+
+		{
+			material->properties.normal.texture = loadTexture( gltf_material.normalTexture.index, root );
+			material->properties.normal.scale = gltf_material.normalTexture.scale;
+		}
+
+		{
+			material->properties.occlusion.texture = loadTexture( gltf_material.occlusionTexture.index, root );
+			material->properties.occlusion.strength = gltf_material.occlusionTexture.strength;
+		}
+
+		{
+			material->properties.emissive.texture = loadTexture( gltf_material.emissiveTexture.index, root );
+			material->properties.emissive.factors = convertToVec3( gltf_material.emissiveFactor );
+		}
+
+		material->update();
+
+		return material;
 	}
 
 	void SceneBuilder::handleNode( const int node_idx, const tinygltf::Model& root )

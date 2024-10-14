@@ -21,7 +21,9 @@ namespace fgl::engine
 	}
 
 	void Pipeline::bindDescriptor(
-		vk::raii::CommandBuffer& command_buffer, DescriptorIDX descriptor_idx, descriptors::DescriptorSet& set )
+		vk::raii::CommandBuffer& command_buffer,
+		const descriptors::DescriptorIDX descriptor_idx,
+		descriptors::DescriptorSet& set )
 	{
 		const std::vector< vk::DescriptorSet > sets { *set };
 		constexpr std::vector< std::uint32_t > offsets {};

@@ -35,20 +35,21 @@ namespace fgl::engine::memory
 		buffer.free( *this );
 	}
 
-	vk::BufferCopy BufferSuballocationHandle::copyRegion( BufferSuballocationHandle& target )
+	vk::BufferCopy BufferSuballocationHandle::copyRegion( BufferSuballocationHandle& target, const std::size_t offset )
 	{
 		vk::BufferCopy copy {};
 		copy.size = std::min( this->m_size, target.m_size );
 		copy.srcOffset = this->getOffset();
-		copy.dstOffset = target.getOffset();
+		copy.dstOffset = target.getOffset() + offset;
 		return copy;
 	}
 
-	void BufferSuballocationHandle::copyTo( vk::raii::CommandBuffer& cmd_buffer, BufferSuballocationHandle& other )
+	void BufferSuballocationHandle::
+		copyTo( vk::raii::CommandBuffer& cmd_buffer, BufferSuballocationHandle& other, const std::size_t offset )
 	{
-		vk::BufferCopy copy_region { copyRegion( other ) };
+		const vk::BufferCopy copy_region { copyRegion( other, offset ) };
 
-		std::vector< vk::BufferCopy > copy_regions { copy_region };
+		const std::vector< vk::BufferCopy > copy_regions { copy_region };
 
 		cmd_buffer.copyBuffer( this->getVkBuffer(), other.getVkBuffer(), copy_regions );
 	}

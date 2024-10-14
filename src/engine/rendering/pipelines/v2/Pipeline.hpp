@@ -5,12 +5,16 @@
 #include <memory>
 
 #include "engine/assets/model/Primitive.hpp"
+#include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/rendering/pipelines/Shader.hpp"
 
 namespace fgl::engine
-{
 
-	using DescriptorIDX = std::uint32_t;
+{
+	namespace descriptors
+	{
+		class DescriptorSet;
+	}
 
 	class Pipeline
 	{
@@ -24,7 +28,7 @@ namespace fgl::engine
 
 		void bind( vk::raii::CommandBuffer& );
 
-		void bindDescriptor( vk::raii::CommandBuffer&, DescriptorIDX descriptor_idx, descriptors::DescriptorSet& set );
+		void bindDescriptor( vk::raii::CommandBuffer&, descriptors::DescriptorIDX descriptor_idx, descriptors::DescriptorSet& set );
 		void bindDescriptor( vk::raii::CommandBuffer& comd_buffer, descriptors::DescriptorSet& set );
 
 		void setDebugName( const char* str );

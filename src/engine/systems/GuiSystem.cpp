@@ -44,7 +44,7 @@ namespace fgl::engine
 
 		m_pipeline->bind( command_buffer );
 
-		m_pipeline->bindDescriptor( command_buffer, 0, info.gui_input_descriptor );
+		// m_pipeline->bindDescriptor( command_buffer, 0, info.gui_input_descriptor );
 
 		return command_buffer;
 	}

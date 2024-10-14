@@ -11,14 +11,14 @@
 
 #include "DescriptorPool.hpp"
 #include "engine/assets/image/ImageView.hpp"
+#include "engine/assets/texture/Texture.hpp"
 #include "engine/memory/buffers/BufferSuballocation.hpp"
 #include "engine/rendering/SwapChain.hpp"
-#include "engine/texture/Texture.hpp"
 
 namespace fgl::engine::descriptors
 {
 
-	DescriptorSet::DescriptorSet( const vk::raii::DescriptorSetLayout& layout, std::uint16_t idx ) :
+	DescriptorSet::DescriptorSet( const vk::raii::DescriptorSetLayout& layout, DescriptorIDX idx ) :
 	  m_set_idx( idx ),
 	  m_set( DescriptorPool::getInstance().allocateSet( layout ) )
 	{}
@@ -46,7 +46,7 @@ namespace fgl::engine::descriptors
 		return *this;
 	}
 
-	void DescriptorSet::bindUniformBuffer( std::uint32_t binding_idx, memory::BufferSuballocation& buffer )
+	void DescriptorSet::bindUniformBuffer( const std::uint32_t binding_idx, memory::BufferSuballocation& buffer )
 	{
 		assert( binding_idx < m_infos.size() && "Binding index out of range" );
 
@@ -61,6 +61,34 @@ namespace fgl::engine::descriptors
 		write.pBufferInfo = &( std::get< vk::DescriptorBufferInfo >( m_infos.data()[ binding_idx ] ) );
 		write.pImageInfo = VK_NULL_HANDLE;
 		write.pTexelBufferView = VK_NULL_HANDLE;
+
+		descriptor_writes.push_back( write );
+	}
+
+	void DescriptorSet::bindArray(
+		const std::uint32_t binding_idx,
+		const memory::BufferSuballocation& buffer,
+		const std::size_t array_idx,
+		const std::size_t item_size )
+	{
+		assert( binding_idx < m_infos.size() && "Binding index out of range" );
+
+		m_infos[ binding_idx ] = buffer.descriptorInfo( array_idx * item_size );
+
+		//HACK: We set the range to something else after getting it
+		std::get< vk::DescriptorBufferInfo >( m_infos[ binding_idx ] ).range = item_size;
+
+		vk::WriteDescriptorSet write {};
+		write.dstSet = m_set;
+		write.dstBinding = binding_idx;
+		write.dstArrayElement = array_idx;
+		write.descriptorCount = 1;
+		write.descriptorType = vk::DescriptorType::eUniformBuffer;
+		write.pBufferInfo = &( std::get< vk::DescriptorBufferInfo >( m_infos.data()[ binding_idx ] ) );
+		write.pImageInfo = VK_NULL_HANDLE;
+		write.pTexelBufferView = VK_NULL_HANDLE;
+
+		log::info( "Bound idx {} to data", array_idx );
 
 		descriptor_writes.push_back( write );
 	}

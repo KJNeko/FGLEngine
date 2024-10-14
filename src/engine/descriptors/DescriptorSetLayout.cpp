@@ -11,7 +11,7 @@ namespace fgl::engine::descriptors
 {
 
 	DescriptorSetLayout::DescriptorSetLayout(
-		const std::uint16_t set_idx, const std::vector< std::reference_wrapper< const Descriptor > >& descriptors ) :
+		const DescriptorIDX set_idx, const std::vector< std::reference_wrapper< const Descriptor > >& descriptors ) :
 	  m_set_idx( set_idx )
 	{
 		FGL_ASSERT( descriptors.size() > 0, "Must have more then 1 descriptor set" );

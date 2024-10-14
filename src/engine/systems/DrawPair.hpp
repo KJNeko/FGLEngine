@@ -3,13 +3,14 @@
 //
 
 #pragma once
+#include <vulkan/vulkan.hpp>
+
 #include "engine/gameobjects/GameObject.hpp"
-#include "engine/primitives/Frustum.hpp"
-#include "engine/texture/Texture.hpp"
 #include "engine/utils.hpp"
 
 namespace fgl::engine
 {
+	struct Frustum;
 	class OctTreeNode;
 	struct ModelMatrixInfo;
 	// <TextureID, MemoryOffset>

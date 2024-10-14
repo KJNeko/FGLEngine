@@ -28,8 +28,9 @@ namespace fgl::engine
 
 	namespace descriptors
 	{
+		class DescriptorSetLayout;
 		class DescriptorSet;
-	}
+	} // namespace descriptors
 
 	class TextureHandle;
 
@@ -115,7 +116,8 @@ namespace fgl::engine
 		void drawImGui( vk::Extent2D extent = {} );
 		bool drawImGuiButton( vk::Extent2D extent = {} );
 
-		static descriptors::DescriptorSet& getTextureDescriptorSet();
+		static descriptors::DescriptorSetLayout& getDescriptorLayout();
+		static descriptors::DescriptorSet& getDescriptorSet();
 	};
 
 } // namespace fgl::engine

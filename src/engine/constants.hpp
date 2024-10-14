@@ -47,8 +47,6 @@ namespace fgl::engine::constants
 	constexpr glm::vec3 WORLD_LEFT { -WORLD_RIGHT };
 	constexpr glm::vec3 WORLD_DOWN { -WORLD_UP };
 
-	constexpr std::uint32_t INVALID_TEX_ID { std::numeric_limits< std::uint32_t >::max() };
-
 	constexpr TextureID INVALID_TEXTURE_ID { 0 };
 
 } // namespace fgl::engine::constants

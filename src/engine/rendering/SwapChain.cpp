@@ -28,9 +28,10 @@ namespace fgl::engine
 	  render_attachments( getSwapChainImageFormat(), findDepthFormat() ),
 	  m_render_pass( createRenderPass() ),
 	  m_swap_chain_buffers( createFramebuffers() ),
-	  m_input_descriptors( createInputDescriptors() ),
+	  // m_input_descriptors( createInputDescriptors() ),
 	  m_clear_values(
-		  gatherClearValues( render_attachments.color, render_attachments.depth, render_attachments.input_color ) )
+		  // gatherClearValues( render_attachments.color, render_attachments.depth, render_attachments.input_color ) )
+		  gatherClearValues( render_attachments.color, render_attachments.depth ) )
 	{
 		init();
 	}
@@ -49,9 +50,10 @@ namespace fgl::engine
 	  render_attachments( getSwapChainImageFormat(), findDepthFormat() ),
 	  m_render_pass( createRenderPass() ),
 	  m_swap_chain_buffers( createFramebuffers() ),
-	  m_input_descriptors( createInputDescriptors() ),
+	  // m_input_descriptors( createInputDescriptors() ),
 	  m_clear_values(
-		  gatherClearValues( render_attachments.color, render_attachments.depth, render_attachments.input_color ) )
+		  // gatherClearValues( render_attachments.color, render_attachments.depth, render_attachments.input_color ) )
+		  gatherClearValues( render_attachments.color, render_attachments.depth ) )
 	{
 		init();
 		old_swap_chain.reset();
@@ -69,8 +71,8 @@ namespace fgl::engine
 
 			set->setMaxIDX( 0 );
 
-			set->bindAttachment(
-				0, render_attachments.input_color.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
+			// set->bindAttachment(
+			// 0, render_attachments.input_color.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
 
 			set->update();
 
@@ -84,7 +86,7 @@ namespace fgl::engine
 	{
 		createSyncObjects();
 
-		render_attachments.input_color.setName( "Input Color" );
+		// render_attachments.input_color.setName( "Input Color" );
 	}
 
 	std::pair< vk::Result, PresentIndex > SwapChain::acquireNextImage()
@@ -244,9 +246,10 @@ namespace fgl::engine
 
 		constexpr std::size_t ColorIndex { 0 };
 		constexpr std::size_t DepthIndex { 1 };
-		constexpr std::size_t InputColorIndex { 2 };
+		// constexpr std::size_t InputColorIndex { 2 };
 
-		builder.setAttachmentCount( 3 );
+		// builder.setAttachmentCount( 3 );
+		builder.setAttachmentCount( 2 );
 
 		auto color { builder.attachment( ColorIndex ) };
 
@@ -260,14 +263,14 @@ namespace fgl::engine
 		depth.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilAttachmentOptimal );
 		depth.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eDontCare );
 
-		auto color_input { builder.attachment( InputColorIndex ) };
-		color_input.setFormat( vk::Format::eR8G8B8A8Unorm );
-		color_input.setLayouts( vk::ImageLayout::eShaderReadOnlyOptimal, vk::ImageLayout::eShaderReadOnlyOptimal );
-		color_input.setOps( vk::AttachmentLoadOp::eLoad, vk::AttachmentStoreOp::eDontCare );
+		// auto color_input { builder.attachment( InputColorIndex ) };
+		// color_input.setFormat( vk::Format::eR8G8B8A8Unorm );
+		// color_input.setLayouts( vk::ImageLayout::eShaderReadOnlyOptimal, vk::ImageLayout::eShaderReadOnlyOptimal );
+		// color_input.setOps( vk::AttachmentLoadOp::eLoad, vk::AttachmentStoreOp::eDontCare );
 
 		auto& gui_subpass { builder.createSubpass( 0 ) };
 
-		gui_subpass.addInputLayout( InputColorIndex, vk::ImageLayout::eShaderReadOnlyOptimal );
+		// gui_subpass.addInputLayout( InputColorIndex, vk::ImageLayout::eShaderReadOnlyOptimal );
 		gui_subpass.setDepthLayout( DepthIndex, vk::ImageLayout::eDepthStencilAttachmentOptimal );
 		gui_subpass.addRenderLayout( ColorIndex, vk::ImageLayout::eColorAttachmentOptimal );
 
@@ -290,8 +293,8 @@ namespace fgl::engine
 		render_attachments.depth.createResources( imageCount(), getSwapChainExtent() );
 		render_attachments.depth.setClear( vk::ClearDepthStencilValue( 1.0f, 0 ) );
 
-		render_attachments.input_color
-			.createResources( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eTransferDst );
+		// render_attachments.input_color
+		// .createResources( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eTransferDst );
 
 		std::vector< vk::raii::Framebuffer > framebuffers {};
 
@@ -300,7 +303,10 @@ namespace fgl::engine
 		for ( uint8_t i = 0; i < imageCount(); i++ )
 		{
 			std::vector< vk::ImageView > attachments { getViewsForFrame(
-				i, render_attachments.color, render_attachments.depth, render_attachments.input_color ) };
+				// i, render_attachments.color, render_attachments.depth, render_attachments.input_color ) };
+				i,
+				render_attachments.color,
+				render_attachments.depth ) };
 
 			//Fill attachments for this frame
 			const vk::Extent2D swapChainExtent { getSwapChainExtent() };
@@ -422,16 +428,18 @@ namespace fgl::engine
 	SwapChain::~SwapChain()
 	{}
 
+	/*
 	descriptors::DescriptorSet& SwapChain::getInputDescriptor( const PresentIndex present_index )
 	{
 		assert( present_index < m_input_descriptors.size() );
 		return *m_input_descriptors[ present_index ];
 	}
+	*/
 
-	Image& SwapChain::getInputImage( const PresentIndex present_index ) const
-	{
-		return *render_attachments.input_color.m_attachment_resources.m_images[ present_index ];
-	}
+	// Image& SwapChain::getInputImage( const PresentIndex present_index ) const
+	// {
+	// return *render_attachments.input_color.m_attachment_resources.m_images[ present_index ];
+	// }
 
 	vk::raii::Framebuffer& SwapChain::getFrameBuffer( const PresentIndex present_index )
 	{

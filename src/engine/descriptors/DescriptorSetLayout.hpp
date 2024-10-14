@@ -24,10 +24,10 @@ namespace fgl::engine::descriptors
 
 		std::optional< vk::raii::DescriptorSetLayout > m_layout { std::nullopt };
 
-		std::uint16_t m_set_idx;
+		DescriptorIDX m_set_idx;
 
 		DescriptorSetLayout(
-			std::uint16_t set_idx, const std::vector< std::reference_wrapper< const Descriptor > >& descriptors );
+			DescriptorIDX set_idx, const std::vector< std::reference_wrapper< const Descriptor > >& descriptors );
 
 		DescriptorSetLayout();
 
@@ -39,7 +39,7 @@ namespace fgl::engine::descriptors
 		friend class ::fgl::engine::PipelineBuilder;
 
 		template < typename... Args >
-		DescriptorSetLayout( const std::uint16_t set_idx, const Args&... descriptors ) :
+		DescriptorSetLayout( const DescriptorIDX set_idx, const Args&... descriptors ) :
 		  DescriptorSetLayout( set_idx, std::vector< std::reference_wrapper< const Descriptor > > { descriptors... } )
 		{}
 

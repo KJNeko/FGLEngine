@@ -121,7 +121,7 @@ namespace fgl::engine::memory
 		auto& target { std::get< TransferBufferHandle >( m_target ) };
 		const CopyRegionKey key { std::make_pair( source->getBuffer(), target->getBuffer() ) };
 
-		const auto copy_info { source->copyRegion( *target ) };
+		const auto copy_info { source->copyRegion( *target, m_target_offset ) };
 
 		if ( auto itter = copy_regions.find( key ); itter != copy_regions.end() )
 		{
@@ -221,20 +221,25 @@ namespace fgl::engine::memory
 	//! BUFFER_FROM_BUFFER
 	TransferData::TransferData(
 		const std::shared_ptr< BufferSuballocationHandle >& source,
-		const std::shared_ptr< BufferSuballocationHandle >& target ) :
+		const std::shared_ptr< BufferSuballocationHandle >& target,
+		const std::size_t offset ) :
 	  m_type( BUFFER_FROM_BUFFER ),
 	  m_source( source ),
-	  m_target( target )
+	  m_target( target ),
+	  m_target_offset( offset )
 	{
 		markBad();
 	}
 
 	//! BUFFER_FROM_RAW
-	TransferData::
-		TransferData( std::vector< std::byte >&& source, const std::shared_ptr< BufferSuballocationHandle >& target ) :
+	TransferData::TransferData(
+		std::vector< std::byte >&& source,
+		const std::shared_ptr< BufferSuballocationHandle >& target,
+		const std::size_t offset ) :
 	  m_type( BUFFER_FROM_RAW ),
 	  m_source( std::forward< std::vector< std::byte > >( source ) ),
-	  m_target( target )
+	  m_target( target ),
+	  m_target_offset( offset )
 	{
 		markBad();
 	}

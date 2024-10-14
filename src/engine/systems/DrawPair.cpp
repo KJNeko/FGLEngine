@@ -66,22 +66,21 @@ namespace fgl::engine
 
 						//assert( primitive.m_texture );
 						const ModelMatrixInfo matrix_info { .model_matrix = matrix,
-							                                .albedo_id = primitive.getAlbedoTextureID(),
-							                                .normal_id = primitive.getNormalTextureID() };
+							                                .material_id = primitive.m_material->getID() };
 
 						// If the textureless flag is on and we have a texture then skip the primitive.c
 						if ( tree_flags & IS_TEXTURELESS )
 						{
-							if ( primitive.m_textures.hasTextures() ) continue;
+							if ( primitive.m_material != nullptr ) continue;
 						}
 						else
 						{
 							// Flag is not present
-							if ( !primitive.m_textures.hasTextures() ) continue;
+							if ( primitive.m_material == nullptr ) continue;
 						}
 
 						const auto key {
-							std::make_pair( matrix_info.albedo_id, primitive.m_index_buffer.getOffset() )
+							std::make_pair( matrix_info.material_id, primitive.m_index_buffer.getOffset() )
 						};
 
 						//debug::drawBoundingBox( matrix * primitive.m_bounding_box );

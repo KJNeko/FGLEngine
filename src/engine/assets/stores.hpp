@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "engine/texture/Texture.hpp"
+#include "engine/assets/texture/Texture.hpp"
 
 namespace fgl::engine
 {

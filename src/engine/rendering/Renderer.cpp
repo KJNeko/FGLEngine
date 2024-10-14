@@ -22,37 +22,49 @@
 namespace fgl::engine
 {
 
+	/*
 	void Renderer::clearInputImage( vk::raii::CommandBuffer& command_buffer )
 	{
-		auto& image { getSwapChain().getInputImage( current_present_index ) };
+		Image& image { getSwapChain().getInputImage( current_present_index ) };
 
-		vk::ImageSubresourceRange range {};
-		range.aspectMask = vk::ImageAspectFlagBits::eColor;
-		range.layerCount = 1;
-		range.baseArrayLayer = 0;
-		range.levelCount = 1;
-		range.baseMipLevel = 0;
+		constexpr vk::ImageSubresourceRange range { vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 };
 
-		/*
+		vk::ImageMemoryBarrier in_barrier {};
+		in_barrier.oldLayout = vk::ImageLayout::eUndefined;
+		in_barrier.newLayout = vk::ImageLayout::eTransferDstOptimal;
+		in_barrier.image = image.getVkImage();
+		in_barrier.subresourceRange = range;
+		in_barrier.srcAccessMask = {};
+		in_barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+
+		command_buffer.pipelineBarrier(
+			vk::PipelineStageFlagBits::eTopOfPipe,
+			vk::PipelineStageFlagBits::eTransfer,
+			{},
+			nullptr,
+			nullptr,
+			in_barrier );
+
 		command_buffer.clearColorImage(
 			image.getVkImage(),
 			vk::ImageLayout::eTransferDstOptimal,
 			vk::ClearColorValue( 0.0f, 0.0f, 0.0f, 0.0f ),
-			{ range } );
-		*/
+			range );
 
-		// Transition the image back to readOnly
-		vk::ImageMemoryBarrier barrier {};
-		barrier.oldLayout = vk::ImageLayout::eUndefined;
-		barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-		barrier.image = image.getVkImage();
-		barrier.subresourceRange = range;
-		barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-		barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+		in_barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
+		in_barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		in_barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+		in_barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
 		command_buffer.pipelineBarrier(
-			vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader, {}, {}, {}, { barrier } );
+			vk::PipelineStageFlagBits::eTransfer,
+			vk::PipelineStageFlagBits::eFragmentShader,
+			{},
+			nullptr,
+			nullptr,
+			in_barrier );
 	}
+	*/
 
 	Renderer::Renderer( Window& window, PhysicalDevice& phy_device ) :
 	  m_window( window ),

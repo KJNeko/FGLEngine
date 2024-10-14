@@ -49,7 +49,7 @@ namespace fgl::engine
 		                                                   vk::DescriptorBindingFlagBits::eUpdateAfterBind
 		                                                       | vk::DescriptorBindingFlagBits::ePartiallyBound };
 
-	inline static descriptors::DescriptorSetLayout texture_descriptor_set { 2, texture_descriptor };
+	constexpr std::uint32_t TEXTURE_SET_ID { 2 };
 
 	constexpr vk::ShaderStageFlags FRAG_STAGE { vk::ShaderStageFlagBits::eFragment };
 
@@ -90,7 +90,7 @@ namespace fgl::engine
 		memory::Buffer& model_vertex_buffer;
 		memory::Buffer& model_index_buffer;
 
-		descriptors::DescriptorSet& gui_input_descriptor;
+		// descriptors::DescriptorSet& gui_input_descriptor;
 
 		descriptors::DescriptorSet& getGBufferDescriptor() const;
 		descriptors::DescriptorSet& getCameraDescriptor() const;

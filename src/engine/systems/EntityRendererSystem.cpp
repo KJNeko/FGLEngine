@@ -8,6 +8,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include "DrawPair.hpp"
+#include "engine/assets/material/Material.hpp"
 #include "engine/camera/Camera.hpp"
 #include "engine/debug/profiling/counters.hpp"
 #include "engine/rendering/pipelines/v2/AttachmentBuilder.hpp"
@@ -27,7 +28,7 @@ namespace fgl::engine
 
 			PipelineBuilder builder { render_pass, 0 };
 
-			builder.addDescriptorSet( camera_descriptor_set );
+			builder.addDescriptorSet( Camera::getDescriptorLayout() );
 
 			builder.addColorAttachment().finish();
 			builder.addColorAttachment().finish();
@@ -54,8 +55,9 @@ namespace fgl::engine
 			builder.addColorAttachment().finish();
 			builder.addColorAttachment().finish();
 
-			builder.addDescriptorSet( camera_descriptor_set );
-			builder.addDescriptorSet( texture_descriptor_set );
+			builder.addDescriptorSet( Camera::getDescriptorLayout() );
+			builder.addDescriptorSet( Texture::getDescriptorLayout() );
+			builder.addDescriptorSet( Material::getDescriptorLayout() );
 
 			builder.setFragmentShader( Shader::loadFragment( "shaders/textured-gbuffer.frag" ) );
 			builder.setVertexShader( Shader::loadVertex( "shaders/textured-gbuffer.vert" ) );
@@ -98,6 +100,7 @@ namespace fgl::engine
 
 	void EntityRendererSystem::texturelessPass( const FrameInfo& info )
 	{
+		/*
 		ZoneScopedN( "Textureless pass" );
 		auto& command_buffer { info.command_buffer };
 		TracyVkZone( info.tracy_ctx, *command_buffer, "Render textureless entities" );
@@ -136,6 +139,7 @@ namespace fgl::engine
 			draw_parameter_buffer->getOffset(),
 			draw_parameter_buffer->size(),
 			draw_parameter_buffer->stride() );
+			*/
 	}
 
 	void EntityRendererSystem::texturedPass( const FrameInfo& info )
@@ -144,19 +148,16 @@ namespace fgl::engine
 		auto& command_buffer { info.command_buffer };
 		TracyVkZone( info.tracy_ctx, *command_buffer, "Render textured entities" );
 
-		m_textured_pipeline->bind( command_buffer );
-
-		// Since the camera was bound in the textureless pass we shouldn't need to bind it here too.
-		// m_textured_pipeline
-		// ->bindDescriptor( command_buffer, CameraDescriptorSet::m_set_idx, info.global_descriptor_set );
-
-		m_standard_pipeline->bindDescriptor( command_buffer, info.getCameraDescriptor() );
-		m_textured_pipeline->bindDescriptor( command_buffer, Texture::getTextureDescriptorSet() );
-
 		auto [ draw_commands, model_matricies ] =
 			getDrawCallsFromTree( info.game_objects, info.camera->getFrustumBounds(), IS_VISIBLE | IS_ENTITY );
 
 		if ( draw_commands.empty() ) return;
+
+		m_textured_pipeline->bind( command_buffer );
+
+		m_textured_pipeline->bindDescriptor( command_buffer, info.getCameraDescriptor() );
+		m_textured_pipeline->bindDescriptor( command_buffer, Texture::getDescriptorSet() );
+		m_textured_pipeline->bindDescriptor( command_buffer, Material::getDescriptorSet() );
 
 		profiling::addModelDrawn( model_matricies.size() );
 

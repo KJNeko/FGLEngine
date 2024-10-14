@@ -55,8 +55,7 @@ namespace fgl::engine
 		attribute_descriptions.emplace_back( 6, 1, vk::Format::eR32G32B32A32Sfloat, 2 * sizeof( glm::vec4 ) );
 		attribute_descriptions.emplace_back( 7, 1, vk::Format::eR32G32B32A32Sfloat, 3 * sizeof( glm::vec4 ) );
 
-		attribute_descriptions.emplace_back( 8, 1, vk::Format::eR32Uint, offsetof( ModelMatrixInfo, albedo_id ) );
-		attribute_descriptions.emplace_back( 9, 1, vk::Format::eR32Uint, offsetof( ModelMatrixInfo, normal_id ) );
+		attribute_descriptions.emplace_back( 8, 1, vk::Format::eR32Uint, offsetof( ModelMatrixInfo, material_id ) );
 
 		return attribute_descriptions;
 	}

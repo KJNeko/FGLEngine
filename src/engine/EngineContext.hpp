@@ -58,6 +58,8 @@ namespace fgl::engine
 		// Memory pool for shader uniforms.
 		memory::Buffer m_ubo_buffer_pool;
 
+		memory::Buffer m_material_data_pool;
+
 		// Memory pool for matrix info and draw parameters
 		memory::Buffer m_matrix_info_pool;
 		memory::Buffer m_draw_parameter_pool;

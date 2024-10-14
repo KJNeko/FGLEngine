@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "Primitive.hpp"
+#include "engine/assets/material/Material.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"
 
 namespace fgl::engine
@@ -29,9 +30,7 @@ namespace fgl::engine
 	struct ModelMatrixInfo
 	{
 		glm::mat4 model_matrix;
-		//MaterialID material_id;
-		std::uint32_t albedo_id;
-		std::uint32_t normal_id;
+		MaterialID material_id { constants::INVALID_TEXTURE_ID };
 	};
 
 	class Model

@@ -102,17 +102,33 @@ namespace fgl::engine::memory
 		//! Queues a buffer to be transfered
 		template < typename DeviceVectorT >
 			requires is_device_vector< DeviceVectorT >
-		void copyToVector( std::vector< std::byte >&& data, DeviceVectorT& device_vector )
+		void copyToVector( std::vector< std::byte >&& data, DeviceVectorT& device_vector, std::size_t byte_offset = 0 )
 		{
 			assert( data.size() > 0 );
-			TransferData transfer_data { std::forward< std::vector< std::byte > >( data ), device_vector.m_handle };
+			TransferData transfer_data { std::forward< std::vector< std::byte > >( data ),
+				                         device_vector.m_handle,
+				                         byte_offset };
 
 			queue.emplace( std::move( transfer_data ) );
 		}
 
+		template < typename T, typename DeviceVectorT >
+			requires is_device_vector< DeviceVectorT > && std::same_as< T, typename DeviceVectorT::Type >
+		void copyToVector( const T& t, const std::size_t idx, DeviceVectorT& device_vector )
+		{
+			std::vector< std::byte > data {};
+			data.resize( sizeof( T ) );
+
+			assert( idx < device_vector.bytesize() / sizeof( T ) );
+
+			std::memcpy( data.data(), &t, sizeof( T ) );
+
+			copyToVector( std::move( data ), device_vector, idx * sizeof( T ) );
+		}
+
 		//! Queues a data copy from a STL vector to a device vector
 		template < typename T, typename DeviceVectorT >
-			requires is_device_vector< DeviceVectorT >
+			requires is_device_vector< DeviceVectorT > && std::same_as< T, typename DeviceVectorT::Type >
 		void copyToVector( const std::vector< T >& data, DeviceVectorT& device_vector )
 		{
 			assert( data.size() > 0 );
@@ -121,10 +137,10 @@ namespace fgl::engine::memory
 
 			std::memcpy( punned_data.data(), data.data(), sizeof( T ) * data.size() );
 
-			copyToVector( std::move( punned_data ), device_vector );
+			copyToVector( std::move( punned_data ), device_vector, 0 );
 		}
 
-		void copyToVector( BufferVector& source, BufferVector& target );
+		void copyToVector( BufferVector& source, BufferVector& target, std::size_t target_offset );
 
 		void copyToImage( std::vector< std::byte >&& data, Image& image );
 

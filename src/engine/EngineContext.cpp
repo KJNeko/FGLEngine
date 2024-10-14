@@ -12,6 +12,7 @@
 #include <iostream>
 
 #include "KeyboardMovementController.hpp"
+#include "assets/material/Material.hpp"
 #include "camera/Camera.hpp"
 #include "camera/CameraManager.hpp"
 #include "engine/assets/model/builders/SceneBuilder.hpp"
@@ -25,7 +26,11 @@ namespace fgl::engine
 	constexpr float MAX_DELTA_TIME { 0.5 };
 
 	EngineContext::EngineContext() :
-	  m_ubo_buffer_pool( 512_KiB, vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eHostVisible ),
+	  m_ubo_buffer_pool( 1_MiB, vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eHostVisible ),
+	  m_material_data_pool(
+		  1_MiB,
+		  vk::BufferUsageFlagBits::eUniformBuffer | vk::BufferUsageFlagBits::eTransferDst,
+		  vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible ),
 	  m_matrix_info_pool(
 		  256_MiB,
 		  vk::BufferUsageFlagBits::eVertexBuffer,
@@ -46,6 +51,26 @@ namespace fgl::engine
 
 		m_vertex_buffer->setDebugName( "Vertex buffer" );
 		m_index_buffer->setDebugName( "Index buffer" );
+
+		m_material_data_pool.setDebugName( "Material data pool" );
+
+		initMaterialDataVec( m_material_data_pool );
+
+		/*
+		const std::filesystem::path path {
+			"/home/kj16609/Desktop/Projects/cxx/Mecha/src/assets/khronos-sponza/Sponza.gltf"
+		};
+
+		SceneBuilder builder { *m_vertex_buffer, *m_index_buffer };
+
+		builder.loadScene( path );
+
+		std::vector< GameObject > objs { builder.getGameObjects() };
+
+		for ( auto& obj : objs )
+		{
+			m_game_objects_root.addGameObject( std::move( obj ) );
+		}*/
 	}
 
 	static Average< float, 60 * 15 > rolling_ms_average;
@@ -115,7 +140,7 @@ namespace fgl::engine
 				                   m_draw_parameter_pool,
 				                   *this->m_vertex_buffer,
 				                   *this->m_index_buffer,
-				                   m_renderer.getSwapChain().getInputDescriptor( present_idx ),
+				                   // m_renderer.getSwapChain().getInputDescriptor( present_idx ),
 				                   this->m_renderer.getSwapChain() };
 
 			TracyVkCollect( frame_info.tracy_ctx, *command_buffer );
@@ -126,10 +151,10 @@ namespace fgl::engine
 			//TODO: Add some way of 'activating' cameras. We don't need to render cameras that aren't active.
 			renderCameras( frame_info );
 
-			m_renderer.clearInputImage( command_buffer );
+			// m_renderer.clearInputImage( command_buffer );
 
-			//primary_camera
-			//	.copyOutput( command_buffer, frame_index, m_renderer.getSwapChain().getInputImage( present_idx ) );
+			// camera_manager.getPrimary()
+			// .copyOutput( command_buffer, frame_index, m_renderer.getSwapChain().getInputImage( present_idx ) );
 
 			m_renderer.beginSwapchainRendererPass( command_buffer );
 

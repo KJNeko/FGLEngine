@@ -8,7 +8,6 @@
 #include <glm/gtx/string_cast.hpp>
 #include <tracy/Tracy.hpp>
 
-#include "CameraDescriptor.hpp"
 #include "CameraInfo.hpp"
 #include "CameraRenderer.hpp"
 #include "CameraSwapchain.hpp"
@@ -317,6 +316,17 @@ namespace fgl::engine
 	{
 		assert( !camera_renderer );
 		camera_renderer = std::make_unique< CameraRenderer >();
+	}
+
+	constexpr descriptors::Descriptor camera_descriptor { 0,
+		                                                  vk::DescriptorType::eUniformBuffer,
+		                                                  vk::ShaderStageFlagBits::eAllGraphics };
+
+	inline static descriptors::DescriptorSetLayout camera_descriptor_set { 1, camera_descriptor };
+
+	descriptors::DescriptorSetLayout& Camera::getDescriptorLayout()
+	{
+		return camera_descriptor_set;
 	}
 
 	Camera::Camera( const vk::Extent2D extent, memory::Buffer& buffer ) :

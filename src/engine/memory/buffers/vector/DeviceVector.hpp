@@ -25,6 +25,8 @@ namespace fgl::engine
 	{
 	  public:
 
+		using Type = T;
+
 		DeviceVector( memory::Buffer& buffer, const std::uint32_t count = 1 ) :
 		  BufferVector( buffer, count, sizeof( T ) )
 		{
@@ -41,7 +43,16 @@ namespace fgl::engine
 		DeviceVector( memory::Buffer& buffer, const std::vector< T >& data ) :
 		  DeviceVector( buffer, static_cast< std::uint32_t >( data.size() ) )
 		{
-			memory::TransferManager::getInstance().copyToVector( data, *this );
+			memory::TransferManager::getInstance().copyToVector< T, DeviceVector< T > >( data, *this );
+		}
+
+		//TODO: This
+		void resize( const std::size_t new_size );
+
+		void updateData( const std::size_t idx, const T& data )
+		{
+			assert( idx < m_count );
+			memory::TransferManager::getInstance().copyToVector< T, DeviceVector< T > >( data, idx, *this );
 		}
 	};
 

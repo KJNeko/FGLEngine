@@ -73,7 +73,7 @@
 				#Note: padded is for masochists. That's coming from me. Only really enable this if your ready for a fun time.
 				#AppendFlag("-Wpadded")
 				AppendFlag("-Wredundant-decls") #Warns about declarations that happen more then once.
-				AppendFlag("-Wctor-dtor-privacy") #Warns if a class appears unusable due to private ctor/dtors
+				#AppendFlag("-Wctor-dtor-privacy") #Warns if a class appears unusable due to private ctor/dtors
 				AppendFlag("-Wdelete-non-virtual-dtor") #Warns about using `delete` on a class that has virtual functions without a virtual dtor
 				AppendFlag("-Winvalid-constexpr") #Warns that a function marked as constexpr can't possibly produce a constexpr expression
 				# Disabled due to spdlog

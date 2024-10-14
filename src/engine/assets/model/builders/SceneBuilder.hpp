@@ -16,6 +16,7 @@
 #include <filesystem>
 #include <vector>
 
+#include "engine/assets/material/Material.hpp"
 #include "engine/gameobjects/GameObject.hpp"
 #include "engine/primitives/TransformComponent.hpp"
 
@@ -59,6 +60,9 @@ namespace fgl::engine
 
 		WorldTransform loadTransform( int node_idx, const tinygltf::Model& root );
 		std::shared_ptr< Model > loadModel( const int mesh_idx, const tinygltf::Model& root );
+		std::shared_ptr< Texture > loadTexture( int tex_id, const tinygltf::Model& root );
+		std::shared_ptr< fgl::engine::Material >
+			loadMaterial( const tinygltf::Primitive& prim, const tinygltf::Model& root );
 		Primitive loadPrimitive( const tinygltf::Primitive& prim, const tinygltf::Model& model );
 
 		int getTexcoordCount( const tinygltf::Primitive& prim ) const;

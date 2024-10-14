@@ -5,9 +5,8 @@
 #include "LineDrawer.hpp"
 
 #include "engine/FrameInfo.hpp"
-#include "engine/assets/model/ModelVertex.hpp"
 #include "engine/assets/model/SimpleVertex.hpp"
-#include "engine/camera/CameraDescriptor.hpp"
+#include "engine/camera/Camera.hpp"
 #include "engine/debug/drawers.hpp"
 #include "engine/memory/buffers/vector/HostVector.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
@@ -29,7 +28,7 @@ namespace fgl::engine
 	{
 		PipelineBuilder builder { render_pass, 0 };
 
-		builder.addDescriptorSet( camera_descriptor_set );
+		builder.addDescriptorSet( Camera::getDescriptorLayout() );
 
 		builder.addColorAttachment().finish();
 		builder.addColorAttachment().finish();

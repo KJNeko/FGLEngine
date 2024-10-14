@@ -4,8 +4,6 @@
 
 #include "CompositionSystem.hpp"
 
-#include <engine/texture/Texture.hpp>
-
 #include "engine/rendering/pipelines/v2/AttachmentBuilder.hpp"
 #include "engine/rendering/pipelines/v2/Pipeline.hpp"
 #include "engine/rendering/pipelines/v2/PipelineBuilder.hpp"
@@ -18,8 +16,6 @@ namespace fgl::engine
 		constexpr std::size_t SUBPASS { 1 };
 
 		PipelineBuilder builder { render_pass, SUBPASS };
-
-		FGL_ASSERT( gbuffer_set.count() == 3, "Aaaa" );
 
 		builder.addDescriptorSet( gbuffer_set );
 

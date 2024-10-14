@@ -6,11 +6,11 @@
 
 #include "engine/assets/image/Image.hpp"
 #include "engine/assets/image/ImageHandle.hpp"
+#include "engine/assets/texture/Texture.hpp"
 #include "engine/math/literals/size.hpp"
 #include "engine/memory/buffers/Buffer.hpp"
 #include "engine/memory/buffers/BufferSuballocation.hpp"
 #include "engine/memory/buffers/vector/HostVector.hpp"
-#include "engine/texture/Texture.hpp"
 
 namespace fgl::engine::memory
 {
@@ -46,7 +46,9 @@ namespace fgl::engine::memory
 			}
 		}
 
-		std::vector< vk::BufferMemoryBarrier > from_memory_barriers { createFromGraphicsBarriers() };
+		if ( counter > 0 ) log::debug( "Queued {} objects for transfer", counter );
+
+		const std::vector< vk::BufferMemoryBarrier > from_memory_barriers { createFromGraphicsBarriers() };
 
 		// Acquire the buffer from the queue family
 		command_buffer.pipelineBarrier(
@@ -65,7 +67,7 @@ namespace fgl::engine::memory
 			command_buffer.copyBuffer( source, target, regions );
 		}
 
-		std::vector< vk::BufferMemoryBarrier > to_buffer_memory_barriers { createFromTransferBarriers() };
+		const std::vector< vk::BufferMemoryBarrier > to_buffer_memory_barriers { createFromTransferBarriers() };
 
 		// Release the buffer regions back to the graphics queue
 		command_buffer.pipelineBarrier(
@@ -261,9 +263,9 @@ namespace fgl::engine::memory
 		return *global_transfer_manager;
 	}
 
-	void TransferManager::copyToVector( BufferVector& source, BufferVector& target )
+	void TransferManager::copyToVector( BufferVector& source, BufferVector& target, const std::size_t target_offset )
 	{
-		TransferData transfer_data { source.getHandle(), target.getHandle() };
+		TransferData transfer_data { source.getHandle(), target.getHandle(), target_offset };
 
 		queue.emplace( std::move( transfer_data ) );
 	}
