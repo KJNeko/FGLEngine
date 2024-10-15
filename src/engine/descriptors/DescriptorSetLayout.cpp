@@ -12,7 +12,8 @@ namespace fgl::engine::descriptors
 
 	DescriptorSetLayout::DescriptorSetLayout(
 		const DescriptorIDX set_idx, const std::vector< std::reference_wrapper< const Descriptor > >& descriptors ) :
-	  m_set_idx( set_idx )
+	  m_set_idx( set_idx ),
+	  m_binding_count( descriptors.size() )
 	{
 		FGL_ASSERT( descriptors.size() > 0, "Must have more then 1 descriptor set" );
 
@@ -38,7 +39,7 @@ namespace fgl::engine::descriptors
 	std::unique_ptr< DescriptorSet > DescriptorSetLayout::create()
 	{
 		if ( !m_layout.has_value() ) m_layout = createLayout();
-		return std::make_unique< DescriptorSet >( *m_layout, m_set_idx );
+		return std::make_unique< DescriptorSet >( *m_layout, m_set_idx, m_binding_count );
 	}
 
 	vk::raii::DescriptorSetLayout DescriptorSetLayout::createLayout() const

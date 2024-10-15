@@ -236,7 +236,6 @@ namespace fgl::engine
 		else
 		{
 			set = texture_descriptor_set.create();
-			set->setMaxIDX( 1 );
 			set->setName( "Texture descriptor set" );
 			return *set;
 		}

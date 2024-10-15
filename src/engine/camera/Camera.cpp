@@ -342,7 +342,6 @@ namespace fgl::engine
 		for ( std::uint8_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
 		{
 			auto set { camera_descriptor_set.create() };
-			set->setMaxIDX( 0 );
 			set->bindUniformBuffer( 0, m_camera_frame_info[ i ] );
 			set->update();
 

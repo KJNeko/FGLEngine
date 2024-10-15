@@ -14,6 +14,8 @@
 #define FGL_DELETE_ALL_Ro5( ClassName )                                                                                \
 	FGL_DELETE_DEFAULT_CTOR( ClassName ) FGL_DELETE_COPY( ClassName ) FGL_DELETE_MOVE( ClassName )
 
+#define FGL_PACKED __attribute__(( packed ))
+#define FGL_PACKED_ALIGNED( al ) __attribute__(( packed, aligned( al ) ))
 #define FGL_FLATTEN [[gnu::flatten]]
 #define FGL_ARTIFICIAL [[gnu::artificial]]
 #define FGL_HOT [[gnu::hot]]

@@ -33,6 +33,8 @@ namespace fgl::engine
 			builder.addColorAttachment().finish();
 			builder.addColorAttachment().finish();
 			builder.addColorAttachment().finish();
+			builder.addColorAttachment().finish();
+			builder.addColorAttachment().finish();
 
 			builder.setFragmentShader( Shader::loadFragment( "shaders/textureless-gbuffer.frag" ) );
 			builder.setVertexShader( Shader::loadVertex( "shaders/textureless-gbuffer.vert" ) );
@@ -51,6 +53,8 @@ namespace fgl::engine
 
 			PipelineBuilder builder { render_pass, 0 };
 
+			builder.addColorAttachment().finish();
+			builder.addColorAttachment().finish();
 			builder.addColorAttachment().finish();
 			builder.addColorAttachment().finish();
 			builder.addColorAttachment().finish();

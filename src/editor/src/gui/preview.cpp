@@ -209,7 +209,7 @@ namespace fgl::engine::gui
 				camera.getSwapchain().g_buffer_composite_img[ frame_index ]->drawImGui( target_size );
 				break;
 			case Albedo:
-				camera.getSwapchain().g_buffer_albedo_img[ frame_index ]->drawImGui( target_size );
+				camera.getSwapchain().g_buffer_color_img[ frame_index ]->drawImGui( target_size );
 				break;
 			case Normal:
 				camera.getSwapchain().g_buffer_normal_img[ frame_index ]->drawImGui( target_size );

@@ -130,7 +130,7 @@ namespace fgl::engine::memory
 	}
 
 	std::shared_ptr< BufferSuballocationHandle > Buffer::
-		allocate( vk::DeviceSize memory_size, std::uint32_t t_alignment )
+		allocate( vk::DeviceSize memory_size, const std::uint32_t t_alignment )
 	{
 		ZoneScoped;
 		//Calculate alignment from alignment, ubo_alignment, and atom_size_alignment
@@ -189,14 +189,14 @@ namespace fgl::engine::memory
 #ifndef NDEBUG
 		//Check that we haven't lost any memory
 		std::size_t sum { 0 };
-		for ( const auto& free_blocks : this->m_free_blocks )
+		for ( const auto& [ _, free_size ] : this->m_free_blocks )
 		{
-			sum += free_blocks.second;
+			sum += free_size;
 		}
 
-		for ( const auto& allocated : this->m_allocations )
+		for ( const auto& [ _, allocated_size ] : this->m_allocations )
 		{
-			sum += allocated.second;
+			sum += allocated_size;
 		}
 
 		assert( sum == this->size() );
@@ -227,10 +227,7 @@ namespace fgl::engine::memory
 		if ( m_free_blocks.size() <= 1 ) return;
 
 		//Sort the blocks by offset
-		std::sort(
-			m_free_blocks.begin(),
-			m_free_blocks.end(),
-			[]( const auto& a, const auto& b ) -> bool { return a.first < b.first; } );
+		std::ranges::sort( m_free_blocks, []( const auto& a, const auto& b ) -> bool { return a.first < b.first; } );
 
 		auto itter { m_free_blocks.begin() };
 		auto next_block { std::next( itter ) };
@@ -318,7 +315,10 @@ namespace fgl::engine::memory
 
 		if ( m_allocations.size() == 0 ) return total_size;
 
-		for ( const auto& [ offset, size ] : m_allocations ) total_size += size;
+		for ( const auto& [ offset, size ] : m_allocations )
+		{
+			total_size += size;
+		}
 
 		return total_size;
 	}

@@ -55,7 +55,6 @@ namespace fgl::engine
 
 	Material::Material() : m_id( material_id_counter.getID() )
 	{
-		update();
 		getDescriptorSet().bindArray( 0, getDeviceMaterialGPUData().getHandle(), m_id, sizeof( DeviceMaterialData ) );
 		getDescriptorSet().update();
 	}
@@ -131,7 +130,6 @@ namespace fgl::engine
 		{
 			set = material_descriptor_set.create();
 			assert( set->setIDX() == MATERIAL_SET_ID );
-			set->setMaxIDX( 1 );
 			//set->bindUniformBuffer( 0, getDeviceMaterialGPUData() );
 			//set->update();
 			//set = std::make_unique< descriptors::DescriptorSet >( std::move( set_layout.value() ) );

@@ -69,8 +69,6 @@ namespace fgl::engine
 			auto set { gui_descriptor_set.create() };
 			//auto set { std::make_unique< descriptors::DescriptorSet >( GuiInputDescriptorSet::createLayout() ) };
 
-			set->setMaxIDX( 0 );
-
 			// set->bindAttachment(
 			// 0, render_attachments.input_color.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
 

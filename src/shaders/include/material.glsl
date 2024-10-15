@@ -16,7 +16,6 @@ layout (set = 3, binding = 0) uniform Material {
     vec3 emissive_factors;
 } materials[];
 
-
 bool hasColorTexture()
 {
     return materials[in_material_id].color_texture_id != INVALID_TEXTURE_ID;

@@ -31,7 +31,6 @@ namespace fgl::engine
 		  BufferVector( buffer, count, sizeof( T ) )
 		{
 			const auto size_str { fgl::literals::size_literals::to_string( count * sizeof( T ) ) };
-			log::debug( "Creating DeviceVector of size {}", size_str );
 			assert( count != 0 && "BufferSuballocationVector::BufferSuballocationVector() called with count == 0" );
 		}
 

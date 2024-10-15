@@ -26,6 +26,8 @@ namespace fgl::engine::descriptors
 
 		DescriptorIDX m_set_idx;
 
+		std::size_t m_binding_count;
+
 		DescriptorSetLayout(
 			DescriptorIDX set_idx, const std::vector< std::reference_wrapper< const Descriptor > >& descriptors );
 

@@ -15,31 +15,42 @@ namespace fgl::engine
 	{
 		rendering::RenderPassBuilder builder {};
 
-		constexpr std::size_t PositionIndex { 0 };
-		constexpr std::size_t NormalIndex { 1 };
-		constexpr std::size_t AlbedoIndex { 2 };
-		constexpr std::size_t CompositeIndex { 3 };
-		constexpr std::size_t DepthIndex { 4 };
-
-		builder.setAttachmentCount( 5 );
+		builder.setAttachmentCount( 7 );
 
 		// Set formats for each item in the swapchain
+
+		//XYZ in world space
 		auto position { builder.attachment( PositionIndex ) };
 		position.setFormat( vk::Format::eR16G16B16A16Sfloat ); // position
 		position.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal );
 		position.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
 
+		//RGBA
 		auto normal { builder.attachment( NormalIndex ) };
 		normal.setFormat( vk::Format::eR16G16B16A16Sfloat ); // normal
 		normal.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal );
 		normal.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
 
-		auto albedo { builder.attachment( AlbedoIndex ) };
-		albedo.setFormat( vk::Format::eR8G8B8A8Unorm ); // albedo
-		albedo.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal );
-		albedo.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
+		// RGBA
+		auto color { builder.attachment( ColorIndex ) };
+		color.setFormat( vk::Format::eR8G8B8A8Unorm ); // color
+		color.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal );
+		color.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
+
+		// Metallic, Roughness, Occlusion
+		auto metallic_roughness { builder.attachment( MetallicIndex ) };
+		metallic_roughness.setFormat( vk::Format::eR16G16B16A16Sfloat );
+		metallic_roughness.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal );
+		metallic_roughness.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
+
+		// RGB
+		auto emissive { builder.attachment( EmissiveIndex ) };
+		emissive.setFormat( vk::Format::eR16G16B16A16Sfloat );
+		emissive.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal );
+		emissive.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
 
 		auto composite { builder.attachment( CompositeIndex ) };
+		//TODO: For HDR I think this needs to be a bigger range then 8bits per channel.
 		composite.setFormat( vk::Format::eR8G8B8A8Unorm ); // composite
 		composite.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal );
 		composite.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
@@ -51,9 +62,11 @@ namespace fgl::engine
 
 		auto& g_buffer_subpass { builder.createSubpass( 0 ) };
 		g_buffer_subpass.setDepthLayout( DepthIndex, vk::ImageLayout::eDepthStencilAttachmentOptimal );
+		g_buffer_subpass.addRenderLayout( ColorIndex, vk::ImageLayout::eColorAttachmentOptimal );
 		g_buffer_subpass.addRenderLayout( PositionIndex, vk::ImageLayout::eColorAttachmentOptimal );
 		g_buffer_subpass.addRenderLayout( NormalIndex, vk::ImageLayout::eColorAttachmentOptimal );
-		g_buffer_subpass.addRenderLayout( AlbedoIndex, vk::ImageLayout::eColorAttachmentOptimal );
+		g_buffer_subpass.addRenderLayout( MetallicIndex, vk::ImageLayout::eColorAttachmentOptimal );
+		g_buffer_subpass.addRenderLayout( EmissiveIndex, vk::ImageLayout::eColorAttachmentOptimal );
 
 		g_buffer_subpass.addDependencyFromExternal(
 			vk::AccessFlagBits::eDepthStencilAttachmentWrite,
@@ -64,9 +77,11 @@ namespace fgl::engine
 
 		auto& composite_subpass { builder.createSubpass( 1 ) };
 		composite_subpass.addRenderLayout( CompositeIndex, vk::ImageLayout::eColorAttachmentOptimal );
+		composite_subpass.addInputLayout( ColorIndex, vk::ImageLayout::eShaderReadOnlyOptimal );
 		composite_subpass.addInputLayout( PositionIndex, vk::ImageLayout::eShaderReadOnlyOptimal );
 		composite_subpass.addInputLayout( NormalIndex, vk::ImageLayout::eShaderReadOnlyOptimal );
-		composite_subpass.addInputLayout( AlbedoIndex, vk::ImageLayout::eShaderReadOnlyOptimal );
+		composite_subpass.addInputLayout( MetallicIndex, vk::ImageLayout::eShaderReadOnlyOptimal );
+		composite_subpass.addInputLayout( EmissiveIndex, vk::ImageLayout::eShaderReadOnlyOptimal );
 
 		composite_subpass.addDependency(
 			g_buffer_subpass,

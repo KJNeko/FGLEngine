@@ -18,10 +18,14 @@
 namespace fgl::engine::descriptors
 {
 
-	DescriptorSet::DescriptorSet( const vk::raii::DescriptorSetLayout& layout, DescriptorIDX idx ) :
+	DescriptorSet::DescriptorSet(
+		const vk::raii::DescriptorSetLayout& layout, const DescriptorIDX idx, const std::size_t binding_count ) :
 	  m_set_idx( idx ),
-	  m_set( DescriptorPool::getInstance().allocateSet( layout ) )
-	{}
+	  m_set( DescriptorPool::getInstance().allocateSet( layout ) ),
+	  m_binding_count( binding_count )
+	{
+		m_infos.resize( m_binding_count );
+	}
 
 	DescriptorSet::DescriptorSet( DescriptorSet&& other ) noexcept :
 	  m_set_idx( other.m_set_idx ),
@@ -29,9 +33,10 @@ namespace fgl::engine::descriptors
 	  descriptor_writes( std::move( other.descriptor_writes ) ),
 	  m_resources( std::move( other.m_resources ) ),
 	  m_set( std::move( other.m_set ) ),
-	  m_max_idx( other.m_max_idx )
+	  m_binding_count( other.m_binding_count )
 	{
 		other.m_set = VK_NULL_HANDLE;
+		other.m_binding_count = 0;
 	}
 
 	DescriptorSet& DescriptorSet::operator=( DescriptorSet&& other ) noexcept
@@ -42,7 +47,9 @@ namespace fgl::engine::descriptors
 		m_resources = std::move( other.m_resources );
 		m_set = std::move( other.m_set );
 		other.m_set = VK_NULL_HANDLE;
-		m_max_idx = other.m_max_idx;
+		m_binding_count = other.m_binding_count;
+		other.m_binding_count = 0;
+
 		return *this;
 	}
 
@@ -156,13 +163,7 @@ namespace fgl::engine::descriptors
 		//Clear all writes
 		descriptor_writes.clear();
 
-		setMaxIDX( m_max_idx );
-	}
-
-	void DescriptorSet::setMaxIDX( std::uint32_t max_idx )
-	{
-		m_max_idx = max_idx;
-		m_infos.resize( max_idx + 1 );
+		m_infos.resize( m_binding_count );
 	}
 
 	void DescriptorSet::bindAttachment(

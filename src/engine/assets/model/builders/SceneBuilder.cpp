@@ -98,7 +98,7 @@ namespace fgl::engine
 			if ( accessor.type == TINYGLTF_TYPE_SCALAR && T_SIZE >= byte_count )
 			{
 				// If the type is a smaller scalar then we want can still copy the data.
-				log::warn( "Attempting to copy data of size {} into type of size {}", byte_count, T_SIZE );
+				// log::warn( "Attempting to copy data of size {} into type of size {}", byte_count, T_SIZE );
 
 				if constexpr ( std::is_scalar_v< T > )
 				{
@@ -308,8 +308,6 @@ namespace fgl::engine
 	std::vector< glm::vec2 > SceneBuilder::extractUVInfo( const tinygltf::Primitive& prim, const tinygltf::Model& root )
 	{
 		ZoneScoped;
-		log::debug( "Extracting UV info" );
-
 		//TODO: Figure out how I can use multiple textures for various things.
 		if ( !hasAttribute( prim, "TEXCOORD_0" ) ) return {};
 
@@ -328,7 +326,6 @@ namespace fgl::engine
 		extractVertexInfo( const tinygltf::Primitive& prim, const tinygltf::Model& root )
 	{
 		ZoneScoped;
-		log::debug( "Extracting vert info" );
 		const auto pos { extractPositionInfo( prim, root ) };
 
 		std::vector< ModelVertex > verts {};
@@ -355,12 +352,6 @@ namespace fgl::engine
 			verts.emplace_back( vert );
 		}
 
-		log::debug(
-			"Found {} verts. Has UV info: {}, Has normals: {}",
-			verts.size(),
-			has_uv ? "Yes" : "No",
-			has_normals ? "Yes" : "No" );
-
 		return verts;
 	}
 
@@ -372,8 +363,6 @@ namespace fgl::engine
 		{
 			att_str += attrib.first + ", ";
 		}
-
-		log::debug( "Attributes for primitive: [{}]", att_str );
 
 		//TODO: Get normal colors from texture
 		[[maybe_unused]] const bool has_normal { hasAttribute( prim, "NORMAL" ) };
@@ -572,7 +561,19 @@ namespace fgl::engine
 			const auto& metallic_roughness { gltf_material.pbrMetallicRoughness };
 			const auto& pbr_tex_id { metallic_roughness.baseColorTexture.index };
 			material->properties.pbr.color_tex = loadTexture( pbr_tex_id, root );
-			material->properties.pbr.color_factors = convertToVec4( metallic_roughness.baseColorFactor );
+			log::debug(
+				"Color factors: {}, {}, {}, {}",
+				metallic_roughness.baseColorFactor[ 0 ],
+				metallic_roughness.baseColorFactor[ 1 ],
+				metallic_roughness.baseColorFactor[ 2 ],
+				metallic_roughness.baseColorFactor[ 3 ]
+
+			);
+
+			material->properties.pbr.color_factors = { metallic_roughness.baseColorFactor[ 0 ],
+				                                       metallic_roughness.baseColorFactor[ 1 ],
+				                                       metallic_roughness.baseColorFactor[ 2 ],
+				                                       metallic_roughness.baseColorFactor[ 3 ] };
 
 			material->properties.pbr.metallic_roughness_tex =
 				loadTexture( metallic_roughness.metallicRoughnessTexture.index, root );

@@ -75,16 +75,19 @@ namespace fgl::engine
 
 	using MaterialID = std::uint32_t;
 
+#define PAD( id, size ) std::byte pad_##id[ size ];
+
 	//! Material data to be sent to the device
 	// Alignas to prevent the struct from becoming bigger then needed
 	struct DeviceMaterialData
 	{
 		TextureID color_texture_id { constants::INVALID_TEXTURE_ID };
+
+		PAD( 0, 12 );
+
 		glm::vec4 color_factors { 0.0f, 0.0f, 0.0f, 0.0f };
 
 		// Padding to shove metallic_texture_id to offset 32
-		std::byte padd1[ 12 ];
-
 		TextureID metallic_texture_id { constants::INVALID_TEXTURE_ID };
 		float metallic_factor { 0.0f };
 		float roughness_factor { 0.0f };
@@ -100,6 +103,7 @@ namespace fgl::engine
 	};
 
 	static_assert( sizeof( DeviceMaterialData ) == 76 );
+	static_assert( offsetof( DeviceMaterialData, color_factors ) == 16 );
 	static_assert( offsetof( DeviceMaterialData, metallic_texture_id ) == 32 );
 	static_assert( offsetof( DeviceMaterialData, normal_texture_id ) == 44 );
 	static_assert( offsetof( DeviceMaterialData, occlusion_texture_id ) == 52 );

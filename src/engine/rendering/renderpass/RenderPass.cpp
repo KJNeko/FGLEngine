@@ -157,6 +157,7 @@ namespace fgl::engine::rendering
 	{
 		m_builder.setFormat( m_index, format );
 #ifndef NDEBUG
+		assert( !set_format );
 		set_format = true;
 #endif
 	}
@@ -165,6 +166,7 @@ namespace fgl::engine::rendering
 	{
 		m_builder.setLayouts( m_index, image_layout, final_layout );
 #ifndef NDEBUG
+		assert( !set_layout );
 		set_layout = true;
 #endif
 	}
@@ -173,6 +175,7 @@ namespace fgl::engine::rendering
 	{
 		m_builder.setOps( m_index, load_op, store_op );
 #ifndef NDEBUG
+		assert( !set_ops );
 		set_ops = true;
 #endif
 	}

@@ -39,15 +39,13 @@ namespace fgl::engine::descriptors
 
 		vk::raii::DescriptorSet m_set;
 
-		std::uint32_t m_max_idx { 0 };
+		std::size_t m_binding_count;
 
 	  public:
 
 		void reset();
 
 		void update();
-
-		void setMaxIDX( std::uint32_t max_idx );
 
 		VkDescriptorSet operator*() const { return *m_set; }
 
@@ -56,7 +54,7 @@ namespace fgl::engine::descriptors
 		inline DescriptorIDX setIDX() const { return m_set_idx; }
 
 		DescriptorSet() = delete;
-		DescriptorSet( const vk::raii::DescriptorSetLayout& layout, const DescriptorIDX idx );
+		DescriptorSet( const vk::raii::DescriptorSetLayout& layout, const DescriptorIDX idx, std::size_t binding_count );
 
 		//Copy
 		DescriptorSet( const DescriptorSet& other ) = delete;

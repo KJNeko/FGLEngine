@@ -4,29 +4,44 @@
 
 #pragma once
 
-#include "engine/rendering/pipelines/Attachment.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/rendering/SwapChain.hpp"
+#include "engine/rendering/pipelines/Attachment.hpp"
 
 namespace fgl::engine
 {
+
+	constexpr std::size_t ColorIndex { 0 };
+	constexpr std::size_t PositionIndex { 1 };
+	constexpr std::size_t NormalIndex { 2 };
+	constexpr std::size_t MetallicIndex { 3 };
+	constexpr std::size_t EmissiveIndex { 4 };
+
+	constexpr std::size_t CompositeIndex { 5 };
+	constexpr std::size_t DepthIndex { 6 };
 
 	class CameraSwapchain
 	{
 		struct
 		{
-			ColorAttachment< 0 > position { vk::Format::eR16G16B16A16Sfloat };
-			ColorAttachment< 1 > normal { vk::Format::eR16G16B16A16Sfloat };
-			ColorAttachment< 2 > albedo { vk::Format::eR8G8B8A8Unorm };
-			ColorAttachment< 3 > composite { vk::Format::eR8G8B8A8Unorm };
-			DepthAttachment< 4 > depth { SwapChain::findDepthFormat() };
+			ColorAttachment< ColorIndex > color { vk::Format::eR8G8B8A8Unorm };
+			ColorAttachment< PositionIndex > position { vk::Format::eR16G16B16A16Sfloat };
+			ColorAttachment< NormalIndex > normal { vk::Format::eR16G16B16A16Sfloat };
+			ColorAttachment< MetallicIndex > metallic { vk::Format::eR16G16B16A16Sfloat };
+			ColorAttachment< EmissiveIndex > emissive { vk::Format::eR16G16B16A16Sfloat };
+
+			ColorAttachment< CompositeIndex > composite { vk::Format::eR8G8B8A8Unorm };
+			DepthAttachment< DepthIndex > depth { SwapChain::findDepthFormat() };
 		} gbuffer {};
 
 	  public:
 
+		std::vector< std::unique_ptr< Texture > > g_buffer_color_img {};
 		std::vector< std::unique_ptr< Texture > > g_buffer_position_img {};
 		std::vector< std::unique_ptr< Texture > > g_buffer_normal_img {};
-		std::vector< std::unique_ptr< Texture > > g_buffer_albedo_img {};
+		std::vector< std::unique_ptr< Texture > > g_buffer_metallic_img {};
+		std::vector< std::unique_ptr< Texture > > g_buffer_emissive_img {};
+
 		std::vector< std::unique_ptr< Texture > > g_buffer_composite_img {};
 
 	  private:

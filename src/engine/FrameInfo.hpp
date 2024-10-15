@@ -53,12 +53,14 @@ namespace fgl::engine
 
 	constexpr vk::ShaderStageFlags FRAG_STAGE { vk::ShaderStageFlagBits::eFragment };
 
-	constexpr descriptors::AttachmentDescriptor position_descriptor { 0, FRAG_STAGE };
-	constexpr descriptors::AttachmentDescriptor normal_descriptor { 1, FRAG_STAGE };
-	constexpr descriptors::AttachmentDescriptor albedo_descriptor { 2, FRAG_STAGE };
+	constexpr descriptors::AttachmentDescriptor color_descriptor { 0, FRAG_STAGE };
+	constexpr descriptors::AttachmentDescriptor position_descriptor { 1, FRAG_STAGE };
+	constexpr descriptors::AttachmentDescriptor normal_descriptor { 2, FRAG_STAGE };
+	constexpr descriptors::AttachmentDescriptor metallic_descriptor { 3, FRAG_STAGE };
+	constexpr descriptors::AttachmentDescriptor emissive_descriptor { 4, FRAG_STAGE };
 
 	inline static descriptors::DescriptorSetLayout gbuffer_set {
-		0, position_descriptor, normal_descriptor, albedo_descriptor
+		0, color_descriptor, position_descriptor, normal_descriptor, metallic_descriptor, emissive_descriptor
 	};
 
 	constexpr descriptors::AttachmentDescriptor input_descriptor { 0, vk::ShaderStageFlagBits::eFragment };

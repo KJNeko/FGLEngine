@@ -33,6 +33,8 @@ namespace fgl::engine
 		builder.addColorAttachment().finish();
 		builder.addColorAttachment().finish();
 		builder.addColorAttachment().finish();
+		builder.addColorAttachment().finish();
+		builder.addColorAttachment().finish();
 
 		builder.setAttributeDescriptions( SimpleVertex::getAttributeDescriptions() );
 		builder.setBindingDescriptions( SimpleVertex::getBindingDescriptions() );

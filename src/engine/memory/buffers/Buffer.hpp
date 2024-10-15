@@ -10,9 +10,10 @@
 #include <cassert>
 #include <cmath>
 #include <cstdint>
-#include <iostream>
 #include <map>
 #include <memory>
+#include <source_location>
+#include <stacktrace>
 #include <unordered_map>
 
 #include "vma/vma_impl.hpp"
@@ -87,7 +88,9 @@ namespace fgl::engine::memory
 
 		//! @brief List of all active suballocations
 		//! <offset, size>
-		std::map< vk::DeviceSize, vk::DeviceSize > m_allocations {};
+		using AllocationSize = vk::DeviceSize;
+
+		std::map< vk::DeviceSize, AllocationSize > m_allocations {};
 
 		//! @brief list of any free blocks
 		//! @note All blocks are amalgamated to the largest they can expand to.
@@ -123,6 +126,7 @@ namespace fgl::engine::memory
 		/**
 		 * @param memory_size Size of each N
 		 * @param alignment The alignment to use.
+		 * @param source_loc Source location.
 		 * @return
 		 *
 		 * @note Alignment is forced to be at least the size of the largest alignment required by the device.
