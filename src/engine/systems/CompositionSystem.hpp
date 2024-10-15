@@ -6,23 +6,21 @@
 
 #include "concepts.hpp"
 #include "engine/FrameInfo.hpp"
-#include "engine/rendering/pipelines/Shader.hpp"
 
 namespace fgl::engine
 {
-		class Pipeline;
+	class Pipeline;
 
 	class CompositionSystem
 	{
-
 		std::unique_ptr< Pipeline > m_composite_pipeline { nullptr };
 
 		vk::raii::CommandBuffer& setupSystem( FrameInfo& info );
 
 	  public:
 
-		CompositionSystem(  vk::raii::RenderPass& render_pass );
-		~CompositionSystem() = default;
+		CompositionSystem( vk::raii::RenderPass& render_pass );
+		~CompositionSystem();
 
 		void pass( FrameInfo& info );
 	};

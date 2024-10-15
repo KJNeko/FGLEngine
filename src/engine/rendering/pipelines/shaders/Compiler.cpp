@@ -66,7 +66,6 @@ namespace fgl::engine
 	{
 		const std::string_view requsted { requested_source };
 		const std::string_view requster { requesting_source };
-		log::debug( "Source file {} is requesting {}", requster, requsted );
 
 		std::vector< char > file_data {};
 
@@ -77,7 +76,6 @@ namespace fgl::engine
 			file_data.resize( std::filesystem::file_size( path ) );
 
 			ifs.read( file_data.data(), file_data.size() );
-			log::debug( "Found source file {} to be included into {}", requsted, requster );
 		}
 		else
 		{

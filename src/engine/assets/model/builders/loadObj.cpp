@@ -110,7 +110,5 @@ namespace fgl::engine
 			IndexBufferSuballocation( m_index_buffer, std::move( indicies ) ),
 			bounding_box,
 			PrimitiveMode::TRIS );
-
-		log::debug( "{} unique verts loading model {}", unique_verts.size(), filepath );
 	}
 } // namespace fgl::engine

@@ -11,6 +11,7 @@
 #include "engine/memory/buffers/vector/HostVector.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 #include "engine/rendering/pipelines/v2/AttachmentBuilder.hpp"
+#include "engine/rendering/pipelines/v2/Pipeline.hpp"
 #include "engine/rendering/pipelines/v2/PipelineBuilder.hpp"
 
 namespace fgl::engine

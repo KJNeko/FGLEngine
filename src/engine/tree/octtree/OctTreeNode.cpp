@@ -176,8 +176,6 @@ namespace fgl::engine
 		assert( !std::isinf( forward_y ) && !std::isinf( backward_y ) );
 		assert( !std::isinf( top_z ) && !std::isinf( bottom_z ) );
 
-		log::debug( "Splitting node at {}", m_bounds.span() );
-
 		new_nodes[ LEFT ][ FORWARD ][ TOP ] =
 			std::make_unique< OctTreeNode >( WorldCoordinate( left_x, forward_y, top_z ), half_span, this );
 
@@ -241,7 +239,6 @@ namespace fgl::engine
 				return node;
 			}
 
-			log::debug( "Added game object" );
 			objects.emplace_back( std::move( obj ) );
 			return this;
 		}
@@ -327,6 +324,22 @@ namespace fgl::engine
 					m_fit_bounding_box = m_fit_bounding_box.combine( world_bounding_box.alignToWorld() );
 				}
 			}
+		}
+	}
+
+	void OctTreeNode::clear()
+	{
+		if ( std::holds_alternative< OctTreeNodeLeaf >( this->m_node_data ) )
+		{
+			std::get< OctTreeNodeLeaf >( this->m_node_data ).clear();
+		}
+		else if ( std::holds_alternative< OctTreeNodeArray >( this->m_node_data ) )
+		{
+			const auto& node_array { std::get< OctTreeNodeArray >( this->m_node_data ) };
+
+			for ( std::size_t x = 0; x < 2; ++x )
+				for ( std::size_t y = 0; y < 2; ++y )
+					for ( std::size_t z = 0; z < 2; ++z ) node_array[ x ][ y ][ z ]->clear();
 		}
 	}
 

@@ -297,7 +297,6 @@ namespace fgl::engine
 	OrientedBoundingBox< CoordinateSpace::Model > generateBoundingFromVerts( const std::vector< ModelVertex >& verts )
 	{
 		assert( verts.size() > 0 );
-		log::debug( "Generating bounding box for {} verts", verts.size() );
 
 		constexpr auto inf_float { std::numeric_limits< float >::infinity() };
 		// neg (min)

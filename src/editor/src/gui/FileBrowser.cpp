@@ -6,12 +6,12 @@
 
 #include <cmath>
 
+#include "engine/assets/image/ImageView.hpp"
 #include "engine/assets/stores.hpp"
+#include "engine/assets/texture/Texture.hpp"
 #include "engine/debug/logging/logging.hpp"
 #include "engine/filesystem/scanner/FileScanner.hpp"
 #include "engine/filesystem/types.hpp"
-#include "engine/assets/image/ImageView.hpp"
-#include "engine/assets/texture/Texture.hpp"
 #include "safe_include.hpp"
 
 namespace fgl::engine::filesystem
@@ -39,6 +39,14 @@ namespace fgl::engine::filesystem
 		up_texture = getTextureStore().load( "./assets/up.png", vk::Format::eR8G8B8A8Unorm );
 
 		current = std::make_unique< DirInfo >( test_path );
+	}
+
+	void destroyFileGUI()
+	{
+		folder_texture.reset();
+		file_texture.reset();
+		up_texture.reset();
+		file_textures.clear();
 	}
 
 	void FileBrowser::drawGui( [[maybe_unused]] FrameInfo& info )

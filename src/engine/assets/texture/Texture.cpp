@@ -61,7 +61,6 @@ namespace fgl::engine
 	{
 		if ( !ready() )
 		{
-			log::debug( "Unable to draw Image {}. Image not ready", this->getID() );
 			return;
 		}
 
@@ -89,7 +88,6 @@ namespace fgl::engine
 		if ( !ready() )
 		{
 			//TODO: Render placeholder
-			log::warn( "Attempted to render texture {} but texture was not ready!", this->m_texture_id );
 			return ImGui::Button( "No texture :(" );
 		}
 
@@ -142,7 +140,10 @@ namespace fgl::engine
 
 	Texture::~Texture()
 	{
-		if ( m_imgui_set != VK_NULL_HANDLE ) ImGui_ImplVulkan_RemoveTexture( m_imgui_set );
+#if ENABLE_IMGUI
+		if ( ImGui::GetCurrentContext() != nullptr && m_imgui_set != VK_NULL_HANDLE )
+			ImGui_ImplVulkan_RemoveTexture( m_imgui_set );
+#endif
 		texture_id_pool.markUnused( m_texture_id );
 	}
 
@@ -166,11 +167,9 @@ namespace fgl::engine
 	{
 		if ( !this->ready() )
 		{
-			log::debug( "Unable to create ImGui set. Texture was not ready" );
 			return;
 		}
 
-		log::debug( "Created ImGui set for image ID {}", this->getID() );
 		if ( m_imgui_set != VK_NULL_HANDLE ) return;
 
 		auto& view { m_image_view };

@@ -52,8 +52,6 @@ namespace fgl::engine::descriptors
 		info.setBindings( bindings );
 		info.setPNext( &flags_info );
 
-		log::debug( "Created layout with as set = {} and {} bindings", m_set_idx, bindings.size() );
-
 		return Device::getInstance()->createDescriptorSetLayout( info );
 	}
 

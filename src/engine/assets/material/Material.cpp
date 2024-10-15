@@ -93,6 +93,11 @@ namespace fgl::engine
 		material_data = std::make_unique< DeviceVector< DeviceMaterialData > >( buffer, MAX_MATERIAL_COUNT );
 	}
 
+	void destroyMaterialDataVec()
+	{
+		material_data.reset();
+	}
+
 	DeviceVector< DeviceMaterialData >& getDeviceMaterialGPUData()
 	{
 		if ( material_data )

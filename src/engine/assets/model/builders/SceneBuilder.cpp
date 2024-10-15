@@ -252,8 +252,6 @@ namespace fgl::engine
 			++counter;
 		}
 
-		log::debug( "Found materials: {}", str );
-
 		PrimitiveTextures textures {};
 
 		const auto albedo { findParameter( "baseColorTexture" ) };
@@ -501,8 +499,6 @@ namespace fgl::engine
 		const auto mesh { root.meshes[ mesh_idx ] };
 		const auto& primitives { mesh.primitives };
 
-		log::debug( "Mesh idx {} has {} primitives", mesh_idx, primitives.size() );
-
 		std::vector< Primitive > finished_primitives {};
 
 		for ( const auto& prim : primitives )
@@ -510,8 +506,6 @@ namespace fgl::engine
 			Primitive primitive { loadPrimitive( prim, root ) };
 			finished_primitives.emplace_back( std::move( primitive ) );
 		}
-
-		log::debug( "Finished loading model with {} primitives", finished_primitives.size() );
 
 		const auto bounding_box { createModelBoundingBox( finished_primitives ) };
 
@@ -561,14 +555,6 @@ namespace fgl::engine
 			const auto& metallic_roughness { gltf_material.pbrMetallicRoughness };
 			const auto& pbr_tex_id { metallic_roughness.baseColorTexture.index };
 			material->properties.pbr.color_tex = loadTexture( pbr_tex_id, root );
-			log::debug(
-				"Color factors: {}, {}, {}, {}",
-				metallic_roughness.baseColorFactor[ 0 ],
-				metallic_roughness.baseColorFactor[ 1 ],
-				metallic_roughness.baseColorFactor[ 2 ],
-				metallic_roughness.baseColorFactor[ 3 ]
-
-			);
 
 			material->properties.pbr.color_factors = { metallic_roughness.baseColorFactor[ 0 ],
 				                                       metallic_roughness.baseColorFactor[ 1 ],
@@ -605,13 +591,9 @@ namespace fgl::engine
 	{
 		ZoneScoped;
 		const tinygltf::Node& node { root.nodes[ node_idx ] };
-		log::debug( "Handling node: Index:{} Name:\"{}\"", node_idx, node.name );
 
 		const int mesh_idx { node.mesh };
 		const int skin_idx { node.skin };
-
-		log::debug( "Mesh IDX: {}", mesh_idx );
-		log::debug( "Skin IDX: {}", skin_idx );
 
 		GameObject obj { GameObject::createGameObject() };
 

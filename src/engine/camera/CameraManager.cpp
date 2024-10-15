@@ -5,6 +5,7 @@
 #include "CameraManager.hpp"
 
 #include "Camera.hpp"
+#include "CameraRenderer.hpp"
 #include "engine/debug/DEBUG_NAMES.hpp"
 #include "engine/math/literals/size.hpp"
 
@@ -12,18 +13,6 @@ namespace fgl::engine
 {
 
 	using namespace fgl::literals::size_literals;
-
-	inline static std::unique_ptr< CameraManager > camera_manager_instance;
-
-	CameraManager& CameraManager::getInstance()
-	{
-		if ( !camera_manager_instance )
-		{
-			camera_manager_instance = std::unique_ptr< CameraManager >( new CameraManager() );
-		}
-
-		return *camera_manager_instance;
-	}
 
 	std::vector< std::weak_ptr< Camera > >& CameraManager::getCameras()
 	{
@@ -36,17 +25,16 @@ namespace fgl::engine
 	}
 
 	CameraManager::CameraManager() :
+	  m_renderer( std::make_unique< CameraRenderer >() ),
 	  m_data_buffer( 4_KiB, vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eHostVisible )
 	{
-		Camera::initCameraRenderer();
-
 		m_primary_camera = createCamera( { 1920, 1080 } );
 		m_primary_camera->setName( CAMERA_EDITOR_NAME );
 	}
 
 	std::shared_ptr< Camera > CameraManager::createCamera( const vk::Extent2D extent )
 	{
-		std::shared_ptr< Camera > camera { new Camera( extent, m_data_buffer ) };
+		std::shared_ptr< Camera > camera { new Camera( extent, m_data_buffer, m_renderer ) };
 
 		this->cameras.emplace_back( camera );
 
@@ -54,5 +42,7 @@ namespace fgl::engine
 	}
 
 	CameraManager::~CameraManager()
-	{}
+	{
+		m_primary_camera.reset();
+	}
 } // namespace fgl::engine

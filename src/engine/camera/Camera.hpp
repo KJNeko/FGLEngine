@@ -48,6 +48,8 @@ namespace fgl::engine
 	{
 		inline static CameraIDX camera_counter { 0 };
 
+		std::unique_ptr< CameraRenderer >& m_camera_renderer;
+
 		//! True if the camera is active and to be rendered
 		bool m_active { true };
 
@@ -94,7 +96,7 @@ namespace fgl::engine
 		Camera( vk::Extent2D test_extent ) : m_target_extent( test_extent ) {}
 #endif
 
-		Camera( vk::Extent2D extent, memory::Buffer& data_buffer );
+		Camera( vk::Extent2D extent, memory::Buffer& buffer, std::unique_ptr< CameraRenderer >& renderer );
 
 		friend class CameraManager;
 
@@ -175,7 +177,6 @@ namespace fgl::engine
 		//! Performs the render pass for this camera
 		void pass( FrameInfo& frame_info );
 
-		static vk::raii::RenderPass& getRenderpass();
 		CameraSwapchain& getSwapchain() const;
 		void setViewport( const vk::raii::CommandBuffer& command_buffer );
 		void setScissor( const vk::raii::CommandBuffer& command_buffer );

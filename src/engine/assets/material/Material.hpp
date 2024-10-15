@@ -136,5 +136,5 @@ namespace fgl::engine
 
 	DeviceVector< DeviceMaterialData >& getDeviceMaterialGPUData();
 	void initMaterialDataVec( memory::Buffer& buffer );
-
+	void destroyMaterialDataVec();
 } // namespace fgl::engine

@@ -57,7 +57,6 @@ namespace fgl::engine
 
 		for ( const auto& [ set_idx, layout ] : descriptor_set_layouts )
 		{
-			log::debug( "{} populated", set_idx );
 			set_layouts[ set_idx ] = layout;
 		}
 
@@ -70,7 +69,6 @@ namespace fgl::engine
 		addDescriptorSet( const SetID idx, const vk::raii::DescriptorSetLayout& descriptor_set_layout )
 	{
 		FGL_ASSERT( !descriptor_set_layouts.contains( idx ), "Descriptor already set!" );
-		log::debug( "Setting descriptor layout for set idx {}", idx );
 		descriptor_set_layouts.insert( std::make_pair( idx, *descriptor_set_layout ) );
 	}
 

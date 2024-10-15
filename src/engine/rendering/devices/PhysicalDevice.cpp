@@ -36,7 +36,6 @@ namespace fgl::engine
 			// We need at least 1 queue that can do graphics.
 			if ( queue_family.queueFlags & vk::QueueFlagBits::eGraphics )
 			{
-				log::debug( "Graphics capable queue found at idx: {}", idx );
 				has_graphics_queue = true;
 			}
 
@@ -44,7 +43,6 @@ namespace fgl::engine
 			vk::Bool32 can_present { device.getSurfaceSupportKHR( idx, surface ) };
 			if ( can_present == VK_TRUE )
 			{
-				log::debug( "Present capable queue found at idx: {}", idx );
 				has_present_queue = true;
 			}
 

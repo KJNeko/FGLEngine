@@ -22,7 +22,7 @@ int main()
 	engine_ctx.TEMPhookGuiRender( gui::drawMainGUI );
 
 	// Now we need to create the camera for the editor.
-	CameraManager& camera_manager { CameraManager::getInstance() };
+	CameraManager& camera_manager { engine_ctx.cameraManager() };
 
 	auto& editor_camera { camera_manager.getPrimary() };
 

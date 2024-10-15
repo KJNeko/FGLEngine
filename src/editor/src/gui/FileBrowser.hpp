@@ -26,4 +26,6 @@ namespace fgl::engine::filesystem
 		static void drawFolder( const DirInfo& data );
 	};
 
+	void destroyFileGUI();
+
 } // namespace fgl::engine::filesystem

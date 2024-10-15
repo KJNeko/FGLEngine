@@ -6,10 +6,10 @@
 #include "engine/descriptors/Descriptor.hpp"
 #include "engine/memory/buffers/vector/HostVector.hpp"
 #include "engine/rendering/SwapChain.hpp"
-#include "engine/rendering/pipelines/v2/Pipeline.hpp"
 
 namespace fgl::engine
 {
+	class Pipeline;
 	struct VertexLine;
 	struct FrameInfo;
 	struct ModelVertex;

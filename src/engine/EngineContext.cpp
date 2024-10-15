@@ -15,6 +15,7 @@
 #include "assets/material/Material.hpp"
 #include "camera/Camera.hpp"
 #include "camera/CameraManager.hpp"
+#include "camera/CameraRenderer.hpp"
 #include "engine/assets/model/builders/SceneBuilder.hpp"
 #include "engine/assets/transfer/TransferManager.hpp"
 #include "engine/math/Average.hpp"
@@ -104,8 +105,7 @@ namespace fgl::engine
 	void EngineContext::renderCameras( FrameInfo frame_info )
 	{
 		ZoneScoped;
-		auto& camera_manager { CameraManager::getInstance() };
-		for ( auto& current_camera_ptr : camera_manager.getCameras() )
+		for ( auto& current_camera_ptr : m_camera_manager.getCameras() )
 		{
 			if ( current_camera_ptr.expired() ) continue;
 
@@ -125,14 +125,12 @@ namespace fgl::engine
 			const FrameIndex frame_index { m_renderer.getFrameIndex() };
 			const PresentIndex present_idx { m_renderer.getPresentIndex() };
 
-			auto& camera_manager { CameraManager::getInstance() };
-
 			FrameInfo frame_info { frame_index,
 				                   present_idx,
 				                   m_delta_time,
 				                   command_buffer,
 				                   nullptr, // Camera
-				                   camera_manager.getCameras(),
+				                   m_camera_manager.getCameras(),
 				                   // global_descriptor_sets[ frame_index ],
 				                   m_game_objects_root,
 				                   m_renderer.getCurrentTracyCTX(),
@@ -185,6 +183,11 @@ namespace fgl::engine
 	float EngineContext::getWindowAspectRatio()
 	{
 		return m_renderer.getAspectRatio();
+	}
+
+	CameraManager& EngineContext::cameraManager()
+	{
+		return m_camera_manager;
 	}
 
 	void EngineContext::run()
@@ -260,6 +263,9 @@ namespace fgl::engine
 
 	EngineContext::~EngineContext()
 	{
+		// Destroy all objects
+		m_game_objects_root.clear();
+		destroyMaterialDataVec();
 		cleanupImGui();
 	}
 

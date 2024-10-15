@@ -235,6 +235,7 @@ namespace fgl::engine::gui
 	void cleanupImGui()
 	{
 		ZoneScoped;
+		filesystem::destroyFileGUI();
 		ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();

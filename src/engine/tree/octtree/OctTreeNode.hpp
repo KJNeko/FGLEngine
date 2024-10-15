@@ -66,6 +66,7 @@ namespace fgl::engine
 
 		OctTreeNode& operator=( const OctTreeNode& ) = delete;
 		OctTreeNode& operator=( OctTreeNode&& ) = delete;
+		void clear();
 
 	  private:
 

@@ -32,6 +32,9 @@ namespace fgl::engine
 		m_composite_pipeline->setDebugName( "Composition pipeline" );
 	}
 
+	CompositionSystem::~CompositionSystem()
+	{}
+
 	vk::raii::CommandBuffer& CompositionSystem::setupSystem( FrameInfo& info )
 	{
 		auto& command_buffer { info.command_buffer };

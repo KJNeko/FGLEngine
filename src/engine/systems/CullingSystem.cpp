@@ -19,6 +19,21 @@ namespace fgl::engine
 		return enable_culling;
 	}
 
+	CullingSystem::CullingSystem() : m_thread( &CullingSystem::runner, this )
+	{}
+
+	CullingSystem::~CullingSystem()
+	{
+		m_info = {};
+		m_start_sem.release();
+		if ( !m_source.request_stop() )
+		{
+			log::critical( "Oh shit" );
+			std::terminate();
+		}
+		m_thread.join();
+	}
+
 	void CullingSystem::pass( FrameInfo& info )
 	{
 		ZoneScopedN( "Culling pass" );
@@ -41,7 +56,7 @@ namespace fgl::engine
 		while ( !m_stop_token.stop_requested() )
 		{
 			m_start_sem.acquire();
-			pass( *m_info.value() );
+			if ( m_info.has_value() ) pass( *m_info.value() );
 			m_end_sem.release();
 		}
 	}

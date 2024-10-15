@@ -278,8 +278,6 @@ namespace fgl::engine::memory
 		assert( std::get< TransferData::RawData >( transfer_data.m_source ).size() > 0 );
 
 		queue.emplace( std::move( transfer_data ) );
-
-		log::debug( "[TransferManager]: Queue size now {}", queue.size() );
 	}
 
 	TransferManager::TransferManager( Device& device, std::uint64_t buffer_size ) :

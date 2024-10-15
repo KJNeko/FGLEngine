@@ -5,6 +5,7 @@
 #include "GuiSystem.hpp"
 
 #include "engine/FrameInfo.hpp"
+#include "engine/assets/model/SimpleVertex.hpp"
 #include "engine/rendering/pipelines/v2/AttachmentBuilder.hpp"
 #include "engine/rendering/pipelines/v2/Pipeline.hpp"
 #include "engine/rendering/pipelines/v2/PipelineBuilder.hpp"

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Window.hpp"
+#include "camera/CameraManager.hpp"
 #include "clock.hpp"
 #include "engine/math/literals/size.hpp"
 #include "engine/rendering/Renderer.hpp"
@@ -64,6 +65,8 @@ namespace fgl::engine
 		memory::Buffer m_matrix_info_pool;
 		memory::Buffer m_draw_parameter_pool;
 
+		CameraManager m_camera_manager {};
+
 		std::chrono::time_point< fgl::clock > last_tick { fgl::clock::now() };
 		double m_delta_time;
 
@@ -104,6 +107,8 @@ namespace fgl::engine
 
 		Window& getWindow();
 		float getWindowAspectRatio();
+
+		CameraManager& cameraManager();
 
 		void run();
 	};

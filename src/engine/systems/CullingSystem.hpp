@@ -17,7 +17,8 @@ namespace fgl::engine
 		std::thread m_thread;
 
 		std::optional< FrameInfo* > m_info { std::nullopt };
-		std::stop_token m_stop_token {};
+		std::stop_source m_source {};
+		std::stop_token m_stop_token { m_source.get_token() };
 
 		void runner();
 
@@ -30,7 +31,9 @@ namespace fgl::engine
 
 		[[maybe_unused]] vk::raii::CommandBuffer& setupSystem( FrameInfo& info );
 
-		CullingSystem() : m_thread( &CullingSystem::runner, this ) {}
+		CullingSystem();
+
+		~CullingSystem();
 
 		void pass( FrameInfo& info );
 		void startPass( FrameInfo& info );

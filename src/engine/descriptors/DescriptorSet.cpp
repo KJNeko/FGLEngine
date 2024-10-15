@@ -95,8 +95,6 @@ namespace fgl::engine::descriptors
 		write.pImageInfo = VK_NULL_HANDLE;
 		write.pTexelBufferView = VK_NULL_HANDLE;
 
-		log::info( "Bound idx {} to data", array_idx );
-
 		descriptor_writes.push_back( write );
 	}
 

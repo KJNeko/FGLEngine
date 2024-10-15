@@ -79,7 +79,6 @@ namespace fgl::engine::filesystem
 			{
 				std::filesystem::path to_scan { std::move( nested_dirs_to_scan.front() ) };
 				nested_dirs_to_scan.pop();
-				log::debug( "Processed folder: {}", to_scan );
 
 				DirInfo info { to_scan };
 

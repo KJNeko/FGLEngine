@@ -2,11 +2,8 @@
 // Created by kj16609 on 10/9/24.
 //
 
-#include <memory>
-
-#include "engine/assets/model/Primitive.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
-#include "engine/rendering/pipelines/Shader.hpp"
+#include "engine/rendering/pipelines/Pipeline.hpp"
 
 namespace fgl::engine
 
