@@ -5,13 +5,13 @@
 #include "preview.hpp"
 
 #include "engine/FrameInfo.hpp"
+#include "engine/assets/model/Model.hpp"
+#include "engine/assets/model/builders/SceneBuilder.hpp"
 #include "engine/camera/Camera.hpp"
 #include "engine/camera/CameraSwapchain.hpp"
 #include "engine/filesystem/scanner/FileScanner.hpp"
 #include "engine/filesystem/types.hpp"
 #include "engine/gameobjects/components/ModelComponent.hpp"
-#include "engine/assets/model/Model.hpp"
-#include "engine/assets/model/builders/SceneBuilder.hpp"
 #include "engine/rendering/SwapChain.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
 #include "safe_include.hpp"
@@ -178,7 +178,9 @@ namespace fgl::engine::gui
 		drawConfigBar( info, camera, frame_index, current );
 
 		const float ratio { camera.aspectRatio() };
-		const auto imgui_size { ImGui::GetWindowSize() };
+		auto imgui_size { ImGui::GetWindowSize() };
+		imgui_size.x -= 8;
+
 		const auto target_size { calculateTargetSize( ratio, imgui_size ) };
 
 		if ( hotkeys_enabled && ImGui::IsWindowFocused() && ImGui::IsKeyDown( ImGuiKey_LeftAlt ) )

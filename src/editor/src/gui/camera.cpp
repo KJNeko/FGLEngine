@@ -113,6 +113,9 @@ namespace fgl::engine::gui
 			else
 				name = camera.getName();
 
+			ImGui::PushStyleVar( ImGuiStyleVar_ChildBorderSize, 0.0f );
+			ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0.0f, 0.0f ) );
+
 			ImGui::Begin(
 				name.c_str(),
 				nullptr,
@@ -127,6 +130,8 @@ namespace fgl::engine::gui
 			drawRenderingOutputs( info, camera );
 
 			ImGui::End();
+
+			ImGui::PopStyleVar( 2 );
 		}
 	}
 
