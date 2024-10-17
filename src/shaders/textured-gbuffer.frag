@@ -88,4 +88,17 @@ void main()
     float occlusion_scalar = 0.0;
 
     out_metallic = vec3(metallic_scalar, roughness_scalar, occlusion_scalar);
+
+
+    const uint normal_texture_id = materials[mat_id].normal_texture_id;
+    if (normal_texture_id != INVALID_TEXTURE_ID)
+    {
+        vec3 tex_sample = texture(tex[normal_texture_id], in_uv).xyz;
+
+        out_normal = vec4(tex_sample * vec3(materials[mat_id].normal_scale), 1.0);
+    }
+    else
+    {
+        out_normal = vec4(in_normal, 1.0);
+    }
 }

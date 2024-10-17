@@ -4,6 +4,7 @@
 
 #include "CompositionSystem.hpp"
 
+#include "engine/camera/Camera.hpp"
 #include "engine/rendering/pipelines/v2/AttachmentBuilder.hpp"
 #include "engine/rendering/pipelines/v2/Pipeline.hpp"
 #include "engine/rendering/pipelines/v2/PipelineBuilder.hpp"
@@ -18,6 +19,7 @@ namespace fgl::engine
 		PipelineBuilder builder { render_pass, SUBPASS };
 
 		builder.addDescriptorSet( gbuffer_set );
+		builder.addDescriptorSet( Camera::getDescriptorLayout() );
 
 		builder.addColorAttachment().finish();
 
@@ -44,6 +46,7 @@ namespace fgl::engine
 		m_composite_pipeline->bind( command_buffer );
 
 		m_composite_pipeline->bindDescriptor( command_buffer, info.getGBufferDescriptor() );
+		m_composite_pipeline->bindDescriptor( command_buffer, info.getCameraDescriptor() );
 
 		return info.command_buffer;
 	}

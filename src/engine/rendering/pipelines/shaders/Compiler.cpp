@@ -130,6 +130,9 @@ namespace fgl::engine
 		options.AddMacroDefinition( "NEAR_PLANE", std::to_string( constants::NEAR_PLANE ) );
 		options.AddMacroDefinition( "FAR_PLANE", std::to_string( constants::FAR_PLANE ) );
 
+		// Helpful constants
+		options.AddMacroDefinition( "PI", std::to_string( std::numbers::pi_v< float > ) );
+
 		const shaderc_shader_kind kind { getShaderKindFromName( input_name ) };
 
 		const auto preprocessed_source { getInstance().PreprocessGlsl(

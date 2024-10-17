@@ -15,7 +15,7 @@ void main() {
     vec4 position_world = instance_model_matrix * vec4(position, 1.0);
 
     gl_Position = ubo.projection * ubo.view * position_world;
-    out_world_pos = vec3(gl_Position);
+    out_world_pos = vec3(position_world);
 
     mat3 normal_matrix = transpose(inverse(mat3(instance_model_matrix)));
 

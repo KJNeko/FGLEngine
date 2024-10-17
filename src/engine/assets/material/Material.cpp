@@ -29,7 +29,7 @@ namespace fgl::engine
 
 		data.metallic_texture_id = getTexID( pbr.metallic_roughness_tex );
 		data.roughness_factor = pbr.roughness_factor;
-		data.roughness_factor = pbr.roughness_factor;
+		data.metallic_factor = pbr.metallic_factor;
 
 		// Normal
 		data.normal_texture_id = getTexID( normal.texture );

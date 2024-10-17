@@ -57,21 +57,46 @@ namespace fgl::engine
 
 		initMaterialDataVec( m_material_data_pool );
 
+		constexpr auto offset { 2.0f };
+		constexpr std::size_t grid_size { 16 };
+		constexpr float factor_offset { 1.0f / static_cast< float >( grid_size ) };
+
 		/*
-		const std::filesystem::path path {
-			"/home/kj16609/Desktop/Projects/cxx/Mecha/src/assets/khronos-sponza/Sponza.gltf"
-		};
+		for ( std::size_t x = 0; x < grid_size; ++x )
+			for ( std::size_t y = 0; y < grid_size; ++y )
+			{
+				const std::filesystem::path path {
+					"/home/kj16609/Desktop/Projects/cxx/Mecha/src/assets/PBRSphere.gltf"
+				};
 
-		SceneBuilder builder { *m_vertex_buffer, *m_index_buffer };
+				SceneBuilder builder { *m_vertex_buffer, *m_index_buffer };
 
-		builder.loadScene( path );
+				builder.loadScene( path );
 
-		std::vector< GameObject > objs { builder.getGameObjects() };
+				std::vector< GameObject > objs { builder.getGameObjects() };
 
-		for ( auto& obj : objs )
-		{
-			m_game_objects_root.addGameObject( std::move( obj ) );
-		}*/
+				for ( auto& obj : objs )
+				{
+					auto model_components { obj.getComponents< ModelComponent >() };
+
+					for ( const auto& model_component : model_components )
+					{
+						auto& prims = ( *model_component )->m_primitives;
+
+						for ( auto& prim : prims )
+						{
+							auto& pbr { prim.m_material->properties.pbr };
+							pbr.roughness_factor = x * factor_offset;
+							pbr.metallic_factor = y * factor_offset;
+							prim.m_material->update();
+						}
+					}
+
+					obj.getTransform().translation = WorldCoordinate( x * offset, y * offset, 0.0f );
+
+					m_game_objects_root.addGameObject( std::move( obj ) );
+				}
+			}*/
 	}
 
 	static Average< float, 60 * 15 > rolling_ms_average;
@@ -241,21 +266,6 @@ namespace fgl::engine
 		ZoneScoped;
 		std::cout << "Loading game objects" << std::endl;
 		auto command_buffer { Device::getInstance().beginSingleTimeCommands() };
-
-		{
-			ZoneScopedN( "Load phyiscs test" );
-			SceneBuilder builder { *m_vertex_buffer, *m_index_buffer };
-			builder.loadScene( "assets/PhysicsTest.glb" );
-
-			auto objects { builder.getGameObjects() };
-
-			for ( auto& object : objects )
-			{
-				object.addFlag( IS_VISIBLE | IS_ENTITY );
-
-				m_game_objects_root.addGameObject( std::move( object ) );
-			}
-		}
 
 		Device::getInstance().endSingleTimeCommands( command_buffer );
 		log::info( "Finished loading game object" );
