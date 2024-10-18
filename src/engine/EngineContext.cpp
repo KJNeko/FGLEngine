@@ -61,7 +61,6 @@ namespace fgl::engine
 		constexpr std::size_t grid_size { 16 };
 		constexpr float factor_offset { 1.0f / static_cast< float >( grid_size ) };
 
-		/*
 		for ( std::size_t x = 0; x < grid_size; ++x )
 			for ( std::size_t y = 0; y < grid_size; ++y )
 			{
@@ -96,7 +95,7 @@ namespace fgl::engine
 
 					m_game_objects_root.addGameObject( std::move( obj ) );
 				}
-			}*/
+			}
 	}
 
 	static Average< float, 60 * 15 > rolling_ms_average;

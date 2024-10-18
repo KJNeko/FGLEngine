@@ -10,8 +10,7 @@
 #include "engine/math/literals/size.hpp"
 #include "engine/rendering/Renderer.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
-#include "systems/GuiSystem.hpp"
-#include "systems/TerrainSystem.hpp"
+#include "systems/composition/GuiSystem.hpp"
 
 namespace fgl::engine
 {

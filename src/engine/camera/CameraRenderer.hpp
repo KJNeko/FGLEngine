@@ -6,10 +6,10 @@
 
 #include "CameraSwapchain.hpp"
 #include "engine/rendering/SwapChain.hpp"
-#include "engine/systems/CompositionSystem.hpp"
-#include "engine/systems/CullingSystem.hpp"
-#include "engine/systems/EntityRendererSystem.hpp"
-#include "engine/systems/LineDrawer.hpp"
+#include "engine/systems/composition/CompositionSystem.hpp"
+#include "engine/systems/prerender/CullingSystem.hpp"
+#include "engine/systems/render/EntityRendererSystem.hpp"
+#include "engine/systems/render/LineDrawer.hpp"
 
 namespace fgl::engine
 {

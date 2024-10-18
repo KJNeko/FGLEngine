@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "concepts.hpp"
 #include "engine/FrameInfo.hpp"
+#include "engine/systems/concepts.hpp"
 
 namespace fgl::engine
 {
