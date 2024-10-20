@@ -31,7 +31,9 @@ namespace fgl::engine::filesystem
 				nested_dirs_to_scan.push( *itter );
 			}
 			else
-				throw std::runtime_error( "Unknown/Unspported file type" );
+			{
+				log::debug( "Weird file at {}", itter->path().string() );
+			}
 		}
 
 		nested_dirs.reserve( nested_dirs_to_scan.size() );

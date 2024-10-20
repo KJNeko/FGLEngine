@@ -108,7 +108,7 @@ namespace fgl::engine
 
 			for ( ComponentEngineInterface* comp : components )
 			{
-				if ( comp->id() == T::ID ) temp.emplace_back( dynamic_cast< T* >( comp ) );
+				if ( comp->id() == T::ID ) temp.emplace_back( static_cast< T* >( comp ) );
 			}
 
 			return temp;

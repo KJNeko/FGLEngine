@@ -18,8 +18,10 @@ int main()
 
 	// We start by hooking into the imgui rendering.
 	engine_ctx.hookInitImGui( gui::initGui );
-	engine_ctx.hookCleanupImGui( gui::cleanupImGui );
-	engine_ctx.TEMPhookGuiRender( gui::drawMainGUI );
+	engine_ctx.hookPreFrame( gui::startDrawImGui );
+	engine_ctx.hookEarlyFrame( gui::drawImGui );
+	engine_ctx.hookLateFrame( gui::endDrawImGui );
+	engine_ctx.hookDestruction( gui::cleanupImGui );
 
 	// Now we need to create the camera for the editor.
 	CameraManager& camera_manager { engine_ctx.cameraManager() };
@@ -47,9 +49,9 @@ int main()
 
 		// Render step
 		engine_ctx.renderFrame();
-	}
 
-	engine_ctx.run();
+		engine_ctx.finishFrame();
+	}
 
 	return EXIT_SUCCESS;
 }

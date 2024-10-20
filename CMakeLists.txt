@@ -41,10 +41,6 @@ include(dependencies/shaderc)
 
 add_subdirectory(src)
 
-file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/bin/shaders")
-file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/bin/assets")
-
-
 add_custom_command(
 		OUTPUT ${CMAKE_SOURCE_DIR}/compile_commands.json
 		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/compile_commands.json ${CMAKE_SOURCE_DIR}/compile_commands.json

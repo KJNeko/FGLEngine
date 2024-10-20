@@ -26,10 +26,16 @@ namespace fgl::engine::profiling
 		counters.verts_drawn += n;
 	}
 
+	void addInstances( std::size_t n )
+	{
+		counters.instance_count += n;
+	}
+
 	void resetCounters()
 	{
 		counters.verts_drawn = 0;
 		counters.models_draw = 0;
+		counters.instance_count = 0;
 	}
 
 	// In order for resetCounters to work we need to ensure we can just zero the struct.

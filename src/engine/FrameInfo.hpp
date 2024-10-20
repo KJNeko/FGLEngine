@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <vulkan/vulkan.h>
-
 //clang-format: off
 #include <tracy/TracyVulkan.hpp>
 //clang-format: on
@@ -13,13 +11,13 @@
 #include "descriptors/Descriptor.hpp"
 #include "descriptors/DescriptorSetLayout.hpp"
 #include "primitives/Frustum.hpp"
-#include "rendering/pipelines/Pipeline.hpp"
 #include "rendering/types.hpp"
 
 #define MAX_LIGHTS 10
 
 namespace fgl::engine
 {
+	class Pipeline;
 	class GameObject;
 
 	namespace descriptors
@@ -102,7 +100,7 @@ namespace fgl::engine
 		std::vector< std::vector< GameObject >* > in_view_leafs {};
 
 		//! Binds the camera descriptor to the command buffer
-		void bindCamera( internal::Pipeline& pipeline );
+		void bindCamera( Pipeline& pipeline );
 	};
 
 } // namespace fgl::engine

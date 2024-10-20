@@ -15,10 +15,14 @@ namespace fgl::engine
 
 namespace fgl::engine::gui
 {
+	// Setup/Destruction
 	void initGui( const Window& window, const Renderer& renderer );
 	void cleanupImGui();
 
-	void drawMainGUI( FrameInfo& );
+	// Draws
+	void startDrawImGui( FrameInfo& info );
+
+	void drawImGui( FrameInfo& );
 	void drawEntityGUI( FrameInfo& );
 
 	void drawEntityInfo( FrameInfo& );
@@ -31,5 +35,7 @@ namespace fgl::engine::gui
 	void drawCameraOutputs( FrameInfo& info );
 
 	void drawStats( const FrameInfo& info );
+
+	void endDrawImGui( FrameInfo& info );
 
 } // namespace fgl::engine::gui

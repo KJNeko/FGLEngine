@@ -12,11 +12,20 @@ namespace fgl::engine
 {
 
 	PipelineBuilder::PipelineBuilder( vk::raii::RenderPass& renderpass, const std::uint32_t subpass_stage ) :
-	  m_render_pass( renderpass ),
-	  subpass_idx( subpass_stage )
+	  state( std::make_unique< BuilderState >( renderpass, subpass_stage ) )
 	{
 		addDynamicState( vk::DynamicState::eViewport );
 		addDynamicState( vk::DynamicState::eScissor );
+	}
+
+	void PipelineBuilder::setVertexShader( std::shared_ptr< Shader >&& shader )
+	{
+		state->shaders.vertex = std::forward< std::shared_ptr< Shader > >( shader );
+	}
+
+	void PipelineBuilder::setFragmentShader( std::shared_ptr< Shader >&& shader )
+	{
+		state->shaders.fragment = std::forward< std::shared_ptr< Shader > >( shader );
 	}
 
 	descriptors::DescriptorSetLayout empty_set_layout { descriptors::DescriptorSetLayout::createEmptySet() };
@@ -25,13 +34,15 @@ namespace fgl::engine
 	{
 		vk::PipelineLayoutCreateInfo info {};
 
+		if ( state->push_constant.size > 0 ) info.setPushConstantRanges( state->push_constant );
+
 		std::vector< vk::DescriptorSetLayout > set_layouts {};
 
-		set_layouts.reserve( descriptor_set_layouts.size() );
+		set_layouts.reserve( state->descriptor_set_layouts.size() );
 
 		SetID max_set_idx { 0 };
 
-		for ( const auto& [ set_idx, _ ] : descriptor_set_layouts )
+		for ( const auto& [ set_idx, _ ] : state->descriptor_set_layouts )
 		{
 			max_set_idx = std::max( max_set_idx, set_idx );
 		}
@@ -41,8 +52,8 @@ namespace fgl::engine
 
 		for ( std::size_t i = 0; i < set_layouts.size(); ++i )
 		{
-			auto itter { descriptor_set_layouts.find( static_cast< SetID >( i ) ) };
-			if ( itter == descriptor_set_layouts.end() )
+			auto itter { state->descriptor_set_layouts.find( static_cast< SetID >( i ) ) };
+			if ( itter == state->descriptor_set_layouts.end() )
 			{
 				// Could not find it. Empty
 				set_layouts[ i ] = empty_set_layout.layout();
@@ -55,7 +66,7 @@ namespace fgl::engine
 			}
 		}
 
-		for ( const auto& [ set_idx, layout ] : descriptor_set_layouts )
+		for ( const auto& [ set_idx, layout ] : state->descriptor_set_layouts )
 		{
 			set_layouts[ set_idx ] = layout;
 		}
@@ -68,8 +79,8 @@ namespace fgl::engine
 	void PipelineBuilder::
 		addDescriptorSet( const SetID idx, const vk::raii::DescriptorSetLayout& descriptor_set_layout )
 	{
-		FGL_ASSERT( !descriptor_set_layouts.contains( idx ), "Descriptor already set!" );
-		descriptor_set_layouts.insert( std::make_pair( idx, *descriptor_set_layout ) );
+		FGL_ASSERT( !state->descriptor_set_layouts.contains( idx ), "Descriptor already set!" );
+		state->descriptor_set_layouts.insert( std::make_pair( idx, *descriptor_set_layout ) );
 	}
 
 	void PipelineBuilder::addDescriptorSet( descriptors::DescriptorSetLayout& descriptor )
@@ -79,17 +90,24 @@ namespace fgl::engine
 
 	void PipelineBuilder::addDynamicState( vk::DynamicState dynamic_state )
 	{
-		m_dynamic_state.emplace_back( dynamic_state );
+		state->m_dynamic_state.emplace_back( dynamic_state );
 	}
 
-	[[nodiscard]] vk::PipelineColorBlendAttachmentState& PipelineBuilder::Config::addColorAttachment()
+	void PipelineBuilder::setPushConstant( const vk::ShaderStageFlags flags, std::size_t size )
+	{
+		state->push_constant.offset = 0;
+		state->push_constant.size = size;
+		state->push_constant.stageFlags = flags;
+	}
+
+	[[nodiscard]] vk::PipelineColorBlendAttachmentState& PipelineBuilder::BuilderState::addColorAttachment()
 	{
 		color_blend_attachment.emplace_back();
 		color_blend_info.setAttachments( color_blend_attachment );
 		return color_blend_attachment.back();
 	}
 
-	PipelineBuilder::Config::Config()
+	void PipelineBuilder::BuilderState::setDefault()
 	{
 		viewport_info.viewportCount = 1;
 		viewport_info.pViewports = nullptr;
@@ -143,18 +161,18 @@ namespace fgl::engine
 
 	void PipelineBuilder::setTopology( const vk::PrimitiveTopology primitive_topology )
 	{
-		config.assembly_info.topology = primitive_topology;
+		state->assembly_info.topology = primitive_topology;
 	}
 
 	void PipelineBuilder::disableVertexInput()
 	{
-		vertex_input_descriptions.bindings = {};
-		vertex_input_descriptions.attributes = {};
+		state->vertex_input_descriptions.bindings = {};
+		state->vertex_input_descriptions.attributes = {};
 	}
 
 	void PipelineBuilder::disableCulling()
 	{
-		config.rasterization_info.cullMode = vk::CullModeFlagBits::eNone;
+		state->rasterization_info.cullMode = vk::CullModeFlagBits::eNone;
 	}
 
 	AttachmentBuilder PipelineBuilder::addAttachment()
@@ -170,74 +188,91 @@ namespace fgl::engine
 
 	void PipelineBuilder::setBindingDescriptions( const std::vector< vk::VertexInputBindingDescription >& descriptions )
 	{
-		vertex_input_descriptions.bindings = descriptions;
+		state->vertex_input_descriptions.bindings = descriptions;
 	}
 
 	void PipelineBuilder::setAttributeDescriptions( const std::vector< vk::VertexInputAttributeDescription >&
 	                                                    descriptions )
 	{
-		vertex_input_descriptions.attributes = descriptions;
+		state->vertex_input_descriptions.attributes = descriptions;
 	}
 
-	std::unique_ptr< Pipeline > PipelineBuilder::create()
+	vk::raii::Pipeline PipelineBuilder::createFromState( BuilderState& state, vk::raii::PipelineLayout& layout )
 	{
-		// Precheck
-		{
-			FGL_ASSERT( shaders.fragment, "Pipeline requires fragment shader" );
-			FGL_ASSERT( shaders.vertex, "Pipeline requires vertex shader" );
-		}
-
-		vk::raii::PipelineLayout layout { createLayout() };
-
 		vk::GraphicsPipelineCreateInfo info {};
 		info.pNext = VK_NULL_HANDLE;
 		info.flags = {};
 
-		m_stages.clear();
+		state.m_stages.clear();
 
-		if ( shaders.vertex ) m_stages.emplace_back( shaders.vertex->stage_info );
-		if ( shaders.fragment ) m_stages.emplace_back( shaders.fragment->stage_info );
+		if ( state.shaders.vertex ) state.m_stages.emplace_back( state.shaders.vertex->stage_info );
+		if ( state.shaders.fragment ) state.m_stages.emplace_back( state.shaders.fragment->stage_info );
 
-		info.setStages( m_stages );
+		info.setStages( state.m_stages );
 
 		vk::PipelineVertexInputStateCreateInfo vertex_input_info {};
 		vertex_input_info.pNext = VK_NULL_HANDLE;
 		vertex_input_info.flags = {};
-		vertex_input_info.setVertexBindingDescriptions( vertex_input_descriptions.bindings );
-		vertex_input_info.setVertexAttributeDescriptions( vertex_input_descriptions.attributes );
+		vertex_input_info.setVertexBindingDescriptions( state.vertex_input_descriptions.bindings );
+		vertex_input_info.setVertexAttributeDescriptions( state.vertex_input_descriptions.attributes );
 		info.setPVertexInputState( &vertex_input_info );
 
-		info.pInputAssemblyState = &config.assembly_info;
-		info.pTessellationState = &config.tesselation_state_info;
-		info.pViewportState = &config.viewport_info;
-		info.pRasterizationState = &config.rasterization_info;
-		info.pMultisampleState = &config.multisample_info;
-		info.pDepthStencilState = &config.depth_stencil_info;
+		info.pInputAssemblyState = &state.assembly_info;
+		info.pTessellationState = &state.tesselation_state_info;
+		info.pViewportState = &state.viewport_info;
+		info.pRasterizationState = &state.rasterization_info;
+		info.pMultisampleState = &state.multisample_info;
+		info.pDepthStencilState = &state.depth_stencil_info;
 
-		config.color_blend_info.setAttachments( config.color_blend_attachment );
+		state.color_blend_info.setAttachments( state.color_blend_attachment );
 
-		info.pColorBlendState = &config.color_blend_info;
-		info.pDynamicState = &config.dynamic_state_info;
+		info.pColorBlendState = &state.color_blend_info;
+		info.pDynamicState = &state.dynamic_state_info;
 
 		info.layout = layout;
-		info.renderPass = m_render_pass;
-		info.subpass = subpass_idx;
+		info.renderPass = state.m_render_pass;
+		info.subpass = state.m_subpass_stage;
 
 		//TODO: Figure out what these do
 		info.basePipelineHandle = VK_NULL_HANDLE;
 		info.basePipelineIndex = -1;
 
 		vk::PipelineDynamicStateCreateInfo dynamic_state_create_info {};
-		dynamic_state_create_info.setDynamicStates( m_dynamic_state );
+		dynamic_state_create_info.setDynamicStates( state.m_dynamic_state );
 
-		if ( m_dynamic_state.size() > 0 ) info.setPDynamicState( &dynamic_state_create_info );
+		if ( state.m_dynamic_state.size() > 0 ) info.setPDynamicState( &dynamic_state_create_info );
 
 		vk::raii::Pipeline pipeline { Device::getInstance()->createGraphicsPipeline( VK_NULL_HANDLE, info ) };
 
-		return std::make_unique< Pipeline >( std::move( pipeline ), std::move( layout ) );
+		return pipeline;
 	}
 
-	void setGBufferOutputAttachments( PipelineBuilder::Config& config )
+	vk::raii::Pipeline PipelineBuilder::rebuildFromState( BuilderState& state, vk::raii::PipelineLayout& layout )
+	{
+		auto& shaders { state.shaders };
+
+		if ( shaders.vertex ) shaders.vertex->reload();
+		if ( shaders.fragment ) shaders.fragment->reload();
+
+		return createFromState( state, layout );
+	}
+
+	std::unique_ptr< Pipeline > PipelineBuilder::create()
+	{
+		// Precheck
+		{
+			FGL_ASSERT( state->shaders.fragment, "Pipeline requires fragment shader" );
+			FGL_ASSERT( state->shaders.vertex, "Pipeline requires vertex shader" );
+		}
+
+		vk::raii::PipelineLayout layout { createLayout() };
+
+		vk::raii::Pipeline pipeline { createFromState( *state, layout ) };
+
+		return std::make_unique< Pipeline >( std::move( pipeline ), std::move( layout ), std::move( state ) );
+	}
+
+	void setGBufferOutputAttachments( PipelineBuilder::BuilderState& config )
 	{
 		// In order for the pipeline to output, We need to ensure that we have enough attachments for the entire gbuffer (3)
 

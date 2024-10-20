@@ -14,6 +14,7 @@ namespace fgl::engine
 
 	struct Shader
 	{
+		std::filesystem::path m_path;
 		std::vector< std::byte > shader_data;
 		vk::ShaderModuleCreateInfo module_create_info;
 		vk::PipelineShaderStageCreateInfo stage_info;
@@ -44,6 +45,9 @@ namespace fgl::engine
 		{
 			return loadShader( path, vk::ShaderStageFlagBits::eFragment );
 		}
+
+		//! Reloads the shader from disk
+		void reload();
 	};
 
 } // namespace fgl::engine

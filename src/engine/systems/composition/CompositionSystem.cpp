@@ -4,6 +4,8 @@
 
 #include "CompositionSystem.hpp"
 
+#include "Control.hpp"
+#include "editor/src/gui/safe_include.hpp"
 #include "engine/camera/Camera.hpp"
 #include "engine/rendering/pipelines/v2/AttachmentBuilder.hpp"
 #include "engine/rendering/pipelines/v2/Pipeline.hpp"
@@ -22,6 +24,8 @@ namespace fgl::engine
 		builder.addDescriptorSet( Camera::getDescriptorLayout() );
 
 		builder.addColorAttachment().finish();
+
+		builder.setPushConstant( vk::ShaderStageFlagBits::eFragment, sizeof( CompositionControl ) );
 
 		builder.setVertexShader( Shader::loadVertex( "shaders/fullscreen.vert" ) );
 		builder.setFragmentShader( Shader::loadFragment( "shaders/composition.frag" ) );
@@ -47,6 +51,14 @@ namespace fgl::engine
 
 		m_composite_pipeline->bindDescriptor( command_buffer, info.getGBufferDescriptor() );
 		m_composite_pipeline->bindDescriptor( command_buffer, info.getCameraDescriptor() );
+
+		ImGui::Begin( "Composition" );
+
+		ImGui::InputInt( "Selection", &m_control.flags );
+
+		ImGui::End();
+
+		m_composite_pipeline->pushConstant( command_buffer, vk::ShaderStageFlagBits::eFragment, m_control );
 
 		return info.command_buffer;
 	}

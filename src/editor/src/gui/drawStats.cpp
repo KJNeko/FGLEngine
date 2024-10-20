@@ -3,6 +3,7 @@
 
 #include "core.hpp"
 #include "engine/debug/profiling/counters.hpp"
+#include "engine/flags.hpp"
 #include "engine/math/literals/size.hpp"
 #include "engine/memory/buffers/Buffer.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
@@ -102,9 +103,7 @@ namespace fgl::engine::gui
 		const auto& counters { profiling::getCounters() };
 		ImGui::Text( "Models drawn: %zu", counters.models_draw );
 		ImGui::Text( "Verts drawn: %zu", counters.verts_drawn );
-
-		//TODO: This should likely be moved to the just before we start rendering again.
-		profiling::resetCounters();
+		ImGui::Text( "Draw instances: %zu", counters.instance_count );
 
 		if ( ImGui::CollapsingHeader( "Memory" ) )
 		{
@@ -112,6 +111,11 @@ namespace fgl::engine::gui
 		}
 
 		imGuiOctTreeSettings( info );
+
+		if ( ImGui::Button( "Reload shaders" ) )
+		{
+			flags::triggerShaderReload();
+		}
 
 		ImGui::End();
 	}

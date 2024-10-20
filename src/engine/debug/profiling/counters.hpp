@@ -12,12 +12,14 @@ namespace fgl::engine::profiling
 	{
 		std::size_t verts_drawn;
 		std::size_t models_draw;
+		std::size_t instance_count;
 	};
 
 	Counters& getCounters();
 
 	void addModelDrawn( std::size_t n = 1 );
 	void addVertexDrawn( std::size_t n );
+	void addInstances( std::size_t n = 1 );
 
 	void resetCounters();
 

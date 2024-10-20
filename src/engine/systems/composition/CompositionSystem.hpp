@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Control.hpp"
 #include "engine/FrameInfo.hpp"
 #include "engine/systems/concepts.hpp"
 
@@ -16,6 +17,8 @@ namespace fgl::engine
 		std::unique_ptr< Pipeline > m_composite_pipeline { nullptr };
 
 		vk::raii::CommandBuffer& setupSystem( FrameInfo& info );
+
+		CompositionControl m_control {};
 
 	  public:
 

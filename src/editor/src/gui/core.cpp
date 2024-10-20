@@ -15,9 +15,10 @@
 #pragma GCC diagnostic pop
 
 #include "FileBrowser.hpp"
-#include "engine/debug/DEBUG_NAMES.hpp"
-#include "engine/descriptors/DescriptorPool.hpp"
 #include "engine/assets/model/Model.hpp"
+#include "engine/debug/DEBUG_NAMES.hpp"
+#include "engine/debug/profiling/counters.hpp"
+#include "engine/descriptors/DescriptorPool.hpp"
 #include "engine/rendering/Renderer.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
 #include "gui_window_names.hpp"
@@ -86,6 +87,11 @@ namespace fgl::engine::gui
 
 		//ImGui::UpdatePlatformWindows();
 		//ImGui::RenderPlatformWindowsDefault();
+	}
+
+	void endDrawImGui( FrameInfo& info )
+	{
+		endImGui( info.command_buffer );
 	}
 
 	inline void prepareDock( ImGuiID& primary_id )
@@ -161,11 +167,15 @@ namespace fgl::engine::gui
 		// ImGui::PopStyleVar();
 	}
 
-	void drawMainGUI( FrameInfo& info )
+	void startDrawImGui( [[maybe_unused]] FrameInfo& info )
+	{
+		beginImGui();
+		profiling::resetCounters();
+	}
+
+	void drawImGui( FrameInfo& info )
 	{
 		ZoneScoped;
-		beginImGui();
-
 		// ImGui::ShowDemoWindow();
 
 		drawDock();
@@ -176,8 +186,6 @@ namespace fgl::engine::gui
 		drawFilesystemGUI( info );
 
 		drawStats( info );
-
-		endImGui( info.command_buffer );
 	}
 
 	static GameObject* selected_object { nullptr };

@@ -19,6 +19,13 @@ namespace fgl::engine
 
 	using namespace fgl::literals::size_literals;
 
+	inline void dummyFrameInfoFunc( [[maybe_unused]] FrameInfo& frame_info )
+	{
+		return;
+	}
+
+	using FrameHookFunc = std::function< void( FrameInfo& ) >;
+
 	class EngineContext
 	{
 		static constexpr int DEFAULT_WIDTH { 1920 };
@@ -51,9 +58,19 @@ namespace fgl::engine
 		// SubPass 0
 		GuiSystem m_gui_system { m_renderer.getSwapChainRenderPass() };
 
-		// Temp function
-		std::function< void( FrameInfo& ) > renderGui { []( [[maybe_unused]] FrameInfo& ) noexcept {} };
-		std::function< void() > cleanupImGui { []() noexcept {} };
+		// Functions BEFORE a frame is started
+		std::vector< FrameHookFunc > pre_frame_hooks {};
+
+		//! TODO: Make this so we can tell at what stage we should be doing something
+		std::vector< FrameHookFunc > early_render_hooks {};
+		std::vector< FrameHookFunc > render_hooks {};
+		std::vector< FrameHookFunc > late_render_hooks {};
+
+		// Functions to call upon the frame ending (This happens AFTER the GPU call is dispatched)
+		std::vector< FrameHookFunc > post_frame_hooks {};
+
+		//! Called before the context is destroyed
+		std::vector< std::function< void() > > destruction_hooks;
 
 		// Memory pool for shader uniforms.
 		memory::Buffer m_ubo_buffer_pool;
@@ -69,8 +86,6 @@ namespace fgl::engine
 		std::chrono::time_point< fgl::clock > last_tick { fgl::clock::now() };
 		double m_delta_time;
 
-		void loadGameObjects();
-
 	  public:
 
 		FGL_FORCE_INLINE_FLATTEN void hookInitImGui( const std::function< void( Window&, Renderer& ) >& func )
@@ -78,9 +93,17 @@ namespace fgl::engine
 			func( m_window, m_renderer );
 		}
 
-		FGL_FORCE_INLINE_FLATTEN void hookCleanupImGui( const std::function< void() >& func ) { cleanupImGui = func; }
+		void hookPreFrame( const FrameHookFunc& func ) { pre_frame_hooks.emplace_back( func ); }
 
-		void TEMPhookGuiRender( const std::function< void( FrameInfo& ) >& func ) { renderGui = func; }
+		void hookEarlyFrame( const FrameHookFunc& func ) { early_render_hooks.emplace_back( func ); }
+
+		void hookFrame( const FrameHookFunc& func ) { render_hooks.emplace_back( func ); }
+
+		void hookLateFrame( const FrameHookFunc& func ) { late_render_hooks.emplace_back( func ); }
+
+		void hookPostFrame( const FrameHookFunc& func ) { post_frame_hooks.emplace_back( func ); }
+
+		void hookDestruction( const std::function< void() >& func ) { destruction_hooks.emplace_back( func ); }
 
 	  public:
 
@@ -104,12 +127,13 @@ namespace fgl::engine
 
 		void renderFrame();
 
+		//! Runs any post-frame processes
+		void finishFrame();
+
 		Window& getWindow();
 		float getWindowAspectRatio();
 
 		CameraManager& cameraManager();
-
-		void run();
 	};
 
 } // namespace fgl::engine

@@ -45,7 +45,8 @@ namespace fgl::engine
 	}
 
 	Shader::Shader( const std::filesystem::path& path, const vk::PipelineShaderStageCreateInfo& info ) :
-	  shader_data( loadData( path ) ),
+	  m_path( path ),
+	  shader_data( loadData( m_path ) ),
 	  module_create_info( createModuleInfo() ),
 	  stage_info( info ),
 	  shader_module( Device::getInstance()->createShaderModule( module_create_info ) )
@@ -67,6 +68,15 @@ namespace fgl::engine
 		auto shader { std::make_shared< Shader >( path, stage_info ) };
 
 		return shader;
+	}
+
+	void Shader::reload()
+	{
+		log::debug( "Reloading shader at {}", m_path.string() );
+		shader_data = loadData( m_path );
+		module_create_info = createModuleInfo();
+		shader_module = Device::getInstance()->createShaderModule( module_create_info );
+		stage_info.module = shader_module;
 	}
 
 } // namespace fgl::engine

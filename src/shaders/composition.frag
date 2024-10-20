@@ -17,6 +17,10 @@ layout (set = 1, binding = 0) uniform CameraInfo {
     mat4 inverse_view;
 } camera_info;
 
+layout(push_constant) uniform Constants {
+    uint flags;
+} push;
+
 //TODO: uniform binding with sun information
 
 vec3 getCameraPosition()
@@ -55,9 +59,10 @@ float gaSchlickGGX(float cosLi, float cosLo, float roughness)
     return gaSchlickG1(cosLi, k) * gaSchlickG1(cosLo, k);
 }
 
+//TODO: Apparently this can be gotten from a texture instead?
 vec3 schlick(vec3 F0, float cosTheta)
 {
-    return F0 + (vec3(1.0) - F0) * pow(1.0 - cosTheta, 5.0);
+    return F0 + (vec3(1.0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
 void main()
@@ -96,28 +101,77 @@ void main()
     vec3 direct_lighting = vec3(0.0);
 
     // Do this for each light
-    {
-        vec3 Li = -sun_dir;
-        vec3 Lradiance = vec3(1.0);// color?
+    //    {
+    vec3 Li = -sun_dir;
+    vec3 Lradiance = vec3(1.0);// color?
 
-        // half vector
-        vec3 Lh = normalize(Li + Lo);
+    // half vector
+    vec3 Lh = normalize(Li + Lo);
 
-        float cosLi = max(dot(N, Li), 0.0);
-        float cosLh = max(dot(N, Lh), 0.0);
+    float cosLi = max(dot(N, Li), 0.0);
+    float cosLh = max(dot(N, Lh), 0.0);
 
-        vec3 F = schlick(F0, max(dot(Lh, Lo), 0.0));
-        float D = ndfGGX(cosLh, roughness_value);
-        float G = gaSchlickGGX(cosLi, cosLo, roughness_value);
+    vec3 F = schlick(F0, max(dot(Lh, Lo), 0.0));
+    float D = ndfGGX(cosLh, roughness_value);
+    float G = gaSchlickGGX(cosLi, cosLo, roughness_value);
 
-        vec3 kb = mix(vec3(1.0) - F, vec3(0.0), metallic_value);
-        vec3 diffuse_BRDF = kb * albedo;
-        vec3 specular_BRDF = (F * D * G) / max(0.04, 4.0 * cosLi * cosLo);
+    vec3 kb = mix(vec3(1.0) - F, vec3(0.0), metallic_value);
+    vec3 diffuse_BRDF = kb * albedo;
+    vec3 specular_BRDF = (F * D * G) / max(0.04, 4.0 * cosLi * cosLo);
 
-        direct_lighting = (diffuse_BRDF + specular_BRDF) * Lradiance * cosLi;
-    }
+    direct_lighting = (diffuse_BRDF + specular_BRDF) * Lradiance * cosLi;
+    //    }
 
     vec3 ambient_lighting = albedo * 0.1;
 
-    out_color = vec4(direct_lighting + ambient_lighting, 1.0);
+    switch (push.flags)
+    {
+        case 0:
+        out_color = vec4(direct_lighting + ambient_lighting, 1.0);
+        return;
+        case 1:
+        out_color = vec4(Lo, 1.0);
+        return;
+        case 2:
+        out_color = vec4(N, 1.0);
+        return;
+        case 3:
+        out_color = vec4(cosLo, 0.0, 0.0, 1.0);
+        return;
+        case 4:
+        out_color = vec4(F0, 1.0);
+        return;
+        case 5:
+        out_color = vec4(direct_lighting, 1.0);
+        return;
+        case 6:
+        out_color = vec4(ambient_lighting, 1.0);
+        return;
+        case 7:
+        out_color = vec4(Lh, 1.0);
+        return;
+        case 8:
+        out_color = vec4(cosLi, 0.0, 0.0, 1.0);
+        return;
+        case 9:
+        out_color = vec4(cosLh, 0.0, 0.0, 1.0);
+        return;
+        case 10:
+        out_color = vec4(F, 1.0);
+        return;
+        case 11:
+        out_color = vec4(D, 0.0, 0.0, 1.0);
+        return;
+        case 12:
+        out_color = vec4(G, 0.0, 0.0, 1.0);
+        return;
+        case 13:
+        out_color = vec4(kb, 1.0);
+        return;
+        case 14:
+        out_color = vec4(max(dot(Lh, Lo), 0.0));
+        return;
+    }
+
+    out_color = vec4(0.0, 0.0, 0.0, 1.0);
 }

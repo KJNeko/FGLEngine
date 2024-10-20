@@ -15,12 +15,6 @@ namespace fgl::engine
 
 	GuiSystem::GuiSystem( vk::raii::RenderPass& render_pass )
 	{
-		PipelineConfigInfo info { render_pass };
-		PipelineConfigInfo::addColorAttachmentConfig( info );
-		PipelineConfigInfo::disableVertexInput( info );
-		PipelineConfigInfo::disableCulling( info );
-		info.subpass = 0;
-
 		//descriptors::DescriptorSetCollection descriptors { gui_descriptor_set };
 
 		PipelineBuilder builder { render_pass, 0 };
@@ -56,9 +50,6 @@ namespace fgl::engine
 		auto& command_buffer { setupSystem( info ) };
 
 		command_buffer.draw( 3, 1, 0, 0 );
-
-		//Handle GUI
-		// gui::drawMainGUI( info );
 	}
 
 } // namespace fgl::engine

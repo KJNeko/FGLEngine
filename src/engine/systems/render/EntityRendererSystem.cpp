@@ -164,6 +164,7 @@ namespace fgl::engine
 		m_textured_pipeline->bindDescriptor( command_buffer, Material::getDescriptorSet() );
 
 		profiling::addModelDrawn( model_matricies.size() );
+		profiling::addInstances( draw_commands.size() );
 
 		auto& model_matrix_info_buffer { m_textured_model_matrix_info_buffers[ info.frame_idx ] };
 		model_matrix_info_buffer =

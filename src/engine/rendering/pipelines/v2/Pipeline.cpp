@@ -6,17 +6,32 @@
 
 #include "PipelineBuilder.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
+#include "engine/flags.hpp"
 
 namespace fgl::engine
 {
 
-	Pipeline::Pipeline( vk::raii::Pipeline&& pipeline_in, vk::raii::PipelineLayout&& layout ) :
+	vk::raii::Pipeline Pipeline::rebuildPipeline()
+	{
+		return PipelineBuilder::rebuildFromState( *m_builder_state, m_layout );
+	}
+
+	Pipeline::Pipeline(
+		vk::raii::Pipeline&& pipeline_in,
+		vk::raii::PipelineLayout&& layout,
+		std::unique_ptr< PipelineBuilder::BuilderState >&& builder_state ) :
 	  m_pipeline( std::move( pipeline_in ) ),
-	  m_layout( std::move( layout ) )
+	  m_layout( std::move( layout ) ),
+	  m_builder_state( std::forward< std::unique_ptr< PipelineBuilder::BuilderState > >( builder_state ) )
 	{}
 
 	void Pipeline::bind( vk::raii::CommandBuffer& cmd_buffer )
 	{
+		if ( flags::shouldReloadShaders() )
+		{
+			m_pipeline = rebuildPipeline();
+		}
+
 		cmd_buffer.bindPipeline( vk::PipelineBindPoint::eGraphics, m_pipeline );
 	}
 

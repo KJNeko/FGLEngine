@@ -10,6 +10,7 @@
 
 #include "engine/assets/model/Model.hpp"
 #include "engine/debug/drawers.hpp"
+#include "engine/debug/profiling/counters.hpp"
 #include "engine/gameobjects/components/ModelComponent.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
 
@@ -86,6 +87,8 @@ namespace fgl::engine
 						//debug::drawBoundingBox( matrix * primitive.m_bounding_box );
 
 						assert( primitive.m_index_buffer.size() > 0 );
+
+						profiling::addVertexDrawn( primitive.m_index_buffer.size() );
 
 						if ( auto itter = draw_pairs.find( key ); itter != draw_pairs.end() )
 						{

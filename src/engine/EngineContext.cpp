@@ -18,6 +18,7 @@
 #include "camera/CameraRenderer.hpp"
 #include "engine/assets/model/builders/SceneBuilder.hpp"
 #include "engine/assets/transfer/TransferManager.hpp"
+#include "engine/flags.hpp"
 #include "engine/math/Average.hpp"
 #include "engine/math/literals/size.hpp"
 #include "engine/rendering/pipelines/v2/Pipeline.hpp"
@@ -144,6 +145,7 @@ namespace fgl::engine
 	void EngineContext::renderFrame()
 	{
 		ZoneScoped;
+
 		if ( auto& command_buffer = m_renderer.beginFrame(); *command_buffer )
 		{
 			const FrameIndex frame_index { m_renderer.getFrameIndex() };
@@ -165,26 +167,26 @@ namespace fgl::engine
 				                   // m_renderer.getSwapChain().getInputDescriptor( present_idx ),
 				                   this->m_renderer.getSwapChain() };
 
+			{
+				ZoneScopedN( "Pre frame hooks" );
+				for ( const auto& hook : pre_frame_hooks ) hook( frame_info );
+			}
+
 			TracyVkCollect( frame_info.tracy_ctx, *command_buffer );
 
 			//TODO: Setup semaphores to make this pass not always required.
 			memory::TransferManager::getInstance().recordOwnershipTransferDst( command_buffer );
 
+			for ( const auto& hook : early_render_hooks ) hook( frame_info );
 			//TODO: Add some way of 'activating' cameras. We don't need to render cameras that aren't active.
 			renderCameras( frame_info );
-
-			// m_renderer.clearInputImage( command_buffer );
-
-			// camera_manager.getPrimary()
-			// .copyOutput( command_buffer, frame_index, m_renderer.getSwapChain().getInputImage( present_idx ) );
+			for ( const auto& hook : render_hooks ) hook( frame_info );
 
 			m_renderer.beginSwapchainRendererPass( command_buffer );
 
 			m_gui_system.pass( frame_info );
 
-			// TODO: Implement some way we can record extra things into the command buffer during this stage.
-			// We'll probably just use multiple command buffers and allow the caller to pass some in with flags on where to put them
-			renderGui( frame_info );
+			for ( const auto& hook : late_render_hooks ) hook( frame_info );
 
 			m_renderer.endSwapchainRendererPass( command_buffer );
 
@@ -192,12 +194,22 @@ namespace fgl::engine
 
 			memory::TransferManager::getInstance().dump();
 
+			{
+				ZoneScopedN( "Post frame hooks" );
+				for ( const auto& hook : post_frame_hooks ) hook( frame_info );
+			}
+
+			flags::resetFlags();
+
 			FrameMark;
 		}
 
 		//Trash handling
 		descriptors::deleteQueuedDescriptors();
 	}
+
+	void EngineContext::finishFrame()
+	{}
 
 	Window& EngineContext::getWindow()
 	{
@@ -214,68 +226,13 @@ namespace fgl::engine
 		return m_camera_manager;
 	}
 
-	void EngineContext::run()
-	{
-		TracyCZoneN( TRACY_PrepareEngine, "Inital Run", true );
-		std::cout << "Starting main loop run" << std::endl;
-
-		auto viewer { GameObject::createGameObject() };
-
-		viewer.getTransform().translation = WorldCoordinate( constants::WORLD_CENTER + glm::vec3( 0.0f, 0.0f, 2.5f ) );
-
-		KeyboardMovementController camera_controller {};
-
-		auto current_time { fgl::clock::now() };
-
-		auto previous_frame_start { fgl::clock::now() };
-
-		camera_controller.moveInPlaneXZ( m_window.window(), 0.0, viewer );
-
-		TracyCZoneEnd( TRACY_PrepareEngine );
-
-		while ( good() )
-		{
-			memory::TransferManager::getInstance().submitNow();
-
-			{
-				ZoneScopedN( "Poll" );
-				glfwPollEvents();
-			}
-
-			const auto new_time { fgl::clock::now() };
-
-			auto delta_time { std::chrono::duration< float >( new_time - current_time ).count() };
-
-			current_time = new_time;
-			delta_time = glm::min( delta_time, MAX_DELTA_TIME );
-
-			camera_controller.moveInPlaneXZ( m_window.window(), delta_time, viewer );
-
-			renderFrame();
-
-			using namespace std::chrono_literals;
-			//			std::this_thread::sleep_for( 13ms );
-		}
-
-		Device::getInstance().device().waitIdle();
-	}
-
-	void EngineContext::loadGameObjects()
-	{
-		ZoneScoped;
-		std::cout << "Loading game objects" << std::endl;
-		auto command_buffer { Device::getInstance().beginSingleTimeCommands() };
-
-		Device::getInstance().endSingleTimeCommands( command_buffer );
-		log::info( "Finished loading game object" );
-	}
-
 	EngineContext::~EngineContext()
 	{
 		// Destroy all objects
 		m_game_objects_root.clear();
 		destroyMaterialDataVec();
-		cleanupImGui();
+
+		for ( const auto& hook : destruction_hooks ) hook();
 	}
 
 	bool EngineContext::good()
