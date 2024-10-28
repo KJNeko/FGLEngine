@@ -72,6 +72,8 @@ namespace fgl::engine
 		{
 			return coord - *this;
 		}
+
+		NormalVector normalize() const;
 	};
 
 	inline Vector operator-( const Vector vec )

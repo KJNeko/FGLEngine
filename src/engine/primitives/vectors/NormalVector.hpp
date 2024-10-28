@@ -11,6 +11,7 @@
 #pragma GCC diagnostic pop
 
 #include "engine/primitives/CoordinateSpace.hpp"
+#include "engine/primitives/Rotation.hpp"
 
 namespace fgl::engine
 {

@@ -5,7 +5,9 @@
 #pragma once
 
 #include <ostream>
+#include <vector>
 
+#include "engine/primitives/boxes/BoundingBox.hpp"
 #include "engine/primitives/planes/PointPlane.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 #include "vectors/Vector.hpp"
@@ -89,38 +91,11 @@ namespace fgl::engine
 		WorldCoordinate getPosition() const { return m_position; }
 
 		//! Tests if a point is inside of the frustum
-		bool pointInside( const WorldCoordinate coord ) const
-		{
-			static_assert(
-				CoordinateSpace::World == CoordinateSpace::World,
-				"pointInside can only be called on World coordinate Frustums" );
-
-			//Ensure the point we are not trying to test a NaN point
-			assert( coord.x != std::numeric_limits< decltype( coord.x ) >::quiet_NaN() );
-			assert( coord.y != std::numeric_limits< decltype( coord.y ) >::quiet_NaN() );
-			assert( coord.z != std::numeric_limits< decltype( coord.z ) >::quiet_NaN() );
-
-			//TODO: This is a biased approach.
-			// Approaches for non-biased:
-			// We can either make this non-biased by using a projection from distance shot down the FORWARD vector
-			// Or we can use SIMD to check all the planes at once.
-
-			return near.isForward( coord ) && far.isForward( coord ) && bottom.isForward( coord )
-			    && top.isForward( coord ) && right.isForward( coord ) && left.isForward( coord );
-		}
-
-		//! Returns true if the frustum intersects type T
-		template < typename T >
-		bool intersects( const T& t ) const;
-
-		//! Itterates over all items in the array given, Returns false if **ANY** fail
-		template < typename T, std::size_t N >
-		bool intersects( const std::array< T, N >& ts ) const
-		{
-			for ( const auto& t : ts )
-				if ( !intersects( t ) ) return false;
-			return true;
-		}
+		bool containsPoint( const WorldCoordinate coord ) const;
+		//! Returns true if ANY point is inside the frustum
+		bool containsAnyPoint( const std::vector< WorldCoordinate >& coords ) const;
+		//! Used for bounding box tests
+		bool containsAnyPoint( const std::array< WorldCoordinate, interface::BoundingBox::POINT_COUNT >& coords ) const;
 
 		std::array< WorldCoordinate, 4 * 2 > points() const;
 		std::array< LineSegment< CoordinateSpace::World >, ( ( 4 * 2 ) / 2 ) * 3 > lines() const;

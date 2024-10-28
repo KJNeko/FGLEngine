@@ -6,8 +6,6 @@
 
 #include <tracy/Tracy.hpp>
 
-#include <bitset>
-
 #include "engine/gameobjects/GameObject.hpp"
 #include "engine/primitives/boxes/AxisAlignedBoundingCube.hpp"
 

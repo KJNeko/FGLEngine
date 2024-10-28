@@ -12,6 +12,7 @@
 #include "engine/debug/drawers.hpp"
 #include "engine/debug/profiling/counters.hpp"
 #include "engine/gameobjects/components/ModelComponent.hpp"
+#include "engine/math/intersections.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
 
 namespace fgl::engine
@@ -63,7 +64,7 @@ namespace fgl::engine
 							matrix * primitive.getBoundingBox()
 						};
 
-						if ( !frustum.intersects( world_bounding_box ) ) continue;
+						if ( !intersects( frustum, world_bounding_box ) ) continue;
 
 						//assert( primitive.m_texture );
 						const ModelMatrixInfo matrix_info { .model_matrix = matrix,

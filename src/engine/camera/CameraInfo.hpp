@@ -4,11 +4,8 @@
 
 #pragma once
 
-
-
 namespace fgl::engine
 {
-
 
 	struct CameraInfo
 	{
@@ -16,6 +13,5 @@ namespace fgl::engine
 		glm::mat4 view { 1.0f };
 		glm::mat4 inverse_view { 1.0f };
 	};
-
 
 } // namespace fgl::engine

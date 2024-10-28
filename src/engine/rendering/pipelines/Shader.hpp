@@ -7,7 +7,6 @@
 #include <vulkan/vulkan_raii.hpp>
 
 #include <filesystem>
-#include <fstream>
 
 namespace fgl::engine
 {

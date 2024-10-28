@@ -9,7 +9,6 @@
 namespace fgl::engine
 {
 
-
 	NormalVector::NormalVector( const fgl::engine::Vector vector ) : NormalVector( vector.vec() )
 	{}
 

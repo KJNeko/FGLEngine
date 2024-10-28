@@ -17,6 +17,7 @@
 #include "engine/assets/model/Model.hpp"
 #include "engine/clock.hpp"
 #include "engine/debug/drawers.hpp"
+#include "engine/math/intersections.hpp"
 #include "engine/primitives/Frustum.hpp"
 
 namespace fgl::engine
@@ -254,7 +255,7 @@ namespace fgl::engine
 	bool OctTreeNode::isInFrustum( const Frustum& frustum ) const
 	{
 #if ENABLE_IMGUI
-		if ( !isEmpty() && frustum.intersects( m_fit_bounding_box ) )
+		if ( !isEmpty() && intersects( frustum, m_fit_bounding_box ) )
 		{
 			if ( ( draw_inview_bounds || ( std::holds_alternative< OctTreeNodeLeaf >( this->m_node_data ) )
 			       || draw_branches )

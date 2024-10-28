@@ -4,6 +4,8 @@
 
 #include "Shader.hpp"
 
+#include <fstream>
+
 #include "engine/debug/logging/logging.hpp"
 #include "engine/rendering/devices/Device.hpp"
 #include "shaders/Compiler.hpp"
@@ -15,15 +17,13 @@ namespace fgl::engine
 	{
 		if ( auto ifs = std::ifstream( path, std::ios::binary | std::ios::ate ); ifs )
 		{
-			std::vector< std::byte > data;
+			std::vector< std::byte > data {};
 			data.resize( ifs.tellg() );
 			ifs.seekg( 0, std::ios::beg );
 
 			static_assert( sizeof( std::ifstream::char_type ) == sizeof( std::byte ) );
 
 			ifs.read( reinterpret_cast< std::ifstream::char_type* >( data.data() ), data.size() );
-
-			// We now need to compile the shader before we use it.
 
 			return compileShader( path.filename().string(), data );
 		}

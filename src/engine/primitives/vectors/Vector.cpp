@@ -20,6 +20,11 @@ namespace fgl::engine
 		return *this;
 	}
 
+	NormalVector Vector::normalize() const
+	{
+		return NormalVector( *this );
+	}
+
 	glm::vec3 Vector::forward() const
 	{
 		//TODO: Figure out Z shit

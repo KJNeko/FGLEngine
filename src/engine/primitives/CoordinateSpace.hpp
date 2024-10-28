@@ -14,4 +14,7 @@ namespace fgl::engine
 		Camera,
 		Screen
 	};
+
+	using CS = CoordinateSpace;
+
 } // namespace fgl::engine
