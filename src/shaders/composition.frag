@@ -32,7 +32,7 @@ vec3 getCameraPosition()
     );
 }
 
-vec3 sun_dir = vec3(-1.0, -1.0, -1.0);
+vec3 sun_dir = normalize(vec3(-1.0, -1.0, -1.0));
 
 // GGX/Towbridge-Reitz normal distribution function.
 // Uses Disney's reparametrization of alpha = roughness^2.
@@ -90,7 +90,7 @@ void main()
     float cosLo = max(dot(N, Lo), 0.0);
 
     // Specular reflection
-    //vec3 Lr = 2.0 * cosLo * N - Lo;
+    //    vec3 Lr = 2.0 * cosLo * N - Lo;
     vec3 Lr = reflect(-Lo, N);
 
     const vec3 fresnel_factor = vec3(0.04);
@@ -111,7 +111,10 @@ void main()
     float cosLi = max(dot(N, Li), 0.0);
     float cosLh = max(dot(N, Lh), 0.0);
 
-    vec3 F = schlick(F0, max(dot(Lh, Lo), 0.0));
+    //float cosTheta = max(dot(Lh, Lo), 0.0);
+    float cosTheta = dot(Li, N);
+
+    vec3 F = schlick(F0, cosTheta);
     float D = ndfGGX(cosLh, roughness_value);
     float G = gaSchlickGGX(cosLi, cosLo, roughness_value);
 
@@ -120,7 +123,7 @@ void main()
     vec3 specular_BRDF = (F * D * G) / max(0.04, 4.0 * cosLi * cosLo);
 
     direct_lighting = (diffuse_BRDF + specular_BRDF) * Lradiance * cosLi;
-    //    }
+    // }
 
     vec3 ambient_lighting = albedo * 0.1;
 
@@ -130,46 +133,10 @@ void main()
         out_color = vec4(direct_lighting + ambient_lighting, 1.0);
         return;
         case 1:
-        out_color = vec4(Lo, 1.0);
-        return;
-        case 2:
-        out_color = vec4(N, 1.0);
-        return;
-        case 3:
-        out_color = vec4(cosLo, 0.0, 0.0, 1.0);
-        return;
-        case 4:
-        out_color = vec4(F0, 1.0);
-        return;
-        case 5:
         out_color = vec4(direct_lighting, 1.0);
         return;
-        case 6:
+        case 2:
         out_color = vec4(ambient_lighting, 1.0);
-        return;
-        case 7:
-        out_color = vec4(Lh, 1.0);
-        return;
-        case 8:
-        out_color = vec4(cosLi, 0.0, 0.0, 1.0);
-        return;
-        case 9:
-        out_color = vec4(cosLh, 0.0, 0.0, 1.0);
-        return;
-        case 10:
-        out_color = vec4(F, 1.0);
-        return;
-        case 11:
-        out_color = vec4(D, 0.0, 0.0, 1.0);
-        return;
-        case 12:
-        out_color = vec4(G, 0.0, 0.0, 1.0);
-        return;
-        case 13:
-        out_color = vec4(kb, 1.0);
-        return;
-        case 14:
-        out_color = vec4(max(dot(Lh, Lo), 0.0));
         return;
     }
 
