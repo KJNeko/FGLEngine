@@ -4,7 +4,6 @@
 
 #include "EngineContext.hpp"
 
-#include <glm/glm.hpp>
 #include <tracy/TracyC.h>
 #include <tracy/TracyVulkan.hpp>
 

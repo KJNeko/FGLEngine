@@ -9,6 +9,7 @@
 #include "engine/Window.hpp"
 #include "engine/rendering/Instance.hpp"
 #include "engine/rendering/Surface.hpp"
+#include "extensions.hpp"
 #include "vma/vma_impl.hpp"
 
 namespace fgl::engine
@@ -40,8 +41,7 @@ namespace fgl::engine
 		PhysicalDevice m_physical_device;
 
 		inline static std::vector< const char* > validationLayers { "VK_LAYER_KHRONOS_validation" };
-		inline static std::vector< const char* > deviceExtensions { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-			                                                        VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME };
+		inline static std::vector< const char* > deviceExtensions { DEVICE_EXTENSIONS };
 
 		struct DeviceCreateInfo
 		{

@@ -5,6 +5,7 @@
 #include "Pipeline.hpp"
 
 #include "PipelineBuilder.hpp"
+#include "engine/debug/logging/logging.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/flags.hpp"
 
@@ -29,7 +30,14 @@ namespace fgl::engine
 	{
 		if ( flags::shouldReloadShaders() )
 		{
-			m_pipeline = rebuildPipeline();
+			try
+			{
+				m_pipeline = rebuildPipeline();
+			}
+			catch ( std::runtime_error& e )
+			{
+				log::warn( "Failed to recompile pipeline! Shader error!" );
+			}
 		}
 
 		cmd_buffer.bindPipeline( vk::PipelineBindPoint::eGraphics, m_pipeline );

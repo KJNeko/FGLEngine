@@ -43,7 +43,6 @@ namespace fgl::engine
 			std::uint32_t m_subpass_stage;
 			vk::PushConstantRange push_constant {};
 
-			std::vector< vk::PipelineShaderStageCreateInfo > m_stages {};
 			std::vector< vk::DynamicState > m_dynamic_state {};
 
 			struct

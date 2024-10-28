@@ -203,12 +203,12 @@ namespace fgl::engine
 		info.pNext = VK_NULL_HANDLE;
 		info.flags = {};
 
-		state.m_stages.clear();
+		std::vector< vk::PipelineShaderStageCreateInfo > stages {};
 
-		if ( state.shaders.vertex ) state.m_stages.emplace_back( state.shaders.vertex->stage_info );
-		if ( state.shaders.fragment ) state.m_stages.emplace_back( state.shaders.fragment->stage_info );
+		if ( state.shaders.vertex ) stages.emplace_back( state.shaders.vertex->stage_info );
+		if ( state.shaders.fragment ) stages.emplace_back( state.shaders.fragment->stage_info );
 
-		info.setStages( state.m_stages );
+		info.setStages( stages );
 
 		vk::PipelineVertexInputStateCreateInfo vertex_input_info {};
 		vertex_input_info.pNext = VK_NULL_HANDLE;

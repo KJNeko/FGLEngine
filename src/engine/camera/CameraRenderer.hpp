@@ -5,7 +5,6 @@
 #pragma once
 
 #include "CameraSwapchain.hpp"
-#include "engine/rendering/SwapChain.hpp"
 #include "engine/systems/composition/CompositionSystem.hpp"
 #include "engine/systems/prerender/CullingSystem.hpp"
 #include "engine/systems/render/EntityRendererSystem.hpp"

@@ -12,7 +12,6 @@
 #include <cstdint>
 #include <map>
 #include <memory>
-#include <source_location>
 #include <stacktrace>
 #include <unordered_map>
 

@@ -6,7 +6,6 @@
 
 #include "BufferSuballocationHandle.hpp"
 #include "align.hpp"
-#include "engine/math/literals/size.hpp"
 #include "engine/memory/buffers/exceptions.hpp"
 #include "engine/rendering/devices/Device.hpp"
 

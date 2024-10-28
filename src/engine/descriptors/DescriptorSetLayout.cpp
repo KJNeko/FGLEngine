@@ -33,7 +33,9 @@ namespace fgl::engine::descriptors
 		}
 	}
 
-	DescriptorSetLayout::DescriptorSetLayout() : m_set_idx( std::numeric_limits< std::uint16_t >::max() )
+	DescriptorSetLayout::DescriptorSetLayout() :
+	  m_set_idx( std::numeric_limits< std::uint16_t >::max() ),
+	  m_binding_count( std::numeric_limits< std::size_t >::min() )
 	{}
 
 	std::unique_ptr< DescriptorSet > DescriptorSetLayout::create()
