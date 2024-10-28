@@ -64,7 +64,7 @@ namespace fgl::engine
 			return;
 		}
 
-		if ( m_imgui_set == VK_NULL_HANDLE ) createImGuiSet();
+		if ( !m_imgui_set ) createImGuiSet();
 
 		if ( extent == vk::Extent2D() )
 		{
@@ -78,7 +78,7 @@ namespace fgl::engine
 
 	bool Texture::drawImGuiButton( vk::Extent2D extent )
 	{
-		if ( this->m_imgui_set == VK_NULL_HANDLE ) createImGuiSet();
+		if ( !this->m_imgui_set ) createImGuiSet();
 
 		if ( extent == vk::Extent2D() )
 		{
