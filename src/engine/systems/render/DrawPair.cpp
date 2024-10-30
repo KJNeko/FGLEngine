@@ -52,7 +52,7 @@ namespace fgl::engine
 				{
 					const auto& model_transform { model_component_ptr->m_transform };
 
-					const Matrix< MatrixType::ModelToWorld > matrix { model_transform.mat() * obj_matrix };
+					const Matrix< MatrixType::ModelToWorld > world_matrix { model_transform.mat() * obj_matrix };
 
 					const auto& comp { *model_component_ptr };
 					for ( const Primitive& primitive : comp->m_primitives )
@@ -61,13 +61,14 @@ namespace fgl::engine
 
 						// Does this primitive pass the bounds check
 						const OrientedBoundingBox< CoordinateSpace::World > world_bounding_box {
-							matrix * primitive.getBoundingBox()
+							world_matrix * primitive.getBoundingBox()
 						};
 
+						// No. Skip it
 						if ( !intersects( frustum, world_bounding_box ) ) continue;
 
 						//assert( primitive.m_texture );
-						const ModelMatrixInfo matrix_info { .model_matrix = matrix,
+						const ModelMatrixInfo matrix_info { .model_matrix = world_matrix,
 							                                .material_id = primitive.m_material->getID() };
 
 						// If the textureless flag is on and we have a texture then skip the primitive.c
@@ -84,8 +85,6 @@ namespace fgl::engine
 						const auto key {
 							std::make_pair( matrix_info.material_id, primitive.m_index_buffer.getOffset() )
 						};
-
-						//debug::drawBoundingBox( matrix * primitive.m_bounding_box );
 
 						assert( primitive.m_index_buffer.size() > 0 );
 

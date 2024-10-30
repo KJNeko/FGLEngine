@@ -3,6 +3,7 @@
 
 #include "core.hpp"
 #include "engine/debug/profiling/counters.hpp"
+#include "engine/debug/timing/FlameGraph.hpp"
 #include "engine/flags.hpp"
 #include "engine/math/literals/size.hpp"
 #include "engine/memory/buffers/Buffer.hpp"
@@ -65,18 +66,25 @@ namespace fgl::engine::gui
 
 		using namespace literals::size_literals;
 
-		ImGui::Text( "Device" );
-		ImGui::Text( "|- %s Allocated", to_string( gpu_allocated ).c_str() );
-		ImGui::Text( "|- %s Used ", to_string( gpu_used ).c_str() );
-		ImGui::Text( "|- %s Unused", to_string( gpu.free() ).c_str() );
-		ImGui::Text( "|- %s Available in most allocated buffer", to_string( gpu.m_largest_free_block ).c_str() );
+		if ( ImGui::TreeNode( "Device" ) )
+		{
+			ImGui::Text( "|- %s Allocated", to_string( gpu_allocated ).c_str() );
+			ImGui::Text( "|- %s Used ", to_string( gpu_used ).c_str() );
+			ImGui::Text( "|- %s Unused", to_string( gpu.free() ).c_str() );
+			ImGui::Text( "|- %s Available in most allocated buffer", to_string( gpu.m_largest_free_block ).c_str() );
+			ImGui::TreePop();
+		}
 
 		ImGui::Separator();
-		ImGui::Text( "Host" );
-		ImGui::Text( "|- %s Allocated", to_string( host_allocated ).c_str() );
-		ImGui::Text( "|- %s Used ", to_string( host_used ).c_str() );
-		ImGui::Text( "|- %s Unused", to_string( host.free() ).c_str() );
-		ImGui::Text( "|- %s Available in most allocated buffer", to_string( host.m_largest_free_block ).c_str() );
+
+		if ( ImGui::TreeNode( "Host" ) )
+		{
+			ImGui::Text( "|- %s Allocated", to_string( host_allocated ).c_str() );
+			ImGui::Text( "|- %s Used ", to_string( host_used ).c_str() );
+			ImGui::Text( "|- %s Unused", to_string( host.free() ).c_str() );
+			ImGui::Text( "|- %s Available in most allocated buffer", to_string( host.m_largest_free_block ).c_str() );
+			ImGui::TreePop();
+		}
 		ImGui::Separator();
 
 		if ( ImGui::CollapsingHeader( "Buffers" ) )
@@ -108,6 +116,11 @@ namespace fgl::engine::gui
 		if ( ImGui::CollapsingHeader( "Memory" ) )
 		{
 			drawMemoryStats();
+		}
+
+		if ( ImGui::CollapsingHeader( "Timings" ) )
+		{
+			debug::timing::render();
 		}
 
 		imGuiOctTreeSettings( info );

@@ -5,6 +5,7 @@
 
 #include "engine/EngineContext.hpp"
 #include "engine/camera/CameraManager.hpp"
+#include "engine/debug/timing/FlameGraph.hpp"
 #include "engine/gameobjects/components/CameraComponent.hpp"
 #include "gui/core.hpp"
 
@@ -33,6 +34,7 @@ int main()
 	//! Will be true until the window says it wants to close.
 	while ( engine_ctx.good() )
 	{
+		debug::timing::reset();
 		engine_ctx.tickDeltaTime();
 
 		engine_ctx.handleTransfers();
@@ -51,6 +53,8 @@ int main()
 		engine_ctx.renderFrame();
 
 		engine_ctx.finishFrame();
+		// This will 'end' the root node, Which is created on 'reset'
+		debug::timing::internal::pop();
 	}
 
 	return EXIT_SUCCESS;

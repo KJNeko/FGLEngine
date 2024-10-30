@@ -14,4 +14,6 @@ namespace fgl
 		std::chrono::high_resolution_clock,
 		std::chrono::steady_clock >;
 
-}
+	using profiling_clock = std::chrono::high_resolution_clock;
+
+} // namespace fgl

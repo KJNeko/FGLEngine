@@ -281,7 +281,7 @@ namespace fgl::engine
 			return false;
 
 #else
-		return !isEmpty() && frustum.intersects( m_fit_bounding_box );
+		return !isEmpty() && intersects( frustum, m_fit_bounding_box );
 #endif
 	}
 

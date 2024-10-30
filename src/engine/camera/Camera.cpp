@@ -11,6 +11,7 @@
 #include "CameraInfo.hpp"
 #include "CameraRenderer.hpp"
 #include "CameraSwapchain.hpp"
+#include "engine/debug/timing/FlameGraph.hpp"
 
 namespace fgl::engine
 {
@@ -67,6 +68,7 @@ namespace fgl::engine
 	void Camera::pass( FrameInfo& frame_info )
 	{
 		ZoneScopedN( "Camera::pass" );
+		auto timer = debug::timing::push( "Camera" );
 		if ( m_cold && m_swapchain )
 		{
 			//TODO: Make some way to destroy the swapchain in a deffered manner.

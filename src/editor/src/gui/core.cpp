@@ -18,6 +18,7 @@
 #include "engine/assets/model/Model.hpp"
 #include "engine/debug/DEBUG_NAMES.hpp"
 #include "engine/debug/profiling/counters.hpp"
+#include "engine/debug/timing/FlameGraph.hpp"
 #include "engine/descriptors/DescriptorPool.hpp"
 #include "engine/rendering/Renderer.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
@@ -170,13 +171,15 @@ namespace fgl::engine::gui
 	void startDrawImGui( [[maybe_unused]] FrameInfo& info )
 	{
 		beginImGui();
+
 		profiling::resetCounters();
 	}
 
 	void drawImGui( FrameInfo& info )
 	{
 		ZoneScoped;
-		// ImGui::ShowDemoWindow();
+		auto timer = debug::timing::push( "Draw ImGui" );
+		ImGui::ShowDemoWindow();
 
 		drawDock();
 

@@ -11,6 +11,7 @@
 #include "engine/assets/material/Material.hpp"
 #include "engine/camera/Camera.hpp"
 #include "engine/debug/profiling/counters.hpp"
+#include "engine/debug/timing/FlameGraph.hpp"
 #include "engine/rendering/pipelines/v2/AttachmentBuilder.hpp"
 #include "engine/rendering/pipelines/v2/Pipeline.hpp"
 #include "engine/rendering/pipelines/v2/PipelineBuilder.hpp"
@@ -97,6 +98,7 @@ namespace fgl::engine
 		ZoneScopedN( "Entity pass" );
 		[[maybe_unused]] auto& command_buffer { setupSystem( info ) };
 		TracyVkZone( info.tracy_ctx, *command_buffer, "Render entities" );
+		auto timer = debug::timing::push( "Render entities" );
 
 		texturelessPass( info );
 		texturedPass( info );
