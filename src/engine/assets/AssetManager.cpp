@@ -8,11 +8,11 @@
 
 namespace fgl::engine
 {
-	inline static TextureStore tex_store {};
+	inline static TextureStore TEX_STORE {};
 
 	TextureStore& getTextureStore()
 	{
-		return tex_store;
+		return TEX_STORE;
 	}
 
 } // namespace fgl::engine

@@ -9,7 +9,7 @@ namespace fgl::engine::gui
 {
 	void drawObject( GameObject& game_object )
 	{
-		static std::string name_input_temp { "" };
+		static std::string name_input_temp {};
 		name_input_temp = game_object.getName();
 		ImGui::InputText( "Name", &name_input_temp );
 		if ( game_object.getName() != name_input_temp ) game_object.setName( name_input_temp );
@@ -22,23 +22,23 @@ namespace fgl::engine::gui
 		dragFloat3( "Scale", game_object.getScale() );
 	}
 
-	static GameObjectComponentPtr selected_component { nullptr };
+	static GameObjectComponentPtr SELECTED_COMPONENT { nullptr };
 
 	void drawComponentsList( GameObject& game_object )
 	{
 		ImGui::SeparatorText( "Components" );
 
-		for ( GameObjectComponentPtr component : game_object.getComponents() )
+		for ( const GameObjectComponentPtr component : game_object.getComponents() )
 		{
-			component->drawNode( selected_component );
+			component->drawNode( SELECTED_COMPONENT );
 		}
 
-		if ( selected_component )
+		if ( SELECTED_COMPONENT != nullptr )
 		{
 			ImGui::SeparatorText( "Selected Component" );
 
-			ImGui::PushID( ImGui::GetID( "ComponentEditor" ) );
-			selected_component->drawImGui();
+			ImGui::PushID( "ComponentEditor" );
+			SELECTED_COMPONENT->drawImGui();
 			ImGui::PopID();
 		}
 	}

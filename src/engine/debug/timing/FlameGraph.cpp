@@ -16,21 +16,21 @@ namespace fgl::engine::debug
 
 	struct Node
 	{
-		std::string_view name { "" };
-		profiling_clock::time_point start {};
-		profiling_clock::time_point end {};
-		std::vector< Node > children {};
-		Node* parent { nullptr };
+		std::string_view m_name { "" };
+		ProfilingClock::time_point m_start {};
+		ProfilingClock::time_point m_end {};
+		std::vector< Node > m_children {};
+		Node* m_parent { nullptr };
 		void drawImGui() const;
 
-		using duration = profiling_clock::duration;
+		using duration = ProfilingClock::duration;
 
-		duration getDuration() const { return end - start; }
+		duration getDuration() const { return m_end - m_start; }
 
 		duration getTotalTime() const
 		{
-			if ( parent != nullptr )
-				return parent->getTotalTime();
+			if ( m_parent != nullptr )
+				return m_parent->getTotalTime();
 			else
 				return getDuration();
 		}
@@ -40,25 +40,25 @@ namespace fgl::engine::debug
 		FGL_DELETE_COPY( Node );
 
 		Node( Node&& other ) :
-		  name( std::move( other.name ) ),
-		  start( other.start ),
-		  end( other.end ),
-		  children( std::move( other.children ) ),
-		  parent( other.parent )
+		  m_name( std::move( other.m_name ) ),
+		  m_start( other.m_start ),
+		  m_end( other.m_end ),
+		  m_children( std::move( other.m_children ) ),
+		  m_parent( other.m_parent )
 		{
-			for ( auto& child : children ) child.parent = this;
+			for ( auto& child : m_children ) child.m_parent = this;
 		}
 
 		Node& operator=( Node&& other ) noexcept
 		{
-			name = std::move( other.name );
-			start = other.start;
-			end = other.end;
-			children = std::move( other.children );
+			m_name = std::move( other.m_name );
+			m_start = other.m_start;
+			m_end = other.m_end;
+			m_children = std::move( other.m_children );
 
-			for ( auto& child : children ) child.parent = this;
+			for ( auto& child : m_children ) child.m_parent = this;
 
-			parent = other.parent;
+			m_parent = other.m_parent;
 			return *this;
 		}
 	};
@@ -68,9 +68,9 @@ namespace fgl::engine::debug
 
 	void Node::drawImGui() const
 	{
-		const auto diff { end - start };
+		const auto diff { m_end - m_start };
 
-		FGL_ASSERT( end > start, "Node ended before it began!" );
+		FGL_ASSERT( m_end > m_start, "Node ended before it began!" );
 
 		const auto time { getDuration() };
 
@@ -83,25 +83,25 @@ namespace fgl::engine::debug
 			const auto total_time { getTotalTime() };
 			percent = ( static_cast< double >( time.count() ) / static_cast< double >( total_time.count() ) ) * 100.0f;
 		}
-		else if ( parent )
+		else if ( m_parent )
 		{
-			const auto parent_time { this->parent->getDuration() };
+			const auto parent_time { this->m_parent->getDuration() };
 			percent = ( static_cast< double >( time.count() ) / static_cast< double >( parent_time.count() ) ) * 100.0f;
 		}
 
 		const std::string str { std::format(
 			"{} -- {:2.2f}ms, ({:2.2f}%)",
-			name,
+			m_name,
 			( std::chrono::duration_cast< std::chrono::microseconds >( diff ).count() / 1000.0f ),
 			percent ) };
 
 		ImGuiTreeNodeFlags flags { ImGuiTreeNodeFlags_None };
 
-		if ( children.empty() ) flags |= ImGuiTreeNodeFlags_Leaf;
+		if ( m_children.empty() ) flags |= ImGuiTreeNodeFlags_Leaf;
 
-		if ( ImGui::TreeNodeEx( name.data(), flags, str.c_str() ) )
+		if ( ImGui::TreeNodeEx( m_name.data(), flags, str.c_str() ) )
 		{
-			for ( const auto& child : children ) child.drawImGui();
+			for ( const auto& child : m_children ) child.drawImGui();
 
 			ImGui::TreePop();
 		}
@@ -118,21 +118,21 @@ namespace fgl::engine::debug
 		void reset()
 		{
 			previous_root = std::move( root );
-			root.name = "Update Time";
-			root.children.clear();
-			root.start = profiling_clock::now();
+			root.m_name = "Update Time";
+			root.m_children.clear();
+			root.m_start = ProfilingClock::now();
 			active = &root;
 		}
 
 		ScopedTimer push( const std::string_view name )
 		{
 			Node new_node {};
-			new_node.name = name;
-			new_node.parent = active;
-			new_node.start = profiling_clock::now();
+			new_node.m_name = name;
+			new_node.m_parent = active;
+			new_node.m_start = ProfilingClock::now();
 			assert( active );
-			active->children.emplace_back( std::move( new_node ) );
-			active = &active->children.back();
+			active->m_children.emplace_back( std::move( new_node ) );
+			active = &active->m_children.back();
 			return {};
 		}
 
@@ -146,7 +146,7 @@ namespace fgl::engine::debug
 					std::size_t depth { 0 };
 					while ( current != nullptr )
 					{
-						current = current->parent;
+						current = current->m_parent;
 						++depth;
 					}
 					return depth;
@@ -160,14 +160,14 @@ namespace fgl::engine::debug
 				}
 
 				FGL_ASSERT( active, "Active node in framegraph was null!" );
-				active->end = profiling_clock::now();
+				active->m_end = ProfilingClock::now();
 
-				const auto diff { active->end - active->start };
+				const auto diff { active->m_end - active->m_start };
 
 				FGL_ASSERT( diff >= decltype( diff ) { 0 }, "Popped node ended before it began!" );
-				FGL_ASSERT( active->end > active->start, "Node ended before it began!" );
+				FGL_ASSERT( active->m_end > active->m_start, "Node ended before it began!" );
 
-				active = active->parent;
+				active = active->m_parent;
 			}
 		} // namespace internal
 

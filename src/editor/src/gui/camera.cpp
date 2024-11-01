@@ -95,7 +95,7 @@ namespace fgl::engine::gui
 
 	void drawCameraOutputs( FrameInfo& info )
 	{
-		auto& camera_list { info.m_camera_list };
+		const auto& camera_list { info.m_camera_list };
 		for ( const auto& weak_camera_ptr : camera_list )
 		{
 			if ( weak_camera_ptr.expired() ) continue;

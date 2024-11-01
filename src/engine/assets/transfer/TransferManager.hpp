@@ -80,7 +80,7 @@ namespace fgl::engine::memory
 
 		TransferManager( Device& device, std::uint64_t buffer_size );
 
-		FGL_DELETE_ALL_Ro5( TransferManager );
+		FGL_DELETE_ALL_RO5( TransferManager );
 
 		vk::raii::Semaphore& getFinishedSem() { return transfer_semaphore; }
 

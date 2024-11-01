@@ -23,7 +23,7 @@ namespace fgl::engine
 	{}
 
 	template < CoordinateSpace CType >
-	OriginDistancePlane< CType >::OriginDistancePlane( const Vector vector, const float distance ) :
+	OriginDistancePlane< CType >::OriginDistancePlane( const Vector& vector, const float distance ) :
 	  m_distance( distance ),
 	  m_direction( vector )
 	{}

@@ -111,7 +111,7 @@ namespace fgl::engine
 	{
 		ZoneScoped;
 		// Get delta time
-		const auto now { fgl::clock::now() };
+		const auto now { fgl::Clock::now() };
 		const std::chrono::duration< double, std::chrono::seconds::period > time_diff { now - last_tick };
 		last_tick = now;
 

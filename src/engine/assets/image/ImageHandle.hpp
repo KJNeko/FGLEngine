@@ -39,7 +39,7 @@ namespace fgl::engine
 
 	  public:
 
-		FGL_DELETE_ALL_Ro5( ImageHandle );
+		FGL_DELETE_ALL_RO5( ImageHandle );
 
 		ImageHandle( vk::Extent2D extent, vk::Format format, vk::Image image, vk::ImageUsageFlags usage ) noexcept;
 

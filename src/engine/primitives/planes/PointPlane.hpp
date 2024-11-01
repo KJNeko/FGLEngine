@@ -17,24 +17,25 @@ namespace fgl::engine
 	template < CoordinateSpace CType >
 	class PointPlane
 	{
-		Coordinate< CType > coordinate;
-		NormalVector vector;
+		Coordinate< CType > m_coordinate;
+		NormalVector m_vector;
 
 	  public:
 
+		// ReSharper disable once CppInconsistentNaming
 		constexpr static auto SpaceType { CType };
 
 		PointPlane();
 
-		PointPlane( Coordinate< CType > pos, Vector vec );
+		PointPlane( Coordinate< CType > pos, const Vector& vec );
 
 		PointPlane( Coordinate< CType > pos, NormalVector vec );
 
-		FGL_FORCE_INLINE NormalVector getDirection() const { return vector; }
+		FGL_FORCE_INLINE NormalVector getDirection() const { return m_vector; }
 
 		float distance() const;
 
-		FGL_FORCE_INLINE Coordinate< CType > getPosition() const { return coordinate; }
+		FGL_FORCE_INLINE Coordinate< CType > getPosition() const { return m_coordinate; }
 
 		float distanceFrom( const Coordinate< CType > coord ) const;
 

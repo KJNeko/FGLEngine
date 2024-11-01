@@ -97,7 +97,7 @@ namespace fgl::engine
 			{
 				auto& images { m_attachment_resources.m_images };
 				auto& image_views { m_attachment_resources.m_image_views };
-				auto& itter { images.emplace_back( std::make_shared< Image >(
+				const auto& itter { images.emplace_back( std::make_shared< Image >(
 					extent,
 					description.format,
 					usage | vk::ImageUsageFlagBits::eInputAttachment | extra_flags,

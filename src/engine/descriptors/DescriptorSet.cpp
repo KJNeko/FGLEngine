@@ -53,7 +53,7 @@ namespace fgl::engine::descriptors
 		return *this;
 	}
 
-	void DescriptorSet::bindUniformBuffer( const std::uint32_t binding_idx, memory::BufferSuballocation& buffer )
+	void DescriptorSet::bindUniformBuffer( const std::uint32_t binding_idx, const memory::BufferSuballocation& buffer )
 	{
 		assert( binding_idx < m_infos.size() && "Binding index out of range" );
 
@@ -65,7 +65,7 @@ namespace fgl::engine::descriptors
 		write.dstArrayElement = 0;
 		write.descriptorCount = 1;
 		write.descriptorType = vk::DescriptorType::eUniformBuffer;
-		write.pBufferInfo = &( std::get< vk::DescriptorBufferInfo >( m_infos.data()[ binding_idx ] ) );
+		write.pBufferInfo = &( std::get< vk::DescriptorBufferInfo >( m_infos[ binding_idx ] ) );
 		write.pImageInfo = VK_NULL_HANDLE;
 		write.pTexelBufferView = VK_NULL_HANDLE;
 
@@ -91,15 +91,18 @@ namespace fgl::engine::descriptors
 		write.dstArrayElement = array_idx;
 		write.descriptorCount = 1;
 		write.descriptorType = vk::DescriptorType::eUniformBuffer;
-		write.pBufferInfo = &( std::get< vk::DescriptorBufferInfo >( m_infos.data()[ binding_idx ] ) );
+		write.pBufferInfo = &( std::get< vk::DescriptorBufferInfo >( m_infos[ binding_idx ] ) );
 		write.pImageInfo = VK_NULL_HANDLE;
 		write.pTexelBufferView = VK_NULL_HANDLE;
 
 		descriptor_writes.push_back( write );
 	}
 
-	void DescriptorSet::
-		bindImage( std::uint32_t binding_idx, ImageView& view, vk::ImageLayout layout, vk::raii::Sampler sampler )
+	void DescriptorSet::bindImage(
+		const std::uint32_t binding_idx,
+		const ImageView& view,
+		const vk::ImageLayout layout,
+		const vk::raii::Sampler& sampler )
 	{
 		assert( binding_idx < m_infos.size() && "Binding index out of range" );
 
@@ -113,13 +116,13 @@ namespace fgl::engine::descriptors
 		write.descriptorCount = 1;
 		write.descriptorType = vk::DescriptorType::eSampledImage;
 		write.pBufferInfo = VK_NULL_HANDLE;
-		write.pImageInfo = &( std::get< vk::DescriptorImageInfo >( m_infos.data()[ binding_idx ] ) );
+		write.pImageInfo = &( std::get< vk::DescriptorImageInfo >( m_infos[ binding_idx ] ) );
 		write.pTexelBufferView = VK_NULL_HANDLE;
 
 		descriptor_writes.push_back( write );
 	}
 
-	void DescriptorSet::bindTexture( std::uint32_t binding_idx, std::shared_ptr< Texture >& tex_ptr )
+	void DescriptorSet::bindTexture( const std::uint32_t binding_idx, const std::shared_ptr< Texture >& tex_ptr )
 	{
 		assert( binding_idx < m_infos.size() && "Binding index out of range" );
 		assert(
@@ -188,7 +191,7 @@ namespace fgl::engine::descriptors
 		descriptor_writes.push_back( write );
 	}
 
-	void DescriptorSet::setName( const std::string& str )
+	void DescriptorSet::setName( const std::string& str ) const
 	{
 		vk::DebugUtilsObjectNameInfoEXT info {};
 		info.objectType = vk::ObjectType::eDescriptorSet;
@@ -198,22 +201,22 @@ namespace fgl::engine::descriptors
 		Device::getInstance().setDebugUtilsObjectName( info );
 	}
 
-	inline static std::vector< std::pair< std::uint_fast8_t, std::unique_ptr< DescriptorSet > > > queue {};
+	inline static std::vector< std::pair< std::uint_fast8_t, std::unique_ptr< DescriptorSet > > > QUEUE {};
 
 	void queueDescriptorDeletion( std::unique_ptr< DescriptorSet > set )
 	{
-		queue.emplace_back( std::make_pair( 0, std::move( set ) ) );
+		QUEUE.emplace_back( std::make_pair( 0, std::move( set ) ) );
 	}
 
 	void deleteQueuedDescriptors()
 	{
-		for ( auto itter = queue.begin(); itter != queue.end(); itter = itter++ )
+		for ( auto itter = QUEUE.begin(); itter != QUEUE.end(); itter = itter++ )
 		{
 			auto& [ counter, set ] = *itter;
 			// Prevent deleting a descriptor until we are sure it's been here long enough
 			if ( counter > SwapChain::MAX_FRAMES_IN_FLIGHT + 1 )
 			{
-				itter = queue.erase( itter );
+				itter = QUEUE.erase( itter );
 			}
 			else
 				++counter;

@@ -15,7 +15,7 @@ namespace fgl::engine
 {
 
 	template < CoordinateSpace CType >
-	class InfiniteLine : public LineBase
+	class InfiniteLine final : public LineBase
 	{
 		Coordinate< CType > m_start;
 		NormalVector m_direction;

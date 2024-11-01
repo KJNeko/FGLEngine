@@ -13,7 +13,7 @@
 namespace fgl::engine
 {
 
-	void InputRotation( const char* label, Rotation& rot, float speed )
+	void inputRotation( const char* label, Rotation& rot, const float speed )
 	{
 		enum Axis
 		{
@@ -64,7 +64,7 @@ namespace fgl::engine
 
 			ImGui::DragFloat3( "Position", &transform.translation.x, speed );
 
-			InputRotation( "Rotation", transform.rotation, speed );
+			inputRotation( "Rotation", transform.rotation, speed );
 
 			ImGui::DragFloat3( "Scale", &transform.scale.x, speed );
 		}

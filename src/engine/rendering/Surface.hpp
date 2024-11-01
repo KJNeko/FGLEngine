@@ -20,12 +20,12 @@ namespace fgl::engine
 
 		Surface( Window& window, Instance& instance );
 
-		FGL_DELETE_ALL_Ro5( Surface );
+		FGL_DELETE_ALL_RO5( Surface );
 
 		vk::raii::SurfaceKHR& handle() { return m_surface; }
 
 		operator vk::SurfaceKHR() { return m_surface; }
 
-		operator VkSurfaceKHR() { return *m_surface; }
+		operator VkSurfaceKHR() const { return *m_surface; }
 	};
 } // namespace fgl::engine

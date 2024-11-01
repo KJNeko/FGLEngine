@@ -11,7 +11,7 @@
 template <>
 struct std::formatter< glm::quat >
 {
-	constexpr format_parse_context::iterator parse( format_parse_context& ctx ) { return ctx.begin(); }
+	static constexpr format_parse_context::iterator parse( const format_parse_context& ctx ) { return ctx.begin(); }
 
 	format_context::iterator format( const glm::quat& quat, format_context& ctx ) const;
 };

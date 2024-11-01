@@ -21,20 +21,19 @@ namespace fgl::engine
 
 	class Vector;
 
-	inline constexpr float length( const glm::vec3 vec )
+	constexpr float length( const glm::vec3 vec )
 	{
 		return std::sqrt( std::pow( vec.x, 2.0f ) + std::pow( vec.y, 2.0f ) + std::pow( vec.z, 2.0f ) );
 	}
 
-	inline constexpr glm::vec3 normalize( const glm::vec3 vec )
+	constexpr glm::vec3 normalize( const glm::vec3 vec )
 	{
-		if ( std::is_constant_evaluated() )
+		if consteval
 		{
 			const auto len { length( vec ) };
 			return glm::vec3( vec.x / len, vec.y / len, vec.z / len );
 		}
-		else
-			return glm::normalize( vec );
+		return glm::normalize( vec );
 	}
 
 	//! A vector that must be a distance of 1
@@ -46,7 +45,7 @@ namespace fgl::engine
 
 		constexpr NormalVector() : glm::vec3( normalize( glm::vec3( 1.0f ) ) ) {}
 
-		explicit NormalVector( const Vector vec );
+		explicit NormalVector( const Vector& vector );
 
 		constexpr explicit NormalVector( const glm::vec3 vec ) : glm::vec3( normalize( vec ) ) {}
 

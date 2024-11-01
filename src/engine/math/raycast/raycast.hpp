@@ -13,11 +13,11 @@ namespace fgl::engine
 
 	struct Ray
 	{
-		WorldCoordinate start;
-		NormalVector vector;
+		WorldCoordinate m_start;
+		NormalVector m_vector;
 	};
 
-	Ray constructRay( WorldCoordinate& start, WorldCoordinate& end );
+	Ray constructRay( const WorldCoordinate& start, const WorldCoordinate& end );
 
 	bool rayHit( const Ray& ray, const OrientedBoundingBox< CS::World >& obb, OctTreeNode* root );
 

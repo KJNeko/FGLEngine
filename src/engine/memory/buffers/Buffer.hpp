@@ -56,7 +56,7 @@ namespace fgl::engine::memory
 	  private:
 
 		void alloc( vk::DeviceSize memory_size );
-		void dealloc();
+		void dealloc() const;
 
 		Buffer() = delete;
 		Buffer( const Buffer& other ) = delete;
@@ -80,10 +80,10 @@ namespace fgl::engine::memory
 
 	  private:
 
-		void* map( BufferSuballocationHandle& handle );
+		void* map( const BufferSuballocationHandle& handle ) const;
 
 		//! Returns the required alignment for this buffer.
-		vk::DeviceSize alignment();
+		vk::DeviceSize alignment() const;
 
 		//! @brief List of all active suballocations
 		//! <offset, size>
@@ -145,7 +145,7 @@ namespace fgl::engine::memory
 
 		void mergeFreeBlocks();
 
-		void setDebugName( const std::string str );
+		void setDebugName( const std::string& str );
 	};
 
 	std::vector< Buffer* > getActiveBuffers();

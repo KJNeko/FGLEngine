@@ -8,7 +8,7 @@
 
 namespace fgl::engine
 {
-	Ray constructRay( WorldCoordinate& start, WorldCoordinate& end )
+	Ray constructRay( const WorldCoordinate& start, const WorldCoordinate& end )
 	{
 		const Ray ray { start, start.vectorTo( end ).normalize() };
 		return ray;

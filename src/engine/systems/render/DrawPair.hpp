@@ -35,15 +35,15 @@ namespace fgl::engine
 
 	enum TreeFilterFlags
 	{
-		IS_TEXTURELESS = 1 << 0,
-		DEFAULT_FLAGS = 0,
+		IsTextureless = 1 << 0,
+		DefaultFlags = 0,
 	};
 
 	std::pair< std::vector< vk::DrawIndexedIndirectCommand >, std::vector< ModelMatrixInfo > > getDrawCallsFromTree(
 		OctTreeNode& root,
 		const Frustum& frustum,
 		GameObjectFlagType game_object_flags,
-		TreeFilterFlags tree_flags = DEFAULT_FLAGS,
+		TreeFilterFlags tree_flags = DefaultFlags,
 		std::function< bool( const GameObject& ) > filterFunc = &defaultTrueFunc );
 
 } // namespace fgl::engine
@@ -53,7 +53,7 @@ namespace std
 	template <>
 	struct hash< fgl::engine::DrawKey >
 	{
-		inline size_t operator()( const fgl::engine::DrawKey& key ) const
+		inline size_t operator()( const fgl::engine::DrawKey& key ) const noexcept
 		{
 			const auto id_hash { std::hash< fgl::engine::TextureID >()( key.first ) };
 			const auto offset_hash { std::hash< vk::DeviceSize >()( key.second ) };

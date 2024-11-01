@@ -72,7 +72,7 @@ namespace fgl::engine
 							                                .material_id = primitive.m_material->getID() };
 
 						// If the textureless flag is on and we have a texture then skip the primitive.c
-						if ( tree_flags & IS_TEXTURELESS )
+						if ( tree_flags & IsTextureless )
 						{
 							if ( primitive.m_material != nullptr ) continue;
 						}

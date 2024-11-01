@@ -16,8 +16,8 @@ namespace fgl::engine
 	template < CoordinateSpace CType >
 	class LineSegment final : public LineBase
 	{
-		Coordinate< CType > start { -constants::DEFAULT_VEC3 };
-		Coordinate< CType > end { constants::DEFAULT_VEC3 };
+		Coordinate< CType > m_start { -constants::DEFAULT_VEC3 };
+		Coordinate< CType > m_end { constants::DEFAULT_VEC3 };
 
 		glm::vec3 getVec3Position() const override { return getPosition().vec(); }
 
@@ -28,27 +28,27 @@ namespace fgl::engine
 		LineSegment() = default;
 
 		explicit LineSegment( const Coordinate< CType > i_start, const Coordinate< CType > i_end ) noexcept :
-		  start( i_start ),
-		  end( i_end )
+		  m_start( i_start ),
+		  m_end( i_end )
 		{}
 
-		explicit LineSegment( const glm::vec3 i_start, glm::vec3 i_end ) : start( i_start ), end( i_end ) {}
+		explicit LineSegment( const glm::vec3 i_start, glm::vec3 i_end ) : m_start( i_start ), m_end( i_end ) {}
 
-		NormalVector getDirection() const { return start.normalTo( end ); }
+		NormalVector getDirection() const { return m_start.normalTo( m_end ); }
 
-		Coordinate< CType > getPosition() const { return start; }
+		Coordinate< CType > getPosition() const { return m_start; }
 
-		Coordinate< CType > getStart() const { return start; }
+		Coordinate< CType > getStart() const { return m_start; }
 
-		Coordinate< CType > getEnd() const { return end; }
+		Coordinate< CType > getEnd() const { return m_end; }
 
-		LineSegment flip() const { return LineSegment( end, start ); }
+		LineSegment flip() const { return LineSegment( m_end, m_start ); }
 
 		template < typename T >
 			requires is_plane< T >
 		FGL_FLATTEN bool intersects( const T plane ) const
 		{
-			return plane.isForward( start ) != plane.isForward( end );
+			return plane.isForward( m_start ) != plane.isForward( m_end );
 		}
 
 		template < typename T >

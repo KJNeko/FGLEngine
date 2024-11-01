@@ -9,7 +9,7 @@
 namespace fgl::engine
 {
 
-	QueuePool::QueuePool( vk::raii::PhysicalDevice& physical_device, Surface& surface )
+	QueuePool::QueuePool( const vk::raii::PhysicalDevice& physical_device, Surface& surface )
 	{
 		const auto family_props { physical_device.getQueueFamilyProperties() };
 
@@ -18,7 +18,7 @@ namespace fgl::engine
 			auto& props { family_props[ i ] };
 			if ( props.queueCount > 0 )
 			{
-				vk::Bool32 can_present { physical_device.getSurfaceSupportKHR( i, surface ) };
+				const vk::Bool32 can_present { physical_device.getSurfaceSupportKHR( i, surface ) };
 
 				queue_info.emplace_back( props, can_present == VK_TRUE, 0 );
 			}
@@ -40,7 +40,7 @@ namespace fgl::engine
 		throw std::runtime_error( "Failed to get index of queue family with given flags" );
 	}
 
-	std::uint32_t QueuePool::getPresentIndex()
+	std::uint32_t QueuePool::getPresentIndex() const
 	{
 		for ( std::uint32_t i = 0; i < queue_info.size(); ++i )
 		{

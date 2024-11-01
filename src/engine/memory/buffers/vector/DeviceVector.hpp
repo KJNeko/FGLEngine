@@ -30,7 +30,7 @@ namespace fgl::engine
 		DeviceVector( memory::Buffer& buffer, const std::uint32_t count = 1 ) :
 		  BufferVector( buffer, count, sizeof( T ) )
 		{
-			const auto size_str { fgl::literals::size_literals::to_string( count * sizeof( T ) ) };
+			const auto size_str { fgl::literals::size_literals::toString( count * sizeof( T ) ) };
 			assert( count != 0 && "BufferSuballocationVector::BufferSuballocationVector() called with count == 0" );
 		}
 

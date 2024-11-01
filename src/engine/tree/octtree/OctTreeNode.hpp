@@ -107,7 +107,7 @@ namespace fgl::engine
 		std::size_t reorganize();
 
 		//! Returns true if the fixed bounding box is larger then the inital bounding box
-		bool isBoundsExpanded();
+		bool isBoundsExpanded() const;
 
 		void recalculateNodeBounds();
 

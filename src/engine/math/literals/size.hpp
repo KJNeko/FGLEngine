@@ -29,7 +29,7 @@ namespace fgl::literals::size_literals
 		return size * 1024_MiB;
 	}
 
-	inline std::string to_string( const unsigned long long int size )
+	inline std::string toString( const unsigned long long int size )
 	{
 		if ( size < 1024_B ) return std::to_string( size ) + " B";
 		if ( size < 1024_KiB ) return std::to_string( size / 1024 ) + " KiB";

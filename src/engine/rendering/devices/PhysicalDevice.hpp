@@ -19,7 +19,7 @@ namespace fgl::engine
 		vk::raii::PhysicalDevice m_phy_device;
 		QueuePool queue_pool;
 
-		FGL_DELETE_ALL_Ro5( PhysicalDevice );
+		FGL_DELETE_ALL_RO5( PhysicalDevice );
 
 		//! Picks a device that can render to the desired output window
 		vk::raii::PhysicalDevice pickPhysicalDevice( Instance& dev, Surface& surface );

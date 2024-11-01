@@ -18,13 +18,13 @@ namespace fgl::engine
 
 	Matrix< MatrixType::WorldToScreen > Camera::getProjectionViewMatrix() const
 	{
-		assert( projection_matrix != constants::MAT4_IDENTITY );
-		return projection_matrix * view_matrix;
+		assert( m_projection_matrix != constants::MAT4_IDENTITY );
+		return m_projection_matrix * m_view_matrix;
 	}
 
 	void Camera::setOrthographicProjection( float left, float right, float top, float bottom, float near, float far )
 	{
-		projection_matrix = Matrix< MatrixType::CameraToScreen >( glm::ortho( left, right, bottom, top, near, far ) );
+		m_projection_matrix = Matrix< MatrixType::CameraToScreen >( glm::ortho( left, right, bottom, top, near, far ) );
 
 		//TODO: Figure out frustum culling for orthographic projection. (If we even wanna use it)
 	}
@@ -32,15 +32,15 @@ namespace fgl::engine
 	FGL_FLATTEN_HOT void Camera::
 		setPerspectiveProjection( const float fovy, const float aspect, const float near, const float far )
 	{
-		projection_matrix = Matrix< MatrixType::CameraToScreen >( glm::perspective( fovy, aspect, near, far ) );
+		m_projection_matrix = Matrix< MatrixType::CameraToScreen >( glm::perspective( fovy, aspect, near, far ) );
 
-		base_frustum = createFrustum( aspect, fovy, near, far );
+		m_base_frustum = createFrustum( aspect, fovy, near, far );
 	}
 
 	Coordinate< CoordinateSpace::World > Camera::getPosition() const
 	{
 		//Should maybe store the inverse view matrix
-		return WorldCoordinate( inverse_view_matrix[ 3 ] );
+		return WorldCoordinate( m_inverse_view_matrix[ 3 ] );
 	}
 
 	void Camera::updateInfo( const FrameIndex frame_index )
@@ -132,7 +132,7 @@ namespace fgl::engine
 
 	void Camera::setName( const std::string_view str )
 	{
-		name = str;
+		m_name = str;
 	}
 
 	float Camera::aspectRatio() const
@@ -262,9 +262,9 @@ namespace fgl::engine
 
 		const WorldCoordinate center_pos { pos + forward };
 
-		view_matrix = Matrix< MatrixType::WorldToCamera >( glm::lookAt( pos.vec(), center_pos.vec(), camera_up ) );
+		m_view_matrix = Matrix< MatrixType::WorldToCamera >( glm::lookAt( pos.vec(), center_pos.vec(), camera_up ) );
 
-		inverse_view_matrix = glm::inverse( view_matrix );
+		m_inverse_view_matrix = glm::inverse( m_view_matrix );
 
 		updateFrustum();
 	}
@@ -295,16 +295,16 @@ namespace fgl::engine
 
 	void Camera::updateFrustum()
 	{
-		last_frustum_pos = getPosition();
+		m_last_frustum_pos = getPosition();
 
 		const Matrix< MatrixType::ModelToWorld > translation_matrix { frustumTranslationMatrix() };
 
-		frustum = translation_matrix * base_frustum;
+		m_frustum = translation_matrix * m_base_frustum;
 	}
 
 	const std::string& Camera::getName() const
 	{
-		return name;
+		return m_name;
 	}
 
 	constexpr descriptors::Descriptor camera_descriptor { 0,
@@ -324,7 +324,7 @@ namespace fgl::engine
 	  m_target_extent( extent ),
 	  m_camera_frame_info( buffer, SwapChain::MAX_FRAMES_IN_FLIGHT ),
 	  m_swapchain( std::make_shared< CameraSwapchain >( m_camera_renderer->getRenderpass(), m_target_extent ) ),
-	  name()
+	  m_name()
 	{
 		this->setPerspectiveProjection( m_fov_y, aspectRatio(), constants::NEAR_PLANE, constants::FAR_PLANE );
 		this->setView( WorldCoordinate( constants::CENTER ), Rotation( 0.0f, 0.0f, 0.0f ) );
@@ -400,7 +400,7 @@ namespace fgl::engine
 
 	WorldCoordinate Camera::getFrustumPosition() const
 	{
-		return last_frustum_pos;
+		return m_last_frustum_pos;
 	}
 
 	Camera::~Camera()
@@ -408,7 +408,7 @@ namespace fgl::engine
 
 	CameraIDX Camera::getIDX() const
 	{
-		return camera_idx;
+		return m_camera_idx;
 	}
 
 } // namespace fgl::engine

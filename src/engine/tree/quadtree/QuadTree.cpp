@@ -22,7 +22,7 @@ namespace fgl::engine
 		assert( std::holds_alternative< QuadTreeNodeArray >( m_node_data ) );
 		const auto test_dim { glm::greaterThanEqual( pos.vec(), this->m_center.vec() ) };
 
-		auto& node_array { std::get< QuadTreeNodeArray >( m_node_data ) };
+		const auto& node_array { std::get< QuadTreeNodeArray >( m_node_data ) };
 		const auto& node { node_array[ test_dim.x ][ test_dim.y ] };
 		assert( node );
 

@@ -19,15 +19,15 @@ namespace fgl::engine
 			//auto set { std::make_unique< descriptors::DescriptorSet >( GBufferDescriptorSet::createLayout() ) };
 			auto set { gbuffer_set.create() };
 
-			set->bindAttachment( 0, gbuffer.color.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
+			set->bindAttachment( 0, m_gbuffer.m_color.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
 
-			set->bindAttachment( 1, gbuffer.position.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
+			set->bindAttachment( 1, m_gbuffer.m_position.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
 
-			set->bindAttachment( 2, gbuffer.normal.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
+			set->bindAttachment( 2, m_gbuffer.m_normal.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
 
-			set->bindAttachment( 3, gbuffer.metallic.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
+			set->bindAttachment( 3, m_gbuffer.m_metallic.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
 
-			set->bindAttachment( 4, gbuffer.emissive.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
+			set->bindAttachment( 4, m_gbuffer.m_emissive.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
 
 			set->update();
 
@@ -47,15 +47,15 @@ namespace fgl::engine
 	{
 		constexpr auto image_count { SwapChain::MAX_FRAMES_IN_FLIGHT };
 
-		gbuffer.color.createResources( image_count, m_extent );
-		gbuffer.position.createResources( image_count, m_extent );
-		gbuffer.normal.createResources( image_count, m_extent );
-		gbuffer.metallic.createResources( image_count, m_extent );
-		gbuffer.emissive.createResources( image_count, m_extent );
+		m_gbuffer.m_color.createResources( image_count, m_extent );
+		m_gbuffer.m_position.createResources( image_count, m_extent );
+		m_gbuffer.m_normal.createResources( image_count, m_extent );
+		m_gbuffer.m_metallic.createResources( image_count, m_extent );
+		m_gbuffer.m_emissive.createResources( image_count, m_extent );
 
-		gbuffer.composite.createResources( image_count, m_extent, vk::ImageUsageFlagBits::eTransferSrc );
-		gbuffer.depth.createResources( image_count, m_extent );
-		gbuffer.depth.setClear( vk::ClearDepthStencilValue( 1.0f, 0 ) );
+		m_gbuffer.m_composite.createResources( image_count, m_extent, vk::ImageUsageFlagBits::eTransferSrc );
+		m_gbuffer.m_depth.createResources( image_count, m_extent );
+		m_gbuffer.m_depth.setClear( vk::ClearDepthStencilValue( 1.0f, 0 ) );
 
 		std::vector< vk::raii::Framebuffer > buffers {};
 		buffers.reserve( image_count );
@@ -64,13 +64,13 @@ namespace fgl::engine
 		{
 			std::vector< vk::ImageView > attachments { getViewsForFrame(
 				i,
-				gbuffer.color,
-				gbuffer.position,
-				gbuffer.normal,
-				gbuffer.metallic,
-				gbuffer.emissive,
-				gbuffer.composite,
-				gbuffer.depth ) };
+				m_gbuffer.m_color,
+				m_gbuffer.m_position,
+				m_gbuffer.m_normal,
+				m_gbuffer.m_metallic,
+				m_gbuffer.m_emissive,
+				m_gbuffer.m_composite,
+				m_gbuffer.m_depth ) };
 
 			vk::FramebufferCreateInfo info {};
 			info.renderPass = m_renderpass;
@@ -81,30 +81,30 @@ namespace fgl::engine
 
 			buffers.emplace_back( Device::getInstance()->createFramebuffer( info ) );
 
-			g_buffer_color_img.emplace_back( std::make_unique< Texture >( gbuffer.color.m_attachment_resources
+			m_g_buffer_color_img.emplace_back( std::make_unique< Texture >( m_gbuffer.m_color.m_attachment_resources
 			                                                                  .m_images[ i ]
 			                                                                  ->setName( "GBufferColor" ) ) );
 
-			auto& position_resources { gbuffer.position.m_attachment_resources };
+			auto& position_resources { m_gbuffer.m_position.m_attachment_resources };
 			assert( position_resources.m_images[ i ] );
 			assert( position_resources.m_image_views[ i ] );
 			auto& position_image { *position_resources.m_images[ i ] };
 			position_image.setName( format_ns::format( "GBufferPosition: {}", i ) );
-			g_buffer_position_img.emplace_back( std::make_unique< Texture >( position_image ) );
+			m_g_buffer_position_img.emplace_back( std::make_unique< Texture >( position_image ) );
 
-			g_buffer_normal_img.emplace_back( std::make_unique< Texture >( gbuffer.normal.m_attachment_resources
+			m_g_buffer_normal_img.emplace_back( std::make_unique< Texture >( m_gbuffer.m_normal.m_attachment_resources
 			                                                                   .m_images[ i ]
 			                                                                   ->setName( "GBufferNormal" ) ) );
 
-			g_buffer_metallic_img.emplace_back( std::make_unique< Texture >( gbuffer.metallic.m_attachment_resources
+			m_g_buffer_metallic_img.emplace_back( std::make_unique< Texture >( m_gbuffer.m_metallic.m_attachment_resources
 			                                                                     .m_images[ i ]
 			                                                                     ->setName( "GBufferMetallic" ) ) );
 
-			g_buffer_emissive_img.emplace_back( std::make_unique< Texture >( gbuffer.emissive.m_attachment_resources
+			m_g_buffer_emissive_img.emplace_back( std::make_unique< Texture >( m_gbuffer.m_emissive.m_attachment_resources
 			                                                                     .m_images[ i ]
 			                                                                     ->setName( "GBufferEmissive" ) ) );
 
-			g_buffer_composite_img.emplace_back( std::make_unique< Texture >( gbuffer.composite.m_attachment_resources
+			m_g_buffer_composite_img.emplace_back( std::make_unique< Texture >( m_gbuffer.m_composite.m_attachment_resources
 			                                                                      .m_images[ i ]
 			                                                                      ->setName( "GBufferComposite" ) ) );
 		}
@@ -129,8 +129,8 @@ namespace fgl::engine
 
 	Image& CameraSwapchain::getOutput( const FrameIndex index )
 	{
-		assert( index <= this->gbuffer.composite.m_attachment_resources.m_images.size() );
-		return *gbuffer.composite.m_attachment_resources.m_images[ index ];
+		assert( index <= this->m_gbuffer.m_composite.m_attachment_resources.m_images.size() );
+		return *m_gbuffer.m_composite.m_attachment_resources.m_images[ index ];
 	}
 
 	float CameraSwapchain::getAspectRatio()
@@ -143,16 +143,16 @@ namespace fgl::engine
 	  m_renderpass( renderpass ),
 	  m_framebuffers( createFrambuffers() ),
 	  m_clear_values( gatherClearValues(
-		  gbuffer.color,
-		  gbuffer.position,
-		  gbuffer.normal,
-		  gbuffer.metallic,
-		  gbuffer.emissive,
-		  gbuffer.composite,
-		  gbuffer.depth ) ),
+		  m_gbuffer.m_color,
+		  m_gbuffer.m_position,
+		  m_gbuffer.m_normal,
+		  m_gbuffer.m_metallic,
+		  m_gbuffer.m_emissive,
+		  m_gbuffer.m_composite,
+		  m_gbuffer.m_depth ) ),
 	  m_gbuffer_descriptor_set( createGBufferDescriptors() )
 	{
-		gbuffer.depth.setName( "Depth" );
+		m_gbuffer.m_depth.setName( "Depth" );
 	}
 
 	CameraSwapchain::~CameraSwapchain()

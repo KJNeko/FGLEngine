@@ -33,7 +33,7 @@ namespace fgl::engine::memory
 
 		BufferSuballocationHandle() = delete;
 
-		BufferSuballocationHandle( Buffer& buffer, vk::DeviceSize memory_size, vk::DeviceSize offset );
+		BufferSuballocationHandle( Buffer& p_buffer, vk::DeviceSize offset, vk::DeviceSize memory_size );
 		~BufferSuballocationHandle();
 
 		BufferSuballocationHandle( const BufferSuballocationHandle& ) = delete;
@@ -42,14 +42,15 @@ namespace fgl::engine::memory
 		BufferSuballocationHandle( BufferSuballocationHandle&& ) = delete;
 		BufferSuballocationHandle& operator=( BufferSuballocationHandle&& ) = delete;
 
-		vk::Buffer getBuffer();
+		vk::Buffer getBuffer() const;
 		vk::Buffer getVkBuffer() const;
 
-		vk::BufferCopy copyRegion( BufferSuballocationHandle& target, std::size_t offset );
+		vk::BufferCopy copyRegion( const BufferSuballocationHandle& target, std::size_t offset ) const;
 
 		vk::DeviceSize getOffset() const { return m_offset; }
 
-		void copyTo( vk::raii::CommandBuffer& cmd_buffer, BufferSuballocationHandle& other, std::size_t offset );
+		void copyTo( const vk::raii::CommandBuffer& cmd_buffer,
+			const BufferSuballocationHandle& other, std::size_t offset ) const;
 
 		bool ready() const { return m_staged; }
 

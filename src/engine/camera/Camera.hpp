@@ -46,7 +46,7 @@ namespace fgl::engine
 
 	class Camera
 	{
-		inline static CameraIDX camera_counter { 0 };
+		inline static CameraIDX m_camera_counter { 0 };
 
 		std::unique_ptr< CameraRenderer >& m_camera_renderer;
 
@@ -58,18 +58,18 @@ namespace fgl::engine
 		bool m_cold { false };
 
 		// Const is acceptable, Since this value should never change. EVER
-		const CameraIDX camera_idx { camera_counter++ };
+		const CameraIDX m_camera_idx { m_camera_counter++ };
 
-		Matrix< MatrixType::CameraToScreen > projection_matrix { 1.0f };
+		Matrix< MatrixType::CameraToScreen > m_projection_matrix { 1.0f };
 
-		Matrix< MatrixType::WorldToCamera > view_matrix { 1.0f };
-		glm::mat4 inverse_view_matrix { 1.0f };
+		Matrix< MatrixType::WorldToCamera > m_view_matrix { 1.0f };
+		glm::mat4 m_inverse_view_matrix { 1.0f };
 
 		//! Frustum of the camera in model space relative to the camera
 		//! @note Must be transformed by the inverse view matrix to get the frustum in world space
-		FrustumBase base_frustum {};
-		Frustum frustum {};
-		WorldCoordinate last_frustum_pos { constants::WORLD_CENTER };
+		FrustumBase m_base_frustum {};
+		Frustum m_frustum {};
+		WorldCoordinate m_last_frustum_pos { constants::WORLD_CENTER };
 
 		WorldTransform m_transform;
 
@@ -85,7 +85,7 @@ namespace fgl::engine
 		std::shared_ptr< CameraSwapchain > m_old_swapchain { nullptr };
 		std::shared_ptr< CameraSwapchain > m_swapchain;
 
-		std::string name;
+		std::string m_name;
 
 		Matrix< MatrixType::ModelToWorld > frustumTranslationMatrix() const;
 
@@ -106,7 +106,7 @@ namespace fgl::engine
 		float& y { m_transform.translation.y };
 		float& z { m_transform.translation.z };
 
-		FGL_DELETE_ALL_Ro5( Camera );
+		FGL_DELETE_ALL_RO5( Camera );
 
 		~Camera();
 
@@ -128,18 +128,18 @@ namespace fgl::engine
 
 		WorldCoordinate getFrustumPosition() const;
 
-		const FrustumBase& getBaseFrustum() const { return base_frustum; }
+		const FrustumBase& getBaseFrustum() const { return m_base_frustum; }
 
 		//! Returns the frustum of the camera in world space
-		const Frustum& getFrustumBounds() const { return frustum; }
+		const Frustum& getFrustumBounds() const { return m_frustum; }
 
-		const Matrix< MatrixType::CameraToScreen >& getProjectionMatrix() const { return projection_matrix; }
+		const Matrix< MatrixType::CameraToScreen >& getProjectionMatrix() const { return m_projection_matrix; }
 
-		const Matrix< MatrixType::WorldToCamera >& getViewMatrix() const { return view_matrix; }
+		const Matrix< MatrixType::WorldToCamera >& getViewMatrix() const { return m_view_matrix; }
 
 		Matrix< MatrixType::WorldToScreen > getProjectionViewMatrix() const;
 
-		glm::mat4 getInverseViewMatrix() const { return glm::inverse( view_matrix ); }
+		glm::mat4 getInverseViewMatrix() const { return glm::inverse( m_view_matrix ); }
 
 		enum ViewMode
 		{
@@ -155,18 +155,23 @@ namespace fgl::engine
 
 		FGL_FORCE_INLINE NormalVector getUp() const { return -getDown(); }
 
-		FGL_FORCE_INLINE NormalVector getRight() const { return NormalVector( glm::vec3( inverse_view_matrix[ 0 ] ) ); }
+		FGL_FORCE_INLINE NormalVector getRight() const
+		{
+			return NormalVector( glm::vec3( m_inverse_view_matrix[ 0 ] ) );
+		}
 
 		FGL_FORCE_INLINE NormalVector getForward() const
 		{
-			return -NormalVector( glm::vec3( inverse_view_matrix[ 2 ] ) );
+			return -NormalVector( glm::vec3( m_inverse_view_matrix[ 2 ] ) );
 		}
 
 		FGL_FORCE_INLINE NormalVector getLeft() const { return -getRight(); }
 
 		FGL_FORCE_INLINE NormalVector getBackward() const { return -getForward(); }
 
-		FGL_FORCE_INLINE NormalVector getDown() const { return NormalVector( glm::vec3( inverse_view_matrix[ 1 ] ) ); }
+		FGL_FORCE_INLINE NormalVector getDown() const
+		{
+			return NormalVector( glm::vec3( m_inverse_view_matrix[ 1 ] ) ); }
 
 		//! Updates the required info for rendering
 		void updateInfo( FrameIndex frame_index );

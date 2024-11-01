@@ -12,18 +12,18 @@ namespace fgl::engine
 	template < typename T >
 	class IDPool
 	{
-		std::queue< T > unused_queue {};
-		T current;
+		std::queue< T > m_unused_queue {};
+		T m_current;
 
-		T getNextID() { return current++; }
+		T getNextID() { return m_current++; }
 
 	  public:
 
 		IDPool() = delete;
 
-		IDPool( const T start_value ) : current( start_value ) {}
+		IDPool( const T start_value ) : m_current( start_value ) {}
 
-		void markUnused( const T value ) { unused_queue.push( value ); }
+		void markUnused( const T value ) { m_unused_queue.push( value ); }
 
 		constexpr static bool ALWAYS_NEW_ID { true };
 
@@ -35,12 +35,12 @@ namespace fgl::engine
 			}
 			else
 			{
-				if ( unused_queue.empty() )
+				if ( m_unused_queue.empty() )
 					return getNextID();
 				else
 				{
-					const auto value { unused_queue.front() };
-					unused_queue.pop();
+					const auto value { m_unused_queue.front() };
+					m_unused_queue.pop();
 					return value;
 				}
 			}

@@ -83,7 +83,7 @@ namespace fgl::engine
 
 		CameraManager m_camera_manager {};
 
-		std::chrono::time_point< fgl::clock > last_tick { fgl::clock::now() };
+		std::chrono::time_point< fgl::Clock > last_tick { fgl::Clock::now() };
 		double m_delta_time;
 
 	  public:

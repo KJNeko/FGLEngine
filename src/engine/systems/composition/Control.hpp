@@ -20,9 +20,9 @@ namespace fgl::engine
 			DirectLighting = 5,
 			Ambient = 6,
 			Lh = 7,
-			MAX
+			Max
 		};
 
-		int flags { 0 };
+		int m_flags { 0 };
 	};
 } // namespace fgl::engine

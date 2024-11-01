@@ -10,13 +10,13 @@
 
 namespace fgl::engine::memory
 {
-	vk::Buffer BufferSuballocationHandle::getBuffer()
+	vk::Buffer BufferSuballocationHandle::getBuffer() const
 	{
 		return buffer.getVkBuffer();
 	}
 
 	BufferSuballocationHandle::
-		BufferSuballocationHandle( Buffer& p_buffer, vk::DeviceSize offset, vk::DeviceSize memory_size ) :
+		BufferSuballocationHandle( Buffer& p_buffer, const vk::DeviceSize offset, const vk::DeviceSize memory_size ) :
 	  buffer( p_buffer ),
 	  m_size( memory_size ),
 	  m_offset( offset ),
@@ -35,7 +35,8 @@ namespace fgl::engine::memory
 		buffer.free( *this );
 	}
 
-	vk::BufferCopy BufferSuballocationHandle::copyRegion( BufferSuballocationHandle& target, const std::size_t offset )
+	vk::BufferCopy BufferSuballocationHandle::
+		copyRegion( const BufferSuballocationHandle& target, const std::size_t offset ) const
 	{
 		vk::BufferCopy copy {};
 		copy.size = std::min( this->m_size, target.m_size );
@@ -44,8 +45,10 @@ namespace fgl::engine::memory
 		return copy;
 	}
 
-	void BufferSuballocationHandle::
-		copyTo( vk::raii::CommandBuffer& cmd_buffer, BufferSuballocationHandle& other, const std::size_t offset )
+	void BufferSuballocationHandle::copyTo(
+		const vk::raii::CommandBuffer& cmd_buffer,
+		const BufferSuballocationHandle& other,
+		const std::size_t offset ) const
 	{
 		const vk::BufferCopy copy_region { copyRegion( other, offset ) };
 

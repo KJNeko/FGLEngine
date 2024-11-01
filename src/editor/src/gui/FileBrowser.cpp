@@ -41,7 +41,7 @@ namespace fgl::engine::filesystem
 		current = std::make_unique< DirInfo >( test_path );
 	}
 
-	void destroyFileGUI()
+	void destroyFileGui()
 	{
 		folder_texture.reset();
 		file_texture.reset();
@@ -224,7 +224,7 @@ namespace fgl::engine::filesystem
 
 		ImGui::Text( data.filename.c_str() );
 
-		std::string str { toHumanByteSize( data.size ) };
+		const std::string str { toHumanByteSize( data.size ) };
 		ImGui::Text( str.c_str() );
 		ImGui::NextColumn();
 		ImGui::PopID();
@@ -260,7 +260,7 @@ namespace fgl::engine::filesystem
 
 	void FileBrowser::drawUp( const std::unique_ptr< DirInfo >& current_dir )
 	{
-		auto up { current_dir->up() };
+		const std::unique_ptr< DirInfo > up { current_dir->up() };
 
 		ImGui::PushID( up->m_path.c_str() );
 

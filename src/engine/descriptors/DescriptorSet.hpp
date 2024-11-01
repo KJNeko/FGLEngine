@@ -68,11 +68,11 @@ namespace fgl::engine::descriptors
 
 		void bindImage(
 			std::uint32_t binding_idx,
-			ImageView& view,
+			const ImageView& view,
 			vk::ImageLayout layout,
-			vk::raii::Sampler sampler = VK_NULL_HANDLE );
+			const vk::raii::Sampler& sampler = VK_NULL_HANDLE );
 
-		void bindUniformBuffer( std::uint32_t binding_idx, memory::BufferSuballocation& buffer );
+		void bindUniformBuffer( std::uint32_t binding_idx, const memory::BufferSuballocation& buffer );
 		void bindArray(
 			std::uint32_t binding_idx,
 			const memory::BufferSuballocation& buffer,
@@ -85,9 +85,9 @@ namespace fgl::engine::descriptors
 			vk::ImageLayout layout,
 			const vk::raii::Sampler& sampler = VK_NULL_HANDLE );
 
-		void bindTexture( std::uint32_t binding_idx, std::shared_ptr< Texture >& tex_ptr );
+		void bindTexture( std::uint32_t binding_idx, const std::shared_ptr< Texture >& tex_ptr );
 
-		void setName( const std::string& str );
+		void setName( const std::string& str ) const;
 	};
 
 	//! Queues a descriptor to be deleted.

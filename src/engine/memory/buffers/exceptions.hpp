@@ -21,7 +21,7 @@ namespace fgl::engine
 		explicit BufferException( const char* str ) : EngineException( str ) {}
 	};
 
-	struct BufferOOM : public BufferException
+	struct BufferOOM final : public BufferException
 	{
 		explicit BufferOOM() : BufferException( "Buffer OOM" ) {}
 	};

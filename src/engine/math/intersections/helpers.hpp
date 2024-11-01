@@ -55,12 +55,12 @@ namespace fgl::engine
 		const std::array< Coordinate< CType >, BoundingBoxPointCount >& bounding_points )
 	{
 		return (
-			testAxis( frustum.right.getDirection(), frustum_points, bounding_points )
-			|| testAxis( frustum.left.getDirection(), frustum_points, bounding_points )
-			|| testAxis( frustum.near.getDirection(), frustum_points, bounding_points )
-			|| testAxis( frustum.far.getDirection(), frustum_points, bounding_points )
-			|| testAxis( frustum.top.getDirection(), frustum_points, bounding_points )
-			|| testAxis( frustum.bottom.getDirection(), frustum_points, bounding_points ) );
+			testAxis( frustum.m_right.getDirection(), frustum_points, bounding_points )
+			|| testAxis( frustum.m_left.getDirection(), frustum_points, bounding_points )
+			|| testAxis( frustum.m_near.getDirection(), frustum_points, bounding_points )
+			|| testAxis( frustum.m_far.getDirection(), frustum_points, bounding_points )
+			|| testAxis( frustum.m_top.getDirection(), frustum_points, bounding_points )
+			|| testAxis( frustum.m_bottom.getDirection(), frustum_points, bounding_points ) );
 	}
 
 } // namespace fgl::engine

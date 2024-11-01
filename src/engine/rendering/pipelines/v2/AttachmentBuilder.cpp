@@ -31,7 +31,7 @@ namespace fgl::engine
 
 	void AttachmentBuilder::finish()
 	{
-		parent.state->color_blend_attachment.emplace_back( color_blend_config );
+		parent.m_state->color_blend_attachment.emplace_back( color_blend_config );
 		m_finished = true;
 	}
 

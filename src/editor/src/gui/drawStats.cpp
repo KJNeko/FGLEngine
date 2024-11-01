@@ -68,10 +68,10 @@ namespace fgl::engine::gui
 
 		if ( ImGui::TreeNode( "Device" ) )
 		{
-			ImGui::Text( "|- %s Allocated", to_string( gpu_allocated ).c_str() );
-			ImGui::Text( "|- %s Used ", to_string( gpu_used ).c_str() );
-			ImGui::Text( "|- %s Unused", to_string( gpu.free() ).c_str() );
-			ImGui::Text( "|- %s Available in most allocated buffer", to_string( gpu.m_largest_free_block ).c_str() );
+			ImGui::Text( "|- %s Allocated", toString( gpu_allocated ).c_str() );
+			ImGui::Text( "|- %s Used ", toString( gpu_used ).c_str() );
+			ImGui::Text( "|- %s Unused", toString( gpu.free() ).c_str() );
+			ImGui::Text( "|- %s Available in most allocated buffer", toString( gpu.m_largest_free_block ).c_str() );
 			ImGui::TreePop();
 		}
 
@@ -79,10 +79,10 @@ namespace fgl::engine::gui
 
 		if ( ImGui::TreeNode( "Host" ) )
 		{
-			ImGui::Text( "|- %s Allocated", to_string( host_allocated ).c_str() );
-			ImGui::Text( "|- %s Used ", to_string( host_used ).c_str() );
-			ImGui::Text( "|- %s Unused", to_string( host.free() ).c_str() );
-			ImGui::Text( "|- %s Available in most allocated buffer", to_string( host.m_largest_free_block ).c_str() );
+			ImGui::Text( "|- %s Allocated", toString( host_allocated ).c_str() );
+			ImGui::Text( "|- %s Used ", toString( host_used ).c_str() );
+			ImGui::Text( "|- %s Unused", toString( host.free() ).c_str() );
+			ImGui::Text( "|- %s Available in most allocated buffer", toString( host.m_largest_free_block ).c_str() );
 			ImGui::TreePop();
 		}
 		ImGui::Separator();
@@ -94,10 +94,10 @@ namespace fgl::engine::gui
 				ImGui::Text( "Name: %s", buffer->m_debug_name.c_str() );
 				ImGui::Text(
 					"Allocated: %s/%s (%2.1f\%)",
-					to_string( buffer->used() ).c_str(),
-					to_string( buffer->size() ).c_str(),
+					toString( buffer->used() ).c_str(),
+					toString( buffer->size() ).c_str(),
 					( static_cast< float >( buffer->used() ) / static_cast< float >( buffer->size() ) * 100.0f ) );
-				ImGui::Text( "Largest block: %s", to_string( buffer->largestBlock() ).c_str() );
+				ImGui::Text( "Largest block: %s", toString( buffer->largestBlock() ).c_str() );
 				ImGui::Separator();
 			}
 		}
@@ -109,9 +109,9 @@ namespace fgl::engine::gui
 
 		ImGui::Text( "FPS: %0.1f", ImGui::GetIO().Framerate );
 		const auto& counters { profiling::getCounters() };
-		ImGui::Text( "Models drawn: %zu", counters.models_draw );
-		ImGui::Text( "Verts drawn: %zu", counters.verts_drawn );
-		ImGui::Text( "Draw instances: %zu", counters.instance_count );
+		ImGui::Text( "Models drawn: %zu", counters.m_models_draw );
+		ImGui::Text( "Verts drawn: %zu", counters.m_verts_drawn );
+		ImGui::Text( "Draw instances: %zu", counters.m_instance_count );
 
 		if ( ImGui::CollapsingHeader( "Memory" ) )
 		{

@@ -84,7 +84,7 @@ namespace fgl::engine
 	NormalVector operator*( Matrix< MType > mat, NormalVector );
 
 	inline Matrix< MatrixType::WorldToScreen >
-		operator*( const Matrix< MatrixType::CameraToScreen > lhs, const Matrix< MatrixType::WorldToCamera > rhs )
+		operator*( const Matrix< MatrixType::CameraToScreen >& lhs, const Matrix< MatrixType::WorldToCamera >& rhs )
 	{
 		return Matrix< MatrixType::WorldToScreen >( static_cast< glm::mat4 >( lhs ) * static_cast< glm::mat4 >( rhs ) );
 	}

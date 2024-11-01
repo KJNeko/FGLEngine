@@ -2,6 +2,9 @@
 // Created by kj16609 on 6/5/24.
 //
 
+// ReSharper disable CppDFAInfiniteRecursion
+// ReSharper disable CppInconsistentNaming
+// ReSharper disable CppZeroConstantCanBeReplacedWithNullptr
 #pragma once
 
 #pragma GCC diagnostic push
@@ -22,7 +25,7 @@ namespace ImGui
 {
 
 	//void ImGui::DockBuilderDockWindow(const char* window_name, ImGuiID node_id)
-	FGL_FORCE_INLINE inline void DockBuilderDockWindow( const std::string_view str, ImGuiID node_id )
+	FGL_FORCE_INLINE inline void DockBuilderDockWindow( const std::string_view str, const ImGuiID node_id )
 	{
 		::ImGui::DockBuilderDockWindow( str.data(), node_id );
 	}
@@ -42,14 +45,17 @@ namespace ImGui
 
 	// IMGUI_API bool          MenuItem(const char* label, const char* shortcut = NULL, bool selected = false, bool enabled = true);  // return true when activated.
 	FGL_FORCE_INLINE inline bool MenuItem(
-		const std::string_view label, const char* shortcut = NULL, bool selected = false, bool enabled = true )
+		const std::string_view label,
+		const char* shortcut = NULL,
+		const bool selected = false,
+		const bool enabled = true )
 	{
 		return ::ImGui::MenuItem( label.data(), shortcut, selected, enabled );
 	}
 
 	// IMGUI_API bool          MenuItem(const char* label, const char* shortcut, bool* p_selected, bool enabled = true);              // return true when activated + toggle (*p_selected) if p_selected != NULL
 	FGL_FORCE_INLINE inline bool
-		MenuItem( const std::string_view label, const char* shortcut, bool* selected, bool enabled = true )
+		MenuItem( const std::string_view label, const char* shortcut, bool* selected, const bool enabled = true )
 	{
 		return ::ImGui::MenuItem( label.data(), shortcut, selected, enabled );
 	}

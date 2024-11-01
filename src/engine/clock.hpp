@@ -9,11 +9,11 @@
 namespace fgl
 {
 
-	using clock = std::conditional_t<
+	using Clock = std::conditional_t<
 		std::chrono::high_resolution_clock::is_steady,
 		std::chrono::high_resolution_clock,
 		std::chrono::steady_clock >;
 
-	using profiling_clock = std::chrono::high_resolution_clock;
+	using ProfilingClock = std::chrono::high_resolution_clock;
 
 } // namespace fgl

@@ -20,12 +20,12 @@ namespace fgl::engine
 	//! Frustum constructed in model space (To be translated to a World space frustum later)
 	struct FrustumBase
 	{
-		ModelPlane near { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
-		ModelPlane far { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
-		ModelPlane top { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
-		ModelPlane bottom { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
-		ModelPlane right { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
-		ModelPlane left { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		ModelPlane m_near { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		ModelPlane m_far { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		ModelPlane m_top { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		ModelPlane m_bottom { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		ModelPlane m_right { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		ModelPlane m_left { ModelCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
 
 		ModelCoordinate m_position {};
 
@@ -39,24 +39,24 @@ namespace fgl::engine
 			const ModelPlane& right_plane,
 			const ModelPlane& left_plane,
 			const ModelCoordinate position ) :
-		  near( near_plane ),
-		  far( far_plane ),
-		  top( top_plane ),
-		  bottom( bottom_plane ),
-		  right( right_plane ),
-		  left( left_plane ),
+		  m_near( near_plane ),
+		  m_far( far_plane ),
+		  m_top( top_plane ),
+		  m_bottom( bottom_plane ),
+		  m_right( right_plane ),
+		  m_left( left_plane ),
 		  m_position( position )
 		{}
 	};
 
 	struct Frustum
 	{
-		WorldPlane near { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
-		WorldPlane far { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
-		WorldPlane top { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
-		WorldPlane bottom { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
-		WorldPlane right { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
-		WorldPlane left { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		WorldPlane m_near { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		WorldPlane m_far { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		WorldPlane m_top { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		WorldPlane m_bottom { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		WorldPlane m_right { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
+		WorldPlane m_left { WorldCoordinate( constants::WORLD_CENTER ), NormalVector( constants::WORLD_Y ) };
 
 		WorldCoordinate m_position {};
 
@@ -75,12 +75,12 @@ namespace fgl::engine
 			const WorldPlane& right_plane,
 			const WorldPlane& left_plane,
 			const WorldCoordinate position ) :
-		  near( near_plane ),
-		  far( far_plane ),
-		  top( top_plane ),
-		  bottom( bottom_plane ),
-		  right( right_plane ),
-		  left( left_plane ),
+		  m_near( near_plane ),
+		  m_far( far_plane ),
+		  m_top( top_plane ),
+		  m_bottom( bottom_plane ),
+		  m_right( right_plane ),
+		  m_left( left_plane ),
 		  m_position( position )
 		{}
 

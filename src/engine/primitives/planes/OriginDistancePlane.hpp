@@ -21,13 +21,14 @@ namespace fgl::engine
 
 	  public:
 
+		// ReSharper disable once CppInconsistentNaming
 		constexpr static auto SpaceType { CType };
 
 		OriginDistancePlane();
 
 		explicit OriginDistancePlane( const NormalVector vector, const float distance );
 
-		explicit OriginDistancePlane( const Vector vector, const float distance );
+		explicit OriginDistancePlane( const Vector& vector, const float distance );
 
 		inline NormalVector getDirection() const { return m_direction; }
 

@@ -12,18 +12,18 @@
 
 namespace fgl::engine
 {
-	constexpr auto indent_amount { 1.0f };
+	constexpr auto INDENT_AMOUNT { 1.0f };
 
 	void GameObjectComponentBase::drawNode( GameObjectComponentPtr& selected_out )
 	{
-		ImGui::Indent( indent_amount );
+		ImGui::Indent( INDENT_AMOUNT );
 		if ( ImGui::Selectable( this->name().data() ) )
 		{
 			selected_out = this;
 		}
 
 		drawChildren( selected_out );
-		ImGui::Unindent( indent_amount );
+		ImGui::Unindent( INDENT_AMOUNT );
 	}
 
 	void GameObjectComponentBase::drawChildren( GameObjectComponentPtr& selected_out )

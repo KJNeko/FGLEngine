@@ -88,7 +88,7 @@ namespace fgl::engine
 			}
 		};
 
-		std::unique_ptr< BuilderState > state;
+		std::unique_ptr< BuilderState > m_state;
 
 		void setTopology( vk::PrimitiveTopology primitive_topology );
 		void disableVertexInput();

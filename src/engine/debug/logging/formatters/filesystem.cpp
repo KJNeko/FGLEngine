@@ -30,7 +30,7 @@ auto format_ns::formatter< std::filesystem::path >::format( const std::filesyste
 	}
 }
 
-auto format_ns::formatter< std::source_location >::format( const std::source_location& loc, format_context& ctx ) const
+auto format_ns::formatter< std::source_location >::format( const std::source_location& loc, format_context& ctx )
 	-> decltype( ctx.out() )
 {
 	return format_ns::

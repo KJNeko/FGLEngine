@@ -114,7 +114,7 @@ namespace fgl::engine
 				data[ index ] = color;
 				data[ index + 1 ] = color;
 				data[ index + 2 ] = color;
-				data[ index + 3 ] = std::byte( 255 );
+				data[ index + 3 ] = static_cast< std::byte >( 255 );
 			}
 		}
 

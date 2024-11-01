@@ -11,32 +11,32 @@ namespace fgl::engine
 
 	template < CoordinateSpace CType >
 	PointPlane< CType >::PointPlane() :
-	  coordinate( constants::WORLD_CENTER ),
-	  vector( NormalVector( constants::WORLD_Y ) )
+	  m_coordinate( constants::WORLD_CENTER ),
+	  m_vector( NormalVector( constants::WORLD_Y ) )
 	{}
 
 	template < CoordinateSpace CType >
-	PointPlane< CType >::PointPlane( const Coordinate< CType > pos, const Vector vec ) :
-	  coordinate( pos ),
-	  vector( vec )
+	PointPlane< CType >::PointPlane( const Coordinate< CType > pos, const Vector& vec ) :
+	  m_coordinate( pos ),
+	  m_vector( vec )
 	{}
 
 	template < CoordinateSpace CType >
 	PointPlane< CType >::PointPlane( const Coordinate< CType > pos, const NormalVector vec ) :
-	  coordinate( pos ),
-	  vector( vec )
+	  m_coordinate( pos ),
+	  m_vector( vec )
 	{}
 
 	template < CoordinateSpace CType >
 	float PointPlane< CType >::distance() const
 	{
-		return glm::dot( vector.vec(), coordinate.vec() );
+		return glm::dot( m_vector.vec(), m_coordinate.vec() );
 	}
 
 	template < CoordinateSpace CType >
 	float PointPlane< CType >::distanceFrom( const Coordinate< CType > coord ) const
 	{
-		return static_cast< float >( glm::dot( ( coord - coordinate ).vec(), vector.vec() ) );
+		return static_cast< float >( glm::dot( ( coord - m_coordinate ).vec(), m_vector.vec() ) );
 	}
 
 	template < CoordinateSpace CType >

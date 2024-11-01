@@ -52,7 +52,7 @@ namespace fgl::engine::memory
 		return m_handle->mapped;
 	}
 
-	void BufferSuballocation::flush( vk::DeviceSize beg, vk::DeviceSize end )
+	void BufferSuballocation::flush( const vk::DeviceSize beg, const vk::DeviceSize end ) const
 	{
 		assert( beg < end );
 		assert( m_handle != nullptr );
@@ -74,7 +74,7 @@ namespace fgl::engine::memory
 
 		if ( range.size > m_byte_size ) range.size = VK_WHOLE_SIZE;
 
-		std::vector< vk::MappedMemoryRange > ranges { range };
+		const std::vector< vk::MappedMemoryRange > ranges { range };
 
 		Device::getInstance()->flushMappedMemoryRanges( ranges );
 	}
@@ -113,7 +113,7 @@ namespace fgl::engine::memory
 	  BufferSuballocation( buffer.allocate( size ) )
 	{}
 
-	BufferSuballocation::BufferSuballocation( Buffer& buffer, std::size_t t_size, std::uint32_t t_align ) :
+	BufferSuballocation::BufferSuballocation( Buffer& buffer, const std::size_t t_size, const std::uint32_t t_align ) :
 	  BufferSuballocation( buffer.allocate( t_size, t_align ) )
 	{}
 

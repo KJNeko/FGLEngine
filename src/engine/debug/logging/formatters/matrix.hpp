@@ -10,7 +10,7 @@
 template <>
 struct std::formatter< glm::vec4 >
 {
-	constexpr format_parse_context::iterator parse( format_parse_context& ctx ) { return ctx.begin(); }
+	static constexpr format_parse_context::iterator parse( format_parse_context& ctx ) { return ctx.begin(); }
 
 	format_context::iterator format( const glm::vec4& vec, format_context& ctx ) const;
 };
@@ -18,7 +18,7 @@ struct std::formatter< glm::vec4 >
 template <>
 struct std::formatter< glm::vec3 >
 {
-	constexpr format_parse_context::iterator parse( format_parse_context& ctx ) { return ctx.begin(); }
+	static constexpr format_parse_context::iterator parse( format_parse_context& ctx ) { return ctx.begin(); }
 
 	format_context::iterator format( const glm::vec3& vec, format_context& ctx ) const;
 };
@@ -26,7 +26,7 @@ struct std::formatter< glm::vec3 >
 template <>
 struct std::formatter< glm::mat4 >
 {
-	constexpr format_parse_context::iterator parse( format_parse_context& ctx ) { return ctx.begin(); }
+	static constexpr format_parse_context::iterator parse( format_parse_context& ctx ) { return ctx.begin(); }
 
 	format_context::iterator format( const glm::mat4& mat, format_context& ctx ) const;
 };

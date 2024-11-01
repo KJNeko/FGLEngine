@@ -43,18 +43,18 @@ namespace fgl::engine
 
 			if ( ImGui::Button( "Reorganize Octtree" ) )
 			{
-				const auto start { fgl::clock::now() };
+				const auto start { fgl::Clock::now() };
 				number_moved = info.game_objects.reorganize();
-				const auto end { fgl::clock::now() };
+				const auto end { fgl::Clock::now() };
 				const auto time_diff { end - start };
 				time = std::chrono::duration_cast< std::chrono::microseconds >( time_diff );
 			}
 
 			if ( ImGui::Button( "Recalculate Bounds" ) )
 			{
-				const auto start { fgl::clock::now() };
+				const auto start { fgl::Clock::now() };
 				info.game_objects.recalculateBounds();
-				const auto end { fgl::clock::now() };
+				const auto end { fgl::Clock::now() };
 				const auto time_diff { end - start };
 				time = std::chrono::duration_cast< std::chrono::microseconds >( time_diff );
 			}
@@ -133,7 +133,7 @@ namespace fgl::engine
 
 		const auto test_dim { glm::greaterThanEqual( coord.vec(), bounds_center ) };
 
-		auto& node_array { std::get< OctTreeNodeArray >( m_node_data ) };
+		const auto& node_array { std::get< OctTreeNodeArray >( m_node_data ) };
 		const auto& node { node_array[ test_dim.x ? 1 : 0 ][ test_dim.y ? 1 : 0 ][ test_dim.z ? 1 : 0 ] };
 		assert( node );
 		assert( node->canContain( coord ) );
@@ -210,7 +210,7 @@ namespace fgl::engine
 			const bool is_forward { obj_coordinate.y > center.y };
 			const bool is_up { obj_coordinate.z > center.z };
 
-			std::unique_ptr< OctTreeNode >& node { new_nodes[ is_right ][ is_forward ][ is_up ] };
+			const std::unique_ptr< OctTreeNode >& node { new_nodes[ is_right ][ is_forward ][ is_up ] };
 			assert( std::holds_alternative< OctTreeNodeLeaf >( node->m_node_data ) );
 
 			std::get< OctTreeNodeLeaf >( node->m_node_data ).emplace_back( std::move( obj ) );
@@ -330,7 +330,7 @@ namespace fgl::engine
 
 	/**
 	 *
-	 * @return Returns true if the fit bounding box is larger then the virtual bounds
+	 * @return Returns true if the fit bounding box is larger than the virtual bounds
 	 */
 	void OctTreeNode::recalculateBounds()
 	{
@@ -442,7 +442,7 @@ namespace fgl::engine
 
 	GameObject OctTreeNode::extract( const GameObject::GameObjectID id )
 	{
-		auto itter { getGameObjectItter( id ) };
+		const auto itter { getGameObjectItter( id ) };
 		auto game_object { std::move( *itter ) };
 		auto& game_objects { std::get< OctTreeNodeLeaf >( this->m_node_data ) };
 		game_objects.erase( itter );
@@ -517,14 +517,14 @@ namespace fgl::engine
 		FGL_UNREACHABLE();
 	}
 
-	bool OctTreeNode::isBoundsExpanded()
+	bool OctTreeNode::isBoundsExpanded() const
 	{
 		return m_fit_bounding_box == m_bounds;
 		/*
 		const auto fit_points { m_fit_bounding_box.points() };
 		for ( const auto& p : fit_points )
 		{
-			// Return true if a point is outside of the bounds. This indicates that out bounding box is bigger then our bounds.
+			// Return true if a point is outside the bounds. This indicates that out bounding box is bigger than our bounds.
 			if ( !m_bounds.contains( p ) ) return true;
 		}
 
@@ -542,7 +542,7 @@ namespace fgl::engine
 
 		FOR_EACH_OCTTREE_NODE
 		{
-			// If true then the bounds were bigger then the inital bounding box. So we should try to combine it with out current bounding box.
+			// If true then the bounds were bigger then the inital bounding box. So we should try to combine it without current bounding box.
 			m_fit_bounding_box = m_fit_bounding_box.combine( nodes[ x ][ y ][ z ]->m_fit_bounding_box );
 		}
 
@@ -561,7 +561,7 @@ namespace fgl::engine
 			return;
 		}
 
-		// If true, Then the fit has already been set and we should combine with it
+		// If true, Then the fit has already been set, and we should combine with it
 		bool fit_set { false };
 
 		for ( const auto& game_object : data )
@@ -593,7 +593,7 @@ namespace fgl::engine
 			}
 		}
 
-		// Have our parent recalculate it's bounds
+		// Have our parent recalculate its bounds
 		// if ( isBoundsExpanded() && m_parent )
 		if ( m_parent ) m_parent->recalculateBounds();
 	}

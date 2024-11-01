@@ -11,38 +11,38 @@
 namespace fgl::engine
 {
 
-	constexpr std::size_t ColorIndex { 0 };
-	constexpr std::size_t PositionIndex { 1 };
-	constexpr std::size_t NormalIndex { 2 };
-	constexpr std::size_t MetallicIndex { 3 };
-	constexpr std::size_t EmissiveIndex { 4 };
+	constexpr std::size_t COLOR_INDEX { 0 };
+	constexpr std::size_t POSITION_INDEX { 1 };
+	constexpr std::size_t NORMAL_INDEX { 2 };
+	constexpr std::size_t METALLIC_INDEX { 3 };
+	constexpr std::size_t EMISSIVE_INDEX { 4 };
 
-	constexpr std::size_t CompositeIndex { 5 };
-	constexpr std::size_t DepthIndex { 6 };
+	constexpr std::size_t COMPOSITE_INDEX { 5 };
+	constexpr std::size_t DEPTH_INDEX { 6 };
 
 	class CameraSwapchain
 	{
 		struct
 		{
-			ColorAttachment< ColorIndex > color { vk::Format::eR8G8B8A8Unorm };
-			ColorAttachment< PositionIndex > position { vk::Format::eR16G16B16A16Sfloat };
-			ColorAttachment< NormalIndex > normal { vk::Format::eR16G16B16A16Sfloat };
-			ColorAttachment< MetallicIndex > metallic { vk::Format::eR16G16B16A16Sfloat };
-			ColorAttachment< EmissiveIndex > emissive { vk::Format::eR16G16B16A16Sfloat };
+			ColorAttachment< COLOR_INDEX > m_color { vk::Format::eR8G8B8A8Unorm };
+			ColorAttachment< POSITION_INDEX > m_position { vk::Format::eR16G16B16A16Sfloat };
+			ColorAttachment< NORMAL_INDEX > m_normal { vk::Format::eR16G16B16A16Sfloat };
+			ColorAttachment< METALLIC_INDEX > m_metallic { vk::Format::eR16G16B16A16Sfloat };
+			ColorAttachment< EMISSIVE_INDEX > m_emissive { vk::Format::eR16G16B16A16Sfloat };
 
-			ColorAttachment< CompositeIndex > composite { vk::Format::eR8G8B8A8Unorm };
-			DepthAttachment< DepthIndex > depth { SwapChain::findDepthFormat() };
-		} gbuffer {};
+			ColorAttachment< COMPOSITE_INDEX > m_composite { vk::Format::eR8G8B8A8Unorm };
+			DepthAttachment< DEPTH_INDEX > m_depth { SwapChain::findDepthFormat() };
+		} m_gbuffer {};
 
 	  public:
 
-		std::vector< std::unique_ptr< Texture > > g_buffer_color_img {};
-		std::vector< std::unique_ptr< Texture > > g_buffer_position_img {};
-		std::vector< std::unique_ptr< Texture > > g_buffer_normal_img {};
-		std::vector< std::unique_ptr< Texture > > g_buffer_metallic_img {};
-		std::vector< std::unique_ptr< Texture > > g_buffer_emissive_img {};
+		std::vector< std::unique_ptr< Texture > > m_g_buffer_color_img {};
+		std::vector< std::unique_ptr< Texture > > m_g_buffer_position_img {};
+		std::vector< std::unique_ptr< Texture > > m_g_buffer_normal_img {};
+		std::vector< std::unique_ptr< Texture > > m_g_buffer_metallic_img {};
+		std::vector< std::unique_ptr< Texture > > m_g_buffer_emissive_img {};
 
-		std::vector< std::unique_ptr< Texture > > g_buffer_composite_img {};
+		std::vector< std::unique_ptr< Texture > > m_g_buffer_composite_img {};
 
 	  private:
 

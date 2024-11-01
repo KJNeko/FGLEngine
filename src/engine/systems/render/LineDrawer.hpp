@@ -22,7 +22,7 @@ namespace fgl::engine
 
 	  public:
 
-		FGL_DELETE_ALL_Ro5( LineDrawer );
+		FGL_DELETE_ALL_RO5( LineDrawer );
 
 		vk::raii::CommandBuffer& setupSystem( FrameInfo& info );
 		void pass( FrameInfo& info );

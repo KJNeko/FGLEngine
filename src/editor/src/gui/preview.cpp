@@ -53,7 +53,7 @@ namespace fgl::engine::gui
 
 								obj.addFlag( IS_ENTITY | IS_VISIBLE );
 
-								std::unique_ptr< ModelComponent > component {
+								auto component {
 									std::make_unique< ModelComponent >( std::move( model ) )
 								};
 
@@ -208,16 +208,16 @@ namespace fgl::engine::gui
 			default:
 				[[fallthrough]];
 			case Composite:
-				camera.getSwapchain().g_buffer_composite_img[ frame_index ]->drawImGui( target_size );
+				camera.getSwapchain().m_g_buffer_composite_img[ frame_index ]->drawImGui( target_size );
 				break;
 			case Albedo:
-				camera.getSwapchain().g_buffer_color_img[ frame_index ]->drawImGui( target_size );
+				camera.getSwapchain().m_g_buffer_color_img[ frame_index ]->drawImGui( target_size );
 				break;
 			case Normal:
-				camera.getSwapchain().g_buffer_normal_img[ frame_index ]->drawImGui( target_size );
+				camera.getSwapchain().m_g_buffer_normal_img[ frame_index ]->drawImGui( target_size );
 				break;
 			case Position:
-				camera.getSwapchain().g_buffer_position_img[ frame_index ]->drawImGui( target_size );
+				camera.getSwapchain().m_g_buffer_position_img[ frame_index ]->drawImGui( target_size );
 				break;
 		}
 

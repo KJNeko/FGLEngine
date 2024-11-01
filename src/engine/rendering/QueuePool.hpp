@@ -26,16 +26,16 @@ namespace fgl::engine
 
 	  public:
 
-		QueuePool( vk::raii::PhysicalDevice&, Surface& );
+		QueuePool( const vk::raii::PhysicalDevice&, Surface& );
 
-		FGL_DELETE_ALL_Ro5( QueuePool );
+		FGL_DELETE_ALL_RO5( QueuePool );
 
 		using QueueIndex = std::uint32_t;
 
 		//! Returns a unique list of indexes with the matching flags
 		QueueIndex getIndex( vk::QueueFlags flags, vk::QueueFlags anti_flags = vk::QueueFlags( 0 ) );
 
-		std::uint32_t getPresentIndex();
+		std::uint32_t getPresentIndex() const;
 	};
 
 } // namespace fgl::engine

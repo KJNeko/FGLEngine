@@ -36,7 +36,7 @@ namespace fgl::engine
 
 	  public:
 
-		FGL_DELETE_ALL_Ro5( Instance );
+		FGL_DELETE_ALL_RO5( Instance );
 
 		explicit Instance( vk::raii::Context& ctx );
 

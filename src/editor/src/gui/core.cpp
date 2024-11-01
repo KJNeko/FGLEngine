@@ -107,19 +107,19 @@ namespace fgl::engine::gui
 		constexpr float right_bar_size { 0.2f };
 		constexpr float bottom_bar_size { 0.4f };
 
-		ImGuiID lb_node {
+		const ImGuiID lb_node {
 			ImGui::DockBuilderSplitNode( primary_id, ImGuiDir_Left, left_bar_size, nullptr, &primary_id )
 		};
 
-		ImGuiID rb_node {
+		const ImGuiID rb_node {
 			ImGui::DockBuilderSplitNode( primary_id, ImGuiDir_Right, right_bar_size, nullptr, &primary_id )
 		};
 
-		ImGuiID bb_node {
+		const ImGuiID bb_node {
 			ImGui::DockBuilderSplitNode( primary_id, ImGuiDir_Down, bottom_bar_size, nullptr, &primary_id )
 		};
 
-		ImGuiID mv_node { primary_id };
+		const ImGuiID mv_node { primary_id };
 		//ImGuiID mv_node { ImGui::DockBuilderSplitNode( primary_id, ImGuiDir_Up, 1.0f - 0.3f, &primary_id, nullptr ) };
 
 		ImGui::DockBuilderDockWindow( OBJECT_TREE_VIEW_NAME, lb_node );
@@ -136,7 +136,7 @@ namespace fgl::engine::gui
 	}
 
 	// ImGui DockBuilder is still very much not ready for use.
-	// But let's try it anyways
+	// But let's try it anyway
 	void drawDock()
 	{
 		// ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( 0.0f, 0.0f ) );
@@ -297,7 +297,7 @@ namespace fgl::engine::gui
 	void cleanupImGui()
 	{
 		ZoneScoped;
-		filesystem::destroyFileGUI();
+		filesystem::destroyFileGui();
 		ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();

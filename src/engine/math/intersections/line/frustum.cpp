@@ -107,12 +107,12 @@ namespace fgl::engine::intersection
 		std::vector< WorldCoordinate > enter_intersections { line.getPosition() };
 		std::vector< WorldCoordinate > exit_intersections { line.getEnd() };
 
-		processPlane( frustum.near, line, enter_intersections, exit_intersections );
-		processPlane( frustum.far, line, enter_intersections, exit_intersections );
-		processPlane( frustum.left, line, enter_intersections, exit_intersections );
-		processPlane( frustum.right, line, enter_intersections, exit_intersections );
-		processPlane( frustum.top, line, enter_intersections, exit_intersections );
-		processPlane( frustum.bottom, line, enter_intersections, exit_intersections );
+		processPlane( frustum.m_near, line, enter_intersections, exit_intersections );
+		processPlane( frustum.m_far, line, enter_intersections, exit_intersections );
+		processPlane( frustum.m_left, line, enter_intersections, exit_intersections );
+		processPlane( frustum.m_right, line, enter_intersections, exit_intersections );
+		processPlane( frustum.m_top, line, enter_intersections, exit_intersections );
+		processPlane( frustum.m_bottom, line, enter_intersections, exit_intersections );
 
 		if ( enter_intersections.size() == 0 ) return false;
 		if ( exit_intersections.size() == 0 ) return false;

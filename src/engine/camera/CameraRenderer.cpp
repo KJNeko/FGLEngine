@@ -20,53 +20,53 @@ namespace fgl::engine
 		// Set formats for each item in the swapchain
 
 		//XYZ in world space
-		auto position { builder.attachment( PositionIndex ) };
+		auto position { builder.attachment( POSITION_INDEX ) };
 		position.setFormat( vk::Format::eR16G16B16A16Sfloat ); // position
 		position.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal );
 		position.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
 
 		//RGBA
-		auto normal { builder.attachment( NormalIndex ) };
+		auto normal { builder.attachment( NORMAL_INDEX ) };
 		normal.setFormat( vk::Format::eR16G16B16A16Sfloat ); // normal
 		normal.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal );
 		normal.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
 
 		// RGBA
-		auto color { builder.attachment( ColorIndex ) };
+		auto color { builder.attachment( COLOR_INDEX ) };
 		color.setFormat( vk::Format::eR8G8B8A8Unorm ); // color
 		color.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal );
 		color.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
 
 		// Metallic, Roughness, Occlusion
-		auto metallic_roughness { builder.attachment( MetallicIndex ) };
+		auto metallic_roughness { builder.attachment( METALLIC_INDEX ) };
 		metallic_roughness.setFormat( vk::Format::eR16G16B16A16Sfloat );
 		metallic_roughness.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal );
 		metallic_roughness.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
 
 		// RGB
-		auto emissive { builder.attachment( EmissiveIndex ) };
+		auto emissive { builder.attachment( EMISSIVE_INDEX ) };
 		emissive.setFormat( vk::Format::eR16G16B16A16Sfloat );
 		emissive.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal );
 		emissive.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
 
-		auto composite { builder.attachment( CompositeIndex ) };
+		auto composite { builder.attachment( COMPOSITE_INDEX ) };
 		//TODO: For HDR I think this needs to be a bigger range then 8bits per channel.
 		composite.setFormat( vk::Format::eR8G8B8A8Unorm ); // composite
 		composite.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal );
 		composite.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
 
-		auto depth { builder.attachment( DepthIndex ) };
+		auto depth { builder.attachment( DEPTH_INDEX ) };
 		depth.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilReadOnlyOptimal );
 		depth.setFormat( SwapChain::findDepthFormat() ); // depth
 		depth.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
 
 		auto& g_buffer_subpass { builder.createSubpass( 0 ) };
-		g_buffer_subpass.setDepthLayout( DepthIndex, vk::ImageLayout::eDepthStencilAttachmentOptimal );
-		g_buffer_subpass.addRenderLayout( ColorIndex, vk::ImageLayout::eColorAttachmentOptimal );
-		g_buffer_subpass.addRenderLayout( PositionIndex, vk::ImageLayout::eColorAttachmentOptimal );
-		g_buffer_subpass.addRenderLayout( NormalIndex, vk::ImageLayout::eColorAttachmentOptimal );
-		g_buffer_subpass.addRenderLayout( MetallicIndex, vk::ImageLayout::eColorAttachmentOptimal );
-		g_buffer_subpass.addRenderLayout( EmissiveIndex, vk::ImageLayout::eColorAttachmentOptimal );
+		g_buffer_subpass.setDepthLayout( DEPTH_INDEX, vk::ImageLayout::eDepthStencilAttachmentOptimal );
+		g_buffer_subpass.addRenderLayout( COLOR_INDEX, vk::ImageLayout::eColorAttachmentOptimal );
+		g_buffer_subpass.addRenderLayout( POSITION_INDEX, vk::ImageLayout::eColorAttachmentOptimal );
+		g_buffer_subpass.addRenderLayout( NORMAL_INDEX, vk::ImageLayout::eColorAttachmentOptimal );
+		g_buffer_subpass.addRenderLayout( METALLIC_INDEX, vk::ImageLayout::eColorAttachmentOptimal );
+		g_buffer_subpass.addRenderLayout( EMISSIVE_INDEX, vk::ImageLayout::eColorAttachmentOptimal );
 
 		g_buffer_subpass.addDependencyFromExternal(
 			vk::AccessFlagBits::eDepthStencilAttachmentWrite,
@@ -76,12 +76,12 @@ namespace fgl::engine
 			vk::AccessFlagBits::eColorAttachmentWrite, vk::PipelineStageFlagBits::eColorAttachmentOutput );
 
 		auto& composite_subpass { builder.createSubpass( 1 ) };
-		composite_subpass.addRenderLayout( CompositeIndex, vk::ImageLayout::eColorAttachmentOptimal );
-		composite_subpass.addInputLayout( ColorIndex, vk::ImageLayout::eShaderReadOnlyOptimal );
-		composite_subpass.addInputLayout( PositionIndex, vk::ImageLayout::eShaderReadOnlyOptimal );
-		composite_subpass.addInputLayout( NormalIndex, vk::ImageLayout::eShaderReadOnlyOptimal );
-		composite_subpass.addInputLayout( MetallicIndex, vk::ImageLayout::eShaderReadOnlyOptimal );
-		composite_subpass.addInputLayout( EmissiveIndex, vk::ImageLayout::eShaderReadOnlyOptimal );
+		composite_subpass.addRenderLayout( COMPOSITE_INDEX, vk::ImageLayout::eColorAttachmentOptimal );
+		composite_subpass.addInputLayout( COLOR_INDEX, vk::ImageLayout::eShaderReadOnlyOptimal );
+		composite_subpass.addInputLayout( POSITION_INDEX, vk::ImageLayout::eShaderReadOnlyOptimal );
+		composite_subpass.addInputLayout( NORMAL_INDEX, vk::ImageLayout::eShaderReadOnlyOptimal );
+		composite_subpass.addInputLayout( METALLIC_INDEX, vk::ImageLayout::eShaderReadOnlyOptimal );
+		composite_subpass.addInputLayout( EMISSIVE_INDEX, vk::ImageLayout::eShaderReadOnlyOptimal );
 
 		composite_subpass.addDependency(
 			g_buffer_subpass,

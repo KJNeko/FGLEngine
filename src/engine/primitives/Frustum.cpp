@@ -21,8 +21,8 @@ namespace fgl::engine
 
 	Frustum operator*( const Matrix< MatrixType::ModelToWorld >& matrix, const FrustumBase& frustum )
 	{
-		const Frustum result { matrix * frustum.near,      matrix * frustum.far,   matrix * frustum.top,
-			                   matrix * frustum.bottom,    matrix * frustum.right, matrix * frustum.left,
+		const Frustum result { matrix * frustum.m_near,      matrix * frustum.m_far,   matrix * frustum.m_top,
+			                   matrix * frustum.m_bottom,    matrix * frustum.m_right, matrix * frustum.m_left,
 			                   matrix * frustum.m_position };
 
 		return result;
@@ -32,12 +32,12 @@ namespace fgl::engine
 
 	FGL_FORCE_INLINE inline NormalVector Frustum::forwardVec() const
 	{
-		return near.getDirection();
+		return m_near.getDirection();
 	}
 
 	FGL_FORCE_INLINE inline NormalVector Frustum::upVec() const
 	{
-		return NormalVector( glm::cross( forwardVec().vec(), left.getDirection().vec() ) );
+		return NormalVector( glm::cross( forwardVec().vec(), m_left.getDirection().vec() ) );
 	}
 
 	FGL_FORCE_INLINE inline NormalVector Frustum::rightVec() const
@@ -61,8 +61,8 @@ namespace fgl::engine
 		// We can either make this non-biased by using a projection from distance shot down the FORWARD vector
 		// Or we can use SIMD to check all the planes at once.
 
-		return near.isForward( coord ) && far.isForward( coord ) && bottom.isForward( coord ) && top.isForward( coord )
-		    && right.isForward( coord ) && left.isForward( coord );
+		return m_near.isForward( coord ) && m_far.isForward( coord ) && m_bottom.isForward( coord ) && m_top.isForward( coord )
+		    && m_right.isForward( coord ) && m_left.isForward( coord );
 	}
 
 	bool Frustum::containsAnyPoint( const std::vector< WorldCoordinate >& coords ) const
@@ -82,25 +82,25 @@ namespace fgl::engine
 
 	std::array< Coordinate< CoordinateSpace::World >, 4 * 2 > Frustum::points() const
 	{
-		const NormalVector pv0 { glm::cross( top.getDirection().vec(), left.getDirection().vec() ) };
-		const NormalVector pv1 { glm::cross( top.getDirection().vec(), right.getDirection().vec() ) };
-		const NormalVector pv2 { glm::cross( bottom.getDirection().vec(), left.getDirection().vec() ) };
-		const NormalVector pv3 { glm::cross( bottom.getDirection().vec(), right.getDirection().vec() ) };
+		const NormalVector pv0 { glm::cross( m_top.getDirection().vec(), m_left.getDirection().vec() ) };
+		const NormalVector pv1 { glm::cross( m_top.getDirection().vec(), m_right.getDirection().vec() ) };
+		const NormalVector pv2 { glm::cross( m_bottom.getDirection().vec(), m_left.getDirection().vec() ) };
+		const NormalVector pv3 { glm::cross( m_bottom.getDirection().vec(), m_right.getDirection().vec() ) };
 
 		const auto l0 { InfiniteLine< CoordinateSpace::World >( m_position, pv0 ) };
 		const auto l1 { InfiniteLine< CoordinateSpace::World >( m_position, pv1 ) };
 		const auto l2 { InfiniteLine< CoordinateSpace::World >( m_position, pv2 ) };
 		const auto l3 { InfiniteLine< CoordinateSpace::World >( m_position, pv3 ) };
 
-		const auto p0 { l0.intersection( far ) };
-		const auto p1 { l1.intersection( far ) };
-		const auto p2 { l2.intersection( far ) };
-		const auto p3 { l3.intersection( far ) };
+		const auto p0 { l0.intersection( m_far ) };
+		const auto p1 { l1.intersection( m_far ) };
+		const auto p2 { l2.intersection( m_far ) };
+		const auto p3 { l3.intersection( m_far ) };
 
-		const auto p4 { l0.intersection( near ) };
-		const auto p5 { l1.intersection( near ) };
-		const auto p6 { l2.intersection( near ) };
-		const auto p7 { l3.intersection( near ) };
+		const auto p4 { l0.intersection( m_near ) };
+		const auto p5 { l1.intersection( m_near ) };
+		const auto p6 { l2.intersection( m_near ) };
+		const auto p7 { l3.intersection( m_near ) };
 
 		return { { p0, p1, p2, p3, p4, p5, p6, p7 } };
 	}

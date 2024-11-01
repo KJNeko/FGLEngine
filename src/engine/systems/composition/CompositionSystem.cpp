@@ -54,7 +54,7 @@ namespace fgl::engine
 
 		ImGui::Begin( "Composition" );
 
-		ImGui::InputInt( "Selection", &m_control.flags );
+		ImGui::InputInt( "Selection", &m_control.m_flags );
 
 		ImGui::End();
 

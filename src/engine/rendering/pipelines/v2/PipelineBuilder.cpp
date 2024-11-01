@@ -12,7 +12,7 @@ namespace fgl::engine
 {
 
 	PipelineBuilder::PipelineBuilder( vk::raii::RenderPass& renderpass, const std::uint32_t subpass_stage ) :
-	  state( std::make_unique< BuilderState >( renderpass, subpass_stage ) )
+	  m_state( std::make_unique< BuilderState >( renderpass, subpass_stage ) )
 	{
 		addDynamicState( vk::DynamicState::eViewport );
 		addDynamicState( vk::DynamicState::eScissor );
@@ -20,12 +20,12 @@ namespace fgl::engine
 
 	void PipelineBuilder::setVertexShader( std::shared_ptr< Shader >&& shader )
 	{
-		state->shaders.vertex = std::forward< std::shared_ptr< Shader > >( shader );
+		m_state->shaders.vertex = std::forward< std::shared_ptr< Shader > >( shader );
 	}
 
 	void PipelineBuilder::setFragmentShader( std::shared_ptr< Shader >&& shader )
 	{
-		state->shaders.fragment = std::forward< std::shared_ptr< Shader > >( shader );
+		m_state->shaders.fragment = std::forward< std::shared_ptr< Shader > >( shader );
 	}
 
 	descriptors::DescriptorSetLayout empty_set_layout { descriptors::DescriptorSetLayout::createEmptySet() };
@@ -34,15 +34,15 @@ namespace fgl::engine
 	{
 		vk::PipelineLayoutCreateInfo info {};
 
-		if ( state->push_constant.size > 0 ) info.setPushConstantRanges( state->push_constant );
+		if ( m_state->push_constant.size > 0 ) info.setPushConstantRanges( m_state->push_constant );
 
 		std::vector< vk::DescriptorSetLayout > set_layouts {};
 
-		set_layouts.reserve( state->descriptor_set_layouts.size() );
+		set_layouts.reserve( m_state->descriptor_set_layouts.size() );
 
 		SetID max_set_idx { 0 };
 
-		for ( const auto& [ set_idx, _ ] : state->descriptor_set_layouts )
+		for ( const auto& [ set_idx, _ ] : m_state->descriptor_set_layouts )
 		{
 			max_set_idx = std::max( max_set_idx, set_idx );
 		}
@@ -52,8 +52,8 @@ namespace fgl::engine
 
 		for ( std::size_t i = 0; i < set_layouts.size(); ++i )
 		{
-			auto itter { state->descriptor_set_layouts.find( static_cast< SetID >( i ) ) };
-			if ( itter == state->descriptor_set_layouts.end() )
+			auto itter { m_state->descriptor_set_layouts.find( static_cast< SetID >( i ) ) };
+			if ( itter == m_state->descriptor_set_layouts.end() )
 			{
 				// Could not find it. Empty
 				set_layouts[ i ] = empty_set_layout.layout();
@@ -66,7 +66,7 @@ namespace fgl::engine
 			}
 		}
 
-		for ( const auto& [ set_idx, layout ] : state->descriptor_set_layouts )
+		for ( const auto& [ set_idx, layout ] : m_state->descriptor_set_layouts )
 		{
 			set_layouts[ set_idx ] = layout;
 		}
@@ -79,8 +79,8 @@ namespace fgl::engine
 	void PipelineBuilder::
 		addDescriptorSet( const SetID idx, const vk::raii::DescriptorSetLayout& descriptor_set_layout )
 	{
-		FGL_ASSERT( !state->descriptor_set_layouts.contains( idx ), "Descriptor already set!" );
-		state->descriptor_set_layouts.insert( std::make_pair( idx, *descriptor_set_layout ) );
+		FGL_ASSERT( !m_state->descriptor_set_layouts.contains( idx ), "Descriptor already set!" );
+		m_state->descriptor_set_layouts.insert( std::make_pair( idx, *descriptor_set_layout ) );
 	}
 
 	void PipelineBuilder::addDescriptorSet( descriptors::DescriptorSetLayout& descriptor )
@@ -90,14 +90,14 @@ namespace fgl::engine
 
 	void PipelineBuilder::addDynamicState( vk::DynamicState dynamic_state )
 	{
-		state->m_dynamic_state.emplace_back( dynamic_state );
+		m_state->m_dynamic_state.emplace_back( dynamic_state );
 	}
 
 	void PipelineBuilder::setPushConstant( const vk::ShaderStageFlags flags, std::size_t size )
 	{
-		state->push_constant.offset = 0;
-		state->push_constant.size = size;
-		state->push_constant.stageFlags = flags;
+		m_state->push_constant.offset = 0;
+		m_state->push_constant.size = size;
+		m_state->push_constant.stageFlags = flags;
 	}
 
 	[[nodiscard]] vk::PipelineColorBlendAttachmentState& PipelineBuilder::BuilderState::addColorAttachment()
@@ -161,18 +161,18 @@ namespace fgl::engine
 
 	void PipelineBuilder::setTopology( const vk::PrimitiveTopology primitive_topology )
 	{
-		state->assembly_info.topology = primitive_topology;
+		m_state->assembly_info.topology = primitive_topology;
 	}
 
 	void PipelineBuilder::disableVertexInput()
 	{
-		state->vertex_input_descriptions.bindings = {};
-		state->vertex_input_descriptions.attributes = {};
+		m_state->vertex_input_descriptions.bindings = {};
+		m_state->vertex_input_descriptions.attributes = {};
 	}
 
 	void PipelineBuilder::disableCulling()
 	{
-		state->rasterization_info.cullMode = vk::CullModeFlagBits::eNone;
+		m_state->rasterization_info.cullMode = vk::CullModeFlagBits::eNone;
 	}
 
 	AttachmentBuilder PipelineBuilder::addAttachment()
@@ -188,13 +188,13 @@ namespace fgl::engine
 
 	void PipelineBuilder::setBindingDescriptions( const std::vector< vk::VertexInputBindingDescription >& descriptions )
 	{
-		state->vertex_input_descriptions.bindings = descriptions;
+		m_state->vertex_input_descriptions.bindings = descriptions;
 	}
 
 	void PipelineBuilder::setAttributeDescriptions( const std::vector< vk::VertexInputAttributeDescription >&
 	                                                    descriptions )
 	{
-		state->vertex_input_descriptions.attributes = descriptions;
+		m_state->vertex_input_descriptions.attributes = descriptions;
 	}
 
 	vk::raii::Pipeline PipelineBuilder::createFromState( BuilderState& state, vk::raii::PipelineLayout& layout )
@@ -261,15 +261,15 @@ namespace fgl::engine
 	{
 		// Precheck
 		{
-			FGL_ASSERT( state->shaders.fragment, "Pipeline requires fragment shader" );
-			FGL_ASSERT( state->shaders.vertex, "Pipeline requires vertex shader" );
+			FGL_ASSERT( m_state->shaders.fragment, "Pipeline requires fragment shader" );
+			FGL_ASSERT( m_state->shaders.vertex, "Pipeline requires vertex shader" );
 		}
 
 		vk::raii::PipelineLayout layout { createLayout() };
 
-		vk::raii::Pipeline pipeline { createFromState( *state, layout ) };
+		vk::raii::Pipeline pipeline { createFromState( *m_state, layout ) };
 
-		return std::make_unique< Pipeline >( std::move( pipeline ), std::move( layout ), std::move( state ) );
+		return std::make_unique< Pipeline >( std::move( pipeline ), std::move( layout ), std::move( m_state ) );
 	}
 
 	void setGBufferOutputAttachments( PipelineBuilder::BuilderState& config )

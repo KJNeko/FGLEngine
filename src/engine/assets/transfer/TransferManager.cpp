@@ -253,7 +253,7 @@ namespace fgl::engine::memory
 	{
 		log::info(
 			"Transfer manager created with a buffer size of {}",
-			fgl::literals::size_literals::to_string( buffer_size ) );
+			fgl::literals::size_literals::toString( buffer_size ) );
 		global_transfer_manager = std::make_unique< TransferManager >( device, buffer_size );
 	}
 

@@ -34,19 +34,18 @@ namespace fgl::engine::memory
 	{
 		assert( this->m_allocations.size() == 0 );
 		dealloc();
-		if ( auto itter = std::find( active_buffers.begin(), active_buffers.end(), this );
-		     itter != active_buffers.end() )
+		if ( const auto itter = std::ranges::find( active_buffers, this ); itter != active_buffers.end() )
 			active_buffers.erase( itter );
 	}
 
-	void* Buffer::map( BufferSuballocationHandle& handle )
+	void* Buffer::map( const BufferSuballocationHandle& handle ) const
 	{
 		if ( m_alloc_info.pMappedData == nullptr ) return nullptr;
 
 		return static_cast< std::byte* >( m_alloc_info.pMappedData ) + handle.m_offset;
 	}
 
-	void Buffer::dealloc()
+	void Buffer::dealloc() const
 	{
 		vmaDestroyBuffer( Device::getInstance().allocator(), m_buffer, m_allocation );
 	}
@@ -93,7 +92,7 @@ namespace fgl::engine::memory
 		vmaGetAllocationInfo( Device::getInstance().allocator(), m_allocation, &m_alloc_info );
 	}
 
-	vk::DeviceSize Buffer::alignment()
+	vk::DeviceSize Buffer::alignment() const
 	{
 		vk::DeviceSize size { 0 };
 
@@ -262,7 +261,7 @@ namespace fgl::engine::memory
 		}
 	}
 
-	void Buffer::setDebugName( const std::string str )
+	void Buffer::setDebugName( const std::string& str )
 	{
 		vk::DebugUtilsObjectNameInfoEXT info {};
 		info.objectType = vk::ObjectType::eBuffer;

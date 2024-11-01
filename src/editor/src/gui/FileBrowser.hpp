@@ -20,12 +20,12 @@ namespace fgl::engine::filesystem
 
 		static void openFolder( const DirInfo& dir );
 
-		static void drawUp( const std::unique_ptr< DirInfo >& up );
+		static void drawUp( const std::unique_ptr< DirInfo >& current_dir );
 		static void drawGui( FrameInfo& info );
 		static void drawFile( const FileInfo& data );
 		static void drawFolder( const DirInfo& data );
 	};
 
-	void destroyFileGUI();
+	void destroyFileGui();
 
 } // namespace fgl::engine::filesystem

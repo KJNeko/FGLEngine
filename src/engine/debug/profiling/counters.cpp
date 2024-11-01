@@ -9,33 +9,33 @@
 
 namespace fgl::engine::profiling
 {
-	inline static Counters counters;
+	inline static Counters COUNTERS;
 
 	Counters& getCounters()
 	{
-		return counters;
+		return COUNTERS;
 	}
 
 	void addModelDrawn( std::size_t n )
 	{
-		counters.models_draw += n;
+		COUNTERS.m_models_draw += n;
 	}
 
 	void addVertexDrawn( std::size_t n )
 	{
-		counters.verts_drawn += n;
+		COUNTERS.m_verts_drawn += n;
 	}
 
 	void addInstances( std::size_t n )
 	{
-		counters.instance_count += n;
+		COUNTERS.m_instance_count += n;
 	}
 
 	void resetCounters()
 	{
-		counters.verts_drawn = 0;
-		counters.models_draw = 0;
-		counters.instance_count = 0;
+		COUNTERS.m_verts_drawn = 0;
+		COUNTERS.m_models_draw = 0;
+		COUNTERS.m_instance_count = 0;
 	}
 
 	// In order for resetCounters to work we need to ensure we can just zero the struct.

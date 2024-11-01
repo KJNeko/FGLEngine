@@ -43,15 +43,15 @@ struct format_ns::formatter< std::filesystem::path >
 template <>
 struct format_ns::formatter< std::source_location >
 {
-	constexpr format_parse_context::iterator parse( format_parse_context& ctx ) { return ctx.begin(); }
+	static constexpr format_parse_context::iterator parse( format_parse_context& ctx ) { return ctx.begin(); }
 
-	format_context::iterator format( const std::source_location& loc, format_context& ctx ) const;
+	static format_context::iterator format( const std::source_location& loc, format_context& ctx );
 };
 
 template <>
 struct format_ns::formatter< format_ns::format_string<> >
 {
-	constexpr format_parse_context::iterator parse( format_parse_context& ctx ) { return ctx.begin(); }
+	static constexpr format_parse_context::iterator parse( format_parse_context& ctx ) { return ctx.begin(); }
 
 	format_context::iterator format( const format_ns::format_string<>& str, format_context& ctx ) const;
 };

@@ -10,9 +10,9 @@ namespace fgl::engine::profiling
 {
 	struct Counters
 	{
-		std::size_t verts_drawn;
-		std::size_t models_draw;
-		std::size_t instance_count;
+		std::size_t m_verts_drawn;
+		std::size_t m_models_draw;
+		std::size_t m_instance_count;
 	};
 
 	Counters& getCounters();
