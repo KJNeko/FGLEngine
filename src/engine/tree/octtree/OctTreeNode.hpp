@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <tracy/Tracy.hpp>
-
 #include "engine/gameobjects/GameObject.hpp"
 #include "engine/primitives/boxes/AxisAlignedBoundingCube.hpp"
 
@@ -65,6 +63,9 @@ namespace fgl::engine
 		OctTreeNode& operator=( const OctTreeNode& ) = delete;
 		OctTreeNode& operator=( OctTreeNode&& ) = delete;
 		void clear();
+		WorldCoordinate getCenter() const;
+		WorldCoordinate getFitCenter() const;
+		void drawDebug() const;
 
 	  private:
 
@@ -89,11 +90,7 @@ namespace fgl::engine
 
 		bool isInFrustum( const Frustum& frustum ) const;
 
-		bool isEmpty() const
-		{
-			return std::holds_alternative< OctTreeNodeLeaf >( m_node_data )
-			    && std::get< OctTreeNodeLeaf >( m_node_data ).empty();
-		}
+		bool isEmpty() const;
 
 		auto getGameObjectItter( GameObject::GameObjectID id );
 
@@ -109,30 +106,34 @@ namespace fgl::engine
 		//! Rebuilds the tree checking if nodes have moved.
 		std::size_t reorganize();
 
+		//! Returns true if the fixed bounding box is larger then the inital bounding box
+		bool isBoundsExpanded();
+
+		void recalculateNodeBounds();
+
+		void recalculateLeafBounds();
+
 		void recalculateBounds();
 
 		constexpr static std::size_t LEAF_RESERVE_SIZE { 1024 };
 
-		[[nodiscard]] std::vector< OctTreeNodeLeaf* > getAllLeafs()
-		{
-			ZoneScoped;
-			std::vector< OctTreeNodeLeaf* > leafs {};
-			leafs.reserve( LEAF_RESERVE_SIZE );
-			this->getAllLeafs( leafs );
-			return leafs;
-		}
+		[[nodiscard]] std::vector< OctTreeNodeLeaf* > getAllLeafs();
 
-		[[nodiscard]] std::vector< OctTreeNodeLeaf* > getAllLeafsInFrustum( const Frustum& frustum )
-		{
-			ZoneScoped;
-			std::vector< OctTreeNodeLeaf* > leafs {};
-			leafs.reserve( LEAF_RESERVE_SIZE );
-			this->getAllLeafsInFrustum( frustum, leafs );
-			return leafs;
-		}
+		[[nodiscard]] std::vector< OctTreeNodeLeaf* > getAllLeafsInFrustum( const Frustum& frustum );
 
 		//! Adds a game object, Will split the node if the auto split threshold is reached
 		OctTreeNode* addGameObject( GameObject&& obj );
+		bool isLeaf() const;
+		bool isBranch() const;
+
+		std::size_t itemCount() const;
+		const OctTreeNodeArray& getBranches() const;
+		const OctTreeNodeLeaf& getLeaf() const;
 	};
+
+#define FOR_EACH_OCTTREE_NODE                                                                                          \
+	for ( std::size_t x = 0; x < 2; ++x )                                                                              \
+		for ( std::size_t y = 0; y < 2; ++y )                                                                          \
+			for ( std::size_t z = 0; z < 2; ++z )
 
 } // namespace fgl::engine

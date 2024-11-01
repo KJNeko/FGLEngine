@@ -17,6 +17,7 @@
 #include "FileBrowser.hpp"
 #include "engine/assets/model/Model.hpp"
 #include "engine/debug/DEBUG_NAMES.hpp"
+#include "engine/debug/drawers.hpp"
 #include "engine/debug/profiling/counters.hpp"
 #include "engine/debug/timing/FlameGraph.hpp"
 #include "engine/descriptors/DescriptorPool.hpp"
@@ -193,11 +194,60 @@ namespace fgl::engine::gui
 
 	static GameObject* selected_object { nullptr };
 
+	void itterateGameObjectNode( FrameInfo& info, const OctTreeNode& node )
+	{
+		if ( node.isLeaf() )
+		{
+			if ( node.itemCount() == 0 ) return;
+
+			const auto& objects { node.getLeaf() };
+			for ( const GameObject& object : objects )
+			{
+				ImGui::PushID( object.getId() );
+
+				debug::drawLine( object.getPosition(), node.getFitCenter() );
+
+				if ( ImGui::TreeNodeEx( object.getName().c_str(), ImGuiTreeNodeFlags_Leaf ) )
+				{
+					ImGui::TreePop();
+				}
+				ImGui::PopID();
+			}
+		}
+		else if ( node.isBranch() )
+		{
+			const auto& branches { node.getBranches() };
+
+			for ( std::size_t x = 0; x < 2; ++x )
+			{
+				for ( std::size_t y = 0; y < 2; ++y )
+				{
+					for ( std::size_t z = 0; z < 2; ++z )
+					{
+						const auto item_count { branches[ x ][ y ][ z ]->itemCount() };
+						const auto str { std::format( "{}x{}x{}: {}", x, y, z, item_count ) };
+
+						if ( ImGui::TreeNodeEx(
+								 str.c_str(),
+								 ImGuiTreeNodeFlags_DefaultOpen | ( item_count == 0 ? ImGuiTreeNodeFlags_Leaf : 0 ) ) )
+						{
+							itterateGameObjectNode( info, *( branches[ x ][ y ][ z ] ) );
+							ImGui::TreePop();
+						}
+					}
+				}
+			}
+		}
+	}
+
 	void drawEntityGUI( FrameInfo& info )
 	{
 		ZoneScoped;
 		ImGui::Begin( OBJECT_TREE_VIEW_NAME );
 
+		itterateGameObjectNode( info, info.game_objects );
+
+		/*
 		for ( OctTreeNodeLeaf* leaf : info.game_objects.getAllLeafs() )
 		{
 			for ( GameObject& entity : *leaf )
@@ -212,6 +262,7 @@ namespace fgl::engine::gui
 				ImGui::PopID();
 			}
 		}
+		*/
 
 		ImGui::End();
 	}

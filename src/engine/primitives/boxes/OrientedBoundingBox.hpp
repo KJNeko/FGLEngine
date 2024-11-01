@@ -111,6 +111,8 @@ namespace fgl::engine
 		OrientedBoundingBox combine( const OrientedBoundingBox& other ) const;
 
 		AxisAlignedBoundingBox< CType > alignToWorld() const;
+
+		Coordinate< CType > getPosition() const;
 	};
 
 	template < CoordinateSpace CType, MatrixType MType >

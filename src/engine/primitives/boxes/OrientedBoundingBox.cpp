@@ -226,6 +226,12 @@ namespace fgl::engine
 	}
 
 	template < CoordinateSpace CType >
+	Coordinate< CType > OrientedBoundingBox< CType >::getPosition() const
+	{
+		return m_transform.translation;
+	}
+
+	template < CoordinateSpace CType >
 	std::array< LineSegment< CType >, interface::BoundingBox::LINE_COUNT > OrientedBoundingBox< CType >::lines() const
 	{
 		const auto points { this->points() };

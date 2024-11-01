@@ -25,7 +25,7 @@ namespace fgl::engine
 
 		constexpr static auto SpaceType { CType };
 
-		explicit AxisAlignedBoundingBox(
+		AxisAlignedBoundingBox(
 			const Coordinate< CType > top_right_forward, const Coordinate< CType > bottom_left_back ) :
 		  m_top_right_forward( top_right_forward ),
 		  m_bottom_left_back( bottom_left_back )
@@ -35,7 +35,7 @@ namespace fgl::engine
 			assert( m_top_right_forward.z > m_bottom_left_back.z );
 		}
 
-		explicit AxisAlignedBoundingBox( const Coordinate< CType > midpoint, const Scale scale ) :
+		AxisAlignedBoundingBox( const Coordinate< CType > midpoint, const Scale scale ) :
 		  AxisAlignedBoundingBox( midpoint + scale, midpoint - scale )
 		{
 			assert( m_top_right_forward.x > m_bottom_left_back.x );
@@ -43,6 +43,7 @@ namespace fgl::engine
 			assert( m_top_right_forward.z > m_bottom_left_back.z );
 		}
 
+		//TODO: This should be removed from access in favor of OBB::alignToWorld()
 		explicit AxisAlignedBoundingBox( const OrientedBoundingBox< CType >& oobb );
 
 		AxisAlignedBoundingBox& combine( const AxisAlignedBoundingBox& other );
