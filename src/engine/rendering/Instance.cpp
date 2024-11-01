@@ -136,10 +136,26 @@ namespace fgl::engine
 
 	std::vector< const char* > Instance::getRequiredInstanceExtensions()
 	{
+		const auto is_vulkan_supported { glfwVulkanSupported() };
+		if ( is_vulkan_supported != GLFW_TRUE )
+			throw std::runtime_error( "Instance::getRequiredInstanceExtensions(): Vulkan is not supported" );
+
 		uint32_t glfwExtensionCount = 0;
 		const char** glfwExtensions { glfwGetRequiredInstanceExtensions( &glfwExtensionCount ) };
 
-		if ( glfwExtensions == nullptr ) throw std::runtime_error( "Failed to get required extensions from glfw" );
+		log::debug( "glfwGetRequiredInstanceExtensions: {}", glfwExtensionCount );
+
+		if ( glfwExtensions == nullptr )
+		{
+			const char* error_msg { nullptr };
+			const auto glfw_error_id { glfwGetError( &error_msg ) };
+			if ( error_msg )
+				throw std::runtime_error(
+					std::format( "Failed to get required extensions from glfw: {}:{}", glfw_error_id, error_msg ) );
+			else
+				throw std::
+					runtime_error( std::format( "Failed to get required extensions from glfw: {}", glfw_error_id ) );
+		}
 
 		std::vector< const char* > extensions( glfwExtensions, glfwExtensions + glfwExtensionCount );
 
@@ -202,9 +218,15 @@ namespace fgl::engine
 		}
 	}
 
+	void glfwCallback( int error, const char* description )
+	{
+		log::critical( "GLFW ERROR: {} {}", error, description );
+		throw std::runtime_error( description );
+	}
+
 	void Instance::setupDebugMessenger()
 	{
-		if ( !ENABLE_VALIDATION_LAYERS )
+		if constexpr ( !ENABLE_VALIDATION_LAYERS )
 		{
 			log::info( "Validation disabled. Skipping debug messenger" );
 			return;
@@ -238,6 +260,9 @@ namespace fgl::engine
 		{
 			throw std::runtime_error( "failed to set up debug messenger!" );
 		}
+
+		//Setup some glfw error callbacks
+		glfwSetErrorCallback( &glfwCallback );
 
 		log::info( "Debug callback setup" );
 	}
