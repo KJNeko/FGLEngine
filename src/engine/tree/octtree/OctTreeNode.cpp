@@ -103,7 +103,7 @@ namespace fgl::engine
 			case 1: // NodeLeaf
 				{
 					OctTreeNodeLeaf& leaf { std::get< OctTreeNodeLeaf >( m_node_data ) };
-					if ( leaf.size() == 0 ) return;
+					if ( leaf.empty() ) return;
 
 					//Check if we are inside the frustum.
 					if ( !isInFrustum( frustum ) ) return;
@@ -139,7 +139,7 @@ namespace fgl::engine
 		const std::size_t y_idx { coordinate_center.y > bounds_center.y ? 1ul : 0ul };
 		const std::size_t z_idx { coordinate_center.z > bounds_center.z ? 1ul : 0ul };
 
-		auto& node { std::get< OctTreeNodeArray >( m_node_data )[ x_idx ][ y_idx ][ z_idx ] };
+		const auto& node { std::get< OctTreeNodeArray >( m_node_data )[ x_idx ][ y_idx ][ z_idx ] };
 
 		FGL_ASSERT( node, "Node was invalid!" );
 		FGL_ASSERT( node->canContain( coord ), "Node was not capable of containing the object!" );
@@ -258,7 +258,8 @@ namespace fgl::engine
 
 			return this;
 		}
-		else if ( std::holds_alternative< OctTreeNodeArray >( m_node_data ) )
+
+		if ( std::holds_alternative< OctTreeNodeArray >( m_node_data ) )
 		{
 			auto* node { ( *this )[ obj.getPosition() ].addGameObject( std::forward< GameObject >( obj ) ) };
 			return node;
@@ -342,8 +343,8 @@ namespace fgl::engine
 
 			return true;
 		}
-		else
-			return false;
+
+		return false;
 
 #else
 		return !isEmpty() && intersects( frustum, m_fit_bounding_box );
@@ -457,7 +458,8 @@ namespace fgl::engine
 
 			return nullptr;
 		}
-		else if ( std::holds_alternative< OctTreeNodeArray >( this->m_node_data ) )
+
+		if ( std::holds_alternative< OctTreeNodeArray >( this->m_node_data ) )
 		{
 			const auto& node_array { std::get< OctTreeNodeArray >( this->m_node_data ) };
 
@@ -523,7 +525,7 @@ namespace fgl::engine
 		{
 			auto& leaf { std::get< OctTreeNodeLeaf >( m_node_data ) };
 			//No point in us giving back an empty leaf
-			if ( leaf.size() > 0 ) out_leafs.emplace_back( &leaf );
+			if ( !leaf.empty() ) out_leafs.emplace_back( &leaf );
 		}
 		else
 		{
@@ -554,7 +556,8 @@ namespace fgl::engine
 
 			return counter;
 		}
-		else if ( std::holds_alternative< LeafDataT >( m_node_data ) )
+
+		if ( std::holds_alternative< LeafDataT >( m_node_data ) )
 		{
 			//Check if any of the nodes in this group need to be moved.
 
