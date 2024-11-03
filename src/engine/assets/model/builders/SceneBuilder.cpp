@@ -604,7 +604,7 @@ namespace fgl::engine
 		std::unique_ptr< ModelComponent > component { std::make_unique< ModelComponent >( std::move( model ) ) };
 		obj.addComponent( std::move( component ) );
 
-		obj.addFlag( IS_VISIBLE | IS_ENTITY );
+		obj.addFlag( IsVisible | IsEntity );
 
 		const auto transform { loadTransform( node_idx, root ) };
 

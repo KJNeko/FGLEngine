@@ -46,7 +46,7 @@ namespace fgl::engine
 
 		explicit Matrix( const glm::mat4& matrix ) : glm::mat4( matrix ) {}
 
-		Matrix operator*( const Matrix& other )
+		Matrix operator*( const Matrix& other ) const
 		{
 			return Matrix( static_cast< glm::mat4 >( *this ) * static_cast< glm::mat4 >( other ) );
 		}

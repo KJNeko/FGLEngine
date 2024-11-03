@@ -53,9 +53,11 @@
 #define FGL_STRICT_ALIGNMENT( bytesize ) [[gnu::warn_if_not_aligned( bytesize )]]
 
 #ifndef NDEBUG
+#include <format>
 #include <stdexcept>
-#define FGL_ASSERT( test, msg ) assert( ( test ) && "msg" );
-//if ( !( test ) ) throw std::runtime_error( msg );
+#define FGL_ASSERT( test, msg )                                                                                        \
+	if ( !( test ) )                                                                                                   \
+		throw std::runtime_error( std::format( "{}:{}:{}: {}", __FILE__, __LINE__, __PRETTY_FUNCTION__, msg ) );
 #else
 #define FGL_ASSERT( test, msg )
 #endif
@@ -70,3 +72,9 @@
 #else
 #define FGL_UNREACHABLE() std::unreachable()
 #endif
+
+#define FGL_NOTNAN( value ) FGL_ASSERT( !std::isnan( value ), "Value is NaN!" )
+#define FGL_NOTNANVEC3( vec3 )                                                                                         \
+	FGL_ASSERT( !std::isnan( ( vec3 ).x ), "X value was NaN!" );                                                       \
+	FGL_ASSERT( !std::isnan( ( vec3 ).y ), "Y value was NaN!" );                                                       \
+	FGL_ASSERT( !std::isnan( ( vec3 ).z ), "Z value was NaN!" )

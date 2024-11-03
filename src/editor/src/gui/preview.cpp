@@ -51,7 +51,7 @@ namespace fgl::engine::gui
 									Model::createModel( data->path, info.model_vertex_buffer, info.model_index_buffer )
 								};
 
-								obj.addFlag( IS_ENTITY | IS_VISIBLE );
+								obj.addFlag( IsEntity | IsVisible );
 
 								auto component {
 									std::make_unique< ModelComponent >( std::move( model ) )

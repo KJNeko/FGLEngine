@@ -58,8 +58,8 @@ namespace fgl::engine
 
 		initMaterialDataVec( m_material_data_pool );
 
-		constexpr auto offset { 2.0f };
-		constexpr std::size_t grid_size { 16 };
+		constexpr auto offset { 8.0f };
+		constexpr std::size_t grid_size { 6 };
 		constexpr float factor_offset { 1.0f / static_cast< float >( grid_size ) };
 
 		for ( std::size_t x = 0; x < grid_size; ++x )
@@ -92,7 +92,7 @@ namespace fgl::engine
 						}
 					}
 
-					obj.getTransform().translation = WorldCoordinate( x * offset, y * offset, 0.0f );
+					obj.getTransform().translation = WorldCoordinate( 10.0 + x * offset, 10.0 + y * offset, 0.0f );
 
 					m_game_objects_root.addGameObject( std::move( obj ) );
 				}

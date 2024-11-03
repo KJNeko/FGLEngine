@@ -5,6 +5,7 @@
 #pragma once
 
 #include "BoundingBox.hpp"
+#include "engine/FGL_DEFINES.hpp"
 #include "engine/primitives/Scale.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 #include "engine/primitives/vectors/NormalVector.hpp"
@@ -33,6 +34,13 @@ namespace fgl::engine
 			assert( m_top_right_forward.x > m_bottom_left_back.x );
 			assert( m_top_right_forward.y > m_bottom_left_back.y );
 			assert( m_top_right_forward.z > m_bottom_left_back.z );
+
+			FGL_NOTNAN( m_bottom_left_back.x );
+			FGL_NOTNAN( m_bottom_left_back.y );
+			FGL_NOTNAN( m_bottom_left_back.z );
+			FGL_NOTNAN( m_bottom_left_back.x );
+			FGL_NOTNAN( m_bottom_left_back.y );
+			FGL_NOTNAN( m_bottom_left_back.z );
 		}
 
 		AxisAlignedBoundingBox( const Coordinate< CType > midpoint, const Scale scale ) :
@@ -41,6 +49,13 @@ namespace fgl::engine
 			assert( m_top_right_forward.x > m_bottom_left_back.x );
 			assert( m_top_right_forward.y > m_bottom_left_back.y );
 			assert( m_top_right_forward.z > m_bottom_left_back.z );
+
+			FGL_NOTNAN( m_bottom_left_back.x );
+			FGL_NOTNAN( m_bottom_left_back.y );
+			FGL_NOTNAN( m_bottom_left_back.z );
+			FGL_NOTNAN( m_bottom_left_back.x );
+			FGL_NOTNAN( m_bottom_left_back.y );
+			FGL_NOTNAN( m_bottom_left_back.z );
 		}
 
 		//TODO: This should be removed from access in favor of OBB::alignToWorld()

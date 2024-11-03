@@ -25,11 +25,11 @@ namespace fgl::engine
 
 	enum GameObjectFlagMask : GameObjectFlagType
 	{
-		NONE_FLAG = 0,
-		IS_STATIC = 1 << 0, //! Object can not move
-		IS_VISIBLE = 1 << 1, //! Only return visible objects
-		IS_ENTITY = 1 << 2,
-		MASK_DEFAULT = IS_VISIBLE,
+		NoneFlag = 0,
+		IsStatic = 1 << 0, //! Object can not move
+		IsVisible = 1 << 1, //! Only return visible objects
+		IsEntity = 1 << 2,
+		MaskDefault = IsVisible,
 	};
 
 	class GameObject
@@ -44,7 +44,7 @@ namespace fgl::engine
 	  private:
 
 		GameObjectID m_id { INVALID_ID };
-		GameObjectFlagType object_flags { GameObjectFlagMask::MASK_DEFAULT };
+		GameObjectFlagType object_flags { GameObjectFlagMask::MaskDefault };
 		GameObjectTransform m_transform {};
 
 		std::vector< GameObjectComponentPtr > components {};

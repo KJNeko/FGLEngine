@@ -66,6 +66,7 @@ namespace fgl::engine
 		WorldCoordinate getCenter() const;
 		WorldCoordinate getFitCenter() const;
 		void drawDebug() const;
+		void recalculateChildBounds();
 
 	  private:
 
@@ -97,9 +98,7 @@ namespace fgl::engine
 		void getAllLeafs( std::vector< OctTreeNodeLeaf* >& out_leafs );
 		void getAllLeafsInFrustum( const Frustum& frustum, std::vector< OctTreeNodeLeaf* >& out_leafs );
 
-		bool contains( WorldCoordinate coord ) const;
-
-		OctTreeNode& operator[]( const WorldCoordinate coord );
+		OctTreeNode& operator[]( const WorldCoordinate coord ) const;
 
 	  public:
 
@@ -129,6 +128,7 @@ namespace fgl::engine
 		std::size_t itemCount() const;
 		const OctTreeNodeArray& getBranches() const;
 		const OctTreeNodeLeaf& getLeaf() const;
+		OctTreeNodeLeaf& getLeaf();
 	};
 
 #define FOR_EACH_OCTTREE_NODE                                                                                          \

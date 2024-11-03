@@ -155,7 +155,7 @@ namespace fgl::engine
 		TracyVkZone( info.tracy_ctx, *command_buffer, "Render textured entities" );
 
 		auto [ draw_commands, model_matricies ] =
-			getDrawCallsFromTree( info.game_objects, info.camera->getFrustumBounds(), IS_VISIBLE | IS_ENTITY );
+			getDrawCallsFromTree( info.game_objects, info.camera->getFrustumBounds(), IsVisible | IsEntity );
 
 		if ( draw_commands.empty() ) return;
 

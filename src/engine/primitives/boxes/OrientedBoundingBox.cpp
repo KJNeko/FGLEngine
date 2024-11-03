@@ -208,8 +208,10 @@ namespace fgl::engine
 	AxisAlignedBoundingBox< CType > OrientedBoundingBox< CType >::alignToWorld() const
 	{
 		const auto points { this->points() };
-		glm::vec3 max { std::numeric_limits< glm::vec3::type >::infinity() };
-		glm::vec3 min { -std::numeric_limits< glm::vec3::type >::infinity() };
+		static_assert( std::same_as< glm::vec3::value_type, float > );
+		constexpr glm::vec3::value_type INF { std::numeric_limits< glm::vec3::value_type >::infinity() };
+		glm::vec3 max { -INF };
+		glm::vec3 min { INF };
 
 		for ( const auto& point : points )
 		{
@@ -221,6 +223,9 @@ namespace fgl::engine
 			min.y = glm::min( min.y, point.y );
 			min.z = glm::min( min.z, point.z );
 		}
+
+		FGL_ASSERT( glm::all( glm::notEqual( max, glm::vec3( -INF ) ) ), "Max was still infinity" );
+		FGL_ASSERT( glm::all( glm::notEqual( min, glm::vec3( INF ) ) ), "Min was still infinity" );
 
 		return AxisAlignedBoundingBox< CType >( Coordinate< CType >( max ), Coordinate< CType >( min ) );
 	}

@@ -194,21 +194,23 @@ namespace fgl::engine::gui
 
 	static GameObject* selected_object { nullptr };
 
-	void itterateGameObjectNode( FrameInfo& info, const OctTreeNode& node )
+	void itterateGameObjectNode( FrameInfo& info, OctTreeNode& node )
 	{
 		if ( node.isLeaf() )
 		{
 			if ( node.itemCount() == 0 ) return;
 
-			const auto& objects { node.getLeaf() };
-			for ( const GameObject& object : objects )
+			auto& objects { node.getLeaf() };
+			for ( GameObject& object : objects )
 			{
 				ImGui::PushID( object.getId() );
 
-				debug::drawLine( object.getPosition(), node.getFitCenter() );
-
 				if ( ImGui::TreeNodeEx( object.getName().c_str(), ImGuiTreeNodeFlags_Leaf ) )
 				{
+					if ( ImGui::IsItemClicked() )
+					{
+						selected_object = &object;
+					}
 					ImGui::TreePop();
 				}
 				ImGui::PopID();

@@ -93,6 +93,11 @@ namespace fgl::engine
 	template < CoordinateSpace CType >
 	AxisAlignedBoundingBox< CType >& AxisAlignedBoundingBox< CType >::combine( const AxisAlignedBoundingBox& other )
 	{
+		FGL_NOTNANVEC3( other.m_top_right_forward );
+		FGL_NOTNANVEC3( other.m_bottom_left_back );
+		FGL_NOTNANVEC3( this->m_top_right_forward );
+		FGL_NOTNANVEC3( this->m_bottom_left_back );
+
 		const Coordinate< CType > new_top_right_forward {
 			std::max( this->m_top_right_forward.x, other.m_top_right_forward.x ),
 			std::max( this->m_top_right_forward.y, other.m_top_right_forward.y ),
@@ -118,6 +123,11 @@ namespace fgl::engine
 		const auto other_trf { other.topRightForward() };
 		const auto other_blb { other.bottomLeftBack() };
 
+		FGL_NOTNANVEC3( other.topRightForward() );
+		FGL_NOTNANVEC3( other.bottomLeftBack() );
+		FGL_NOTNANVEC3( this->m_top_right_forward );
+		FGL_NOTNANVEC3( this->m_bottom_left_back );
+
 		const Coordinate< CType > new_top_right_forward {
 			std::max( this->m_top_right_forward.x, other_trf.x ),
 			std::max( this->m_top_right_forward.y, other_trf.y ),
@@ -141,17 +151,16 @@ namespace fgl::engine
 	  m_top_right_forward( constants::DEFAULT_VEC3 ),
 	  m_bottom_left_back( -constants::DEFAULT_VEC3 )
 	{
+		FGL_NOTNANVEC3( oobb.topRightForward() );
+		FGL_NOTNANVEC3( oobb.bottomLeftBack() );
+		FGL_NOTNANVEC3( this->m_top_right_forward );
+		FGL_NOTNANVEC3( this->m_bottom_left_back );
+
 		if ( oobb.m_transform.rotation
 		     == Rotation() ) // If default rotation then we can simply just take it as the box is
 		{
-			assert( oobb.topRightForward().vec() != constants::DEFAULT_VEC3 );
-			assert( oobb.bottomLeftBack().vec() != -constants::DEFAULT_VEC3 );
-
 			m_top_right_forward = oobb.topRightForward();
 			m_bottom_left_back = oobb.bottomLeftBack();
-
-			assert( m_top_right_forward.vec() != constants::DEFAULT_VEC3 );
-			assert( m_bottom_left_back.vec() != -constants::DEFAULT_VEC3 );
 		}
 		else
 		{
@@ -166,27 +175,8 @@ namespace fgl::engine
 				m_bottom_left_back.y = std::min( m_bottom_left_back.y, point.y );
 				m_bottom_left_back.z = std::min( m_bottom_left_back.z, point.z );
 			}
-
-			assert( m_top_right_forward.vec() != constants::DEFAULT_VEC3 );
-			assert( m_bottom_left_back.vec() != -constants::DEFAULT_VEC3 );
 		}
 	}
-
-	/*
-	template < CoordinateSpace CType >
-	AxisAlignedBoundingBox< CType >& AxisAlignedBoundingBox< CType >::combine( const OrientedBoundingBox< CType >&
-	                                                                               other )
-	{
-		const AxisAlignedBoundingBox< CType > aabb { other };
-		if ( this->m_top_right_forward == Coordinate< CType >( constants::DEFAULT_VEC3 )
-		     || this->m_bottom_left_back == Coordinate< CType >( constants::DEFAULT_VEC3 ) )
-			return *this = aabb;
-		else
-		{
-			return this->combine( aabb );
-		}
-	}
-	*/
 
 	template class AxisAlignedBoundingBox< CoordinateSpace::Model >;
 	template class AxisAlignedBoundingBox< CoordinateSpace::World >;
