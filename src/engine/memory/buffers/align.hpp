@@ -12,7 +12,7 @@ namespace fgl::engine::memory
 	//! Aligns a memory region to a given alignment
 	template < typename T1, typename T2 >
 		requires std::is_integral_v< T1 > && std::is_integral_v< T2 >
-	constexpr inline T1 align( const T1 operand, const T2 alignment )
+	constexpr T1 align( const T1 operand, const T2 alignment )
 	{
 		if ( alignment == 0 || alignment == 1 ) return operand;
 
@@ -30,7 +30,7 @@ namespace fgl::engine::memory
 
 	//! Aligns the operand to multiple alignments
 	template < typename T1, typename T2, typename... T2s >
-	constexpr inline T1 align( const T1 operand, const T2 alignment, const T2s... alignments )
+	constexpr T1 align( const T1 operand, const T2 alignment, const T2s... alignments )
 	{
 		return align( align( operand, alignment ), alignments... );
 	}

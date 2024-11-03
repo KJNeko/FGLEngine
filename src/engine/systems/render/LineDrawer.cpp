@@ -71,7 +71,7 @@ namespace fgl::engine
 		auto& command_buffer { setupSystem( info ) };
 		TracyVkZone( info.tracy_ctx, *command_buffer, "Draw debug lines" );
 
-		if ( m_lines.size() == 0 ) return;
+		if ( m_lines.empty() ) return;
 
 		auto& line_vertex_buffer { m_line_vertex_buffer[ info.frame_idx ] };
 

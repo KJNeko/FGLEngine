@@ -71,14 +71,11 @@ namespace fgl::engine
 			return m_top_right_forward == other.m_top_right_forward && m_bottom_left_back == other.m_bottom_left_back;
 		}
 
-		virtual Coordinate< CType > getPosition() const final
-		{
-			return midpoint( m_top_right_forward, m_bottom_left_back );
-		}
+		Coordinate< CType > getPosition() const { return midpoint( m_top_right_forward, m_bottom_left_back ); }
 
-		virtual inline Coordinate< CType > topLeftForward() const final { return m_top_right_forward; }
+		inline Coordinate< CType > topLeftForward() const { return m_top_right_forward; }
 
-		virtual inline Coordinate< CType > bottomLeftBack() const final { return m_bottom_left_back; }
+		inline Coordinate< CType > bottomLeftBack() const { return m_bottom_left_back; }
 
 		virtual Scale scale() const;
 

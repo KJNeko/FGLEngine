@@ -65,7 +65,7 @@ namespace fgl::engine
 	{
 		glm::mat4 localMatrix = matrix;
 
-		glm::vec4 perspective;
+		[[maybe_unused]] glm::vec4 perspective;
 		glm::vec3 scale;
 		glm::vec3 skew;
 

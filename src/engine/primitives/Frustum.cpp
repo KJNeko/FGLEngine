@@ -21,8 +21,8 @@ namespace fgl::engine
 
 	Frustum operator*( const Matrix< MatrixType::ModelToWorld >& matrix, const FrustumBase& frustum )
 	{
-		const Frustum result { matrix * frustum.m_near,      matrix * frustum.m_far,   matrix * frustum.m_top,
-			                   matrix * frustum.m_bottom,    matrix * frustum.m_right, matrix * frustum.m_left,
+		const Frustum result { matrix * frustum.m_near,    matrix * frustum.m_far,   matrix * frustum.m_top,
+			                   matrix * frustum.m_bottom,  matrix * frustum.m_right, matrix * frustum.m_left,
 			                   matrix * frustum.m_position };
 
 		return result;
@@ -47,10 +47,6 @@ namespace fgl::engine
 
 	bool Frustum::containsPoint( const WorldCoordinate coord ) const
 	{
-		static_assert(
-			CoordinateSpace::World == CoordinateSpace::World,
-			"pointInside can only be called on World coordinate Frustums" );
-
 		//Ensure the point we are not trying to test a NaN point
 		assert( coord.x != std::numeric_limits< decltype( coord.x ) >::quiet_NaN() );
 		assert( coord.y != std::numeric_limits< decltype( coord.y ) >::quiet_NaN() );
@@ -61,8 +57,8 @@ namespace fgl::engine
 		// We can either make this non-biased by using a projection from distance shot down the FORWARD vector
 		// Or we can use SIMD to check all the planes at once.
 
-		return m_near.isForward( coord ) && m_far.isForward( coord ) && m_bottom.isForward( coord ) && m_top.isForward( coord )
-		    && m_right.isForward( coord ) && m_left.isForward( coord );
+		return m_near.isForward( coord ) && m_far.isForward( coord ) && m_bottom.isForward( coord )
+		    && m_top.isForward( coord ) && m_right.isForward( coord ) && m_left.isForward( coord );
 	}
 
 	bool Frustum::containsAnyPoint( const std::vector< WorldCoordinate >& coords ) const
