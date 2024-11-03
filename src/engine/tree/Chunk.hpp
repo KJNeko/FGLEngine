@@ -8,7 +8,6 @@
 #include <unordered_map>
 
 #include "engine/gameobjects/GameObject.hpp"
-#include "glm/vec3.hpp"
 
 namespace fgl::engine
 {
@@ -24,21 +23,28 @@ namespace fgl::engine::tree
 	class ChunkManager
 	{
 		std::unordered_map< ChunkID, std::shared_ptr< Chunk > > m_chunks {};
+		std::mutex m_delete_mtx;
 		std::queue< std::shared_ptr< Chunk > > m_delete_list {};
 
-		std::shared_ptr< Chunk > createChunk( const ChunkID id );
+		std::shared_ptr< Chunk > createChunk( ChunkID id );
 
 		//! Deletes any chunks pending deletion
 		void cleanup();
 
 		//! Returns a shared pointer to the chunk with the given ID.
-		std::shared_ptr< Chunk > getChunk( const ChunkID id );
+		std::shared_ptr< Chunk > getChunk( ChunkID id );
+
+	  public:
+
+		void markForDeletion( std::shared_ptr< Chunk >& chunk );
+
+		static ChunkManager& getInstance();
 	};
 
 	ChunkID getID( const glm::vec3 point );
 	glm::vec3 getPosition( const ChunkID id );
 
-	class Chunk
+	class Chunk : public std::enable_shared_from_this< Chunk >
 	{
 		//! Determines if the chunk is active to the rendering system
 		bool m_rendering_active { true };
@@ -49,10 +55,14 @@ namespace fgl::engine::tree
 		//! Contains a list of all objects within this chunk
 		std::unordered_map< GameObject::GameObjectID, std::shared_ptr< GameObject > > m_objects {};
 
+		std::shared_ptr< Chunk > getShared();
+
 	  public:
 
 		Chunk() = delete;
 		Chunk( const ChunkID id );
+
+		ChunkID getID() const;
 
 		void addGameObject( std::shared_ptr< GameObject > object );
 
@@ -65,6 +75,9 @@ namespace fgl::engine::tree
 
 		//! Returns true if the bounds of this chunk are visible.
 		bool isVisible( const Frustum& frustum ) const;
+
+		//! Marks this node to be deleted later
+		void deleteLater();
 	};
 
 } // namespace fgl::engine::tree

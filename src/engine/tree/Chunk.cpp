@@ -4,6 +4,8 @@
 
 #include "Chunk.hpp"
 
+#include "engine/math/intersections.hpp"
+#include "engine/primitives/boxes/AxisAlignedBoundingCube.hpp"
 #include "engine/utils.hpp"
 
 namespace fgl::engine::tree
@@ -18,8 +20,33 @@ namespace fgl::engine::tree
 		return chunk;
 	}
 
+	void ChunkManager::cleanup()
+	{
+		std::lock_guard guard { m_delete_mtx };
+		while ( m_delete_list.size() > 0 )
+		{
+			const auto item { m_delete_list.front() };
+			m_delete_list.pop();
+
+			auto itter { m_chunks.find( item->getID() ) };
+
+			m_chunks.erase( itter );
+		}
+	}
+
 	std::shared_ptr< Chunk > ChunkManager::getChunk( const ChunkID id )
 	{}
+
+	void ChunkManager::markForDeletion( std::shared_ptr< Chunk >& chunk )
+	{
+		m_delete_list.push( chunk );
+	}
+
+	ChunkManager& ChunkManager::getInstance()
+	{
+		static ChunkManager manager {};
+		return manager;
+	}
 
 	ChunkID getID( const glm::vec3 point )
 	{
@@ -41,7 +68,30 @@ namespace fgl::engine::tree
 		return hash;
 	}
 
+	std::shared_ptr< Chunk > Chunk::getShared()
+	{
+		return shared_from_this();
+	}
+
 	Chunk::Chunk( const ChunkID id ) : m_id( id ), m_center( getPosition( id ) )
 	{}
+
+	ChunkID Chunk::getID() const
+	{
+		return m_id;
+	}
+
+	bool Chunk::isVisible( const Frustum& frustum ) const
+	{
+		// Create a bounding box of this chunk
+		const AxisAlignedBoundingCube< CS::World > bounds { WorldCoordinate( m_center ), CHUNK_HALF };
+
+		return intersects( frustum, bounds );
+	}
+
+	void Chunk::deleteLater()
+	{
+		ChunkManager::getInstance()->markForDeletion( this->getShared() );
+	}
 
 } // namespace fgl::engine::tree
