@@ -621,9 +621,6 @@ namespace fgl::engine
 	void SceneBuilder::handleScene( const tinygltf::Scene& scene, const tinygltf::Model& root )
 	{
 		ZoneScoped;
-		log::debug( "Handling scene: ", scene.name );
-
-		log::debug( "Scene has {} nodes", scene.nodes.size() );
 		for ( const auto node_idx : scene.nodes )
 		{
 			handleNode( node_idx, root );

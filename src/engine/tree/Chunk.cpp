@@ -91,7 +91,7 @@ namespace fgl::engine::tree
 
 	void Chunk::deleteLater()
 	{
-		ChunkManager::getInstance()->markForDeletion( this->getShared() );
+		// ChunkManager::getInstance().markForDeletion( this->getShared() );
 	}
 
 } // namespace fgl::engine::tree
