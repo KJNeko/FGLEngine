@@ -17,7 +17,7 @@ namespace fgl::engine
 	{
 		//descriptors::DescriptorSetCollection descriptors { gui_descriptor_set };
 
-		PipelineBuilder builder { render_pass, 0 };
+		PipelineBuilder builder { 0 };
 
 		builder.addDescriptorSet( gui_descriptor_set );
 
@@ -27,7 +27,7 @@ namespace fgl::engine
 		builder.setVertexShader( Shader::loadVertex( "shaders/fullscreen.vert" ) );
 		builder.setFragmentShader( Shader::loadFragment( "shaders/gui-compose.frag" ) );
 
-		builder.addColorAttachment().finish();
+		builder.addColorAttachment().setFormat( vk::Format::eR8G8B8A8Unorm ).finish();
 
 		m_pipeline = builder.create();
 		m_pipeline->setDebugName( "Gui Pipeline" );

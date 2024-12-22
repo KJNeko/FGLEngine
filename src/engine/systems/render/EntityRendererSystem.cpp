@@ -12,7 +12,6 @@
 #include "engine/camera/Camera.hpp"
 #include "engine/debug/profiling/counters.hpp"
 #include "engine/debug/timing/FlameGraph.hpp"
-#include "engine/rendering/pipelines/v2/AttachmentBuilder.hpp"
 #include "engine/rendering/pipelines/v2/Pipeline.hpp"
 #include "engine/rendering/pipelines/v2/PipelineBuilder.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
@@ -27,15 +26,11 @@ namespace fgl::engine
 			// PipelineConfigInfo standard_info { render_pass };
 			// PipelineConfigInfo::addGBufferAttachmentsConfig( standard_info );
 
-			PipelineBuilder builder { render_pass, 0 };
+			PipelineBuilder builder { 0 };
 
 			builder.addDescriptorSet( Camera::getDescriptorLayout() );
 
-			builder.addColorAttachment().finish();
-			builder.addColorAttachment().finish();
-			builder.addColorAttachment().finish();
-			builder.addColorAttachment().finish();
-			builder.addColorAttachment().finish();
+			addGBufferAttachments( builder );
 
 			builder.setFragmentShader( Shader::loadFragment( "shaders/textureless-gbuffer.frag" ) );
 			builder.setVertexShader( Shader::loadVertex( "shaders/textureless-gbuffer.vert" ) );
@@ -52,13 +47,9 @@ namespace fgl::engine
 			// PipelineConfigInfo textured_info { render_pass };
 			// PipelineConfigInfo::addGBufferAttachmentsConfig( textured_info );
 
-			PipelineBuilder builder { render_pass, 0 };
+			PipelineBuilder builder { 0 };
 
-			builder.addColorAttachment().finish();
-			builder.addColorAttachment().finish();
-			builder.addColorAttachment().finish();
-			builder.addColorAttachment().finish();
-			builder.addColorAttachment().finish();
+			addGBufferAttachments( builder );
 
 			builder.addDescriptorSet( Camera::getDescriptorLayout() );
 			builder.addDescriptorSet( Texture::getDescriptorLayout() );

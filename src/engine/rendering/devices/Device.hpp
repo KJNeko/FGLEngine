@@ -40,20 +40,43 @@ namespace fgl::engine
 
 		PhysicalDevice m_physical_device;
 
-		inline static std::vector< const char* > validationLayers { "VK_LAYER_KHRONOS_validation" };
-		inline static std::vector< const char* > deviceExtensions { DEVICE_EXTENSIONS };
+		inline static std::vector< const char* > m_validation_layers { "VK_LAYER_KHRONOS_validation" };
+		inline static std::vector< const char* > m_device_extensions { DEVICE_EXTENSIONS };
 
-		struct DeviceCreateInfo
+		class DeviceCreateInfo
 		{
 			vk::PhysicalDeviceFeatures m_requested_features;
-			vk::PhysicalDeviceDescriptorIndexingFeatures m_indexing_features;
 			std::vector< vk::DeviceQueueCreateInfo > m_queue_create_infos;
-			vk::DeviceCreateInfo m_create_info;
+
+			using InfoChain = vk::StructureChain<
+				vk::DeviceCreateInfo,
+				vk::PhysicalDeviceDynamicRenderingFeatures,
+				vk::PhysicalDeviceDynamicRenderingLocalReadFeatures,
+				vk::PhysicalDeviceDescriptorIndexingFeatures >;
+
+			InfoChain m_info_chain;
 
 			vk::PhysicalDeviceFeatures getDeviceFeatures( PhysicalDevice& );
-			vk::PhysicalDeviceDescriptorIndexingFeatures getIndexingFeatures();
+			void getIndexingFeatures();
+			void getDynamicRenderingFeatures();
 			std::vector< vk::DeviceQueueCreateInfo > getQueueCreateInfos( PhysicalDevice& );
-			vk::DeviceCreateInfo getCreateInfo( PhysicalDevice& );
+			void getCreateInfo( PhysicalDevice& );
+
+		  public:
+
+			vk::DeviceCreateInfo& m_create_info { m_info_chain.get< vk::DeviceCreateInfo >() };
+
+			vk::PhysicalDeviceDescriptorIndexingFeatures& m_indexing_features {
+				m_info_chain.get< vk::PhysicalDeviceDescriptorIndexingFeatures >()
+			};
+
+			vk::PhysicalDeviceDynamicRenderingLocalReadFeatures& m_dynamic_rendering_local_read_features {
+				m_info_chain.get< vk::PhysicalDeviceDynamicRenderingLocalReadFeatures >()
+			};
+
+			vk::PhysicalDeviceDynamicRenderingFeatures& m_dynamic_rendering_features {
+				m_info_chain.get< vk::PhysicalDeviceDynamicRenderingFeatures >()
+			};
 
 			DeviceCreateInfo( PhysicalDevice& );
 
@@ -113,7 +136,11 @@ namespace fgl::engine
 
 		vk::SurfaceKHR surface() { return m_surface_khr; }
 
-		vk::raii::Queue& graphicsQueue() { return m_graphics_queue; }
+		vk::raii::Queue& graphicsQueue()
+		{
+			assert( *m_graphics_queue );
+			return m_graphics_queue;
+		}
 
 		vk::raii::Queue& presentQueue() { return m_present_queue; }
 

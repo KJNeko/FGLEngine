@@ -32,11 +32,18 @@ namespace fgl::engine
 	void AttachmentBuilder::finish()
 	{
 		parent.m_state->color_blend_attachment.emplace_back( color_blend_config );
+		parent.m_state->formats.colors.emplace_back( m_format );
 		m_finished = true;
 	}
 
 	AttachmentBuilder::~AttachmentBuilder()
 	{
 		FGL_ASSERT( m_finished, "Attachemnt builder not finished!" );
+	}
+
+	AttachmentBuilder& AttachmentBuilder::setFormat( const vk::Format format )
+	{
+		m_format = format;
+		return *this;
 	}
 } // namespace fgl::engine

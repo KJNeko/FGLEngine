@@ -99,7 +99,7 @@ namespace fgl::engine
 		info.pEngineName = "titor";
 		info.engineVersion = VK_MAKE_VERSION( 1, 0, 0 );
 
-		info.apiVersion = VK_API_VERSION_1_3;
+		info.apiVersion = VK_API_VERSION_1_4;
 
 		return info;
 	}
@@ -165,7 +165,9 @@ namespace fgl::engine
 		if ( ENABLE_VALIDATION_LAYERS )
 		{
 			extensions.push_back( VK_EXT_DEBUG_UTILS_EXTENSION_NAME );
+			log::info( "Validation layers enabled" );
 		}
+
 
 		return extensions;
 	}
@@ -231,40 +233,41 @@ namespace fgl::engine
 			log::info( "Validation disabled. Skipping debug messenger" );
 			return;
 		}
-
-		log::info( "Setting up debug messenger" );
-
-		pfnVkCreateDebugUtilsMessengerEXT = reinterpret_cast<
-			PFN_vkCreateDebugUtilsMessengerEXT >( m_instance.getProcAddr( "vkCreateDebugUtilsMessengerEXT" ) );
-		pfnVkDestroyDebugUtilsMessengerEXT = reinterpret_cast<
-			PFN_vkDestroyDebugUtilsMessengerEXT >( m_instance.getProcAddr( "vkDestroyDebugUtilsMessengerEXT" ) );
-		pfnVkSetDebugUtilsObjectNameEXT =
-			reinterpret_cast< PFN_vkSetDebugUtilsObjectNameEXT >( m_instance
-		                                                              .getProcAddr( "vkSetDebugUtilsObjectNameEXT" ) );
-
-		if ( !pfnVkCreateDebugUtilsMessengerEXT || !pfnVkDestroyDebugUtilsMessengerEXT )
+		else
 		{
-			log::critical(
-				"Failed to load create/destroy messenger functions pfnVkCreateDebugUtilsMessengerEXT/pfnVkDestroyDebugUtilsMessengerEXT" );
-			throw std::runtime_error( "failed to load debug messenger functions!" );
+			log::info( "Setting up debug messenger" );
+
+			pfnVkCreateDebugUtilsMessengerEXT = reinterpret_cast<
+				PFN_vkCreateDebugUtilsMessengerEXT >( m_instance.getProcAddr( "vkCreateDebugUtilsMessengerEXT" ) );
+			pfnVkDestroyDebugUtilsMessengerEXT = reinterpret_cast<
+				PFN_vkDestroyDebugUtilsMessengerEXT >( m_instance.getProcAddr( "vkDestroyDebugUtilsMessengerEXT" ) );
+			pfnVkSetDebugUtilsObjectNameEXT = reinterpret_cast<
+				PFN_vkSetDebugUtilsObjectNameEXT >( m_instance.getProcAddr( "vkSetDebugUtilsObjectNameEXT" ) );
+
+			if ( !pfnVkCreateDebugUtilsMessengerEXT || !pfnVkDestroyDebugUtilsMessengerEXT )
+			{
+				log::critical(
+					"Failed to load create/destroy messenger functions pfnVkCreateDebugUtilsMessengerEXT/pfnVkDestroyDebugUtilsMessengerEXT" );
+				throw std::runtime_error( "failed to load debug messenger functions!" );
+			}
+
+			if ( !pfnVkSetDebugUtilsObjectNameEXT )
+			{
+				log::critical( "Failed to load debug object naming function: pfnVkSetDebugUtilsObjectNameEXT" );
+				throw std::runtime_error( "failed to load debug object name function!" );
+			}
+
+			if ( CreateDebugUtilsMessengerEXT( m_instance, m_debug_info, nullptr, &m_debug_messenger )
+			     != vk::Result::eSuccess )
+			{
+				throw std::runtime_error( "failed to set up debug messenger!" );
+			}
+
+			//Setup some glfw error callbacks
+			glfwSetErrorCallback( &glfwCallback );
+
+			log::info( "Debug callback setup" );
 		}
-
-		if ( !pfnVkSetDebugUtilsObjectNameEXT )
-		{
-			log::critical( "Failed to load debug object naming function: pfnVkSetDebugUtilsObjectNameEXT" );
-			throw std::runtime_error( "failed to load debug object name function!" );
-		}
-
-		if ( CreateDebugUtilsMessengerEXT( m_instance, m_debug_info, nullptr, &m_debug_messenger )
-		     != vk::Result::eSuccess )
-		{
-			throw std::runtime_error( "failed to set up debug messenger!" );
-		}
-
-		//Setup some glfw error callbacks
-		glfwSetErrorCallback( &glfwCallback );
-
-		log::info( "Debug callback setup" );
 	}
 
 	Instance::Instance( vk::raii::Context& ctx ) :

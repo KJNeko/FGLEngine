@@ -7,6 +7,7 @@
 #include "Control.hpp"
 #include "editor/src/gui/safe_include.hpp"
 #include "engine/camera/Camera.hpp"
+#include "engine/rendering/RenderingFormats.hpp"
 #include "engine/rendering/pipelines/v2/AttachmentBuilder.hpp"
 #include "engine/rendering/pipelines/v2/Pipeline.hpp"
 #include "engine/rendering/pipelines/v2/PipelineBuilder.hpp"
@@ -16,14 +17,12 @@ namespace fgl::engine
 
 	CompositionSystem::CompositionSystem( vk::raii::RenderPass& render_pass )
 	{
-		constexpr std::size_t SUBPASS { 1 };
-
-		PipelineBuilder builder { render_pass, SUBPASS };
+		PipelineBuilder builder { 0 };
 
 		builder.addDescriptorSet( gbuffer_set );
 		builder.addDescriptorSet( Camera::getDescriptorLayout() );
 
-		builder.addColorAttachment().finish();
+		builder.addColorAttachment().setFormat( pickColorFormat() ).finish();
 
 		builder.setPushConstant( vk::ShaderStageFlagBits::eFragment, sizeof( CompositionControl ) );
 
@@ -44,8 +43,6 @@ namespace fgl::engine
 	vk::raii::CommandBuffer& CompositionSystem::setupSystem( FrameInfo& info )
 	{
 		auto& command_buffer { info.command_buffer };
-
-		command_buffer.nextSubpass( vk::SubpassContents::eInline );
 
 		m_composite_pipeline->bind( command_buffer );
 

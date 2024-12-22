@@ -15,6 +15,26 @@ int main()
 
 	log::set_level( spdlog::level::debug );
 
+	const auto version { vk::enumerateInstanceVersion() };
+
+	// variant 3 bit int, bits 31-29
+	// major 7-bit, bits 28-22
+	// minor, 10 bit, 21-12
+	// patch, 12 bit, 10-0
+	// clang-format off
+		constexpr std::uint64_t PATCH_BITMASK	{ 0b00000000000000000000111111111111 };
+		constexpr std::uint64_t MINOR_BITMASK	{ 0b00000000001111111111000000000000 };
+		constexpr std::uint64_t MAJOR_BITMASK	{ 0b00011111110000000000000000000000 };
+		constexpr std::uint64_t VARIANT_BITMASK { 0b11100000000000000000000000000000 };
+
+		const auto patch 	{ ( version & PATCH_BITMASK ) 	>> 0};
+		const auto minor 	{ ( version & MINOR_BITMASK ) 	>> 10};
+		const auto major 	{ ( version & MAJOR_BITMASK ) 	>> (10 + 12)};
+		const auto variant 	{ ( version & VARIANT_BITMASK ) >> (10 + 12 + 7) };
+	// clang-format on
+
+	log::debug( "Vulkan instance version: {}.{}.{}.{}", major, minor, patch, minor );
+
 	EngineContext engine_ctx {};
 
 	// We start by hooking into the imgui rendering.

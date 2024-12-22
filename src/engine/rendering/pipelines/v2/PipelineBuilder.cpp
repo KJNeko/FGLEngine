@@ -7,12 +7,13 @@
 #include "AttachmentBuilder.hpp"
 #include "Pipeline.hpp"
 #include "engine/descriptors/DescriptorSetLayout.hpp"
+#include "engine/rendering/RenderingFormats.hpp"
+#include "engine/rendering/SwapChain.hpp"
 
 namespace fgl::engine
 {
 
-	PipelineBuilder::PipelineBuilder( vk::raii::RenderPass& renderpass, const std::uint32_t subpass_stage ) :
-	  m_state( std::make_unique< BuilderState >( renderpass, subpass_stage ) )
+	PipelineBuilder::PipelineBuilder( std::uint32_t subpass ) : m_state( std::make_unique< BuilderState >( subpass ) )
 	{
 		addDynamicState( vk::DynamicState::eViewport );
 		addDynamicState( vk::DynamicState::eScissor );
@@ -26,6 +27,118 @@ namespace fgl::engine
 	void PipelineBuilder::setFragmentShader( std::shared_ptr< Shader >&& shader )
 	{
 		m_state->shaders.fragment = std::forward< std::shared_ptr< Shader > >( shader );
+	}
+
+	vk::raii::Pipeline PipelineBuilder::
+		createRenderPassPipeline( BuilderState& state, const vk::raii::PipelineLayout& layout )
+	{
+		FGL_UNREACHABLE();
+
+		vk::GraphicsPipelineCreateInfo info {};
+		info.pNext = VK_NULL_HANDLE;
+		info.flags = {};
+
+		std::vector< vk::PipelineShaderStageCreateInfo > stages {};
+
+		if ( state.shaders.vertex ) stages.emplace_back( state.shaders.vertex->stage_info );
+		if ( state.shaders.fragment ) stages.emplace_back( state.shaders.fragment->stage_info );
+
+		info.setStages( stages );
+
+		vk::PipelineVertexInputStateCreateInfo vertex_input_info {};
+		vertex_input_info.pNext = VK_NULL_HANDLE;
+		vertex_input_info.flags = {};
+		vertex_input_info.setVertexBindingDescriptions( state.vertex_input_descriptions.bindings );
+		vertex_input_info.setVertexAttributeDescriptions( state.vertex_input_descriptions.attributes );
+		info.setPVertexInputState( &vertex_input_info );
+
+		info.pInputAssemblyState = &state.assembly_info;
+		info.pTessellationState = &state.tesselation_state_info;
+		info.pViewportState = &state.viewport_info;
+		info.pRasterizationState = &state.rasterization_info;
+		info.pMultisampleState = &state.multisample_info;
+		info.pDepthStencilState = &state.depth_stencil_info;
+
+		state.color_blend_info.setAttachments( state.color_blend_attachment );
+
+		info.pColorBlendState = &state.color_blend_info;
+		info.pDynamicState = &state.dynamic_state_info;
+
+		info.layout = layout;
+
+		info.subpass = state.m_subpass_stage;
+
+		//TODO: Figure out what these do
+		info.basePipelineHandle = VK_NULL_HANDLE;
+		info.basePipelineIndex = -1;
+
+		vk::PipelineDynamicStateCreateInfo dynamic_state_create_info {};
+		dynamic_state_create_info.setDynamicStates( state.m_dynamic_state );
+
+		if ( state.m_dynamic_state.size() > 0 ) info.setPDynamicState( &dynamic_state_create_info );
+
+		vk::raii::Pipeline pipeline { Device::getInstance()->createGraphicsPipeline( VK_NULL_HANDLE, info ) };
+
+		return pipeline;
+	}
+
+	vk::raii::Pipeline PipelineBuilder::createDynamicPipeline( BuilderState& state, vk::raii::PipelineLayout& layout )
+	{
+		vk::StructureChain< vk::GraphicsPipelineCreateInfo, vk::PipelineRenderingCreateInfo > chain {};
+		vk::GraphicsPipelineCreateInfo& info { chain.get< vk::GraphicsPipelineCreateInfo >() };
+		info.pNext = VK_NULL_HANDLE;
+		info.flags = {};
+
+		chain.relink< vk::PipelineRenderingCreateInfo >();
+
+		std::vector< vk::PipelineShaderStageCreateInfo > stages {};
+
+		if ( state.shaders.vertex ) stages.emplace_back( state.shaders.vertex->stage_info );
+		if ( state.shaders.fragment ) stages.emplace_back( state.shaders.fragment->stage_info );
+
+		info.setStages( stages );
+
+		vk::PipelineVertexInputStateCreateInfo vertex_input_info {};
+		vertex_input_info.pNext = VK_NULL_HANDLE;
+		vertex_input_info.flags = {};
+		vertex_input_info.setVertexBindingDescriptions( state.vertex_input_descriptions.bindings );
+		vertex_input_info.setVertexAttributeDescriptions( state.vertex_input_descriptions.attributes );
+		info.setPVertexInputState( &vertex_input_info );
+
+		info.pInputAssemblyState = &state.assembly_info;
+		info.pTessellationState = &state.tesselation_state_info;
+		info.pViewportState = &state.viewport_info;
+		info.pRasterizationState = &state.rasterization_info;
+		info.pMultisampleState = &state.multisample_info;
+		info.pDepthStencilState = &state.depth_stencil_info;
+
+		state.color_blend_info.setAttachments( state.color_blend_attachment );
+
+		info.pColorBlendState = &state.color_blend_info;
+		info.pDynamicState = &state.dynamic_state_info;
+
+		info.layout = layout;
+
+		info.subpass = state.m_subpass_stage;
+
+		//TODO: Figure out what these do
+		info.basePipelineHandle = VK_NULL_HANDLE;
+		info.basePipelineIndex = -1;
+
+		vk::PipelineDynamicStateCreateInfo dynamic_state_create_info {};
+		dynamic_state_create_info.setDynamicStates( state.m_dynamic_state );
+
+		vk::PipelineRenderingCreateInfo& rendering_info { chain.get< vk::PipelineRenderingCreateInfo >() };
+
+		rendering_info.setColorAttachmentFormats( state.formats.colors );
+
+		rendering_info.setDepthAttachmentFormat( state.formats.depth );
+
+		if ( state.m_dynamic_state.size() > 0 ) info.setPDynamicState( &dynamic_state_create_info );
+
+		vk::raii::Pipeline pipeline { Device::getInstance()->createGraphicsPipeline( VK_NULL_HANDLE, info ) };
+
+		return pipeline;
 	}
 
 	descriptors::DescriptorSetLayout empty_set_layout { descriptors::DescriptorSetLayout::createEmptySet() };
@@ -100,6 +213,9 @@ namespace fgl::engine
 		m_state->push_constant.stageFlags = flags;
 	}
 
+	PipelineBuilder::BuilderState::Formats::Formats() : depth( pickDepthFormat() )
+	{}
+
 	[[nodiscard]] vk::PipelineColorBlendAttachmentState& PipelineBuilder::BuilderState::addColorAttachment()
 	{
 		color_blend_attachment.emplace_back();
@@ -159,6 +275,11 @@ namespace fgl::engine
 		//info.dynamic_state_info.flags = 0;
 	}
 
+	PipelineBuilder::BuilderState::BuilderState( std::uint32_t subpass ) : m_subpass_stage( subpass )
+	{
+		setDefault();
+	}
+
 	void PipelineBuilder::setTopology( const vk::PrimitiveTopology primitive_topology )
 	{
 		m_state->assembly_info.topology = primitive_topology;
@@ -191,60 +312,15 @@ namespace fgl::engine
 		m_state->vertex_input_descriptions.bindings = descriptions;
 	}
 
-	void PipelineBuilder::setAttributeDescriptions( const std::vector< vk::VertexInputAttributeDescription >&
-	                                                    descriptions )
+	void PipelineBuilder::
+		setAttributeDescriptions( const std::vector< vk::VertexInputAttributeDescription >& descriptions )
 	{
 		m_state->vertex_input_descriptions.attributes = descriptions;
 	}
 
 	vk::raii::Pipeline PipelineBuilder::createFromState( BuilderState& state, vk::raii::PipelineLayout& layout )
 	{
-		vk::GraphicsPipelineCreateInfo info {};
-		info.pNext = VK_NULL_HANDLE;
-		info.flags = {};
-
-		std::vector< vk::PipelineShaderStageCreateInfo > stages {};
-
-		if ( state.shaders.vertex ) stages.emplace_back( state.shaders.vertex->stage_info );
-		if ( state.shaders.fragment ) stages.emplace_back( state.shaders.fragment->stage_info );
-
-		info.setStages( stages );
-
-		vk::PipelineVertexInputStateCreateInfo vertex_input_info {};
-		vertex_input_info.pNext = VK_NULL_HANDLE;
-		vertex_input_info.flags = {};
-		vertex_input_info.setVertexBindingDescriptions( state.vertex_input_descriptions.bindings );
-		vertex_input_info.setVertexAttributeDescriptions( state.vertex_input_descriptions.attributes );
-		info.setPVertexInputState( &vertex_input_info );
-
-		info.pInputAssemblyState = &state.assembly_info;
-		info.pTessellationState = &state.tesselation_state_info;
-		info.pViewportState = &state.viewport_info;
-		info.pRasterizationState = &state.rasterization_info;
-		info.pMultisampleState = &state.multisample_info;
-		info.pDepthStencilState = &state.depth_stencil_info;
-
-		state.color_blend_info.setAttachments( state.color_blend_attachment );
-
-		info.pColorBlendState = &state.color_blend_info;
-		info.pDynamicState = &state.dynamic_state_info;
-
-		info.layout = layout;
-		info.renderPass = state.m_render_pass;
-		info.subpass = state.m_subpass_stage;
-
-		//TODO: Figure out what these do
-		info.basePipelineHandle = VK_NULL_HANDLE;
-		info.basePipelineIndex = -1;
-
-		vk::PipelineDynamicStateCreateInfo dynamic_state_create_info {};
-		dynamic_state_create_info.setDynamicStates( state.m_dynamic_state );
-
-		if ( state.m_dynamic_state.size() > 0 ) info.setPDynamicState( &dynamic_state_create_info );
-
-		vk::raii::Pipeline pipeline { Device::getInstance()->createGraphicsPipeline( VK_NULL_HANDLE, info ) };
-
-		return pipeline;
+		return createDynamicPipeline( state, layout );
 	}
 
 	vk::raii::Pipeline PipelineBuilder::rebuildFromState( BuilderState& state, vk::raii::PipelineLayout& layout )
@@ -292,6 +368,15 @@ namespace fgl::engine
 			color_config.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG
 			                            | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
 		}
+	}
+
+	void addGBufferAttachments( PipelineBuilder& builder )
+	{
+		builder.addColorAttachment().setFormat( pickColorFormat() ).finish();
+		builder.addColorAttachment().setFormat( pickPositionFormat() ).finish();
+		builder.addColorAttachment().setFormat( pickNormalFormat() ).finish();
+		builder.addColorAttachment().setFormat( pickMetallicFormat() ).finish();
+		builder.addColorAttachment().setFormat( pickEmissiveFormat() ).finish();
 	}
 
 } // namespace fgl::engine

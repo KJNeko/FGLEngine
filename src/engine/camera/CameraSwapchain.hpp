@@ -5,6 +5,7 @@
 #pragma once
 
 #include "engine/descriptors/DescriptorSet.hpp"
+#include "engine/rendering/RenderingFormats.hpp"
 #include "engine/rendering/SwapChain.hpp"
 #include "engine/rendering/pipelines/Attachment.hpp"
 
@@ -24,14 +25,14 @@ namespace fgl::engine
 	{
 		struct
 		{
-			ColorAttachment< COLOR_INDEX > m_color { vk::Format::eR8G8B8A8Unorm };
-			ColorAttachment< POSITION_INDEX > m_position { vk::Format::eR16G16B16A16Sfloat };
-			ColorAttachment< NORMAL_INDEX > m_normal { vk::Format::eR16G16B16A16Sfloat };
-			ColorAttachment< METALLIC_INDEX > m_metallic { vk::Format::eR16G16B16A16Sfloat };
-			ColorAttachment< EMISSIVE_INDEX > m_emissive { vk::Format::eR16G16B16A16Sfloat };
+			ColorAttachment< COLOR_INDEX > m_color { pickColorFormat() };
+			ColorAttachment< POSITION_INDEX > m_position { pickPositionFormat() };
+			ColorAttachment< NORMAL_INDEX > m_normal { pickNormalFormat() };
+			ColorAttachment< METALLIC_INDEX > m_metallic { pickMetallicFormat() };
+			ColorAttachment< EMISSIVE_INDEX > m_emissive { pickEmissiveFormat() };
 
-			ColorAttachment< COMPOSITE_INDEX > m_composite { vk::Format::eR8G8B8A8Unorm };
-			DepthAttachment< DEPTH_INDEX > m_depth { SwapChain::findDepthFormat() };
+			ColorAttachment< COMPOSITE_INDEX > m_composite { pickCompositeFormat() };
+			DepthAttachment< DEPTH_INDEX > m_depth { pickDepthFormat() };
 		} m_gbuffer {};
 
 	  public:
@@ -59,6 +60,15 @@ namespace fgl::engine
 		std::vector< std::unique_ptr< descriptors::DescriptorSet > > createGBufferDescriptors();
 
 	  public:
+
+		enum StageID : std::uint16_t
+		{
+			INITAL = 0,
+			FINAL = std::numeric_limits< std::uint16_t >::max()
+		};
+
+		void transitionImages( vk::raii::CommandBuffer& command_buffer, std::uint16_t stage_id, FrameIndex index );
+		vk::RenderingInfo getRenderingInfo( const FrameIndex frame_index );
 
 		CameraSwapchain( vk::raii::RenderPass& renderpass, vk::Extent2D extent );
 		~CameraSwapchain();

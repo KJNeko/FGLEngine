@@ -12,6 +12,7 @@ namespace fgl::engine
 	{
 		PipelineBuilder& parent;
 		bool m_finished { false };
+		vk::Format m_format { vk::Format::eUndefined };
 
 		AttachmentBuilder( PipelineBuilder& source );
 		AttachmentBuilder() = delete;
@@ -27,6 +28,8 @@ namespace fgl::engine
 		AttachmentBuilder& enableBlend();
 
 		~AttachmentBuilder();
+
+		AttachmentBuilder& setFormat( vk::Format format );
 	};
 
 } // namespace fgl::engine

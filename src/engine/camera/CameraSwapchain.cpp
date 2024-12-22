@@ -37,6 +37,124 @@ namespace fgl::engine
 		return data;
 	}
 
+	vk::ImageMemoryBarrier createColorImageBarrier(
+		const Image& image,
+		const vk::ImageLayout old_layout,
+		const vk::ImageLayout new_layout,
+		const vk::AccessFlags flags )
+	{
+		vk::ImageMemoryBarrier barrier {};
+
+		barrier.setImage( image.getVkImage() );
+		barrier.setOldLayout( old_layout );
+		barrier.setNewLayout( new_layout );
+		barrier.setSrcAccessMask( flags );
+
+		constexpr vk::ImageSubresourceRange subresource { vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 };
+
+		barrier.setSubresourceRange( subresource );
+
+		return barrier;
+	}
+
+	vk::ImageMemoryBarrier createDepthImageBarrier(
+		const Image& image, const vk::ImageLayout old_layout, const vk::ImageLayout new_layout )
+	{
+		vk::ImageMemoryBarrier barrier {};
+		barrier.setImage( image.getVkImage() );
+		barrier.setOldLayout( old_layout );
+		barrier.setNewLayout( new_layout );
+		constexpr vk::ImageSubresourceRange subresource {
+			vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1,
+		};
+
+		barrier.setSubresourceRange( subresource );
+		return barrier;
+	}
+
+	void CameraSwapchain::transitionImages(
+		vk::raii::CommandBuffer& command_buffer, const std::uint16_t stage_id, const FrameIndex index )
+	{
+		switch ( stage_id )
+		{
+			default:
+				throw std::invalid_argument( "Invalid Stage ID" );
+			case INITAL:
+				{
+					const std::vector< vk::ImageMemoryBarrier > barriers {
+						createColorImageBarrier(
+							m_gbuffer.m_color.getImage( index ),
+							vk::ImageLayout::eUndefined,
+							vk::ImageLayout::eColorAttachmentOptimal,
+							vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eColorAttachmentRead ),
+						createColorImageBarrier(
+							m_gbuffer.m_emissive.getImage( index ),
+							vk::ImageLayout::eUndefined,
+							vk::ImageLayout::eColorAttachmentOptimal,
+							vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eColorAttachmentRead ),
+						createColorImageBarrier(
+							m_gbuffer.m_metallic.getImage( index ),
+							vk::ImageLayout::eUndefined,
+							vk::ImageLayout::eColorAttachmentOptimal,
+							vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eColorAttachmentRead ),
+						createColorImageBarrier(
+							m_gbuffer.m_position.getImage( index ),
+							vk::ImageLayout::eUndefined,
+							vk::ImageLayout::eColorAttachmentOptimal,
+							vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eColorAttachmentRead ),
+						createDepthImageBarrier(
+							m_gbuffer.m_depth.getImage( index ),
+							vk::ImageLayout::eUndefined,
+							vk::ImageLayout::eDepthStencilAttachmentOptimal )
+					};
+
+					command_buffer.pipelineBarrier(
+						vk::PipelineStageFlagBits::eColorAttachmentOutput,
+						vk::PipelineStageFlagBits::eBottomOfPipe,
+						vk::DependencyFlags( 0 ),
+						{},
+						{},
+						barriers );
+
+					return;
+				}
+			case FINAL:
+				{
+					return;
+				}
+		}
+	}
+
+	vk::RenderingInfo CameraSwapchain::getRenderingInfo( const FrameIndex frame_index )
+	{
+		// This should be safe to have as static as the information used here will only capable of being used in a single frame.
+		static thread_local std::vector< vk::RenderingAttachmentInfo > color_attachment_infos {};
+		static thread_local vk::RenderingAttachmentInfo depth_attachment_infos {};
+
+		depth_attachment_infos = m_gbuffer.m_depth.renderInfo( frame_index, vk::ImageLayout::eDepthAttachmentOptimal );
+
+		color_attachment_infos.clear();
+		color_attachment_infos = {
+			m_gbuffer.m_color.renderInfo( frame_index, vk::ImageLayout::eColorAttachmentOptimal ),
+			m_gbuffer.m_position.renderInfo( frame_index, vk::ImageLayout::eColorAttachmentOptimal ),
+			m_gbuffer.m_normal.renderInfo( frame_index, vk::ImageLayout::eColorAttachmentOptimal ),
+			m_gbuffer.m_metallic.renderInfo( frame_index, vk::ImageLayout::eColorAttachmentOptimal ),
+			m_gbuffer.m_emissive.renderInfo( frame_index, vk::ImageLayout::eColorAttachmentOptimal )
+		};
+
+		vk::RenderingInfo rendering_info {};
+
+		rendering_info.setRenderArea( { { 0, 0 }, m_extent } );
+
+		rendering_info.setLayerCount( 1 );
+
+		rendering_info.setColorAttachments( color_attachment_infos );
+		rendering_info.setPDepthAttachment( &depth_attachment_infos );
+		// rendering_info.setPStencilAttachment( &depth_attachment_infos );
+
+		return rendering_info;
+	}
+
 	const std::vector< vk::ClearValue >& CameraSwapchain::getClearValues()
 	{
 		assert( !m_clear_values.empty() );
@@ -81,9 +199,9 @@ namespace fgl::engine
 
 			buffers.emplace_back( Device::getInstance()->createFramebuffer( info ) );
 
-			m_g_buffer_color_img.emplace_back( std::make_unique< Texture >( m_gbuffer.m_color.m_attachment_resources
-			                                                                  .m_images[ i ]
-			                                                                  ->setName( "GBufferColor" ) ) );
+			m_g_buffer_color_img.emplace_back(
+				std::make_unique< Texture >( m_gbuffer.m_color.m_attachment_resources.m_images[ i ]
+			                                     ->setName( "GBufferColor" ) ) );
 
 			auto& position_resources { m_gbuffer.m_position.m_attachment_resources };
 			assert( position_resources.m_images[ i ] );
@@ -92,21 +210,21 @@ namespace fgl::engine
 			position_image.setName( format_ns::format( "GBufferPosition: {}", i ) );
 			m_g_buffer_position_img.emplace_back( std::make_unique< Texture >( position_image ) );
 
-			m_g_buffer_normal_img.emplace_back( std::make_unique< Texture >( m_gbuffer.m_normal.m_attachment_resources
-			                                                                   .m_images[ i ]
-			                                                                   ->setName( "GBufferNormal" ) ) );
+			m_g_buffer_normal_img.emplace_back(
+				std::make_unique< Texture >( m_gbuffer.m_normal.m_attachment_resources.m_images[ i ]
+			                                     ->setName( "GBufferNormal" ) ) );
 
-			m_g_buffer_metallic_img.emplace_back( std::make_unique< Texture >( m_gbuffer.m_metallic.m_attachment_resources
-			                                                                     .m_images[ i ]
-			                                                                     ->setName( "GBufferMetallic" ) ) );
+			m_g_buffer_metallic_img.emplace_back(
+				std::make_unique< Texture >( m_gbuffer.m_metallic.m_attachment_resources.m_images[ i ]
+			                                     ->setName( "GBufferMetallic" ) ) );
 
-			m_g_buffer_emissive_img.emplace_back( std::make_unique< Texture >( m_gbuffer.m_emissive.m_attachment_resources
-			                                                                     .m_images[ i ]
-			                                                                     ->setName( "GBufferEmissive" ) ) );
+			m_g_buffer_emissive_img.emplace_back(
+				std::make_unique< Texture >( m_gbuffer.m_emissive.m_attachment_resources.m_images[ i ]
+			                                     ->setName( "GBufferEmissive" ) ) );
 
-			m_g_buffer_composite_img.emplace_back( std::make_unique< Texture >( m_gbuffer.m_composite.m_attachment_resources
-			                                                                      .m_images[ i ]
-			                                                                      ->setName( "GBufferComposite" ) ) );
+			m_g_buffer_composite_img.emplace_back(
+				std::make_unique< Texture >( m_gbuffer.m_composite.m_attachment_resources.m_images[ i ]
+			                                     ->setName( "GBufferComposite" ) ) );
 		}
 
 		return buffers;

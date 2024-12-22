@@ -48,6 +48,7 @@ namespace fgl::engine
 
 		memory::TransferManager::createInstance( device, 128_MiB );
 
+
 		m_matrix_info_pool.setDebugName( "Matrix info pool" );
 		m_draw_parameter_pool.setDebugName( "Draw parameter pool" );
 

@@ -21,43 +21,43 @@ namespace fgl::engine
 
 		//XYZ in world space
 		auto position { builder.attachment( POSITION_INDEX ) };
-		position.setFormat( vk::Format::eR16G16B16A16Sfloat ); // position
+		position.setFormat( pickPositionFormat() ); // position
 		position.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal );
 		position.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
 
 		//RGBA
 		auto normal { builder.attachment( NORMAL_INDEX ) };
-		normal.setFormat( vk::Format::eR16G16B16A16Sfloat ); // normal
+		normal.setFormat( pickNormalFormat() ); // normal
 		normal.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal );
 		normal.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
 
 		// RGBA
 		auto color { builder.attachment( COLOR_INDEX ) };
-		color.setFormat( vk::Format::eR8G8B8A8Unorm ); // color
+		color.setFormat( pickColorFormat() ); // color
 		color.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal );
 		color.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
 
 		// Metallic, Roughness, Occlusion
 		auto metallic_roughness { builder.attachment( METALLIC_INDEX ) };
-		metallic_roughness.setFormat( vk::Format::eR16G16B16A16Sfloat );
+		metallic_roughness.setFormat( pickMetallicFormat() );
 		metallic_roughness.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal );
 		metallic_roughness.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
 
 		// RGB
 		auto emissive { builder.attachment( EMISSIVE_INDEX ) };
-		emissive.setFormat( vk::Format::eR16G16B16A16Sfloat );
+		emissive.setFormat( pickEmissiveFormat() );
 		emissive.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal );
 		emissive.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
 
 		auto composite { builder.attachment( COMPOSITE_INDEX ) };
 		//TODO: For HDR I think this needs to be a bigger range then 8bits per channel.
-		composite.setFormat( vk::Format::eR8G8B8A8Unorm ); // composite
+		composite.setFormat( pickCompositeFormat() ); // composite
 		composite.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal );
 		composite.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
 
 		auto depth { builder.attachment( DEPTH_INDEX ) };
 		depth.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilReadOnlyOptimal );
-		depth.setFormat( SwapChain::findDepthFormat() ); // depth
+		depth.setFormat( pickDepthFormat() ); // depth
 		depth.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
 
 		auto& g_buffer_subpass { builder.createSubpass( 0 ) };
@@ -124,14 +124,20 @@ namespace fgl::engine
 	void CameraRenderer::beginRenderPass(
 		const vk::raii::CommandBuffer& command_buffer, CameraSwapchain& swapchain, const FrameIndex index )
 	{
+		const vk::RenderingInfo info { swapchain.getRenderingInfo( index ) };
+
+		command_buffer.beginRendering( info );
+
+		/*
 		vk::RenderPassBeginInfo info {};
 		info.renderPass = m_renderpass;
 		info.framebuffer = swapchain.getFramebuffer( index );
 		info.renderArea = { .offset = { 0, 0 }, .extent = swapchain.getExtent() };
 
 		info.setClearValues( swapchain.getClearValues() );
+		*/
 
-		command_buffer.beginRenderPass( info, vk::SubpassContents::eInline );
+		// command_buffer.beginRenderPass( info, vk::SubpassContents::eInline );
 
 		setViewport( command_buffer, swapchain.getExtent() );
 		setScissor( command_buffer, swapchain.getExtent() );
@@ -139,7 +145,8 @@ namespace fgl::engine
 
 	void CameraRenderer::endRenderPass( const vk::raii::CommandBuffer& command_buffer )
 	{
-		command_buffer.endRenderPass();
+		command_buffer.endRendering();
+		// command_buffer.endRenderPass();
 	}
 
 	void CameraRenderer::pass( FrameInfo& frame_info, CameraSwapchain& camera_swapchain )
@@ -149,7 +156,11 @@ namespace fgl::engine
 
 		auto& command_buffer { frame_info.command_buffer };
 
+		camera_swapchain.transitionImages( command_buffer, CameraSwapchain::INITAL, frame_info.frame_idx );
+
 		beginRenderPass( command_buffer, camera_swapchain, frame_info.frame_idx );
+
+		// Transition the gbuffer to it's inital state
 
 		m_culling_system.wait();
 
@@ -158,9 +169,9 @@ namespace fgl::engine
 		m_entity_renderer.pass( frame_info );
 		m_line_drawer.pass( frame_info );
 
-		m_composition_system.pass( frame_info );
-
 		endRenderPass( command_buffer );
+
+		m_composition_system.pass( frame_info );
 	}
 
 	vk::raii::RenderPass& CameraRenderer::getRenderpass()

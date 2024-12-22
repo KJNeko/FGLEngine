@@ -104,8 +104,6 @@ namespace fgl::engine
 
 		float extentAspectRatio() const;
 
-		static vk::Format findDepthFormat();
-
 		[[nodiscard]] std::pair< vk::Result, PresentIndex > acquireNextImage();
 		[[nodiscard]] vk::Result
 			submitCommandBuffers( const vk::raii::CommandBuffer& buffers, PresentIndex present_index );

@@ -97,12 +97,13 @@ namespace fgl::engine
 			{
 				auto& images { m_attachment_resources.m_images };
 				auto& image_views { m_attachment_resources.m_image_views };
-				const auto& itter { images.emplace_back( std::make_shared< Image >(
-					extent,
-					description.format,
-					usage | vk::ImageUsageFlagBits::eInputAttachment | extra_flags,
-					vk::ImageLayout::eUndefined,
-					final_layout ) ) };
+				const auto& itter { images.emplace_back(
+					std::make_shared< Image >(
+						extent,
+						description.format,
+						usage | vk::ImageUsageFlagBits::eInputAttachment | extra_flags,
+						vk::ImageLayout::eUndefined,
+						final_layout ) ) };
 				image_views.emplace_back( itter->getView() );
 			}
 		}
@@ -124,10 +125,29 @@ namespace fgl::engine
 			}
 		}
 
-		ImageView& getView( const FrameIndex frame_idx )
+		ImageView& getView( const FrameIndex frame_idx ) const
 		{
 			assert( frame_idx < m_attachment_resources.m_image_views.size() );
 			return *m_attachment_resources.m_image_views[ frame_idx ];
+		}
+
+		Image& getImage( const FrameIndex frame_idx ) const
+		{
+			assert( frame_idx < m_attachment_resources.m_image_views.size() );
+			return *m_attachment_resources.m_images[ frame_idx ];
+		}
+
+		vk::RenderingAttachmentInfo renderInfo( const FrameIndex frame_index, const vk::ImageLayout layout ) const
+		{
+			vk::RenderingAttachmentInfo info {};
+
+			info.setClearValue( m_clear_value );
+			info.imageView = getView( frame_index ).getVkView();
+			info.loadOp = load_op;
+			info.storeOp = store_op;
+			info.imageLayout = layout;
+
+			return info;
 		}
 
 		constexpr vk::AttachmentDescription& desc() { return description; }
@@ -153,22 +173,14 @@ namespace fgl::engine
 
 	template < typename T >
 	concept is_input_attachment = requires( T a ) {
-		{
-			a.is_input
-		} -> std::same_as< const bool& >;
-		{
-			a.m_layout
-		} -> std::same_as< const vk::ImageLayout& >;
+		{ a.is_input } -> std::same_as< const bool& >;
+		{ a.m_layout } -> std::same_as< const vk::ImageLayout& >;
 	} && T::is_input;
 
 	template < typename T >
 	concept is_used_attachment = requires( T a ) {
-		{
-			a.is_input
-		} -> std::same_as< const bool& >;
-		{
-			a.m_layout
-		} -> std::same_as< const vk::ImageLayout& >;
+		{ a.is_input } -> std::same_as< const bool& >;
+		{ a.m_layout } -> std::same_as< const vk::ImageLayout& >;
 	} && !T::is_input;
 
 	template < typename T > concept is_wrapped_attachment = is_input_attachment< T > || is_used_attachment< T >;

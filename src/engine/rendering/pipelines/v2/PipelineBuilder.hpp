@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <unordered_map>
 
+#include "engine/FGL_DEFINES.hpp"
 #include "engine/rendering/pipelines/Shader.hpp"
 
 namespace fgl::engine
@@ -35,12 +36,8 @@ namespace fgl::engine
 		void addDynamicState( vk::DynamicState dynamic_state );
 		void setPushConstant( vk::ShaderStageFlags flags, std::size_t size );
 
-		PipelineBuilder() = delete;
-
 		struct BuilderState
 		{
-			vk::raii::RenderPass& m_render_pass;
-			std::uint32_t m_subpass_stage;
 			vk::PushConstantRange push_constant {};
 
 			std::vector< vk::DynamicState > m_dynamic_state {};
@@ -67,6 +64,18 @@ namespace fgl::engine
 			vk::PipelineMultisampleStateCreateInfo multisample_info {};
 
 			std::vector< vk::PipelineColorBlendAttachmentState > color_blend_attachment {};
+
+			//! Struct containing the formats each attachment will be in for this pipeline.
+			struct Formats
+			{
+				std::vector< vk::Format > colors {};
+				vk::Format depth;
+
+				Formats();
+			} formats;
+
+			uint32_t m_subpass_stage;
+
 			vk::PipelineColorBlendAttachmentState& addColorAttachment();
 
 			vk::PipelineColorBlendStateCreateInfo color_blend_info {};
@@ -77,15 +86,14 @@ namespace fgl::engine
 
 			vk::PipelineLayoutCreateInfo layout_info {};
 
+			explicit BuilderState( std::uint32_t subpass );
+
 			// Default config
 			void setDefault();
 
-			BuilderState( vk::raii::RenderPass& renderpass, const std::size_t subpass_stage ) :
-			  m_render_pass( renderpass ),
-			  m_subpass_stage( subpass_stage )
-			{
-				setDefault();
-			}
+			FGL_DELETE_MOVE( BuilderState );
+			FGL_DELETE_COPY( BuilderState );
+			FGL_DELETE_DEFAULT_CTOR( BuilderState );
 		};
 
 		std::unique_ptr< BuilderState > m_state;
@@ -102,11 +110,15 @@ namespace fgl::engine
 
 		void setAttributeDescriptions( const std::vector< vk::VertexInputAttributeDescription >& descriptions );
 
-		PipelineBuilder( vk::raii::RenderPass& renderpass, std::uint32_t subpass_stage );
+		PipelineBuilder( std::uint32_t subpass );
 
 		void setVertexShader( std::shared_ptr< Shader >&& shader );
 
 		void setFragmentShader( std::shared_ptr< Shader >&& shader );
+
+		static vk::raii::Pipeline
+			createRenderPassPipeline( BuilderState& state, const vk::raii::PipelineLayout& layout );
+		static vk::raii::Pipeline createDynamicPipeline( BuilderState& state, vk::raii::PipelineLayout& layout );
 
 		static vk::raii::Pipeline createFromState( BuilderState& state, vk::raii::PipelineLayout& layout );
 		static vk::raii::Pipeline rebuildFromState( BuilderState& state, vk::raii::PipelineLayout& layout );
@@ -116,5 +128,7 @@ namespace fgl::engine
 
 	//! Adds the GBuffer output attachments to the config for the given pipeline
 	void setGBufferOutputAttachments( PipelineBuilder::BuilderState& config );
+
+	void addGBufferAttachments( PipelineBuilder& builder );
 
 } // namespace fgl::engine
