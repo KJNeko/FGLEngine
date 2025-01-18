@@ -5,7 +5,12 @@
 #include "FlameGraph.hpp"
 
 #include <cassert>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
 #include <imgui.h>
+#pragma GCC diagnostic pop
 
 #include "engine/FGL_DEFINES.hpp"
 #include "engine/clock.hpp"
@@ -39,7 +44,7 @@ namespace fgl::engine::debug
 
 		FGL_DELETE_COPY( Node );
 
-		Node( Node&& other ) :
+		Node( Node&& other ) noexcept :
 		  m_name( std::move( other.m_name ) ),
 		  m_start( other.m_start ),
 		  m_end( other.m_end ),
@@ -81,18 +86,19 @@ namespace fgl::engine::debug
 		if ( percent_as_total )
 		{
 			const auto total_time { getTotalTime() };
-			percent = ( static_cast< double >( time.count() ) / static_cast< double >( total_time.count() ) ) * 100.0f;
+			percent = ( static_cast< double >( time.count() ) / static_cast< double >( total_time.count() ) ) * 100.0;
 		}
-		else if ( m_parent )
+		else if ( m_parent != nullptr )
 		{
 			const auto parent_time { this->m_parent->getDuration() };
-			percent = ( static_cast< double >( time.count() ) / static_cast< double >( parent_time.count() ) ) * 100.0f;
+			percent = ( static_cast< double >( time.count() ) / static_cast< double >( parent_time.count() ) ) * 100.0;
 		}
 
 		const std::string str { std::format(
 			"{} -- {:2.2f}ms, ({:2.2f}%)",
 			m_name,
-			( std::chrono::duration_cast< std::chrono::microseconds >( diff ).count() / 1000.0f ),
+			( static_cast< double >( std::chrono::duration_cast< std::chrono::microseconds >( diff ).count() )
+			  / 1000.0 ),
 			percent ) };
 
 		ImGuiTreeNodeFlags flags { ImGuiTreeNodeFlags_None };

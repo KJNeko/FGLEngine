@@ -78,3 +78,5 @@
 	FGL_ASSERT( !std::isnan( ( vec3 ).x ), "X value was NaN!" );                                                       \
 	FGL_ASSERT( !std::isnan( ( vec3 ).y ), "Y value was NaN!" );                                                       \
 	FGL_ASSERT( !std::isnan( ( vec3 ).z ), "Z value was NaN!" )
+
+#define FGL_TODO() throw std::runtime_error( std::format( "TODO: {}:{}:{}", __FILE__, __LINE__, __PRETTY_FUNCTION__ ) );

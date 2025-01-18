@@ -16,18 +16,13 @@ namespace fgl::engine
 
 	bool rayHit( const Ray& ray, const OrientedBoundingBox< CS::World >& obb )
 	{
-
-
-
-
-
-
-
+		FGL_TODO();
+		return false;
 	}
 
 	bool rayHit( const Ray& ray, const AxisAlignedBoundingBox< CS::World >& aabb )
 	{
-
+		FGL_TODO();
 	}
 
 } // namespace fgl::engine
