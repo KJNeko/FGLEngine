@@ -75,6 +75,8 @@ namespace fgl::engine
 	{
 		m_dynamic_rendering_features.setDynamicRendering( VK_TRUE );
 		m_dynamic_rendering_local_read_features.setDynamicRenderingLocalRead( VK_TRUE );
+		m_dynamic_rendering_unused_features.setDynamicRenderingUnusedAttachments( VK_TRUE );
+		m_info_chain.unlink< vk::PhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT >();
 	}
 
 	std::vector< vk::DeviceQueueCreateInfo > Device::DeviceCreateInfo::

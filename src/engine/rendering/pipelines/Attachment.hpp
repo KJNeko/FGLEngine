@@ -109,7 +109,7 @@ namespace fgl::engine
 		}
 
 		//! Creates a resource that is used across all frames
-		void createResourceSpread(
+		void createSharedResources(
 			const std::uint32_t count, vk::Extent2D extent, vk::ImageUsageFlags extra_flags = vk::ImageUsageFlags( 0 ) )
 		{
 			auto image { std::make_shared< Image >(

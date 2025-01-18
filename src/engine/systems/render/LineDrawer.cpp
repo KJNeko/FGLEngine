@@ -24,7 +24,7 @@ namespace fgl::engine
 
 	inline static std::vector< VertexLine > m_lines {};
 
-	LineDrawer::LineDrawer( vk::raii::RenderPass& render_pass )
+	LineDrawer::LineDrawer(  )
 	{
 		PipelineBuilder builder { 0 };
 

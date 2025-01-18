@@ -18,7 +18,7 @@
 
 namespace fgl::engine
 {
-	EntityRendererSystem::EntityRendererSystem( vk::raii::RenderPass& render_pass )
+	EntityRendererSystem::EntityRendererSystem(  )
 	{
 		ZoneScoped;
 

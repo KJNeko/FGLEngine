@@ -99,7 +99,7 @@ namespace fgl::engine
 		info.pEngineName = "titor";
 		info.engineVersion = VK_MAKE_VERSION( 1, 0, 0 );
 
-		info.apiVersion = VK_API_VERSION_1_4;
+		info.apiVersion = VK_API_VERSION_1_3;
 
 		return info;
 	}

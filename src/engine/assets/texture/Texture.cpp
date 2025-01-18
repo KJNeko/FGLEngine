@@ -109,12 +109,13 @@ namespace fgl::engine
 
 	Texture::Texture( std::vector< std::byte >&& data, const vk::Extent2D extent, const vk::Format format ) :
 	  m_texture_id( texture_id_pool.getID() ),
-	  m_image( std::make_shared< Image >(
-		  extent,
-		  format,
-		  vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
-		  vk::ImageLayout::eUndefined,
-		  vk::ImageLayout::eShaderReadOnlyOptimal ) ),
+	  m_image(
+		  std::make_shared< Image >(
+			  extent,
+			  format,
+			  vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+			  vk::ImageLayout::eUndefined,
+			  vk::ImageLayout::eShaderReadOnlyOptimal ) ),
 	  m_image_view( m_image->getView() ),
 	  m_extent( extent ),
 	  m_name( "Default Texture Name" )
@@ -145,6 +146,11 @@ namespace fgl::engine
 			ImGui_ImplVulkan_RemoveTexture( m_imgui_set );
 #endif
 		texture_id_pool.markUnused( m_texture_id );
+	}
+
+	Image& Texture::getImageRef()
+	{
+		return *m_image;
 	}
 
 	vk::DescriptorImageInfo Texture::getDescriptor() const

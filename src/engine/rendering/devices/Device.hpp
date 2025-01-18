@@ -51,7 +51,8 @@ namespace fgl::engine
 			using InfoChain = vk::StructureChain<
 				vk::DeviceCreateInfo,
 				vk::PhysicalDeviceDynamicRenderingFeatures,
-				vk::PhysicalDeviceDynamicRenderingLocalReadFeatures,
+				vk::PhysicalDeviceDynamicRenderingLocalReadFeaturesKHR,
+				vk::PhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT,
 				vk::PhysicalDeviceDescriptorIndexingFeatures >;
 
 			InfoChain m_info_chain;
@@ -70,12 +71,16 @@ namespace fgl::engine
 				m_info_chain.get< vk::PhysicalDeviceDescriptorIndexingFeatures >()
 			};
 
-			vk::PhysicalDeviceDynamicRenderingLocalReadFeatures& m_dynamic_rendering_local_read_features {
-				m_info_chain.get< vk::PhysicalDeviceDynamicRenderingLocalReadFeatures >()
+			vk::PhysicalDeviceDynamicRenderingLocalReadFeaturesKHR& m_dynamic_rendering_local_read_features {
+				m_info_chain.get< vk::PhysicalDeviceDynamicRenderingLocalReadFeaturesKHR >()
 			};
 
 			vk::PhysicalDeviceDynamicRenderingFeatures& m_dynamic_rendering_features {
 				m_info_chain.get< vk::PhysicalDeviceDynamicRenderingFeatures >()
+			};
+
+			vk::PhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT& m_dynamic_rendering_unused_features {
+				m_info_chain.get< vk::PhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT >()
 			};
 
 			DeviceCreateInfo( PhysicalDevice& );

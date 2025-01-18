@@ -5,6 +5,7 @@
 #pragma once
 
 //clang-format: off
+#include <vulkan/vulkan.hpp>
 #include <tracy/TracyVulkan.hpp>
 //clang-format: on
 

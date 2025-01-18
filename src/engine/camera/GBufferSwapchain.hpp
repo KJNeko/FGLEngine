@@ -21,7 +21,7 @@ namespace fgl::engine
 	constexpr std::size_t COMPOSITE_INDEX { 5 };
 	constexpr std::size_t DEPTH_INDEX { 6 };
 
-	class CameraSwapchain
+	class GBufferSwapchain
 	{
 		struct
 		{
@@ -30,30 +30,15 @@ namespace fgl::engine
 			ColorAttachment< NORMAL_INDEX > m_normal { pickNormalFormat() };
 			ColorAttachment< METALLIC_INDEX > m_metallic { pickMetallicFormat() };
 			ColorAttachment< EMISSIVE_INDEX > m_emissive { pickEmissiveFormat() };
-
-			ColorAttachment< COMPOSITE_INDEX > m_composite { pickCompositeFormat() };
+			//TODO: Move depth into m_position A channel
 			DepthAttachment< DEPTH_INDEX > m_depth { pickDepthFormat() };
+
+			// ColorAttachment< COMPOSITE_INDEX > m_composite { pickCompositeFormat() };
 		} m_gbuffer {};
-
-	  public:
-
-		std::vector< std::unique_ptr< Texture > > m_g_buffer_color_img {};
-		std::vector< std::unique_ptr< Texture > > m_g_buffer_position_img {};
-		std::vector< std::unique_ptr< Texture > > m_g_buffer_normal_img {};
-		std::vector< std::unique_ptr< Texture > > m_g_buffer_metallic_img {};
-		std::vector< std::unique_ptr< Texture > > m_g_buffer_emissive_img {};
-
-		std::vector< std::unique_ptr< Texture > > m_g_buffer_composite_img {};
 
 	  private:
 
 		vk::Extent2D m_extent;
-
-		vk::raii::RenderPass& m_renderpass;
-
-		std::vector< vk::raii::Framebuffer > m_framebuffers;
-
-		std::vector< vk::ClearValue > m_clear_values;
 
 		std::vector< std::unique_ptr< descriptors::DescriptorSet > > m_gbuffer_descriptor_set {};
 
@@ -63,27 +48,20 @@ namespace fgl::engine
 
 		enum StageID : std::uint16_t
 		{
-			INITAL = 0,
-			FINAL = std::numeric_limits< std::uint16_t >::max()
+			INITAL,
+			COMPOSITE,
+			FINAL
 		};
 
 		void transitionImages( vk::raii::CommandBuffer& command_buffer, std::uint16_t stage_id, FrameIndex index );
 		vk::RenderingInfo getRenderingInfo( const FrameIndex frame_index );
 
-		CameraSwapchain( vk::raii::RenderPass& renderpass, vk::Extent2D extent );
-		~CameraSwapchain();
-
-		const std::vector< vk::ClearValue >& getClearValues();
-
-		std::vector< vk::raii::Framebuffer > createFrambuffers();
+		GBufferSwapchain( vk::Extent2D extent );
+		~GBufferSwapchain();
 
 		descriptors::DescriptorSet& getGBufferDescriptor( FrameIndex frame_index );
 
-		vk::raii::Framebuffer& getFramebuffer( FrameIndex frame_index );
-
 		vk::Extent2D getExtent() const;
-
-		Image& getOutput( const FrameIndex index );
 
 		float getAspectRatio();
 	};

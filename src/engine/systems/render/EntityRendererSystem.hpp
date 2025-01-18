@@ -50,7 +50,7 @@ namespace fgl::engine
 		void texturelessPass( const FrameInfo& info );
 		void texturedPass( const FrameInfo& info );
 
-		EntityRendererSystem( vk::raii::RenderPass& render_pass );
+		EntityRendererSystem();
 		~EntityRendererSystem();
 		EntityRendererSystem( EntityRendererSystem&& other ) = delete;
 		EntityRendererSystem( const EntityRendererSystem& other ) = delete;

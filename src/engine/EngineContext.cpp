@@ -14,7 +14,7 @@
 #include "assets/material/Material.hpp"
 #include "camera/Camera.hpp"
 #include "camera/CameraManager.hpp"
-#include "camera/CameraRenderer.hpp"
+#include "camera/GBufferRenderer.hpp"
 #include "debug/timing/FlameGraph.hpp"
 #include "engine/assets/model/builders/SceneBuilder.hpp"
 #include "engine/assets/transfer/TransferManager.hpp"
