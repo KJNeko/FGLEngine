@@ -7,6 +7,7 @@
 #include <limits>
 #include <stdexcept>
 
+#include "RenderingFormats.hpp"
 #include "engine/assets/transfer/TransferManager.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "pipelines/Attachment.hpp"
@@ -21,11 +22,11 @@ namespace fgl::engine
 	  m_present_mode( chooseSwapPresentMode( m_swapchain_details.presentModes ) ),
 	  m_swapchain_extent( extent ),
 	  m_swap_chain_format( m_surface_format.format ),
-	  m_swap_chain_depth_format( findDepthFormat() ),
+	  m_swap_chain_depth_format( pickDepthFormat() ),
 	  old_swap_chain( nullptr ),
 	  m_swapchain( createSwapChain() ),
 	  m_swap_chain_images( createSwapchainImages() ),
-	  render_attachments( getSwapChainImageFormat(), findDepthFormat() ),
+	  render_attachments( getSwapChainImageFormat(), pickDepthFormat() ),
 	  m_render_pass( createRenderPass() ),
 	  m_swap_chain_buffers( createFramebuffers() ),
 	  // m_input_descriptors( createInputDescriptors() ),
@@ -43,11 +44,11 @@ namespace fgl::engine
 	  m_present_mode( chooseSwapPresentMode( m_swapchain_details.presentModes ) ),
 	  m_swapchain_extent( extent ),
 	  m_swap_chain_format( m_surface_format.format ),
-	  m_swap_chain_depth_format( findDepthFormat() ),
+	  m_swap_chain_depth_format( pickDepthFormat() ),
 	  old_swap_chain( previous ),
 	  m_swapchain( createSwapChain() ),
 	  m_swap_chain_images( createSwapchainImages() ),
-	  render_attachments( getSwapChainImageFormat(), findDepthFormat() ),
+	  render_attachments( getSwapChainImageFormat(), m_swap_chain_depth_format ),
 	  m_render_pass( createRenderPass() ),
 	  m_swap_chain_buffers( createFramebuffers() ),
 	  // m_input_descriptors( createInputDescriptors() ),
@@ -257,7 +258,7 @@ namespace fgl::engine
 
 		auto depth { builder.attachment( DepthIndex ) };
 
-		depth.setFormat( SwapChain::findDepthFormat() );
+		depth.setFormat( pickDepthFormat() );
 		depth.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilAttachmentOptimal );
 		depth.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eDontCare );
 
@@ -345,8 +346,8 @@ namespace fgl::engine
 		}
 	}
 
-	vk::SurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat( const std::vector< vk::SurfaceFormatKHR >&
-	                                                             available_formats )
+	vk::SurfaceFormatKHR SwapChain::
+		chooseSwapSurfaceFormat( const std::vector< vk::SurfaceFormatKHR >& available_formats )
 	{
 		ZoneScoped;
 		for ( const auto& format : available_formats )
@@ -453,15 +454,6 @@ namespace fgl::engine
 	float SwapChain::extentAspectRatio() const
 	{
 		return static_cast< float >( m_swapchain_extent.width ) / static_cast< float >( m_swapchain_extent.height );
-	}
-
-	vk::Format SwapChain::findDepthFormat()
-	{
-		ZoneScoped;
-		return Device::getInstance().findSupportedFormat(
-			{ vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint },
-			vk::ImageTiling::eOptimal,
-			vk::FormatFeatureFlagBits::eDepthStencilAttachment );
 	}
 
 } // namespace fgl::engine

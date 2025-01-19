@@ -10,7 +10,6 @@
 #include "engine/debug/drawers.hpp"
 #include "engine/memory/buffers/vector/HostVector.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
-#include "engine/rendering/pipelines/v2/AttachmentBuilder.hpp"
 #include "engine/rendering/pipelines/v2/Pipeline.hpp"
 #include "engine/rendering/pipelines/v2/PipelineBuilder.hpp"
 
@@ -25,17 +24,13 @@ namespace fgl::engine
 
 	inline static std::vector< VertexLine > m_lines {};
 
-	LineDrawer::LineDrawer( vk::raii::RenderPass& render_pass )
+	LineDrawer::LineDrawer(  )
 	{
-		PipelineBuilder builder { render_pass, 0 };
+		PipelineBuilder builder { 0 };
 
 		builder.addDescriptorSet( Camera::getDescriptorLayout() );
 
-		builder.addColorAttachment().finish();
-		builder.addColorAttachment().finish();
-		builder.addColorAttachment().finish();
-		builder.addColorAttachment().finish();
-		builder.addColorAttachment().finish();
+		addGBufferAttachments( builder );
 
 		builder.setAttributeDescriptions( SimpleVertex::getAttributeDescriptions() );
 		builder.setBindingDescriptions( SimpleVertex::getBindingDescriptions() );

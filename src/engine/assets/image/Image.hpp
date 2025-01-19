@@ -20,7 +20,7 @@ namespace fgl::engine
 	class Image
 	{
 		std::shared_ptr< ImageHandle > m_handle;
-		std::weak_ptr< ImageView > view {};
+		std::weak_ptr< ImageView > m_view {};
 		vk::Extent2D m_extent;
 
 		friend class memory::TransferManager;
@@ -54,6 +54,16 @@ namespace fgl::engine
 		const vk::Extent2D& getExtent() const { return m_extent; }
 
 		[[nodiscard]] std::shared_ptr< ImageView > getView();
+
+		vk::ImageMemoryBarrier transitionTo(
+			vk::ImageLayout old_layout, vk::ImageLayout new_layout, const vk::ImageSubresourceRange& range ) const;
+
+		vk::ImageMemoryBarrier transitionTo( vk::ImageLayout old_layout, vk::ImageLayout new_layout, vk::ImageAspectFlags aspect );
+
+		inline vk::ImageMemoryBarrier transitionColorTo(vk::ImageLayout old_layout, vk::ImageLayout new_layout)
+		{
+			return transitionTo( old_layout, new_layout, vk::ImageAspectFlagBits::eColor );
+		}
 	};
 
 } // namespace fgl::engine

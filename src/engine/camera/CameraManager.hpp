@@ -17,7 +17,7 @@ namespace fgl::engine
 
 	class CameraManager
 	{
-		std::unique_ptr< CameraRenderer > m_renderer;
+		std::shared_ptr< GBufferRenderer > m_renderer;
 		memory::Buffer m_data_buffer;
 
 		std::shared_ptr< Camera > m_primary_camera { nullptr };

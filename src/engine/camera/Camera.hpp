@@ -12,6 +12,7 @@
 #include <glm/gtx/string_cast.hpp>
 #pragma GCC diagnostic pop
 
+#include "CompositeSwapchain.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/memory/buffers/HostSingleT.hpp"
 #include "engine/memory/buffers/UniqueFrameSuballocation.hpp"
@@ -34,10 +35,10 @@ namespace fgl::engine
 	}
 	class Image;
 	struct FrameInfo;
-	class CameraRenderer;
+	class GBufferRenderer;
 
 	struct CameraInfo;
-	class CameraSwapchain;
+	class GBufferSwapchain;
 	class Camera;
 
 	FrustumBase createFrustum( float aspect, float fovy, float near, float far );
@@ -48,7 +49,12 @@ namespace fgl::engine
 	{
 		inline static CameraIDX m_camera_counter { 0 };
 
-		std::unique_ptr< CameraRenderer >& m_camera_renderer;
+		vk::Extent2D m_target_extent;
+
+		std::unique_ptr< CompositeSwapchain > m_composite_swapchain;
+		std::unique_ptr< GBufferSwapchain > m_gbuffer_swapchain;
+
+		std::shared_ptr< GBufferRenderer > m_camera_renderer;
 
 		//! True if the camera is active and to be rendered
 		bool m_active { true };
@@ -73,17 +79,12 @@ namespace fgl::engine
 
 		WorldTransform m_transform;
 
-		vk::Extent2D m_target_extent;
 		float m_fov_y { glm::radians( 90.0f ) };
 
 		PerFrameSuballocation< HostSingleT< CameraInfo > > m_camera_frame_info;
 
 		// Camera info is expected at binding 0
 		std::vector< std::unique_ptr< descriptors::DescriptorSet > > m_camera_info_descriptors {};
-
-		// TODO: Remove this old swapchain and instead do a proper deffered cleanup of it.
-		std::shared_ptr< CameraSwapchain > m_old_swapchain { nullptr };
-		std::shared_ptr< CameraSwapchain > m_swapchain;
 
 		std::string m_name;
 
@@ -96,7 +97,7 @@ namespace fgl::engine
 		Camera( vk::Extent2D test_extent ) : m_target_extent( test_extent ) {}
 #endif
 
-		Camera( vk::Extent2D extent, memory::Buffer& buffer, std::unique_ptr< CameraRenderer >& renderer );
+		Camera( vk::Extent2D extent, memory::Buffer& buffer, const std::shared_ptr< GBufferRenderer >& renderer );
 
 		friend class CameraManager;
 
@@ -113,8 +114,6 @@ namespace fgl::engine
 		CameraIDX getIDX() const;
 
 		const std::string& getName() const;
-
-		static void initCameraRenderer();
 
 		void setExtent( vk::Extent2D extent );
 
@@ -171,7 +170,8 @@ namespace fgl::engine
 
 		FGL_FORCE_INLINE NormalVector getDown() const
 		{
-			return NormalVector( glm::vec3( m_inverse_view_matrix[ 1 ] ) ); }
+			return NormalVector( glm::vec3( m_inverse_view_matrix[ 1 ] ) );
+		}
 
 		//! Updates the required info for rendering
 		void updateInfo( FrameIndex frame_index );
@@ -182,7 +182,8 @@ namespace fgl::engine
 		//! Performs the render pass for this camera
 		void pass( FrameInfo& frame_info );
 
-		CameraSwapchain& getSwapchain() const;
+		GBufferSwapchain& getSwapchain() const;
+		CompositeSwapchain& getCompositeSwapchain() const;
 		void setViewport( const vk::raii::CommandBuffer& command_buffer );
 		void setScissor( const vk::raii::CommandBuffer& command_buffer );
 
@@ -203,7 +204,5 @@ namespace fgl::engine
 
 #endif
 	};
-
-	descriptors::DescriptorSetLayout& getCameraDescriptorSet();
 
 } // namespace fgl::engine

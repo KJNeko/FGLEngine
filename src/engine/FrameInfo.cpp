@@ -5,7 +5,7 @@
 #include "FrameInfo.hpp"
 
 #include "camera/Camera.hpp"
-#include "camera/CameraSwapchain.hpp"
+#include "camera/GBufferSwapchain.hpp"
 
 namespace fgl::engine
 {

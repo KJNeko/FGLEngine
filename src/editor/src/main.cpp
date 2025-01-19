@@ -15,46 +15,73 @@ int main()
 
 	log::set_level( spdlog::level::debug );
 
-	EngineContext engine_ctx {};
+	const auto version { vk::enumerateInstanceVersion() };
 
-	// We start by hooking into the imgui rendering.
-	engine_ctx.hookInitImGui( gui::initGui );
-	engine_ctx.hookPreFrame( gui::startDrawImGui );
-	engine_ctx.hookEarlyFrame( gui::drawImGui );
-	engine_ctx.hookLateFrame( gui::endDrawImGui );
-	engine_ctx.hookDestruction( gui::cleanupImGui );
+	// variant 3 bit int, bits 31-29
+	// major 7-bit, bits 28-22
+	// minor, 10 bit, 21-12
+	// patch, 12 bit, 10-0
+	// clang-format off
+		constexpr std::uint64_t PATCH_BITMASK	{ 0b00000000000000000000111111111111 };
+		constexpr std::uint64_t MINOR_BITMASK	{ 0b00000000001111111111000000000000 };
+		constexpr std::uint64_t MAJOR_BITMASK	{ 0b00011111110000000000000000000000 };
+		constexpr std::uint64_t VARIANT_BITMASK { 0b11100000000000000000000000000000 };
 
-	// Now we need to create the camera for the editor.
-	CameraManager& camera_manager { engine_ctx.cameraManager() };
+		const auto patch 	{ ( version & PATCH_BITMASK ) 	>> 0};
+		const auto minor 	{ ( version & MINOR_BITMASK ) 	>> 10};
+		const auto major 	{ ( version & MAJOR_BITMASK ) 	>> (10 + 12)};
+		const auto variant 	{ ( version & VARIANT_BITMASK ) >> (10 + 12 + 7) };
+	// clang-format on
 
-	auto& editor_camera { camera_manager.getPrimary() };
+	log::debug( "Vulkan instance version: {}.{}.{}.{}", major, minor, patch, minor );
 
-	editor_camera->setFOV( glm::radians( 90.0f ) );
-
-	//! Will be true until the window says it wants to close.
-	while ( engine_ctx.good() )
+	try
 	{
-		debug::timing::reset();
-		engine_ctx.tickDeltaTime();
+		EngineContext engine_ctx {};
 
-		engine_ctx.handleTransfers();
+		// We start by hooking into the imgui rendering.
+		engine_ctx.hookInitImGui( gui::initGui );
+		engine_ctx.hookPreFrame( gui::startDrawImGui );
+		engine_ctx.hookEarlyFrame( gui::drawImGui );
+		engine_ctx.hookLateFrame( gui::endDrawImGui );
+		engine_ctx.hookDestruction( gui::cleanupImGui );
 
-		// Process input
-		engine_ctx.processInput();
+		// Now we need to create the camera for the editor.
+		CameraManager& camera_manager { engine_ctx.cameraManager() };
 
-		// Here we can decide if we want to tick fully or not.
+		auto& editor_camera { camera_manager.getPrimary() };
 
-		// Simulate step
-		engine_ctx.tickSimulation();
+		editor_camera->setFOV( glm::radians( 90.0f ) );
 
-		// Update the viewer camera
+		//! Will be true until the window says it wants to close.
+		while ( engine_ctx.good() )
+		{
+			debug::timing::reset();
+			engine_ctx.tickDeltaTime();
 
-		// Render step
-		engine_ctx.renderFrame();
+			engine_ctx.handleTransfers();
 
-		engine_ctx.finishFrame();
-		// This will 'end' the root node, Which is created on 'reset'
-		debug::timing::internal::pop();
+			// Process input
+			engine_ctx.processInput();
+
+			// Here we can decide if we want to tick fully or not.
+
+			// Simulate step
+			engine_ctx.tickSimulation();
+
+			// Update the viewer camera
+
+			// Render step
+			engine_ctx.renderFrame();
+
+			engine_ctx.finishFrame();
+			// This will 'end' the root node, Which is created on 'reset'
+			debug::timing::internal::pop();
+		}
+	}
+	catch ( const vk::LayerNotPresentError& e )
+	{
+		log::info( "{}:{}", e.code().message(), e.what() );
 	}
 
 	return EXIT_SUCCESS;

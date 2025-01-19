@@ -8,7 +8,7 @@
 #include "engine/assets/model/Model.hpp"
 #include "engine/assets/model/builders/SceneBuilder.hpp"
 #include "engine/camera/Camera.hpp"
-#include "engine/camera/CameraSwapchain.hpp"
+#include "engine/camera/GBufferSwapchain.hpp"
 #include "engine/filesystem/scanner/FileScanner.hpp"
 #include "engine/filesystem/types.hpp"
 #include "engine/gameobjects/components/ModelComponent.hpp"
@@ -53,9 +53,7 @@ namespace fgl::engine::gui
 
 								obj.addFlag( IsEntity | IsVisible );
 
-								auto component {
-									std::make_unique< ModelComponent >( std::move( model ) )
-								};
+								auto component { std::make_unique< ModelComponent >( std::move( model ) ) };
 
 								obj.addComponent( std::move( component ) );
 
@@ -208,16 +206,17 @@ namespace fgl::engine::gui
 			default:
 				[[fallthrough]];
 			case Composite:
-				camera.getSwapchain().m_g_buffer_composite_img[ frame_index ]->drawImGui( target_size );
+				camera.getCompositeSwapchain().m_gbuffer_target[ frame_index ]->drawImGui( target_size );
+				// camera.getSwapchain().m_g_buffer_composite_img[ frame_index ]->drawImGui( target_size );
 				break;
 			case Albedo:
-				camera.getSwapchain().m_g_buffer_color_img[ frame_index ]->drawImGui( target_size );
+				// camera.getSwapchain().m_g_buffer_color_img[ frame_index ]->drawImGui( target_size );
 				break;
 			case Normal:
-				camera.getSwapchain().m_g_buffer_normal_img[ frame_index ]->drawImGui( target_size );
+				// camera.getSwapchain().m_g_buffer_normal_img[ frame_index ]->drawImGui( target_size );
 				break;
 			case Position:
-				camera.getSwapchain().m_g_buffer_position_img[ frame_index ]->drawImGui( target_size );
+				// camera.getSwapchain().m_g_buffer_position_img[ frame_index ]->drawImGui( target_size );
 				break;
 		}
 

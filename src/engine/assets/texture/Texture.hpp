@@ -89,6 +89,8 @@ namespace fgl::engine
 
 		~Texture();
 
+		Image& getImageRef();
+
 		Texture( const Texture& ) = delete;
 		Texture& operator=( const Texture& ) = delete;
 

@@ -9,8 +9,8 @@
 #include <tracy/Tracy.hpp>
 
 #include "CameraInfo.hpp"
-#include "CameraRenderer.hpp"
-#include "CameraSwapchain.hpp"
+#include "GBufferRenderer.hpp"
+#include "GBufferSwapchain.hpp"
 #include "engine/debug/timing/FlameGraph.hpp"
 
 namespace fgl::engine
@@ -69,11 +69,11 @@ namespace fgl::engine
 	{
 		ZoneScopedN( "Camera::pass" );
 		auto timer = debug::timing::push( "Camera" );
-		if ( m_cold && m_swapchain )
+		if ( m_cold && m_gbuffer_swapchain )
 		{
 			//TODO: Make some way to destroy the swapchain in a deffered manner.
-			m_old_swapchain = m_swapchain;
-			m_swapchain = nullptr;
+			// m_old_swapchain = m_gbuffer_swapchain;
+			m_gbuffer_swapchain = nullptr;
 			m_active = false;
 		}
 
@@ -82,19 +82,25 @@ namespace fgl::engine
 		assert( frame_info.camera == nullptr );
 		frame_info.camera = this;
 
-		if ( m_swapchain->getExtent() != m_target_extent )
+		if ( m_gbuffer_swapchain->getExtent() != m_target_extent )
 		{
 			remakeSwapchain( m_target_extent );
 		}
 
 		updateInfo( frame_info.frame_idx );
-		m_camera_renderer->pass( frame_info, *m_swapchain );
+		FGL_ASSERT( m_camera_renderer, "Camera renderer should not be nullptr" );
+		m_camera_renderer->pass( frame_info, *m_gbuffer_swapchain );
 		frame_info.camera = nullptr;
 	}
 
-	CameraSwapchain& Camera::getSwapchain() const
+	GBufferSwapchain& Camera::getSwapchain() const
 	{
-		return *m_swapchain;
+		return *m_gbuffer_swapchain;
+	}
+
+	CompositeSwapchain& Camera::getCompositeSwapchain() const
+	{
+		return *m_composite_swapchain;
 	}
 
 	void Camera::setViewport( const vk::raii::CommandBuffer& command_buffer )
@@ -103,7 +109,7 @@ namespace fgl::engine
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
 
-		const auto& [ width, height ] = m_swapchain->getExtent();
+		const auto& [ width, height ] = m_gbuffer_swapchain->getExtent();
 		viewport.width = static_cast< float >( width );
 		viewport.height = static_cast< float >( height );
 		viewport.minDepth = 0.0f;
@@ -116,7 +122,7 @@ namespace fgl::engine
 
 	void Camera::setScissor( const vk::raii::CommandBuffer& command_buffer )
 	{
-		const vk::Rect2D scissor { { 0, 0 }, m_swapchain->getExtent() };
+		const vk::Rect2D scissor { { 0, 0 }, m_gbuffer_swapchain->getExtent() };
 
 		const std::vector< vk::Rect2D > scissors { scissor };
 
@@ -126,8 +132,9 @@ namespace fgl::engine
 	void Camera::remakeSwapchain( vk::Extent2D extent )
 	{
 		this->setPerspectiveProjection( m_fov_y, aspectRatio(), constants::NEAR_PLANE, constants::FAR_PLANE );
-		m_old_swapchain = m_swapchain;
-		m_swapchain = std::make_shared< CameraSwapchain >( m_camera_renderer->getRenderpass(), extent );
+
+		m_composite_swapchain = std::make_unique< CompositeSwapchain >( extent );
+		m_gbuffer_swapchain = std::make_unique< GBufferSwapchain >( extent );
 	}
 
 	void Camera::setName( const std::string_view str )
@@ -137,15 +144,16 @@ namespace fgl::engine
 
 	float Camera::aspectRatio() const
 	{
-		return m_swapchain->getAspectRatio();
+		return m_gbuffer_swapchain->getAspectRatio();
 	}
 
 	void Camera::
 		copyOutput( const vk::raii::CommandBuffer& command_buffer, const FrameIndex frame_index, Image& target )
 	{
-		assert( m_swapchain->getExtent() == target.getExtent() );
+		assert( m_gbuffer_swapchain->getExtent() == target.getExtent() );
 
-		Image& source { this->getSwapchain().getOutput( frame_index ) };
+		Texture& source_tex { *m_composite_swapchain->m_gbuffer_target[ frame_index ] };
+		Image& source { source_tex.getImageRef() };
 
 		vk::ImageSubresourceRange range {};
 		range.aspectMask = vk::ImageAspectFlagBits::eColor;
@@ -192,7 +200,7 @@ namespace fgl::engine
 			{ barrier_from_source } );
 
 		vk::ImageCopy region {};
-		region.extent = vk::Extent3D( m_swapchain->getExtent(), 1 );
+		region.extent = vk::Extent3D( m_gbuffer_swapchain->getExtent(), 1 );
 
 		region.srcSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
 		region.srcSubresource.layerCount = 1;
@@ -318,14 +326,14 @@ namespace fgl::engine
 		return camera_descriptor_set;
 	}
 
-	Camera::Camera( const vk::Extent2D extent, memory::Buffer& buffer, std::unique_ptr< CameraRenderer >& renderer ) :
-	  m_camera_renderer( renderer ),
-	  m_transform(),
+	Camera::Camera( const vk::Extent2D extent, memory::Buffer& buffer, const std::shared_ptr< GBufferRenderer >& renderer ) :
 	  m_target_extent( extent ),
-	  m_camera_frame_info( buffer, SwapChain::MAX_FRAMES_IN_FLIGHT ),
-	  m_swapchain( std::make_shared< CameraSwapchain >( m_camera_renderer->getRenderpass(), m_target_extent ) ),
-	  m_name()
+	  m_composite_swapchain( std::make_unique< CompositeSwapchain >( m_target_extent ) ),
+	  m_gbuffer_swapchain( std::make_unique< GBufferSwapchain >( m_target_extent ) ),
+	  m_camera_renderer( renderer ),
+	  m_camera_frame_info( buffer, SwapChain::MAX_FRAMES_IN_FLIGHT )
 	{
+		FGL_ASSERT( renderer, "Camera renderer is null" );
 		this->setPerspectiveProjection( m_fov_y, aspectRatio(), constants::NEAR_PLANE, constants::FAR_PLANE );
 		this->setView( WorldCoordinate( constants::CENTER ), Rotation( 0.0f, 0.0f, 0.0f ) );
 

@@ -5,7 +5,7 @@
 #include "CameraManager.hpp"
 
 #include "Camera.hpp"
-#include "CameraRenderer.hpp"
+#include "GBufferRenderer.hpp"
 #include "engine/debug/DEBUG_NAMES.hpp"
 #include "engine/math/literals/size.hpp"
 
@@ -25,7 +25,7 @@ namespace fgl::engine
 	}
 
 	CameraManager::CameraManager() :
-	  m_renderer( std::make_unique< CameraRenderer >() ),
+	  m_renderer( std::make_shared< GBufferRenderer >() ),
 	  m_data_buffer( 4_KiB, vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eHostVisible )
 	{
 		m_primary_camera = createCamera( { 1920, 1080 } );

@@ -8,7 +8,6 @@
 #include <cstring>
 #include <iostream>
 #include <set>
-#include <unordered_set>
 
 #include "engine/debug/logging/logging.hpp"
 
@@ -63,20 +62,25 @@ namespace fgl::engine
 		return deviceFeatures;
 	}
 
-	vk::PhysicalDeviceDescriptorIndexingFeatures Device::DeviceCreateInfo::getIndexingFeatures()
+	void Device::DeviceCreateInfo::getIndexingFeatures()
 	{
-		vk::PhysicalDeviceDescriptorIndexingFeatures indexing_features {};
-		indexing_features.setRuntimeDescriptorArray( VK_TRUE );
-		indexing_features.setDescriptorBindingPartiallyBound( VK_TRUE );
-		indexing_features.setShaderSampledImageArrayNonUniformIndexing( VK_TRUE );
-		indexing_features.setDescriptorBindingSampledImageUpdateAfterBind( VK_TRUE );
-		indexing_features.setDescriptorBindingUniformBufferUpdateAfterBind( VK_TRUE );
-
-		return indexing_features;
+		m_indexing_features.setRuntimeDescriptorArray( VK_TRUE );
+		m_indexing_features.setDescriptorBindingPartiallyBound( VK_TRUE );
+		m_indexing_features.setShaderSampledImageArrayNonUniformIndexing( VK_TRUE );
+		m_indexing_features.setDescriptorBindingSampledImageUpdateAfterBind( VK_TRUE );
+		m_indexing_features.setDescriptorBindingUniformBufferUpdateAfterBind( VK_TRUE );
 	}
 
-	std::vector< vk::DeviceQueueCreateInfo > Device::DeviceCreateInfo::getQueueCreateInfos( PhysicalDevice&
-	                                                                                            physical_device )
+	void Device::DeviceCreateInfo::getDynamicRenderingFeatures()
+	{
+		m_dynamic_rendering_features.setDynamicRendering( VK_TRUE );
+		m_dynamic_rendering_local_read_features.setDynamicRenderingLocalRead( VK_TRUE );
+		m_dynamic_rendering_unused_features.setDynamicRenderingUnusedAttachments( VK_TRUE );
+		m_info_chain.unlink< vk::PhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT >();
+	}
+
+	std::vector< vk::DeviceQueueCreateInfo > Device::DeviceCreateInfo::
+		getQueueCreateInfos( PhysicalDevice& physical_device )
 	{
 		std::vector< vk::DeviceQueueCreateInfo > queueCreateInfos;
 		std::set< std::uint32_t > uniqueQueueFamilies = {
@@ -98,22 +102,18 @@ namespace fgl::engine
 		return queueCreateInfos;
 	}
 
-	vk::DeviceCreateInfo Device::DeviceCreateInfo::getCreateInfo( PhysicalDevice& physical_device )
+	void Device::DeviceCreateInfo::getCreateInfo( PhysicalDevice& physical_device )
 	{
-		vk::DeviceCreateInfo createInfo {};
-		createInfo.queueCreateInfoCount = static_cast< uint32_t >( m_queue_create_infos.size() );
-		createInfo.pQueueCreateInfos = m_queue_create_infos.data();
+		m_create_info.setQueueCreateInfos( m_queue_create_infos );
 
-		createInfo.pEnabledFeatures = &m_requested_features;
-		createInfo.enabledExtensionCount = static_cast< uint32_t >( deviceExtensions.size() );
-		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+		m_create_info.setPEnabledFeatures( &m_requested_features );
 
-		createInfo.setPNext( &m_indexing_features );
+		m_create_info.setPEnabledExtensionNames( m_device_extensions );
 
 		//Get device extension list
 		const auto supported_extensions { physical_device.handle().enumerateDeviceExtensionProperties() };
 		std::cout << "Supported device extensions:" << std::endl;
-		for ( auto& desired_ext : deviceExtensions )
+		for ( auto& desired_ext : m_device_extensions )
 		{
 			bool found { false };
 			for ( auto& supported_ext : supported_extensions )
@@ -132,23 +132,23 @@ namespace fgl::engine
 		// have been deprecated
 		if ( true )
 		{
-			createInfo.enabledLayerCount = static_cast< uint32_t >( validationLayers.size() );
-			createInfo.ppEnabledLayerNames = validationLayers.data();
+			m_create_info.enabledLayerCount = static_cast< uint32_t >( m_validation_layers.size() );
+			m_create_info.ppEnabledLayerNames = m_validation_layers.data();
 		}
 		else
 		{
-			createInfo.enabledLayerCount = 0;
+			m_create_info.enabledLayerCount = 0;
 		}
-
-		return createInfo;
 	}
 
 	Device::DeviceCreateInfo::DeviceCreateInfo( PhysicalDevice& physical_device ) :
 	  m_requested_features( getDeviceFeatures( physical_device ) ),
-	  m_indexing_features( getIndexingFeatures() ),
-	  m_queue_create_infos( getQueueCreateInfos( physical_device ) ),
-	  m_create_info( getCreateInfo( physical_device ) )
-	{}
+	  m_queue_create_infos( getQueueCreateInfos( physical_device ) )
+	{
+		getIndexingFeatures();
+		getDynamicRenderingFeatures();
+		getCreateInfo( physical_device );
+	}
 
 	vk::CommandPoolCreateInfo Device::commandPoolInfo()
 	{
@@ -175,6 +175,9 @@ namespace fgl::engine
 	{
 		assert( !global_device );
 
+		assert( *m_graphics_queue );
+		assert( *m_present_queue );
+
 		global_device = this;
 
 		DescriptorPool::init();
@@ -187,7 +190,7 @@ namespace fgl::engine
 	{
 		std::vector< vk::LayerProperties > availableLayers { vk::enumerateInstanceLayerProperties() };
 
-		for ( const char* layerName : validationLayers )
+		for ( const char* layerName : m_validation_layers )
 		{
 			bool layerFound = false;
 
@@ -215,12 +218,12 @@ namespace fgl::engine
 			device.enumerateDeviceExtensionProperties()
 		};
 
-		std::set< std::string > requiredExtensions( deviceExtensions.begin(), deviceExtensions.end() );
+		std::set< std::string > requiredExtensions( m_device_extensions.begin(), m_device_extensions.end() );
 
 		std::uint32_t required_count { static_cast< std::uint32_t >( requiredExtensions.size() ) };
 		std::uint32_t found_count { 0 };
 
-		for ( const auto required : deviceExtensions )
+		for ( const auto required : m_device_extensions )
 		{
 			if ( std::find_if(
 					 availableExtensions.begin(),
