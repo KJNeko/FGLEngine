@@ -4,6 +4,7 @@
 
 #include "QueuePool.hpp"
 
+#include "Surface.hpp"
 #include "pipelines/Attachment.hpp"
 
 namespace fgl::engine

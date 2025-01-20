@@ -95,10 +95,24 @@ namespace fgl::engine
 	{
 		vk::DebugUtilsObjectNameInfoEXT info {};
 
+		log::debug( "Setting name of image to {}", str );
+		m_name = str;
+
 		info.objectType = vk::ObjectType::eImage;
 		info.pObjectName = str.c_str();
 		info.setObjectHandle( reinterpret_cast< uint64_t >( getVkImage() ) );
 
 		Device::getInstance().setDebugUtilsObjectName( info );
+	}
+
+	VkImage ImageHandle::operator*()
+	{
+		ZoneScoped;
+		if ( std::holds_alternative< vk::raii::Image >( m_image ) )
+		{
+			return *std::get< vk::raii::Image >( m_image );
+		}
+
+		return std::get< vk::Image >( m_image );
 	}
 } // namespace fgl::engine

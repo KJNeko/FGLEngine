@@ -18,7 +18,7 @@ PreSetup()
 
 PostSetup()
 
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/data)
+#file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/data)
 
 #Enable cmake_modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules")

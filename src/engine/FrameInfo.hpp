@@ -26,7 +26,7 @@ namespace fgl::engine
 		class DescriptorSet;
 	}
 
-	class SwapChain;
+	class PresentSwapChain;
 	class Camera;
 
 	struct PointLight
@@ -96,7 +96,7 @@ namespace fgl::engine
 		descriptors::DescriptorSet& getGBufferDescriptor() const;
 		descriptors::DescriptorSet& getCameraDescriptor() const;
 
-		SwapChain& swap_chain;
+		PresentSwapChain& swap_chain;
 
 		std::vector< std::vector< GameObject >* > in_view_leafs {};
 

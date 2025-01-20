@@ -24,9 +24,10 @@ namespace fgl::engine
 
 	  public:
 
-		GuiSystem( vk::raii::RenderPass& render_pass );
+		GuiSystem();
 
-		FGL_DELETE_ALL_RO5( GuiSystem );
+		FGL_DELETE_MOVE( GuiSystem );
+		FGL_DELETE_COPY( GuiSystem );
 
 		void pass( FrameInfo& info );
 	};

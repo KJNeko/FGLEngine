@@ -51,7 +51,9 @@ namespace fgl::engine
 
 		vk::Extent2D m_target_extent;
 
+		std::unique_ptr< CompositeSwapchain > m_old_composite_swapchain;
 		std::unique_ptr< CompositeSwapchain > m_composite_swapchain;
+		std::unique_ptr< GBufferSwapchain > m_old_gbuffer_swapchain;
 		std::unique_ptr< GBufferSwapchain > m_gbuffer_swapchain;
 
 		std::shared_ptr< GBufferRenderer > m_camera_renderer;

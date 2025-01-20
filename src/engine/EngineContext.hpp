@@ -56,7 +56,7 @@ namespace fgl::engine
 			vk::MemoryPropertyFlagBits::eDeviceLocal ) };
 
 		// SubPass 0
-		GuiSystem m_gui_system { m_renderer.getSwapChainRenderPass() };
+		GuiSystem m_gui_system {};
 
 		// Functions BEFORE a frame is started
 		std::vector< FrameHookFunc > pre_frame_hooks {};

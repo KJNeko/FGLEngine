@@ -133,6 +133,9 @@ namespace fgl::engine
 	{
 		this->setPerspectiveProjection( m_fov_y, aspectRatio(), constants::NEAR_PLANE, constants::FAR_PLANE );
 
+		m_old_composite_swapchain = std::move( m_composite_swapchain );
+		m_old_gbuffer_swapchain = std::move( m_gbuffer_swapchain );
+
 		m_composite_swapchain = std::make_unique< CompositeSwapchain >( extent );
 		m_gbuffer_swapchain = std::make_unique< GBufferSwapchain >( extent );
 	}
@@ -326,18 +329,19 @@ namespace fgl::engine
 		return camera_descriptor_set;
 	}
 
-	Camera::Camera( const vk::Extent2D extent, memory::Buffer& buffer, const std::shared_ptr< GBufferRenderer >& renderer ) :
+	Camera::Camera(
+		const vk::Extent2D extent, memory::Buffer& buffer, const std::shared_ptr< GBufferRenderer >& renderer ) :
 	  m_target_extent( extent ),
 	  m_composite_swapchain( std::make_unique< CompositeSwapchain >( m_target_extent ) ),
 	  m_gbuffer_swapchain( std::make_unique< GBufferSwapchain >( m_target_extent ) ),
 	  m_camera_renderer( renderer ),
-	  m_camera_frame_info( buffer, SwapChain::MAX_FRAMES_IN_FLIGHT )
+	  m_camera_frame_info( buffer, PresentSwapChain::MAX_FRAMES_IN_FLIGHT )
 	{
 		FGL_ASSERT( renderer, "Camera renderer is null" );
 		this->setPerspectiveProjection( m_fov_y, aspectRatio(), constants::NEAR_PLANE, constants::FAR_PLANE );
 		this->setView( WorldCoordinate( constants::CENTER ), Rotation( 0.0f, 0.0f, 0.0f ) );
 
-		for ( std::uint8_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
+		for ( std::uint8_t i = 0; i < PresentSwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
 		{
 			auto set { camera_descriptor_set.create() };
 			set->bindUniformBuffer( 0, m_camera_frame_info[ i ] );

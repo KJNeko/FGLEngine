@@ -13,7 +13,7 @@
 #include "engine/assets/image/ImageView.hpp"
 #include "engine/assets/texture/Texture.hpp"
 #include "engine/memory/buffers/BufferSuballocation.hpp"
-#include "engine/rendering/SwapChain.hpp"
+#include "engine/rendering/PresentSwapChain.hpp"
 
 namespace fgl::engine::descriptors
 {
@@ -214,7 +214,7 @@ namespace fgl::engine::descriptors
 		{
 			auto& [ counter, set ] = *itter;
 			// Prevent deleting a descriptor until we are sure it's been here long enough
-			if ( counter > SwapChain::MAX_FRAMES_IN_FLIGHT + 1 )
+			if ( counter > PresentSwapChain::MAX_FRAMES_IN_FLIGHT + 1 )
 			{
 				itter = QUEUE.erase( itter );
 			}

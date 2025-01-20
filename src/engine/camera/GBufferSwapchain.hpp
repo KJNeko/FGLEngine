@@ -5,8 +5,8 @@
 #pragma once
 
 #include "engine/descriptors/DescriptorSet.hpp"
+#include "engine/rendering/PresentSwapChain.hpp"
 #include "engine/rendering/RenderingFormats.hpp"
-#include "engine/rendering/SwapChain.hpp"
 #include "engine/rendering/pipelines/Attachment.hpp"
 
 namespace fgl::engine

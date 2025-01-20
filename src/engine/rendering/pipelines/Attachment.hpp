@@ -33,15 +33,15 @@ namespace fgl::engine
 		vk::ImageUsageFlags usage >
 	class Attachment
 	{
-		vk::AttachmentDescription description {};
+		vk::AttachmentDescription m_description {};
 
 	  public:
 
 		vk::ClearValue m_clear_value {};
 
-		void setClear( vk::ClearColorValue value ) { m_clear_value = value; }
+		void setClear( const vk::ClearColorValue value ) { m_clear_value = value; }
 
-		void setClear( vk::ClearDepthStencilValue value ) { m_clear_value = value; }
+		void setClear( const vk::ClearDepthStencilValue value ) { m_clear_value = value; }
 
 		void setName( const char* str )
 		{
@@ -62,26 +62,37 @@ namespace fgl::engine
 		constexpr Attachment( const vk::Format format )
 		{
 			assert( format != vk::Format::eUndefined && "Attachment format must not be undefined" );
-			description.format = format;
-			description.samples = vk::SampleCountFlagBits::e1;
-			description.loadOp = load_op;
-			description.storeOp = store_op;
-			description.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-			description.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-			description.initialLayout = inital_layout;
-			description.finalLayout = final_layout;
+			m_description.format = format;
+			m_description.samples = vk::SampleCountFlagBits::e1;
+			m_description.loadOp = load_op;
+			m_description.storeOp = store_op;
+			m_description.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+			m_description.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+			m_description.initialLayout = inital_layout;
+			m_description.finalLayout = final_layout;
 		}
 
-		void attachImageView( std::uint16_t frame_idx, std::shared_ptr< ImageView > image_view )
+		void attachImageView( const std::uint16_t frame_idx, std::shared_ptr< ImageView > image_view )
 		{
 			auto& image_views = m_attachment_resources.m_image_views;
 			if ( image_views.size() <= frame_idx ) image_views.resize( frame_idx + 1 );
 			image_views[ frame_idx ] = std::move( image_view );
 		}
 
-		void linkImage( std::uint16_t frame_idx, Image& image ) { attachImageView( frame_idx, image.getView() ); }
+		void attachImage( const std::uint16_t frame_index, const std::shared_ptr< Image >& image )
+		{
+			auto& images { m_attachment_resources.m_images };
+			if ( images.size() <= frame_index ) images.resize( frame_index + 1 );
+			images[ frame_index ] = std::move( image );
+		}
 
-		void linkImages( std::vector< Image >& images )
+		void linkImage( const std::uint16_t frame_idx, const std::shared_ptr< Image >& image )
+		{
+			attachImage( frame_idx, image );
+			attachImageView( frame_idx, image->getView() );
+		}
+
+		void linkImages( const std::vector< std::shared_ptr< Image > >& images )
 		{
 			assert( images.size() > 0 );
 			for ( std::uint16_t i = 0; i < images.size(); ++i )
@@ -91,7 +102,9 @@ namespace fgl::engine
 		}
 
 		void createResources(
-			const std::uint32_t count, vk::Extent2D extent, vk::ImageUsageFlags extra_flags = vk::ImageUsageFlags( 0 ) )
+			const std::uint32_t count,
+			const vk::Extent2D extent,
+			const vk::ImageUsageFlags extra_flags = vk::ImageUsageFlags( 0 ) )
 		{
 			for ( std::uint16_t i = 0; i < count; ++i )
 			{
@@ -100,7 +113,7 @@ namespace fgl::engine
 				const auto& itter { images.emplace_back(
 					std::make_shared< Image >(
 						extent,
-						description.format,
+						m_description.format,
 						usage | vk::ImageUsageFlagBits::eInputAttachment | extra_flags,
 						vk::ImageLayout::eUndefined,
 						final_layout ) ) };
@@ -114,7 +127,7 @@ namespace fgl::engine
 		{
 			auto image { std::make_shared< Image >(
 				extent,
-				description.format,
+				m_description.format,
 				usage | vk::ImageUsageFlagBits::eInputAttachment | extra_flags,
 				vk::ImageLayout::eUndefined,
 				final_layout ) };
@@ -150,7 +163,7 @@ namespace fgl::engine
 			return info;
 		}
 
-		constexpr vk::AttachmentDescription& desc() { return description; }
+		constexpr vk::AttachmentDescription& desc() { return m_description; }
 
 		friend class RenderPassBuilder;
 	};

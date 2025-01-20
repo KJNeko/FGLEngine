@@ -7,8 +7,8 @@
 #include "AttachmentBuilder.hpp"
 #include "Pipeline.hpp"
 #include "engine/descriptors/DescriptorSetLayout.hpp"
+#include "engine/rendering/PresentSwapChain.hpp"
 #include "engine/rendering/RenderingFormats.hpp"
-#include "engine/rendering/SwapChain.hpp"
 
 namespace fgl::engine
 {

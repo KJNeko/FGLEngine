@@ -9,11 +9,12 @@
 #include "engine/rendering/pipelines/v2/AttachmentBuilder.hpp"
 #include "engine/rendering/pipelines/v2/Pipeline.hpp"
 #include "engine/rendering/pipelines/v2/PipelineBuilder.hpp"
+#include "rendering/RenderingFormats.hpp"
 
 namespace fgl::engine
 {
 
-	GuiSystem::GuiSystem( vk::raii::RenderPass& render_pass )
+	GuiSystem::GuiSystem()
 	{
 		//descriptors::DescriptorSetCollection descriptors { gui_descriptor_set };
 
@@ -27,7 +28,7 @@ namespace fgl::engine
 		builder.setVertexShader( Shader::loadVertex( "shaders/fullscreen.vert" ) );
 		builder.setFragmentShader( Shader::loadFragment( "shaders/gui-compose.frag" ) );
 
-		builder.addColorAttachment().setFormat( vk::Format::eR8G8B8A8Unorm ).finish();
+		builder.addColorAttachment().setFormat( pickPresentFormat() ).finish();
 
 		m_pipeline = builder.create();
 		m_pipeline->setDebugName( "Gui Pipeline" );

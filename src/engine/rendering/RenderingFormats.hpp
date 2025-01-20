@@ -14,5 +14,6 @@ namespace fgl::engine
 	vk::Format pickMetallicFormat();
 	vk::Format pickEmissiveFormat();
 	vk::Format pickCompositeFormat();
+	vk::Format pickPresentFormat();
 
 } // namespace fgl::engine

@@ -12,22 +12,22 @@ namespace fgl::engine
 	std::vector< std::unique_ptr< descriptors::DescriptorSet > > GBufferSwapchain::createGBufferDescriptors()
 	{
 		std::vector< std::unique_ptr< descriptors::DescriptorSet > > data {};
-		data.resize( SwapChain::MAX_FRAMES_IN_FLIGHT );
+		data.resize( PresentSwapChain::MAX_FRAMES_IN_FLIGHT );
 
-		for ( PresentIndex i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
+		for ( PresentIndex i = 0; i < PresentSwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
 		{
 			//auto set { std::make_unique< descriptors::DescriptorSet >( GBufferDescriptorSet::createLayout() ) };
 			auto set { gbuffer_set.create() };
 
-			set->bindAttachment( 0, m_gbuffer.m_color.getView( i ), vk::ImageLayout::eRenderingLocalReadKHR );
+			set->bindAttachment( 0, m_gbuffer.m_color.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
 
-			set->bindAttachment( 1, m_gbuffer.m_position.getView( i ), vk::ImageLayout::eRenderingLocalReadKHR );
+			set->bindAttachment( 1, m_gbuffer.m_position.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
 
-			set->bindAttachment( 2, m_gbuffer.m_normal.getView( i ), vk::ImageLayout::eRenderingLocalReadKHR );
+			set->bindAttachment( 2, m_gbuffer.m_normal.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
 
-			set->bindAttachment( 3, m_gbuffer.m_metallic.getView( i ), vk::ImageLayout::eRenderingLocalReadKHR );
+			set->bindAttachment( 3, m_gbuffer.m_metallic.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
 
-			set->bindAttachment( 4, m_gbuffer.m_emissive.getView( i ), vk::ImageLayout::eRenderingLocalReadKHR );
+			set->bindAttachment( 4, m_gbuffer.m_emissive.getView( i ), vk::ImageLayout::eShaderReadOnlyOptimal );
 
 			set->update();
 
@@ -157,7 +157,7 @@ namespace fgl::engine
 	GBufferSwapchain::GBufferSwapchain( const vk::Extent2D extent ) : m_extent( extent )
 	// m_gbuffer_descriptor_set( createGBufferDescriptors() )
 	{
-		constexpr auto image_count { SwapChain::MAX_FRAMES_IN_FLIGHT };
+		constexpr auto image_count { PresentSwapChain::MAX_FRAMES_IN_FLIGHT };
 
 		m_gbuffer.m_color.createResources( image_count, m_extent );
 		m_gbuffer.m_position.createResources( image_count, m_extent );

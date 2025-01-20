@@ -3,7 +3,7 @@
 //
 #include "CompositeSwapchain.hpp"
 
-#include "engine/rendering/SwapChain.hpp"
+#include "engine/rendering/PresentSwapChain.hpp"
 #include "engine/rendering/pipelines/Attachment.hpp"
 
 namespace fgl::engine
@@ -38,6 +38,23 @@ namespace fgl::engine
 				{
 					const std::vector< vk::ImageMemoryBarrier > barriers {
 						m_buffer.m_target.getImage( index ).transitionColorTo(
+							vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eShaderReadOnlyOptimal ),
+					};
+
+					command_buffer.pipelineBarrier(
+						vk::PipelineStageFlagBits::eColorAttachmentOutput,
+						vk::PipelineStageFlagBits::eFragmentShader,
+						vk::DependencyFlags( 0 ),
+						{},
+						{},
+						barriers );
+
+					return;
+				}
+			case FINAL_PRESENT:
+				{
+					const std::vector< vk::ImageMemoryBarrier > barriers {
+						m_buffer.m_target.getImage( index ).transitionColorTo(
 							vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR ),
 					};
 
@@ -52,6 +69,8 @@ namespace fgl::engine
 					return;
 				}
 		}
+
+		FGL_UNREACHABLE();
 	}
 
 	vk::RenderingInfo CompositeSwapchain::getRenderingInfo( const FrameIndex index )
@@ -75,9 +94,10 @@ namespace fgl::engine
 
 	CompositeSwapchain::CompositeSwapchain( vk::Extent2D extent ) : m_extent( extent )
 	{
-		constexpr auto image_count { SwapChain::MAX_FRAMES_IN_FLIGHT };
+		constexpr auto image_count { PresentSwapChain::MAX_FRAMES_IN_FLIGHT };
 
 		m_buffer.m_target.createResources( image_count, m_extent, vk::ImageUsageFlagBits::eTransferSrc );
+		m_buffer.m_target.setName( "CompositeSwapchain::m_target" );
 
 		for ( const auto& image : m_buffer.m_target.m_attachment_resources.m_images )
 		{

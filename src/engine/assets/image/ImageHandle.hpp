@@ -32,6 +32,8 @@ namespace fgl::engine
 		// Because of the way the swapchain works we need to be able to storage a `VkImage` handle.
 		std::variant< vk::raii::Image, vk::Image > m_image;
 
+		std::string m_name { "" };
+
 		bool m_staged { false };
 
 		friend class ImageView;
@@ -52,16 +54,7 @@ namespace fgl::engine
 
 		void setName( std::string str );
 
-		VkImage operator*()
-		{
-			ZoneScoped;
-			if ( std::holds_alternative< vk::raii::Image >( m_image ) )
-			{
-				return *std::get< vk::raii::Image >( m_image );
-			}
-
-			return std::get< vk::Image >( m_image );
-		}
+		VkImage operator*();
 
 		VkImage getVkImage() { return **this; }
 

@@ -2,6 +2,9 @@
 // Created by kj16609 on 1/13/25.
 //
 #pragma once
+#include <vulkan/vulkan_raii.hpp>
+
+#include "FGL_DEFINES.hpp"
 #include "engine/rendering/RenderingFormats.hpp"
 #include "engine/rendering/pipelines/Attachment.hpp"
 
@@ -29,6 +32,7 @@ namespace fgl::engine
 		{
 			INITAL,
 			FINAL,
+			FINAL_PRESENT,
 		};
 
 		void transitionImages( vk::raii::CommandBuffer& command_buffer, StageID stage_id, FrameIndex index );

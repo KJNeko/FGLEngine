@@ -9,7 +9,7 @@
 #include <cassert>
 #include <memory>
 
-#include "SwapChain.hpp"
+#include "PresentSwapChain.hpp"
 
 //clang-format: off
 #include <tracy/TracyVulkan.hpp>
@@ -23,7 +23,7 @@ namespace fgl::engine
 	{
 		Window& m_window;
 		PhysicalDevice& m_phy_device;
-		std::unique_ptr< SwapChain > m_swapchain;
+		std::unique_ptr< PresentSwapChain > m_swapchain;
 
 		std::vector< vk::raii::CommandBuffer > m_command_buffer {};
 		std::vector< vk::raii::CommandBuffer > m_gui_command_buffer {};
@@ -63,8 +63,6 @@ namespace fgl::engine
 
 		TracyVkCtx getCurrentTracyCTX() const { return m_tracy_ctx; }
 
-		vk::raii::RenderPass& getSwapChainRenderPass() const { return m_swapchain->getRenderPass(); }
-
 		float getAspectRatio() const { return m_swapchain->extentAspectRatio(); }
 
 		vk::raii::CommandBuffer& beginFrame();
@@ -76,7 +74,7 @@ namespace fgl::engine
 		void beginSwapchainRendererPass( vk::raii::CommandBuffer& buffer );
 		void endSwapchainRendererPass( vk::raii::CommandBuffer& buffer );
 
-		SwapChain& getSwapChain() { return *m_swapchain; }
+		PresentSwapChain& getSwapChain() { return *m_swapchain; }
 
 		// void clearInputImage( vk::raii::CommandBuffer& command_buffer );
 

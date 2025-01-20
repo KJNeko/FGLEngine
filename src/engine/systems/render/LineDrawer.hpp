@@ -5,7 +5,7 @@
 #pragma once
 #include "engine/descriptors/Descriptor.hpp"
 #include "engine/memory/buffers/vector/HostVector.hpp"
-#include "engine/rendering/SwapChain.hpp"
+#include "engine/rendering/PresentSwapChain.hpp"
 
 namespace fgl::engine
 {

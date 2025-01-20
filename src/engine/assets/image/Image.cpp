@@ -32,7 +32,6 @@ namespace fgl::engine
 				break;
 			case vk::ImageLayout::eColorAttachmentOptimal:
 				return vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
-			case vk::ImageLayout::eDepthStencilAttachmentOptimal:
 				break;
 			case vk::ImageLayout::eDepthStencilReadOnlyOptimal:
 				break;
@@ -48,13 +47,15 @@ namespace fgl::engine
 				break;
 			case vk::ImageLayout::eDepthAttachmentStencilReadOnlyOptimal:
 				break;
+			case vk::ImageLayout::eStencilAttachmentOptimal:
+				break;
+			case vk::ImageLayout::eDepthStencilAttachmentOptimal:
+				[[fallthrough]];
 			case vk::ImageLayout::eDepthReadOnlyOptimal:
 				[[fallthrough]];
 			case vk::ImageLayout::eDepthAttachmentOptimal:
 				return vk::AccessFlagBits::eDepthStencilAttachmentRead
 				     | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-			case vk::ImageLayout::eStencilAttachmentOptimal:
-				break;
 			case vk::ImageLayout::eStencilReadOnlyOptimal:
 				break;
 			case vk::ImageLayout::eReadOnlyOptimal:
@@ -186,6 +187,7 @@ namespace fgl::engine
 	vk::ImageMemoryBarrier Image::transitionTo(
 		const vk::ImageLayout old_layout, const vk::ImageLayout new_layout, const vk::ImageAspectFlags aspect )
 	{
+		assert( m_handle->m_name.empty() == false && "Image name not assigned" );
 		const vk::ImageSubresourceRange subresource { aspect, 0, 1, 0, 1 };
 
 		const vk::ImageMemoryBarrier barrier { transitionTo( old_layout, new_layout, subresource ) };

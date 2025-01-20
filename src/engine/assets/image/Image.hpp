@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <memory>
+#include <vulkan/vulkan.hpp>
 
-#include "engine/assets/image/ImageHandle.hpp"
+#include <memory>
 
 namespace fgl::engine
 {
@@ -16,6 +16,7 @@ namespace fgl::engine
 	}
 
 	class ImageView;
+	class ImageHandle;
 
 	class Image
 	{
@@ -58,9 +59,10 @@ namespace fgl::engine
 		vk::ImageMemoryBarrier transitionTo(
 			vk::ImageLayout old_layout, vk::ImageLayout new_layout, const vk::ImageSubresourceRange& range ) const;
 
-		vk::ImageMemoryBarrier transitionTo( vk::ImageLayout old_layout, vk::ImageLayout new_layout, vk::ImageAspectFlags aspect );
+		vk::ImageMemoryBarrier
+			transitionTo( vk::ImageLayout old_layout, vk::ImageLayout new_layout, vk::ImageAspectFlags aspect );
 
-		inline vk::ImageMemoryBarrier transitionColorTo(vk::ImageLayout old_layout, vk::ImageLayout new_layout)
+		inline vk::ImageMemoryBarrier transitionColorTo( vk::ImageLayout old_layout, vk::ImageLayout new_layout )
 		{
 			return transitionTo( old_layout, new_layout, vk::ImageAspectFlagBits::eColor );
 		}

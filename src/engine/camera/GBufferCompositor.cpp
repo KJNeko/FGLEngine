@@ -94,6 +94,8 @@ namespace fgl::engine
 		command_buffer.draw( 3, 1, 0, 0 );
 
 		endPass( command_buffer );
+
+		composite_swapchain.transitionImages( command_buffer, CompositeSwapchain::FINAL, frame_index );
 	}
 
 } // namespace fgl::engine

@@ -11,11 +11,13 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "SwapChain.hpp"
+#include "PresentSwapChain.hpp"
 #include "engine/Window.hpp"
 
 //clang-format: off
 #include <tracy/TracyVulkan.hpp>
+
+#include "RenderingFormats.hpp"
 
 //clang-format: on
 
@@ -69,7 +71,7 @@ namespace fgl::engine
 	Renderer::Renderer( Window& window, PhysicalDevice& phy_device ) :
 	  m_window( window ),
 	  m_phy_device( phy_device ),
-	  m_swapchain( std::make_unique< SwapChain >( m_window.getExtent(), m_phy_device ) )
+	  m_swapchain( std::make_unique< PresentSwapChain >( m_window.getExtent(), m_phy_device ) )
 	{
 		recreateSwapchain();
 		createCommandBuffers();
@@ -120,7 +122,7 @@ namespace fgl::engine
 		alloc_info.pNext = VK_NULL_HANDLE;
 		alloc_info.commandPool = Device::getInstance().getCommandPool();
 		alloc_info.level = vk::CommandBufferLevel::ePrimary;
-		alloc_info.commandBufferCount = SwapChain::MAX_FRAMES_IN_FLIGHT;
+		alloc_info.commandBufferCount = PresentSwapChain::MAX_FRAMES_IN_FLIGHT;
 
 		m_command_buffer = Device::getInstance().device().allocateCommandBuffers( alloc_info );
 
@@ -156,11 +158,11 @@ namespace fgl::engine
 		Device::getInstance().device().waitIdle();
 
 		if ( m_swapchain == nullptr )
-			m_swapchain = std::make_unique< SwapChain >( extent, m_phy_device );
+			m_swapchain = std::make_unique< PresentSwapChain >( extent, m_phy_device );
 		else
 		{
-			std::shared_ptr< SwapChain > old_swap_chain { std::move( m_swapchain ) };
-			m_swapchain = std::make_unique< SwapChain >( extent, old_swap_chain );
+			std::shared_ptr< PresentSwapChain > old_swap_chain { std::move( m_swapchain ) };
+			m_swapchain = std::make_unique< PresentSwapChain >( extent, old_swap_chain );
 
 			if ( !old_swap_chain->compareSwapFormats( *m_swapchain.get() ) )
 				throw std::runtime_error( "Swap chain image(or depth) format has changed!" );
@@ -215,7 +217,8 @@ namespace fgl::engine
 			throw std::runtime_error( "Failed to submit commmand buffer" );
 
 		is_frame_started = false;
-		current_frame_idx = static_cast< std::uint16_t >( ( current_frame_idx + 1 ) % SwapChain::MAX_FRAMES_IN_FLIGHT );
+		current_frame_idx =
+			static_cast< std::uint16_t >( ( current_frame_idx + 1 ) % PresentSwapChain::MAX_FRAMES_IN_FLIGHT );
 	}
 
 	void Renderer::setViewport( const vk::raii::CommandBuffer& buffer )
@@ -246,15 +249,11 @@ namespace fgl::engine
 	{
 		assert( is_frame_started && "Cannot call beginSwapChainRenderPass if frame is not in progress" );
 
-		vk::RenderPassBeginInfo render_pass_info {};
-		render_pass_info.pNext = VK_NULL_HANDLE;
-		render_pass_info.renderPass = m_swapchain->getRenderPass();
-		render_pass_info.framebuffer = m_swapchain->getFrameBuffer( current_present_index );
-		render_pass_info.renderArea = { .offset = { 0, 0 }, .extent = m_swapchain->getSwapChainExtent() };
+		vk::RenderingInfo info { m_swapchain->getRenderingInfo( current_present_index ) };
 
-		render_pass_info.setClearValues( m_swapchain->getClearValues() );
+		m_swapchain->transitionImages( buffer, PresentSwapChain::INITAL, current_present_index );
 
-		buffer.beginRenderPass( render_pass_info, vk::SubpassContents::eInline );
+		buffer.beginRendering( info );
 
 		setViewport( buffer );
 		setScissor( buffer );
@@ -264,6 +263,8 @@ namespace fgl::engine
 	{
 		assert( is_frame_started && "Cannot call endSwapChainRenderPass if frame is not in progress" );
 
-		buffer.endRenderPass();
+		buffer.endRendering();
+
+		m_swapchain->transitionImages( buffer, PresentSwapChain::FINAL, current_present_index );
 	}
 } // namespace fgl::engine

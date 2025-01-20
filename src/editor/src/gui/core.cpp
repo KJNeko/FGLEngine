@@ -24,6 +24,7 @@
 #include "engine/rendering/Renderer.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
 #include "gui_window_names.hpp"
+#include "rendering/RenderingFormats.hpp"
 #include "safe_include.hpp"
 
 namespace fgl::engine::gui
@@ -44,6 +45,13 @@ namespace fgl::engine::gui
 
 		Device& device { Device::getInstance() };
 
+		vk::PipelineRenderingCreateInfo pipeline_info {};
+
+		const std::vector< vk::Format > color_formats { pickPresentFormat() };
+
+		pipeline_info.setColorAttachmentFormats( color_formats );
+		pipeline_info.setDepthAttachmentFormat( pickDepthFormat() );
+
 		ImGui_ImplGlfw_InitForVulkan( window.window(), true );
 		ImGui_ImplVulkan_InitInfo init_info {
 			.Instance = device.instance(),
@@ -52,7 +60,7 @@ namespace fgl::engine::gui
 			.QueueFamily = device.phyDevice().queueInfo().getIndex( vk::QueueFlagBits::eGraphics ),
 			.Queue = *device.graphicsQueue(),
 			.DescriptorPool = *DescriptorPool::getInstance().getPool(),
-			.RenderPass = *renderer.getSwapChainRenderPass(),
+			.RenderPass = VK_NULL_HANDLE,
 			.MinImageCount = 2,
 			.ImageCount = 2,
 			.MSAASamples = VK_SAMPLE_COUNT_1_BIT,
@@ -60,8 +68,8 @@ namespace fgl::engine::gui
 			.PipelineCache = VK_NULL_HANDLE,
 			.Subpass = 0,
 
-			.UseDynamicRendering = VK_FALSE,
-			.PipelineRenderingCreateInfo = {},
+			.UseDynamicRendering = VK_TRUE,
+			.PipelineRenderingCreateInfo = pipeline_info,
 
 			.Allocator = VK_NULL_HANDLE,
 			.CheckVkResultFn = VK_NULL_HANDLE,

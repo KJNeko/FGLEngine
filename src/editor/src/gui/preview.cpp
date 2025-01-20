@@ -12,7 +12,7 @@
 #include "engine/filesystem/scanner/FileScanner.hpp"
 #include "engine/filesystem/types.hpp"
 #include "engine/gameobjects/components/ModelComponent.hpp"
-#include "engine/rendering/SwapChain.hpp"
+#include "engine/rendering/PresentSwapChain.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
 #include "safe_include.hpp"
 

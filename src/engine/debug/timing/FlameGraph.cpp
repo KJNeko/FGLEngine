@@ -21,18 +21,18 @@ namespace fgl::engine::debug
 
 	struct Node
 	{
-		std::string_view m_name { "" };
+		std::string_view m_name;
 		ProfilingClock::time_point m_start {};
 		ProfilingClock::time_point m_end {};
 		std::vector< Node > m_children {};
 		Node* m_parent { nullptr };
 		void drawImGui() const;
 
-		using duration = ProfilingClock::duration;
+		using Duration = ProfilingClock::duration;
 
-		duration getDuration() const { return m_end - m_start; }
+		Duration getDuration() const { return m_end - m_start; }
 
-		duration getTotalTime() const
+		Duration getTotalTime() const
 		{
 			if ( m_parent != nullptr )
 				return m_parent->getTotalTime();

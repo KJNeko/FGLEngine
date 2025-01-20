@@ -1,4 +1,4 @@
-#include "SwapChain.hpp"
+#include "PresentSwapChain.hpp"
 
 #include <array>
 #include <cstdlib>
@@ -15,7 +15,7 @@
 
 namespace fgl::engine
 {
-	SwapChain::SwapChain( const vk::Extent2D extent, PhysicalDevice& phy_device ) :
+	PresentSwapChain::PresentSwapChain( const vk::Extent2D extent, PhysicalDevice& phy_device ) :
 	  m_phy_device( phy_device ),
 	  m_swapchain_details( Device::getInstance().getSwapChainSupport() ),
 	  m_surface_format( chooseSwapSurfaceFormat( m_swapchain_details.formats ) ),
@@ -23,21 +23,26 @@ namespace fgl::engine
 	  m_swapchain_extent( extent ),
 	  m_swap_chain_format( m_surface_format.format ),
 	  m_swap_chain_depth_format( pickDepthFormat() ),
-	  old_swap_chain( nullptr ),
+	  m_old_swap_chain( nullptr ),
 	  m_swapchain( createSwapChain() ),
 	  m_swap_chain_images( createSwapchainImages() ),
-	  render_attachments( getSwapChainImageFormat(), pickDepthFormat() ),
-	  m_render_pass( createRenderPass() ),
-	  m_swap_chain_buffers( createFramebuffers() ),
+	  m_render_attachments( m_swap_chain_format, pickDepthFormat() ),
 	  // m_input_descriptors( createInputDescriptors() ),
 	  m_clear_values(
 		  // gatherClearValues( render_attachments.color, render_attachments.depth, render_attachments.input_color ) )
-		  gatherClearValues( render_attachments.color, render_attachments.depth ) )
+		  gatherClearValues( m_render_attachments.m_color, m_render_attachments.m_depth ) )
 	{
 		init();
+
+		m_render_attachments.m_color.linkImages( m_swap_chain_images );
+		m_render_attachments.m_color.setName( "PresetnSwapChain::color" );
+
+		m_render_attachments.m_depth.createResources( imageCount(), getSwapChainExtent() );
+		m_render_attachments.m_depth.setName( "PresentSwapChain::Depth" );
+		m_render_attachments.m_depth.setClear( vk::ClearDepthStencilValue( 1.0f, 0 ) );
 	}
 
-	SwapChain::SwapChain( const vk::Extent2D extent, std::shared_ptr< SwapChain > previous ) :
+	PresentSwapChain::PresentSwapChain( const vk::Extent2D extent, std::shared_ptr< PresentSwapChain > previous ) :
 	  m_phy_device( previous->m_phy_device ),
 	  m_swapchain_details( Device::getInstance().getSwapChainSupport() ),
 	  m_surface_format( chooseSwapSurfaceFormat( m_swapchain_details.formats ) ),
@@ -45,22 +50,28 @@ namespace fgl::engine
 	  m_swapchain_extent( extent ),
 	  m_swap_chain_format( m_surface_format.format ),
 	  m_swap_chain_depth_format( pickDepthFormat() ),
-	  old_swap_chain( previous ),
+	  m_old_swap_chain( previous ),
 	  m_swapchain( createSwapChain() ),
 	  m_swap_chain_images( createSwapchainImages() ),
-	  render_attachments( getSwapChainImageFormat(), m_swap_chain_depth_format ),
-	  m_render_pass( createRenderPass() ),
-	  m_swap_chain_buffers( createFramebuffers() ),
+	  m_render_attachments( m_swap_chain_format, m_swap_chain_depth_format ),
 	  // m_input_descriptors( createInputDescriptors() ),
 	  m_clear_values(
 		  // gatherClearValues( render_attachments.color, render_attachments.depth, render_attachments.input_color ) )
-		  gatherClearValues( render_attachments.color, render_attachments.depth ) )
+		  gatherClearValues( m_render_attachments.m_color, m_render_attachments.m_depth ) )
 	{
 		init();
-		old_swap_chain.reset();
+
+		m_render_attachments.m_color.linkImages( m_swap_chain_images );
+		m_render_attachments.m_color.setName( "PresetnSwapChain::color" );
+
+		m_render_attachments.m_depth.createResources( imageCount(), getSwapChainExtent() );
+		m_render_attachments.m_depth.setName( "PresentSwapChain::Depth" );
+		m_render_attachments.m_depth.setClear( vk::ClearDepthStencilValue( 1.0f, 0 ) );
+
+		m_old_swap_chain.reset();
 	}
 
-	std::vector< std::unique_ptr< descriptors::DescriptorSet > > SwapChain::createInputDescriptors()
+	std::vector< std::unique_ptr< descriptors::DescriptorSet > > PresentSwapChain::createInputDescriptors()
 	{
 		std::vector< std::unique_ptr< descriptors::DescriptorSet > > data {};
 		data.resize( imageCount() );
@@ -81,18 +92,18 @@ namespace fgl::engine
 		return data;
 	}
 
-	void SwapChain::init()
+	void PresentSwapChain::init()
 	{
 		createSyncObjects();
 
 		// render_attachments.input_color.setName( "Input Color" );
 	}
 
-	std::pair< vk::Result, PresentIndex > SwapChain::acquireNextImage()
+	std::pair< vk::Result, PresentIndex > PresentSwapChain::acquireNextImage()
 	{
 		ZoneScoped;
 
-		std::vector< vk::Fence > fences { in_flight_fence[ m_current_frame_index ] };
+		std::vector< vk::Fence > fences { m_in_flight_fence[ m_current_frame_index ] };
 
 		if ( Device::getInstance().device().waitForFences( fences, VK_TRUE, std::numeric_limits< uint64_t >::max() )
 		     != vk::Result::eSuccess )
@@ -100,20 +111,20 @@ namespace fgl::engine
 
 		auto result { m_swapchain.acquireNextImage(
 			std::numeric_limits< uint64_t >::max(),
-			image_available_sem[ m_current_frame_index ] // must be a not signaled semaphore
+			m_image_available_sem[ m_current_frame_index ] // must be a not signaled semaphore
 			) };
 
 		return result;
 	}
 
-	vk::Result SwapChain::
+	vk::Result PresentSwapChain::
 		submitCommandBuffers( const vk::raii::CommandBuffer& buffers, const PresentIndex present_index )
 	{
 		ZoneScoped;
 
-		images_in_flight[ present_index ] = in_flight_fence[ m_current_frame_index ];
+		m_images_in_flight[ present_index ] = m_in_flight_fence[ m_current_frame_index ];
 
-		std::vector< vk::Fence > fences { images_in_flight[ present_index ] };
+		std::vector< vk::Fence > fences { m_images_in_flight[ present_index ] };
 
 		if ( Device::getInstance().device().waitForFences( fences, VK_TRUE, std::numeric_limits< uint64_t >::max() )
 		     != vk::Result::eSuccess )
@@ -121,7 +132,7 @@ namespace fgl::engine
 
 		vk::SubmitInfo m_submit_info {};
 
-		std::vector< vk::Semaphore > wait_sems { image_available_sem[ m_current_frame_index ],
+		std::vector< vk::Semaphore > wait_sems { m_image_available_sem[ m_current_frame_index ],
 			                                     memory::TransferManager::getInstance().getFinishedSem() };
 
 		std::vector< vk::PipelineStageFlags > wait_stages { vk::PipelineStageFlagBits::eColorAttachmentOutput,
@@ -133,14 +144,14 @@ namespace fgl::engine
 		m_submit_info.commandBufferCount = 1;
 		m_submit_info.pCommandBuffers = &( *buffers );
 
-		std::vector< vk::Semaphore > signaled_semaphores { render_finished_sem[ m_current_frame_index ] };
+		std::vector< vk::Semaphore > signaled_semaphores { m_render_finished_sem[ m_current_frame_index ] };
 		m_submit_info.setSignalSemaphores( signaled_semaphores );
 
 		Device::getInstance().device().resetFences( fences );
 
 		std::vector< vk::SubmitInfo > submit_infos { m_submit_info };
 
-		Device::getInstance().graphicsQueue().submit( m_submit_info, in_flight_fence[ m_current_frame_index ] );
+		Device::getInstance().graphicsQueue().submit( m_submit_info, m_in_flight_fence[ m_current_frame_index ] );
 
 		vk::PresentInfoKHR presentInfo = {};
 
@@ -166,7 +177,59 @@ namespace fgl::engine
 		return vk::Result::eSuccess;
 	}
 
-	vk::raii::SwapchainKHR SwapChain::createSwapChain()
+	void PresentSwapChain::
+		transitionImages( const vk::raii::CommandBuffer& command_buffer, StageID stage_id, FrameIndex frame_index )
+	{
+		switch ( stage_id )
+		{
+			default:
+				throw std::runtime_error( "Invalid StageID" );
+			case INITAL:
+				{
+					const std::vector< vk::ImageMemoryBarrier > barriers {
+						m_render_attachments.m_color.getImage( frame_index )
+							.transitionColorTo( vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal ),
+						m_render_attachments.m_depth.getImage( frame_index )
+							.transitionTo(
+								vk::ImageLayout::eUndefined,
+								vk::ImageLayout::eDepthStencilAttachmentOptimal,
+								vk::ImageAspectFlagBits::eDepth )
+					};
+
+					command_buffer.pipelineBarrier(
+						vk::PipelineStageFlagBits::eTopOfPipe,
+						vk::PipelineStageFlagBits::eColorAttachmentOutput
+							| vk::PipelineStageFlagBits::eEarlyFragmentTests
+							| vk::PipelineStageFlagBits::eLateFragmentTests,
+						vk::DependencyFlags( 0 ),
+						{},
+						{},
+						barriers );
+
+					return;
+				}
+			case FINAL:
+				{
+					const std::vector< vk::ImageMemoryBarrier > barriers {
+						m_render_attachments.m_color.getImage( frame_index )
+							.transitionColorTo(
+								vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR ),
+					};
+
+					command_buffer.pipelineBarrier(
+						vk::PipelineStageFlagBits::eColorAttachmentOutput,
+						vk::PipelineStageFlagBits::eBottomOfPipe,
+						vk::DependencyFlags( 0 ),
+						{},
+						{},
+						barriers );
+
+					return;
+				}
+		}
+	}
+
+	vk::raii::SwapchainKHR PresentSwapChain::createSwapChain()
 	{
 		ZoneScoped;
 
@@ -213,125 +276,41 @@ namespace fgl::engine
 		createInfo.presentMode = m_present_mode;
 		createInfo.clipped = VK_TRUE;
 
-		createInfo.oldSwapchain = old_swap_chain == nullptr ? VK_NULL_HANDLE : *old_swap_chain->m_swapchain;
+		createInfo.oldSwapchain = m_old_swap_chain == nullptr ? VK_NULL_HANDLE : *m_old_swap_chain->m_swapchain;
 
 		return Device::getInstance()->createSwapchainKHR( createInfo );
 	}
 
-	std::vector< Image > SwapChain::createSwapchainImages()
+	std::vector< std::shared_ptr< Image > > PresentSwapChain::createSwapchainImages()
 	{
 		std::vector< vk::Image > swap_chain_images { m_swapchain.getImages() };
-		std::vector< Image > images {};
+		std::vector< std::shared_ptr< Image > > images {};
+		images.reserve( swap_chain_images.size() );
 
 		for ( std::uint64_t i = 0; i < swap_chain_images.size(); i++ )
 		{
 			auto& itter = images.emplace_back(
-				m_swapchain_extent,
-				m_surface_format.format,
-				swap_chain_images[ i ],
-				vk::ImageUsageFlagBits::eColorAttachment );
-			itter.setName( "Swapchain image: " + std::to_string( i ) );
+				std::make_shared< Image >(
+					m_swapchain_extent,
+					m_surface_format.format,
+					swap_chain_images[ i ],
+					vk::ImageUsageFlagBits::eColorAttachment ) );
+
+			itter->setName( "Swapchain image: " + std::to_string( i ) );
 		}
 
 		return images;
 	}
 
-	vk::raii::RenderPass SwapChain::createRenderPass()
+	void PresentSwapChain::createSyncObjects()
 	{
 		ZoneScoped;
-		//Present attachment
+		m_image_available_sem.reserve( imageCount() );
+		m_render_finished_sem.reserve( imageCount() );
+		m_in_flight_fence.reserve( imageCount() );
+		m_images_in_flight.resize( imageCount(), VK_NULL_HANDLE );
 
-		rendering::RenderPassBuilder builder;
-
-		constexpr std::size_t ColorIndex { 0 };
-		constexpr std::size_t DepthIndex { 1 };
-		// constexpr std::size_t InputColorIndex { 2 };
-
-		// builder.setAttachmentCount( 3 );
-		builder.setAttachmentCount( 2 );
-
-		auto color { builder.attachment( ColorIndex ) };
-
-		color.setFormat( SwapChain::getSwapChainImageFormat() );
-		color.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR );
-		color.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore );
-
-		auto depth { builder.attachment( DepthIndex ) };
-
-		depth.setFormat( pickDepthFormat() );
-		depth.setLayouts( vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilAttachmentOptimal );
-		depth.setOps( vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eDontCare );
-
-		// auto color_input { builder.attachment( InputColorIndex ) };
-		// color_input.setFormat( vk::Format::eR8G8B8A8Unorm );
-		// color_input.setLayouts( vk::ImageLayout::eShaderReadOnlyOptimal, vk::ImageLayout::eShaderReadOnlyOptimal );
-		// color_input.setOps( vk::AttachmentLoadOp::eLoad, vk::AttachmentStoreOp::eDontCare );
-
-		auto& gui_subpass { builder.createSubpass( 0 ) };
-
-		// gui_subpass.addInputLayout( InputColorIndex, vk::ImageLayout::eShaderReadOnlyOptimal );
-		gui_subpass.setDepthLayout( DepthIndex, vk::ImageLayout::eDepthStencilAttachmentOptimal );
-		gui_subpass.addRenderLayout( ColorIndex, vk::ImageLayout::eColorAttachmentOptimal );
-
-		gui_subpass.addDependencyFromExternal(
-			vk::AccessFlagBits::eDepthStencilAttachmentWrite,
-			vk::PipelineStageFlagBits::eEarlyFragmentTests | vk::PipelineStageFlagBits::eLateFragmentTests );
-
-		gui_subpass.addDependencyFromExternal(
-			vk::AccessFlagBits::eColorAttachmentWrite, vk::PipelineStageFlagBits::eColorAttachmentOutput );
-
-		return builder.create();
-	}
-
-	std::vector< vk::raii::Framebuffer > SwapChain::createFramebuffers()
-	{
-		ZoneScoped;
-
-		render_attachments.color.linkImages( m_swap_chain_images );
-
-		render_attachments.depth.createResources( imageCount(), getSwapChainExtent() );
-		render_attachments.depth.setClear( vk::ClearDepthStencilValue( 1.0f, 0 ) );
-
-		// render_attachments.input_color
-		// .createResources( imageCount(), getSwapChainExtent(), vk::ImageUsageFlagBits::eTransferDst );
-
-		std::vector< vk::raii::Framebuffer > framebuffers {};
-
-		framebuffers.reserve( imageCount() );
-
-		for ( uint8_t i = 0; i < imageCount(); i++ )
-		{
-			std::vector< vk::ImageView > attachments { getViewsForFrame(
-				// i, render_attachments.color, render_attachments.depth, render_attachments.input_color ) };
-				i,
-				render_attachments.color,
-				render_attachments.depth ) };
-
-			//Fill attachments for this frame
-			const vk::Extent2D swapChainExtent { getSwapChainExtent() };
-			vk::FramebufferCreateInfo framebufferInfo {};
-			framebufferInfo.renderPass = m_render_pass;
-			framebufferInfo.attachmentCount = static_cast< uint32_t >( attachments.size() );
-			framebufferInfo.pAttachments = attachments.data();
-			framebufferInfo.width = swapChainExtent.width;
-			framebufferInfo.height = swapChainExtent.height;
-			framebufferInfo.layers = 1;
-
-			framebuffers.push_back( Device::getInstance()->createFramebuffer( framebufferInfo ) );
-		}
-
-		return framebuffers;
-	}
-
-	void SwapChain::createSyncObjects()
-	{
-		ZoneScoped;
-		image_available_sem.reserve( imageCount() );
-		render_finished_sem.reserve( imageCount() );
-		in_flight_fence.reserve( imageCount() );
-		images_in_flight.resize( imageCount(), VK_NULL_HANDLE );
-
-		vk::SemaphoreCreateInfo semaphoreInfo {};
+		constexpr vk::SemaphoreCreateInfo semaphoreInfo {};
 
 		vk::FenceCreateInfo fenceInfo {};
 		fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
@@ -340,13 +319,13 @@ namespace fgl::engine
 		{
 			auto& device { Device::getInstance() };
 
-			image_available_sem.push_back( device->createSemaphore( semaphoreInfo ) );
-			render_finished_sem.push_back( device->createSemaphore( semaphoreInfo ) );
-			in_flight_fence.push_back( device->createFence( fenceInfo ) );
+			m_image_available_sem.push_back( device->createSemaphore( semaphoreInfo ) );
+			m_render_finished_sem.push_back( device->createSemaphore( semaphoreInfo ) );
+			m_in_flight_fence.push_back( device->createFence( fenceInfo ) );
 		}
 	}
 
-	vk::SurfaceFormatKHR SwapChain::
+	vk::SurfaceFormatKHR PresentSwapChain::
 		chooseSwapSurfaceFormat( const std::vector< vk::SurfaceFormatKHR >& available_formats )
 	{
 		ZoneScoped;
@@ -361,7 +340,7 @@ namespace fgl::engine
 		return available_formats[ 0 ];
 	}
 
-	vk::PresentModeKHR SwapChain::chooseSwapPresentMode( const std::vector< vk::PresentModeKHR >& present_modes )
+	vk::PresentModeKHR PresentSwapChain::chooseSwapPresentMode( const std::vector< vk::PresentModeKHR >& present_modes )
 	{
 		ZoneScoped;
 		for ( const auto& mode : present_modes )
@@ -402,7 +381,7 @@ namespace fgl::engine
 		return vk::PresentModeKHR::eFifo;
 	}
 
-	vk::Extent2D SwapChain::chooseSwapExtent( const vk::SurfaceCapabilitiesKHR& capabilities ) const
+	vk::Extent2D PresentSwapChain::chooseSwapExtent( const vk::SurfaceCapabilitiesKHR& capabilities ) const
 	{
 		ZoneScoped;
 		if ( capabilities.currentExtent.width != std::numeric_limits< uint32_t >::max() )
@@ -424,7 +403,7 @@ namespace fgl::engine
 		}
 	}
 
-	SwapChain::~SwapChain()
+	PresentSwapChain::~PresentSwapChain()
 	{}
 
 	/*
@@ -440,18 +419,35 @@ namespace fgl::engine
 	// return *render_attachments.input_color.m_attachment_resources.m_images[ present_index ];
 	// }
 
-	vk::raii::Framebuffer& SwapChain::getFrameBuffer( const PresentIndex present_index )
+	vk::RenderingInfo PresentSwapChain::getRenderingInfo( const FrameIndex frame_index )
 	{
-		return m_swap_chain_buffers[ static_cast< std::size_t >( present_index ) ];
+		static thread_local std::vector< vk::RenderingAttachmentInfo > color_info {};
+		static thread_local vk::RenderingAttachmentInfo depth_info {};
+
+		color_info = {
+			m_render_attachments.m_color.renderInfo( frame_index, vk::ImageLayout::eColorAttachmentOptimal )
+		};
+		depth_info = m_render_attachments.m_depth.renderInfo( frame_index, vk::ImageLayout::eDepthAttachmentOptimal );
+
+		vk::RenderingInfo info {};
+
+		info.setColorAttachments( color_info );
+		info.setPDepthAttachment( &depth_info );
+
+		info.layerCount = 1;
+
+		info.setRenderArea( { { 0, 0 }, m_swapchain_extent } );
+
+		return info;
 	}
 
-	bool SwapChain::compareSwapFormats( const SwapChain& other ) const
+	bool PresentSwapChain::compareSwapFormats( const PresentSwapChain& other ) const
 	{
 		return m_swap_chain_depth_format == other.m_swap_chain_depth_format
 		    && m_swap_chain_format == other.m_swap_chain_format;
 	}
 
-	float SwapChain::extentAspectRatio() const
+	float PresentSwapChain::extentAspectRatio() const
 	{
 		return static_cast< float >( m_swapchain_extent.width ) / static_cast< float >( m_swapchain_extent.height );
 	}

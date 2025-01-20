@@ -29,7 +29,8 @@ namespace fgl::engine
 		}
 		else
 		{
-			log::critical( "Failed to load shader module {}. Path not found", path.string() );
+			log::critical(
+				"Failed to load shader module {}. Path not found", std::filesystem::absolute( path ).string() );
 			throw std::runtime_error( "Failed to load shader module. Path not found" );
 		}
 	}
