@@ -21,7 +21,6 @@
 #include "engine/flags.hpp"
 #include "engine/math/Average.hpp"
 #include "engine/math/literals/size.hpp"
-#include "engine/rendering/pipelines/v2/Pipeline.hpp"
 
 namespace fgl::engine
 {
@@ -48,7 +47,6 @@ namespace fgl::engine
 
 		memory::TransferManager::createInstance( device, 128_MiB );
 
-
 		m_matrix_info_pool.setDebugName( "Matrix info pool" );
 		m_draw_parameter_pool.setDebugName( "Draw parameter pool" );
 
@@ -59,7 +57,7 @@ namespace fgl::engine
 
 		initMaterialDataVec( m_material_data_pool );
 
-		constexpr auto offset { 8.0f };
+		constexpr float offset { 8.0f };
 		constexpr std::size_t grid_size { 6 };
 		constexpr float factor_offset { 1.0f / static_cast< float >( grid_size ) };
 
@@ -87,13 +85,16 @@ namespace fgl::engine
 						for ( auto& prim : prims )
 						{
 							auto& pbr { prim.m_material->properties.pbr };
-							pbr.roughness_factor = x * factor_offset;
-							pbr.metallic_factor = y * factor_offset;
+							pbr.roughness_factor = static_cast< float >( x ) * factor_offset;
+							pbr.metallic_factor = static_cast< float >( y ) * factor_offset;
 							prim.m_material->update();
 						}
 					}
 
-					obj.getTransform().translation = WorldCoordinate( 10.0 + x * offset, 10.0 + y * offset, 0.0f );
+					obj.getTransform().translation = WorldCoordinate(
+						-10.0f + ( static_cast< float >( x ) * offset ),
+						-10.0f + ( static_cast< float >( y ) * offset ),
+						0.0f );
 
 					m_game_objects_root.addGameObject( std::move( obj ) );
 				}

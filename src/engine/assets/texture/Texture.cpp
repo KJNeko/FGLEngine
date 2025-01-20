@@ -182,10 +182,10 @@ namespace fgl::engine
 
 		assert( view );
 
-		VkImageView vk_view { **view };
+		const VkImageView vk_view { **view };
 		assert( vk_view );
 
-		VkSampler vk_sampler { *( view->getSampler() ) };
+		const VkSampler vk_sampler { *( view->getSampler() ) };
 
 		m_imgui_set = ImGui_ImplVulkan_AddTexture( vk_sampler, vk_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 	}

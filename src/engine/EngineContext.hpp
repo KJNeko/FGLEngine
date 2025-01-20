@@ -70,7 +70,7 @@ namespace fgl::engine
 		std::vector< FrameHookFunc > post_frame_hooks {};
 
 		//! Called before the context is destroyed
-		std::vector< std::function< void() > > destruction_hooks;
+		std::vector< std::function< void() > > destruction_hooks {};
 
 		// Memory pool for shader uniforms.
 		memory::Buffer m_ubo_buffer_pool;

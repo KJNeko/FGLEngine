@@ -45,10 +45,10 @@ namespace fgl::engine::descriptors
 		  DescriptorSetLayout( set_idx, std::vector< std::reference_wrapper< const Descriptor > > { descriptors... } )
 		{}
 
-		std::size_t count() const { return bindings.size(); }
+		[[nodiscard]] std::size_t count() const { return bindings.size(); }
 
 		std::unique_ptr< DescriptorSet > create();
-		vk::raii::DescriptorSetLayout createLayout() const;
+		[[nodiscard]] vk::raii::DescriptorSetLayout createLayout() const;
 		vk::raii::DescriptorSetLayout& layout();
 	};
 
