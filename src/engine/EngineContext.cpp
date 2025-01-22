@@ -114,8 +114,8 @@ namespace fgl::engine
 		ZoneScoped;
 		// Get delta time
 		const auto now { fgl::Clock::now() };
-		const std::chrono::duration< double, std::chrono::seconds::period > time_diff { now - last_tick };
-		last_tick = now;
+		const std::chrono::duration< double, std::chrono::seconds::period > time_diff { now - m_last_tick };
+		m_last_tick = now;
 
 		// Convert from ms to s
 		m_delta_time = time_diff.count();
@@ -174,34 +174,34 @@ namespace fgl::engine
 
 			{
 				ZoneScopedN( "Pre frame hooks" );
-				for ( const auto& hook : pre_frame_hooks ) hook( frame_info );
+				for ( const auto& hook : m_pre_frame_hooks ) hook( frame_info );
 			}
 
 			TracyVkCollect( frame_info.tracy_ctx, *command_buffer );
 
 			//TODO: Setup semaphores to make this pass not always required.
-			memory::TransferManager::getInstance().recordOwnershipTransferDst( command_buffer );
+			m_transfer_manager.recordOwnershipTransferDst( command_buffer );
 
-			for ( const auto& hook : early_render_hooks ) hook( frame_info );
+			for ( const auto& hook : m_early_render_hooks ) hook( frame_info );
 			//TODO: Add some way of 'activating' cameras. We don't need to render cameras that aren't active.
 			renderCameras( frame_info );
-			for ( const auto& hook : render_hooks ) hook( frame_info );
+			for ( const auto& hook : m_render_hooks ) hook( frame_info );
 
 			m_renderer.beginSwapchainRendererPass( command_buffer );
 
 			m_gui_system.pass( frame_info );
 
-			for ( const auto& hook : late_render_hooks ) hook( frame_info );
+			for ( const auto& hook : m_late_render_hooks ) hook( frame_info );
 
 			m_renderer.endSwapchainRendererPass( command_buffer );
 
 			m_renderer.endFrame();
 
-			memory::TransferManager::getInstance().dump();
+			m_transfer_manager.dump();
 
 			{
 				ZoneScopedN( "Post frame hooks" );
-				for ( const auto& hook : post_frame_hooks ) hook( frame_info );
+				for ( const auto& hook : m_post_frame_hooks ) hook( frame_info );
 			}
 
 			flags::resetFlags();
@@ -218,7 +218,7 @@ namespace fgl::engine
 
 	void EngineContext::waitIdle()
 	{
-		device->waitIdle();
+		m_device->waitIdle();
 	}
 
 	Window& EngineContext::getWindow()
@@ -242,7 +242,7 @@ namespace fgl::engine
 		m_game_objects_root.clear();
 		destroyMaterialDataVec();
 
-		for ( const auto& hook : destruction_hooks ) hook();
+		for ( const auto& hook : m_destruction_hooks ) hook();
 	}
 
 	bool EngineContext::good()

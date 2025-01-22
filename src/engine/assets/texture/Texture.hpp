@@ -8,6 +8,7 @@
 
 #include <filesystem>
 
+#include "debug/Track.hpp"
 #include "engine/assets/AssetManager.hpp"
 #include "engine/assets/image/ImageView.hpp"
 #include "engine/assets/image/Sampler.hpp"
@@ -45,6 +46,9 @@ namespace fgl::engine
 		friend class AssetStore;
 
 		friend class TransferManager;
+
+		debug::Track< "GPU", "Texture" > m_gpu_track;
+		debug::Track< "CPU", "Texture" > m_cpu_track;
 
 		//! Key used for the global map keeping track of Textures
 		using UIDKeyT = std::filesystem::path;

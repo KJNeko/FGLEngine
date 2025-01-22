@@ -21,9 +21,7 @@ namespace fgl::engine
 	using namespace fgl::literals::size_literals;
 
 	inline void dummyFrameInfoFunc( [[maybe_unused]] FrameInfo& frame_info )
-	{
-		return;
-	}
+	{}
 
 	using FrameHookFunc = std::function< void( FrameInfo& ) >;
 
@@ -32,17 +30,17 @@ namespace fgl::engine
 		static constexpr int DEFAULT_WIDTH { 1920 };
 		static constexpr int DEFAULT_HEIGHT { 1080 };
 
-		vk::raii::Context ctx {};
+		vk::raii::Context m_ctx {};
 
 		// Window must be prepared *BEFORE* instance is ready in order to make
 		// glfwGetRequiredInstanceExtensions valid
 		Window m_window { DEFAULT_WIDTH, DEFAULT_HEIGHT, "titor Engine" };
 
-		Instance m_instance { ctx };
+		Instance m_instance { m_ctx };
 
-		Device device { m_window, m_instance };
+		Device m_device { m_window, m_instance };
 
-		Renderer m_renderer { m_window, device.phyDevice() };
+		Renderer m_renderer { m_window, m_device.phyDevice() };
 
 		std::unique_ptr< memory::Buffer > m_vertex_buffer { std::make_unique< memory::Buffer >(
 			1_GiB,
@@ -53,7 +51,7 @@ namespace fgl::engine
 			vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
 			vk::MemoryPropertyFlagBits::eDeviceLocal ) };
 
-		memory::TransferManager m_transfer_manager { device, 128_MiB };
+		memory::TransferManager m_transfer_manager { m_device, 128_MiB };
 
 		//GameObject::Map game_objects {};
 		OctTreeNode m_game_objects_root { WorldCoordinate( constants::WORLD_CENTER ) };
@@ -62,18 +60,18 @@ namespace fgl::engine
 		GuiSystem m_gui_system {};
 
 		// Functions BEFORE a frame is started
-		std::vector< FrameHookFunc > pre_frame_hooks {};
+		std::vector< FrameHookFunc > m_pre_frame_hooks {};
 
 		//! TODO: Make this so we can tell at what stage we should be doing something
-		std::vector< FrameHookFunc > early_render_hooks {};
-		std::vector< FrameHookFunc > render_hooks {};
-		std::vector< FrameHookFunc > late_render_hooks {};
+		std::vector< FrameHookFunc > m_early_render_hooks {};
+		std::vector< FrameHookFunc > m_render_hooks {};
+		std::vector< FrameHookFunc > m_late_render_hooks {};
 
 		// Functions to call upon the frame ending (This happens AFTER the GPU call is dispatched)
-		std::vector< FrameHookFunc > post_frame_hooks {};
+		std::vector< FrameHookFunc > m_post_frame_hooks {};
 
 		//! Called before the context is destroyed
-		std::vector< std::function< void() > > destruction_hooks {};
+		std::vector< std::function< void() > > m_destruction_hooks {};
 
 		// Memory pool for shader uniforms.
 		memory::Buffer m_ubo_buffer_pool;
@@ -86,7 +84,7 @@ namespace fgl::engine
 
 		CameraManager m_camera_manager {};
 
-		std::chrono::time_point< fgl::Clock > last_tick { fgl::Clock::now() };
+		std::chrono::time_point< Clock > m_last_tick { Clock::now() };
 		double m_delta_time;
 
 	  public:
@@ -96,17 +94,17 @@ namespace fgl::engine
 			func( m_window, m_renderer );
 		}
 
-		void hookPreFrame( const FrameHookFunc& func ) { pre_frame_hooks.emplace_back( func ); }
+		void hookPreFrame( const FrameHookFunc& func ) { m_pre_frame_hooks.emplace_back( func ); }
 
-		void hookEarlyFrame( const FrameHookFunc& func ) { early_render_hooks.emplace_back( func ); }
+		void hookEarlyFrame( const FrameHookFunc& func ) { m_early_render_hooks.emplace_back( func ); }
 
-		void hookFrame( const FrameHookFunc& func ) { render_hooks.emplace_back( func ); }
+		void hookFrame( const FrameHookFunc& func ) { m_render_hooks.emplace_back( func ); }
 
-		void hookLateFrame( const FrameHookFunc& func ) { late_render_hooks.emplace_back( func ); }
+		void hookLateFrame( const FrameHookFunc& func ) { m_late_render_hooks.emplace_back( func ); }
 
-		void hookPostFrame( const FrameHookFunc& func ) { post_frame_hooks.emplace_back( func ); }
+		void hookPostFrame( const FrameHookFunc& func ) { m_post_frame_hooks.emplace_back( func ); }
 
-		void hookDestruction( const std::function< void() >& func ) { destruction_hooks.emplace_back( func ); }
+		void hookDestruction( const std::function< void() >& func ) { m_destruction_hooks.emplace_back( func ); }
 
 	  public:
 

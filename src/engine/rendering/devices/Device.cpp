@@ -9,6 +9,7 @@
 #include <iostream>
 #include <set>
 
+#include "debug/Track.hpp"
 #include "engine/debug/logging/logging.hpp"
 
 namespace fgl::engine
@@ -184,7 +185,14 @@ namespace fgl::engine
 	}
 
 	Device::~Device()
-	{}
+	{
+		const auto leftover_tracks { debug::getAllTracks() };
+
+		for ( auto& track : leftover_tracks )
+		{
+			log::critical( "Important allocation leftover from {}", track.trace );
+		}
+	}
 
 	bool Device::checkValidationLayerSupport()
 	{
