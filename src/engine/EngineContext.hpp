@@ -7,6 +7,7 @@
 #include "Window.hpp"
 #include "camera/CameraManager.hpp"
 #include "clock.hpp"
+#include "engine/assets/transfer/TransferManager.hpp"
 #include "engine/math/literals/size.hpp"
 #include "engine/rendering/Renderer.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
@@ -43,9 +44,6 @@ namespace fgl::engine
 
 		Renderer m_renderer { m_window, device.phyDevice() };
 
-		//GameObject::Map game_objects {};
-		OctTreeNode m_game_objects_root { WorldCoordinate( constants::WORLD_CENTER ) };
-
 		std::unique_ptr< memory::Buffer > m_vertex_buffer { std::make_unique< memory::Buffer >(
 			1_GiB,
 			vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst,
@@ -54,6 +52,11 @@ namespace fgl::engine
 			512_MiB,
 			vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
 			vk::MemoryPropertyFlagBits::eDeviceLocal ) };
+
+		memory::TransferManager m_transfer_manager { device, 128_MiB };
+
+		//GameObject::Map game_objects {};
+		OctTreeNode m_game_objects_root { WorldCoordinate( constants::WORLD_CENTER ) };
 
 		// SubPass 0
 		GuiSystem m_gui_system {};
@@ -129,6 +132,9 @@ namespace fgl::engine
 
 		//! Runs any post-frame processes
 		void finishFrame();
+
+		//! Waits for all frames to be completed
+		void waitIdle();
 
 		Window& getWindow();
 		float getWindowAspectRatio();

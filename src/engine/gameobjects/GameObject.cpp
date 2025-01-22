@@ -7,6 +7,11 @@
 namespace fgl::engine
 {
 
+	GameObject::~GameObject()
+	{
+		for ( const auto& component : components ) delete component;
+	}
+
 	GameObject GameObject::createGameObject()
 	{
 		static GameObjectID current_id { 0 };

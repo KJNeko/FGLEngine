@@ -10,6 +10,8 @@ AddFGLLibrary(FGLEngine STATIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURC
 
 target_compile_definitions(FGLEngine PUBLIC VULKAN_HPP_FLAGS_MASK_TYPE_AS_PUBLIC)
 
+target_link_libraries(FGLEngine PUBLIC stdc++exp)
+
 include(dependencies/spdlog)
 include(dependencies/imgui)
 

@@ -18,41 +18,15 @@ namespace fgl::engine::filesystem
 {
 
 	//! Textures for files (pre-rendered image, images, ect)
-	inline static std::unordered_map< std::filesystem::path, std::shared_ptr< Texture > > file_textures {};
 
-	inline static std::unique_ptr< DirInfo > current { nullptr };
+	constexpr std::uint32_t DESIRED_SIZE { 128 };
+	constexpr std::uint32_t PADDING { 2 };
 
-	inline static std::once_flag flag {};
-	inline static std::shared_ptr< Texture > folder_texture { nullptr };
-	inline static std::shared_ptr< Texture > file_texture { nullptr };
-	inline static std::shared_ptr< Texture > up_texture { nullptr };
-	constexpr std::uint32_t desired_size { 128 };
-	constexpr std::uint32_t padding { 2 };
-
-	const std::filesystem::path test_path { std::filesystem::current_path() / "assets" };
-
-	void prepareFileGUI()
-	{
-		//Prepare textures needed.
-		folder_texture = getTextureStore().load( "./assets/folder.png", vk::Format::eR8G8B8A8Unorm );
-		file_texture = getTextureStore().load( "./assets/file.png", vk::Format::eR8G8B8A8Unorm );
-		up_texture = getTextureStore().load( "./assets/up.png", vk::Format::eR8G8B8A8Unorm );
-
-		current = std::make_unique< DirInfo >( test_path );
-	}
-
-	void destroyFileGui()
-	{
-		folder_texture.reset();
-		file_texture.reset();
-		up_texture.reset();
-		file_textures.clear();
-	}
+	const std::filesystem::path TEST_PATH { std::filesystem::current_path() / "assets" };
 
 	void FileBrowser::drawGui( [[maybe_unused]] FrameInfo& info )
 	{
 		ZoneScoped;
-		std::call_once( flag, prepareFileGUI );
 
 		/*
 		if ( ImGui::BeginMenuBar() )
@@ -72,19 +46,20 @@ namespace fgl::engine::filesystem
 		}
 		*/
 
-		if ( !current )
+		if ( !m_current_dir )
 		{
-			log::critical( "Current has no value!" );
-			std::abort();
+			m_current_dir = std::make_unique< DirInfo >( std::filesystem::current_path() );
+			log::warn(
+				"Current directory was not set, Defaulting to current directory: {}", std::filesystem::current_path() );
 		}
 
 		auto size { ImGui::GetWindowSize() };
 		//TODO: Probably a cleaner way to do this.
 		size.x -= 12; // Remove scrollbar pixels
 
-		const float extra { std::fmod( size.x, static_cast< float >( desired_size + ( padding * 2 ) ) ) };
+		const float extra { std::fmod( size.x, static_cast< float >( DESIRED_SIZE + ( PADDING * 2 ) ) ) };
 		const auto cols {
-			static_cast< int >( ( size.x - extra ) / static_cast< float >( desired_size + ( padding * 2 ) ) )
+			static_cast< int >( ( size.x - extra ) / static_cast< float >( DESIRED_SIZE + ( PADDING * 2 ) ) )
 		};
 
 		if ( cols == 0 )
@@ -93,33 +68,33 @@ namespace fgl::engine::filesystem
 			return;
 		}
 
-		ImGui::PushStyleVar( ImGuiStyleVar_CellPadding, { padding, padding } );
+		ImGui::PushStyleVar( ImGuiStyleVar_CellPadding, { PADDING, PADDING } );
 
-		if ( current && ImGui::BeginTable( "Files", cols ) )
+		if ( m_current_dir && ImGui::BeginTable( "Files", cols ) )
 		{
 			for ( int i = 0; i < cols; ++i )
-				ImGui::TableSetupColumn( "", ImGuiTableColumnFlags_WidthFixed, desired_size );
+				ImGui::TableSetupColumn( "", ImGuiTableColumnFlags_WidthFixed, DESIRED_SIZE );
 
 			//List up if we can go up
-			if ( current->hasParent() )
+			if ( m_current_dir->hasParent() )
 			{
 				ImGui::TableNextColumn();
-				drawUp( current );
+				drawUp( m_current_dir );
 			}
 
-			assert( current );
+			assert( m_current_dir );
 
 			//List folders first
-			for ( std::size_t i = 0; i < current->folderCount(); ++i )
+			for ( std::size_t i = 0; i < m_current_dir->folderCount(); ++i )
 			{
 				ImGui::TableNextColumn();
-				drawFolder( current->dir( i ) );
+				drawFolder( m_current_dir->dir( i ) );
 			}
 
-			for ( std::size_t i = 0; i < current->fileCount(); ++i )
+			for ( std::size_t i = 0; i < m_current_dir->fileCount(); ++i )
 			{
 				ImGui::TableNextColumn();
-				drawFile( current->file( i ) );
+				drawFile( m_current_dir->file( i ) );
 			}
 
 			ImGui::EndTable();
@@ -148,22 +123,22 @@ namespace fgl::engine::filesystem
 		return format_ns::format( "{:0.2f} GB", static_cast< float >( size ) / 1000.0f / 1000.0f / 1000.0f );
 	}
 
-	void drawTexture( const FileInfo& info )
+	void FileBrowser::drawTexture( const FileInfo& info )
 	{
-		if ( auto itter = file_textures.find( info.path ); itter != file_textures.end() )
+		if ( auto itter = m_file_textures.find( info.path ); itter != m_file_textures.end() )
 		{
 			auto& [ path, texture ] = *itter;
 
-			texture->drawImGuiButton( { desired_size, desired_size } );
+			texture->drawImGuiButton( { DESIRED_SIZE, DESIRED_SIZE } );
 		}
 		else
 		{
-			file_texture->drawImGuiButton( { desired_size, desired_size } );
+			m_file_texture->drawImGuiButton( { DESIRED_SIZE, DESIRED_SIZE } );
 
 			auto tex { getTextureStore().load( info.path ) };
 
 			// Add the texture
-			file_textures.insert( std::make_pair( info.path, std::move( tex ) ) );
+			m_file_textures.insert( std::make_pair( info.path, std::move( tex ) ) );
 		}
 
 		if ( ImGui::BeginDragDropSource() )
@@ -176,15 +151,15 @@ namespace fgl::engine::filesystem
 		}
 	}
 
-	void drawBinary( [[maybe_unused]] const FileInfo& info )
+	void FileBrowser::drawBinary( [[maybe_unused]] const FileInfo& info )
 	{
 		// file_texture->drawImGui( { 128, 128 } );
-		file_texture->drawImGuiButton( { desired_size, desired_size } );
+		m_file_texture->drawImGuiButton( { DESIRED_SIZE, DESIRED_SIZE } );
 
 		//Unable to drag/drop because we have no idea what this is supposed to be for.
 	}
 
-	void drawModel( const FileInfo& info )
+	void FileBrowser::drawModel( const FileInfo& info )
 	{
 		//TODO: Pre-render preview image for models
 		drawBinary( info );
@@ -234,7 +209,7 @@ namespace fgl::engine::filesystem
 	{
 		ImGui::PushID( data.m_path.c_str() );
 
-		if ( folder_texture->drawImGuiButton( { desired_size, desired_size } ) )
+		if ( m_folder_texture->drawImGuiButton( { DESIRED_SIZE, DESIRED_SIZE } ) )
 		{
 			openFolder( data );
 			ImGui::PopID();
@@ -247,15 +222,22 @@ namespace fgl::engine::filesystem
 		ImGui::PopID();
 	}
 
+	FileBrowser::FileBrowser()
+	{
+		m_folder_texture = getTextureStore().load( "./assets/folder.png", vk::Format::eR8G8B8A8Unorm );
+		m_file_texture = getTextureStore().load( "./assets/file.png", vk::Format::eR8G8B8A8Unorm );
+		m_up_texture = getTextureStore().load( "./assets/up.png", vk::Format::eR8G8B8A8Unorm );
+	}
+
 	void FileBrowser::goUp()
 	{
-		current = current->up();
+		m_current_dir = m_current_dir->up();
 	}
 
 	void FileBrowser::openFolder( const DirInfo& dir )
 	{
-		file_textures.clear();
-		current = std::make_unique< DirInfo >( dir.m_path );
+		m_file_textures.clear();
+		m_current_dir = std::make_unique< DirInfo >( dir.m_path );
 	}
 
 	void FileBrowser::drawUp( const std::unique_ptr< DirInfo >& current_dir )
@@ -264,7 +246,7 @@ namespace fgl::engine::filesystem
 
 		ImGui::PushID( up->m_path.c_str() );
 
-		if ( up_texture->drawImGuiButton( { desired_size, desired_size } ) )
+		if ( m_up_texture->drawImGuiButton( { DESIRED_SIZE, DESIRED_SIZE } ) )
 		{
 			openFolder( *up );
 		}

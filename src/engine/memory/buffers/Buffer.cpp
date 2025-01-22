@@ -4,8 +4,11 @@
 
 #include "Buffer.hpp"
 
+#include <iostream>
+
 #include "BufferSuballocationHandle.hpp"
 #include "align.hpp"
+#include "engine/debug/logging/logging.hpp"
 #include "engine/memory/buffers/exceptions.hpp"
 #include "engine/rendering/devices/Device.hpp"
 
@@ -19,20 +22,43 @@ namespace fgl::engine::memory
 		return active_buffers;
 	}
 
-	Buffer::
-		Buffer( vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties ) :
+	inline static std::uint16_t counter { 0 };
+
+	Buffer::Buffer(
+		vk::DeviceSize memory_size,
+		const vk::BufferUsageFlags usage,
+		const vk::MemoryPropertyFlags memory_properties ) :
 	  m_memory_size( memory_size ),
 	  m_usage( usage ),
 	  m_memory_properties( memory_properties )
 	{
 		alloc( memory_size );
 		active_buffers.emplace_back( this );
-		m_free_blocks.push_back( { 0, memory_size } );
+		m_free_blocks.emplace_back( 0, memory_size );
 	}
 
 	Buffer::~Buffer()
 	{
-		assert( this->m_allocations.size() == 0 );
+		if ( !m_allocations.empty() )
+		{
+			log::critical( "Buffer allocations not empty. {} allocations left", m_allocations.size() );
+
+			for ( const auto& [ offset, size ] : m_allocations )
+			{
+				log::info( "Stacktrace: Offset at {}", offset );
+
+				const auto itter = this->m_allocation_traces.find( offset );
+
+				if ( itter == this->m_allocation_traces.end() ) continue;
+
+				std::stacktrace trace { itter->second };
+
+				std::cout << trace << std::endl;
+			}
+
+			throw std::runtime_error( "Buffer allocations not empty" );
+		}
+
 		dealloc();
 		if ( const auto itter = std::ranges::find( active_buffers, this ); itter != active_buffers.end() )
 			active_buffers.erase( itter );
@@ -50,8 +76,9 @@ namespace fgl::engine::memory
 		vmaDestroyBuffer( Device::getInstance().allocator(), m_buffer, m_allocation );
 	}
 
-	void Buffer::alloc( vk::DeviceSize memory_size )
+	void Buffer::alloc( const vk::DeviceSize memory_size )
 	{
+		assert( !m_debug_name.empty() );
 		assert( memory_size > 0 );
 		m_memory_size = memory_size;
 		vk::BufferCreateInfo buffer_info {};
@@ -179,6 +206,8 @@ namespace fgl::engine::memory
 
 		//Add the suballocation
 		m_allocations.insert_or_assign( offset, memory_size );
+
+		m_allocation_traces.insert_or_assign( offset, std::stacktrace::current() );
 
 		//If there is any memory left over, Then add it back into the free blocks
 		if ( size - memory_size > 0 )

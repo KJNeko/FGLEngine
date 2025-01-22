@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "engine/gameobjects/GameObject.hpp"
 #include "engine/primitives/boxes/AxisAlignedBoundingCube.hpp"
+#include "gameobjects/GameObject.hpp"
 
 namespace fgl::engine
 {
@@ -59,6 +59,8 @@ namespace fgl::engine
 
 		OctTreeNode( const OctTreeNode& other ) = delete;
 		OctTreeNode( OctTreeNode&& other ) = delete;
+
+		~OctTreeNode();
 
 		OctTreeNode& operator=( const OctTreeNode& ) = delete;
 		OctTreeNode& operator=( OctTreeNode&& ) = delete;

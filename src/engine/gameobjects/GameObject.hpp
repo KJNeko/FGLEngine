@@ -58,6 +58,8 @@ namespace fgl::engine
 
 	  public:
 
+		~GameObject();
+
 		GameObject& operator=( GameObject&& other ) = default;
 
 		template < typename T >

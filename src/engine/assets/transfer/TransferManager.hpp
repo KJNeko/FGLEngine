@@ -34,31 +34,29 @@ namespace fgl::engine::memory
 	{
 		//TODO: Ring Buffer
 		//! Queue of data needing to be transfered and submitted.
-		std::queue< TransferData > queue {};
+		std::queue< TransferData > m_queue {};
 
 		//! Data actively in flight (Submitted to the DEVICE transfer queue)
-		std::vector< TransferData > processing {};
+		std::vector< TransferData > m_processing {};
 
 		//! Buffer used for any raw -> buffer transfers
-		std::unique_ptr< Buffer > staging_buffer {};
-
-	  private:
+		std::unique_ptr< Buffer > m_staging_buffer {};
 
 		//! Map to store copy regions for processing vectors
-		CopyRegionMap copy_regions {};
+		CopyRegionMap m_copy_regions {};
 
-		std::uint32_t transfer_queue_index;
-		std::uint32_t graphics_queue_index;
-		vk::raii::Queue transfer_queue;
+		std::uint32_t m_transfer_queue_index;
+		std::uint32_t m_graphics_queue_index;
+		vk::raii::Queue m_transfer_queue;
 
 		//! Signaled once a transfer completes
-		vk::raii::Semaphore transfer_semaphore;
+		vk::raii::Semaphore m_transfer_semaphore;
 
-		vk::CommandBufferAllocateInfo cmd_buffer_allocinfo;
+		vk::CommandBufferAllocateInfo m_cmd_buffer_allocinfo;
 
-		std::vector< vk::raii::CommandBuffer > transfer_buffers;
+		std::vector< vk::raii::CommandBuffer > m_transfer_buffers;
 
-		vk::raii::Fence completion_fence;
+		vk::raii::Fence m_completion_fence;
 
 		void recordCommands( vk::raii::CommandBuffer& command_buffer );
 
@@ -82,7 +80,7 @@ namespace fgl::engine::memory
 
 		FGL_DELETE_ALL_RO5( TransferManager );
 
-		vk::raii::Semaphore& getFinishedSem() { return transfer_semaphore; }
+		vk::raii::Semaphore& getFinishedSem() { return m_transfer_semaphore; }
 
 		//! Takes ownership of memory regions from the graphics queue via memory barriers.
 		void takeOwnership( vk::raii::CommandBuffer& buffer );
@@ -93,7 +91,6 @@ namespace fgl::engine::memory
 		//! Drops the processed items
 		void dump();
 
-		static void createInstance( Device& device, std::uint64_t buffer_size );
 		static TransferManager& getInstance();
 
 		//! Resizes the staging buffer.
@@ -109,7 +106,7 @@ namespace fgl::engine::memory
 				                         device_vector.m_handle,
 				                         byte_offset };
 
-			queue.emplace( std::move( transfer_data ) );
+			m_queue.emplace( std::move( transfer_data ) );
 		}
 
 		template < typename T, typename DeviceVectorT >

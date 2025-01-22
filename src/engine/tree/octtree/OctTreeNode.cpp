@@ -157,6 +157,9 @@ namespace fgl::engine
 		std::get< OctTreeNodeLeaf >( m_node_data ).reserve( MAX_NODES_IN_LEAF );
 	}
 
+	OctTreeNode::~OctTreeNode()
+	{}
+
 	void OctTreeNode::split( const int depth )
 	{
 		ZoneScoped;

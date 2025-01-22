@@ -8,101 +8,20 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #pragma GCC diagnostic ignored "-Wconversion"
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_vulkan.h>
-
 #include <imgui_internal.h> // Included for DockBuilder since it's not exposed yet
 #pragma GCC diagnostic pop
 
 #include "FileBrowser.hpp"
 #include "engine/assets/model/Model.hpp"
 #include "engine/debug/DEBUG_NAMES.hpp"
-#include "engine/debug/drawers.hpp"
-#include "engine/debug/profiling/counters.hpp"
-#include "engine/debug/timing/FlameGraph.hpp"
 #include "engine/descriptors/DescriptorPool.hpp"
 #include "engine/rendering/Renderer.hpp"
 #include "engine/tree/octtree/OctTreeNode.hpp"
 #include "gui_window_names.hpp"
-#include "rendering/RenderingFormats.hpp"
 #include "safe_include.hpp"
 
 namespace fgl::engine::gui
 {
-
-	void initGui( const Window& window, const Renderer& renderer )
-	{
-		ZoneScoped;
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		[[maybe_unused]] ImGuiIO& io { ImGui::GetIO() };
-		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-		// io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-		io.ConfigWindowsResizeFromEdges = true;
-
-		ImGui::StyleColorsDark();
-
-		Device& device { Device::getInstance() };
-
-		vk::PipelineRenderingCreateInfo pipeline_info {};
-
-		const std::vector< vk::Format > color_formats { pickPresentFormat() };
-
-		pipeline_info.setColorAttachmentFormats( color_formats );
-		pipeline_info.setDepthAttachmentFormat( pickDepthFormat() );
-
-		ImGui_ImplGlfw_InitForVulkan( window.window(), true );
-		ImGui_ImplVulkan_InitInfo init_info {
-			.Instance = device.instance(),
-			.PhysicalDevice = *device.phyDevice().handle(),
-			.Device = *device,
-			.QueueFamily = device.phyDevice().queueInfo().getIndex( vk::QueueFlagBits::eGraphics ),
-			.Queue = *device.graphicsQueue(),
-			.DescriptorPool = *DescriptorPool::getInstance().getPool(),
-			.RenderPass = VK_NULL_HANDLE,
-			.MinImageCount = 2,
-			.ImageCount = 2,
-			.MSAASamples = VK_SAMPLE_COUNT_1_BIT,
-
-			.PipelineCache = VK_NULL_HANDLE,
-			.Subpass = 0,
-
-			.UseDynamicRendering = VK_TRUE,
-			.PipelineRenderingCreateInfo = pipeline_info,
-
-			.Allocator = VK_NULL_HANDLE,
-			.CheckVkResultFn = VK_NULL_HANDLE,
-			.MinAllocationSize = 1024 * 1024
-		};
-
-		ImGui_ImplVulkan_Init( &init_info );
-	}
-
-	void beginImGui()
-	{
-		ZoneScoped;
-		ImGui_ImplVulkan_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-	}
-
-	void endImGui( vk::raii::CommandBuffer& command_buffer )
-	{
-		ZoneScoped;
-		ImGui::Render();
-
-		ImDrawData* data { ImGui::GetDrawData() };
-		ImGui_ImplVulkan_RenderDrawData( data, *command_buffer );
-
-		//ImGui::UpdatePlatformWindows();
-		//ImGui::RenderPlatformWindowsDefault();
-	}
-
-	void endDrawImGui( FrameInfo& info )
-	{
-		endImGui( info.command_buffer );
-	}
 
 	inline void prepareDock( ImGuiID& primary_id )
 	{
@@ -175,29 +94,6 @@ namespace fgl::engine::gui
 		ImGui::DockBuilderSetNodeSize( primary_id, ImGui::GetMainViewport()->WorkSize );
 
 		// ImGui::PopStyleVar();
-	}
-
-	void startDrawImGui( [[maybe_unused]] FrameInfo& info )
-	{
-		beginImGui();
-
-		profiling::resetCounters();
-	}
-
-	void drawImGui( FrameInfo& info )
-	{
-		ZoneScoped;
-		auto timer = debug::timing::push( "Draw ImGui" );
-		ImGui::ShowDemoWindow();
-
-		drawDock();
-
-		drawCameraOutputs( info );
-		drawEntityGUI( info );
-		drawEntityInfo( info );
-		drawFilesystemGUI( info );
-
-		drawStats( info );
 	}
 
 	static GameObject* selected_object { nullptr };
@@ -292,25 +188,6 @@ namespace fgl::engine::gui
 		drawComponentsList( *selected_object );
 
 		ImGui::End();
-	}
-
-	void drawFilesystemGUI( FrameInfo& info )
-	{
-		ZoneScoped;
-		ImGui::Begin( FILE_PICKER_NAME, nullptr, ImGuiWindowFlags_MenuBar );
-
-		filesystem::FileBrowser::drawGui( info );
-
-		ImGui::End();
-	}
-
-	void cleanupImGui()
-	{
-		ZoneScoped;
-		filesystem::destroyFileGui();
-		ImGui_ImplVulkan_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext();
 	}
 
 } // namespace fgl::engine::gui

@@ -90,6 +90,7 @@ namespace fgl::engine::memory
 		using AllocationSize = vk::DeviceSize;
 
 		std::map< vk::DeviceSize, AllocationSize > m_allocations {};
+		std::unordered_map< vk::DeviceSize, std::stacktrace > m_allocation_traces {};
 
 		//! @brief list of any free blocks
 		//! @note All blocks are amalgamated to the largest they can expand to.

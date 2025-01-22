@@ -45,7 +45,7 @@ namespace fgl::engine
 		ZoneScoped;
 		using namespace fgl::literals::size_literals;
 
-		memory::TransferManager::createInstance( device, 128_MiB );
+		// memory::TransferManager::createInstance( device, 128_MiB );
 
 		m_matrix_info_pool.setDebugName( "Matrix info pool" );
 		m_draw_parameter_pool.setDebugName( "Draw parameter pool" );
@@ -215,6 +215,11 @@ namespace fgl::engine
 
 	void EngineContext::finishFrame()
 	{}
+
+	void EngineContext::waitIdle()
+	{
+		device->waitIdle();
+	}
 
 	Window& EngineContext::getWindow()
 	{

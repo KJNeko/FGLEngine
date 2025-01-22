@@ -72,6 +72,8 @@ namespace fgl::engine
 
 	  public:
 
+		std::vector< vk::raii::Fence >& getFrameFences();
+
 		PresentSwapChain( vk::Extent2D windowExtent, PhysicalDevice& phy_dev );
 		PresentSwapChain( vk::Extent2D windowExtent, std::shared_ptr< PresentSwapChain > previous );
 

@@ -19,29 +19,29 @@ namespace fgl::engine::memory
 		ZoneScoped;
 		//Keep inserting new commands until we fill up the staging buffer
 
-		if ( queue.size() > 0 ) log::info( "[TransferManager]: Queue size: {}", queue.size() );
+		if ( m_queue.size() > 0 ) log::info( "[TransferManager]: Queue size: {}", m_queue.size() );
 
 		std::size_t counter { 0 };
 		constexpr std::size_t counter_max { 256 };
 
-		while ( queue.size() > 0 )
+		while ( m_queue.size() > 0 )
 		{
 			++counter;
 			if ( counter > counter_max ) break;
 
-			TransferData data { std::move( queue.front() ) };
-			queue.pop();
+			TransferData data { std::move( m_queue.front() ) };
+			m_queue.pop();
 
 			if ( data.stage(
-					 command_buffer, *staging_buffer, copy_regions, transfer_queue_index, graphics_queue_index ) )
+					 command_buffer, *m_staging_buffer, m_copy_regions, m_transfer_queue_index, m_graphics_queue_index ) )
 			{
-				processing.emplace_back( std::move( data ) );
+				m_processing.emplace_back( std::move( data ) );
 			}
 			else
 			{
 				// We were unable to stage for a reason
 				log::info( "Unable to stage object. Breaking out of loop" );
-				queue.push( data );
+				m_queue.push( data );
 				break;
 			}
 		}
@@ -60,7 +60,7 @@ namespace fgl::engine::memory
 			{} );
 
 		//Record all the buffer copies
-		for ( auto& [ key, regions ] : copy_regions )
+		for ( auto& [ key, regions ] : m_copy_regions )
 		{
 			auto& [ source, target ] = key;
 
@@ -81,7 +81,7 @@ namespace fgl::engine::memory
 
 	void TransferManager::resizeBuffer( const std::uint64_t size )
 	{
-		staging_buffer = std::make_unique< Buffer >(
+		m_staging_buffer = std::make_unique< Buffer >(
 			size,
 			vk::BufferUsageFlagBits::eTransferSrc,
 			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent );
@@ -91,7 +91,7 @@ namespace fgl::engine::memory
 	{
 		ZoneScoped;
 
-		std::vector< vk::Fence > fences { completion_fence };
+		std::vector< vk::Fence > fences { m_completion_fence };
 
 		Device::getInstance()->resetFences( fences );
 
@@ -101,18 +101,18 @@ namespace fgl::engine::memory
 
 		std::vector< vk::CommandBuffer > buffers { *command_buffer };
 
-		std::vector< vk::Semaphore > sems { transfer_semaphore };
+		std::vector< vk::Semaphore > sems { m_transfer_semaphore };
 		info.setSignalSemaphores( sems );
 		info.setCommandBuffers( buffers );
 
-		transfer_queue.submit( info, completion_fence );
+		m_transfer_queue.submit( info, m_completion_fence );
 	}
 
 	std::vector< vk::BufferMemoryBarrier > TransferManager::createFromGraphicsBarriers()
 	{
 		std::vector< vk::BufferMemoryBarrier > barriers {};
 
-		for ( auto& [ key, regions ] : copy_regions )
+		for ( auto& [ key, regions ] : m_copy_regions )
 		{
 			auto& [ source, target ] = key;
 
@@ -124,8 +124,8 @@ namespace fgl::engine::memory
 				barrier.size = region.size;
 				barrier.srcAccessMask = vk::AccessFlagBits::eNone;
 				barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
-				barrier.srcQueueFamilyIndex = graphics_queue_index;
-				barrier.dstQueueFamilyIndex = transfer_queue_index;
+				barrier.srcQueueFamilyIndex = m_graphics_queue_index;
+				barrier.dstQueueFamilyIndex = m_transfer_queue_index;
 
 				barriers.emplace_back( barrier );
 			}
@@ -138,7 +138,7 @@ namespace fgl::engine::memory
 	{
 		std::vector< vk::BufferMemoryBarrier > barriers {};
 
-		for ( auto& [ key, regions ] : copy_regions )
+		for ( auto& [ key, regions ] : m_copy_regions )
 		{
 			auto& [ source, target ] = key;
 
@@ -150,8 +150,8 @@ namespace fgl::engine::memory
 				barrier.size = region.size;
 				barrier.srcAccessMask = vk::AccessFlagBits::eNone;
 				barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
-				barrier.srcQueueFamilyIndex = graphics_queue_index;
-				barrier.dstQueueFamilyIndex = transfer_queue_index;
+				barrier.srcQueueFamilyIndex = m_graphics_queue_index;
+				barrier.dstQueueFamilyIndex = m_transfer_queue_index;
 
 				barriers.emplace_back( barrier );
 			}
@@ -164,7 +164,7 @@ namespace fgl::engine::memory
 	{
 		std::vector< vk::BufferMemoryBarrier > barriers {};
 
-		for ( auto& [ key, regions ] : copy_regions )
+		for ( auto& [ key, regions ] : m_copy_regions )
 		{
 			auto& [ source, target ] = key;
 
@@ -176,8 +176,8 @@ namespace fgl::engine::memory
 				barrier.size = region.size;
 				barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
 				barrier.dstAccessMask = vk::AccessFlagBits::eVertexAttributeRead | vk::AccessFlagBits::eIndexRead;
-				barrier.srcQueueFamilyIndex = transfer_queue_index;
-				barrier.dstQueueFamilyIndex = graphics_queue_index;
+				barrier.srcQueueFamilyIndex = m_transfer_queue_index;
+				barrier.dstQueueFamilyIndex = m_graphics_queue_index;
 
 				barriers.emplace_back( barrier );
 			}
@@ -190,7 +190,7 @@ namespace fgl::engine::memory
 	{
 		std::vector< vk::BufferMemoryBarrier > barriers {};
 
-		for ( const auto& [ key, regions ] : copy_regions )
+		for ( const auto& [ key, regions ] : m_copy_regions )
 		{
 			const auto& [ src, dst ] = key;
 			for ( const auto& region : regions )
@@ -202,8 +202,8 @@ namespace fgl::engine::memory
 				barrier.size = region.size;
 				barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite,
 				barrier.dstAccessMask = vk::AccessFlagBits::eIndexRead | vk::AccessFlagBits::eVertexAttributeRead;
-				barrier.srcQueueFamilyIndex = transfer_queue_index;
-				barrier.dstQueueFamilyIndex = graphics_queue_index;
+				barrier.srcQueueFamilyIndex = m_transfer_queue_index;
+				barrier.dstQueueFamilyIndex = m_graphics_queue_index;
 
 				barriers.emplace_back( barrier );
 			}
@@ -212,7 +212,7 @@ namespace fgl::engine::memory
 		return barriers;
 	}
 
-	inline static std::unique_ptr< TransferManager > global_transfer_manager {};
+	inline static TransferManager* GLOBAL_TRANSFER_MANAGER {};
 
 	void TransferManager::takeOwnership( vk::raii::CommandBuffer& command_buffer )
 	{
@@ -241,33 +241,25 @@ namespace fgl::engine::memory
 	{
 		//Block on fence
 
-		std::vector< vk::Fence > fences { completion_fence };
+		std::vector< vk::Fence > fences { m_completion_fence };
 
 		(void)Device::getInstance()->waitForFences( fences, VK_TRUE, std::numeric_limits< std::size_t >::max() );
 
-		processing.clear();
-		copy_regions.clear();
-	}
-
-	void TransferManager::createInstance( Device& device, std::uint64_t buffer_size )
-	{
-		log::info(
-			"Transfer manager created with a buffer size of {}",
-			fgl::literals::size_literals::toString( buffer_size ) );
-		global_transfer_manager = std::make_unique< TransferManager >( device, buffer_size );
+		m_processing.clear();
+		m_copy_regions.clear();
 	}
 
 	TransferManager& TransferManager::getInstance()
 	{
-		assert( global_transfer_manager );
-		return *global_transfer_manager;
+		assert( GLOBAL_TRANSFER_MANAGER );
+		return *GLOBAL_TRANSFER_MANAGER;
 	}
 
 	void TransferManager::copyToVector( BufferVector& source, BufferVector& target, const std::size_t target_offset )
 	{
 		TransferData transfer_data { source.getHandle(), target.getHandle(), target_offset };
 
-		queue.emplace( std::move( transfer_data ) );
+		m_queue.emplace( std::move( transfer_data ) );
 	}
 
 	void TransferManager::copyToImage( std::vector< std::byte >&& data, Image& image )
@@ -277,28 +269,32 @@ namespace fgl::engine::memory
 
 		assert( std::get< TransferData::RawData >( transfer_data.m_source ).size() > 0 );
 
-		queue.emplace( std::move( transfer_data ) );
+		m_queue.emplace( std::move( transfer_data ) );
 	}
 
 	TransferManager::TransferManager( Device& device, std::uint64_t buffer_size ) :
-	  transfer_queue_index( device.phyDevice()
+	  m_transfer_queue_index( device.phyDevice()
 	                            .queueInfo()
 	                            .getIndex( vk::QueueFlagBits::eTransfer, vk::QueueFlagBits::eGraphics ) ),
-	  graphics_queue_index( device.phyDevice().queueInfo().getIndex( vk::QueueFlagBits::eGraphics ) ),
-	  transfer_queue( device->getQueue( transfer_queue_index, 0 ) ),
-	  transfer_semaphore( device->createSemaphore( {} ) ),
-	  cmd_buffer_allocinfo( Device::getInstance().getCommandPool(), vk::CommandBufferLevel::ePrimary, 1 ),
-	  transfer_buffers( Device::getInstance().device().allocateCommandBuffers( cmd_buffer_allocinfo ) ),
-	  completion_fence( device->createFence( {} ) )
+	  m_graphics_queue_index( device.phyDevice().queueInfo().getIndex( vk::QueueFlagBits::eGraphics ) ),
+	  m_transfer_queue( device->getQueue( m_transfer_queue_index, 0 ) ),
+	  m_transfer_semaphore( device->createSemaphore( {} ) ),
+	  m_cmd_buffer_allocinfo( Device::getInstance().getCommandPool(), vk::CommandBufferLevel::ePrimary, 1 ),
+	  m_transfer_buffers( Device::getInstance().device().allocateCommandBuffers( m_cmd_buffer_allocinfo ) ),
+	  m_completion_fence( device->createFence( {} ) )
 	{
 		resizeBuffer( buffer_size );
+
+		log::info( "Transfer manager created with size {}", literals::size_literals::toString( buffer_size ) );
+
+		GLOBAL_TRANSFER_MANAGER = this;
 	}
 
 	void TransferManager::submitNow()
 	{
 		ZoneScoped;
 
-		auto& transfer_buffer { transfer_buffers[ 0 ] };
+		auto& transfer_buffer { m_transfer_buffers[ 0 ] };
 		transfer_buffer.reset();
 
 		vk::CommandBufferBeginInfo info {};
@@ -309,15 +305,15 @@ namespace fgl::engine::memory
 
 		submitBuffer( transfer_buffer );
 
-		if ( processing.size() > 0 ) log::debug( "Submitted {} objects to be transfered", processing.size() );
+		if ( m_processing.size() > 0 ) log::debug( "Submitted {} objects to be transfered", m_processing.size() );
 
-		for ( auto& processed : processing )
+		for ( auto& processed : m_processing )
 		{
 			processed.markGood();
 		}
 
 		//Drop the data
-		processing.clear();
+		m_processing.clear();
 	}
 
 } // namespace fgl::engine::memory

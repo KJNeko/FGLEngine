@@ -3,15 +3,18 @@
 //
 #include <cstdlib>
 
+#include "debug/profiling/counters.hpp"
 #include "engine/EngineContext.hpp"
 #include "engine/camera/CameraManager.hpp"
 #include "engine/debug/timing/FlameGraph.hpp"
 #include "engine/gameobjects/components/CameraComponent.hpp"
+#include "gui/EditorGuiContext.hpp"
 #include "gui/core.hpp"
 
 int main()
 {
 	using namespace fgl::engine;
+	using namespace fgl::editor;
 
 	log::set_level( spdlog::level::debug );
 
@@ -38,13 +41,18 @@ int main()
 	try
 	{
 		EngineContext engine_ctx {};
+		EditorGuiContext editor_ctx { engine_ctx.getWindow() };
 
 		// We start by hooking into the imgui rendering.
-		engine_ctx.hookInitImGui( gui::initGui );
-		engine_ctx.hookPreFrame( gui::startDrawImGui );
-		engine_ctx.hookEarlyFrame( gui::drawImGui );
-		engine_ctx.hookLateFrame( gui::endDrawImGui );
-		engine_ctx.hookDestruction( gui::cleanupImGui );
+		engine_ctx.hookPreFrame(
+			[ & ]( [[maybe_unused]] FrameInfo& info )
+			{
+				editor_ctx.beginDraw();
+
+				profiling::resetCounters();
+			} );
+		engine_ctx.hookEarlyFrame( [ & ]( [[maybe_unused]] FrameInfo& info ) { editor_ctx.draw( info ); } );
+		engine_ctx.hookLateFrame( [ & ]( FrameInfo& info ) { editor_ctx.endDraw( info ); } );
 
 		// Now we need to create the camera for the editor.
 		CameraManager& camera_manager { engine_ctx.cameraManager() };
@@ -78,6 +86,8 @@ int main()
 			// This will 'end' the root node, Which is created on 'reset'
 			debug::timing::internal::pop();
 		}
+
+		engine_ctx.waitIdle();
 	}
 	catch ( const vk::LayerNotPresentError& e )
 	{

@@ -403,6 +403,11 @@ namespace fgl::engine
 		}
 	}
 
+	std::vector< vk::raii::Fence >& PresentSwapChain::getFrameFences()
+	{
+		return m_in_flight_fence;
+	}
+
 	PresentSwapChain::~PresentSwapChain()
 	{}
 
