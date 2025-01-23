@@ -13,6 +13,7 @@
 #pragma GCC diagnostic pop
 
 #include "CompositeSwapchain.hpp"
+#include "debug/Track.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/memory/buffers/HostSingleT.hpp"
 #include "engine/memory/buffers/UniqueFrameSuballocation.hpp"
@@ -48,6 +49,8 @@ namespace fgl::engine
 	class Camera
 	{
 		inline static CameraIDX m_camera_counter { 0 };
+
+		debug::Track< "CPU", "Camera" > m_camera {};
 
 		vk::Extent2D m_target_extent;
 
@@ -90,7 +93,7 @@ namespace fgl::engine
 
 		std::string m_name;
 
-		Matrix< MatrixType::ModelToWorld > frustumTranslationMatrix() const;
+		[[nodiscard]] Matrix< MatrixType::ModelToWorld > frustumTranslationMatrix() const;
 
 		void updateFrustum();
 
@@ -113,34 +116,37 @@ namespace fgl::engine
 
 		~Camera();
 
-		CameraIDX getIDX() const;
+		[[nodiscard]] CameraIDX getIDX() const;
 
-		const std::string& getName() const;
+		[[nodiscard]] const std::string& getName() const;
 
 		void setExtent( vk::Extent2D extent );
 
-		const Rotation& getRotation() const { return m_transform.rotation; }
+		[[nodiscard]] const Rotation& getRotation() const { return m_transform.rotation; }
 
 		Rotation& getRotation() { return m_transform.rotation; }
 
-		const WorldTransform& getTransform() const { return m_transform; }
+		[[nodiscard]] const WorldTransform& getTransform() const { return m_transform; }
 
 		WorldTransform& getTransform() { return m_transform; }
 
 		WorldCoordinate getFrustumPosition() const;
 
-		const FrustumBase& getBaseFrustum() const { return m_base_frustum; }
+		[[nodiscard]] const FrustumBase& getBaseFrustum() const { return m_base_frustum; }
 
 		//! Returns the frustum of the camera in world space
-		const Frustum& getFrustumBounds() const { return m_frustum; }
+		[[nodiscard]] const Frustum& getFrustumBounds() const { return m_frustum; }
 
-		const Matrix< MatrixType::CameraToScreen >& getProjectionMatrix() const { return m_projection_matrix; }
+		[[nodiscard]] const Matrix< MatrixType::CameraToScreen >& getProjectionMatrix() const
+		{
+			return m_projection_matrix;
+		}
 
-		const Matrix< MatrixType::WorldToCamera >& getViewMatrix() const { return m_view_matrix; }
+		[[nodiscard]] const Matrix< MatrixType::WorldToCamera >& getViewMatrix() const { return m_view_matrix; }
 
-		Matrix< MatrixType::WorldToScreen > getProjectionViewMatrix() const;
+		[[nodiscard]] Matrix< MatrixType::WorldToScreen > getProjectionViewMatrix() const;
 
-		glm::mat4 getInverseViewMatrix() const { return glm::inverse( m_view_matrix ); }
+		[[nodiscard]] glm::mat4 getInverseViewMatrix() const { return glm::inverse( m_view_matrix ); }
 
 		enum ViewMode
 		{
@@ -152,7 +158,7 @@ namespace fgl::engine
 		void setOrthographicProjection( float left, float right, float top, float bottom, float near, float far );
 		void setPerspectiveProjection( float fovy, float aspect, float near, float far );
 
-		Coordinate< CoordinateSpace::World > getPosition() const;
+		[[nodiscard]] Coordinate< CoordinateSpace::World > getPosition() const;
 
 		FGL_FORCE_INLINE NormalVector getUp() const { return -getDown(); }
 
@@ -184,8 +190,8 @@ namespace fgl::engine
 		//! Performs the render pass for this camera
 		void pass( FrameInfo& frame_info );
 
-		GBufferSwapchain& getSwapchain() const;
-		CompositeSwapchain& getCompositeSwapchain() const;
+		[[nodiscard]] GBufferSwapchain& getSwapchain() const;
+		[[nodiscard]] CompositeSwapchain& getCompositeSwapchain() const;
 		void setViewport( const vk::raii::CommandBuffer& command_buffer );
 		void setScissor( const vk::raii::CommandBuffer& command_buffer );
 

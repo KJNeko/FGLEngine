@@ -4,10 +4,9 @@
 
 #include "Material.hpp"
 
-#include "engine/FrameInfo.hpp"
+#include "EngineContext.hpp"
 #include "engine/assets/texture/Texture.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
-#include "engine/memory/buffers/vector/DeviceVector.hpp"
 #include "engine/utility/IDPool.hpp"
 
 namespace fgl::engine
@@ -55,7 +54,11 @@ namespace fgl::engine
 
 	Material::Material() : m_id( material_id_counter.getID() )
 	{
-		getDescriptorSet().bindArray( 0, getDeviceMaterialGPUData().getHandle(), m_id, sizeof( DeviceMaterialData ) );
+		getDescriptorSet().bindArray(
+			0,
+			EngineContext::getInstance().getMaterialManager().getBufferSuballocation(),
+			m_id,
+			sizeof( DeviceMaterialData ) );
 		getDescriptorSet().update();
 	}
 
@@ -83,34 +86,14 @@ namespace fgl::engine
 
 	Material::~Material()
 	{
+		log::debug( "Destroyed material {}", m_id );
 		material_id_counter.markUnused( m_id );
-	}
-
-	inline static std::unique_ptr< DeviceVector< DeviceMaterialData > > material_data {};
-
-	void initMaterialDataVec( memory::Buffer& buffer )
-	{
-		material_data = std::make_unique< DeviceVector< DeviceMaterialData > >( buffer, MAX_MATERIAL_COUNT );
-	}
-
-	void destroyMaterialDataVec()
-	{
-		material_data.reset();
-	}
-
-	DeviceVector< DeviceMaterialData >& getDeviceMaterialGPUData()
-	{
-		if ( material_data )
-			return *material_data;
-		else
-			throw std::runtime_error( "Material data gpu buffer not initalized!" );
 	}
 
 	void Material::update()
 	{
-		auto& data_vec { getDeviceMaterialGPUData() };
-
-		data_vec.updateData( m_id, properties.data() );
+		const auto data { properties.data() };
+		EngineContext::getInstance().getMaterialManager().update( m_id, data );
 	}
 
 	MaterialID Material::getID() const

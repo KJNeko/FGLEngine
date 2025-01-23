@@ -5,6 +5,7 @@
 #pragma once
 
 #include "BufferSuballocationHandle.hpp"
+#include "debug/Track.hpp"
 #include "engine/rendering/devices/Device.hpp"
 
 namespace fgl::engine::memory
@@ -17,6 +18,8 @@ namespace fgl::engine::memory
 	class BufferSuballocation
 	{
 		std::shared_ptr< BufferSuballocationHandle > m_handle;
+
+		debug::Track< "GPU", "BufferSuballocation" > m_track {};
 
 		friend class TransferManager;
 
@@ -36,15 +39,14 @@ namespace fgl::engine::memory
 		BufferSuballocation() = delete;
 
 		BufferSuballocation( std::shared_ptr< BufferSuballocationHandle > handle );
-		BufferSuballocation( Buffer& buffer, const vk::DeviceSize size );
+		BufferSuballocation( Buffer& buffer, vk::DeviceSize size );
 
-		BufferSuballocation( const BufferSuballocation& ) = delete;
-		BufferSuballocation& operator=( const BufferSuballocation& ) = delete;
+		FGL_DELETE_COPY( BufferSuballocation );
 
 		BufferSuballocation( BufferSuballocation&& other ) noexcept;
 		BufferSuballocation& operator=( BufferSuballocation&& other ) noexcept;
 
-		SuballocationView view( const vk::DeviceSize offset, const vk::DeviceSize size ) const;
+		SuballocationView view( vk::DeviceSize offset, vk::DeviceSize size ) const;
 
 		//! Returns true when the buffer has been staged by the StagingManager
 		bool ready() const { return m_handle->ready(); }
@@ -68,7 +70,7 @@ namespace fgl::engine::memory
 
 		const std::shared_ptr< BufferSuballocationHandle >& getHandle() { return m_handle; }
 
-		~BufferSuballocation() = default;
+		~BufferSuballocation();
 	};
 
 } // namespace fgl::engine::memory

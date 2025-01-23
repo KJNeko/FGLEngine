@@ -17,7 +17,7 @@ namespace fgl::engine::debug
 
 		[[nodiscard]] constexpr const char* c_str() const { return m_data; }
 
-		operator std::string_view() const { return std::string_view { m_data, N }; }
+		operator std::string_view() const { return std::string_view { m_data, N - 1 }; }
 
 		TString() = delete;
 		TString( const TString& ) = delete;

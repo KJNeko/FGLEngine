@@ -33,14 +33,15 @@ namespace fgl::engine::memory
 	class TransferManager
 	{
 		//TODO: Ring Buffer
+
+		//! Buffer used for any raw -> buffer transfers
+		std::unique_ptr< Buffer > m_staging_buffer {};
+
 		//! Queue of data needing to be transfered and submitted.
 		std::queue< TransferData > m_queue {};
 
 		//! Data actively in flight (Submitted to the DEVICE transfer queue)
 		std::vector< TransferData > m_processing {};
-
-		//! Buffer used for any raw -> buffer transfers
-		std::unique_ptr< Buffer > m_staging_buffer {};
 
 		//! Map to store copy regions for processing vectors
 		CopyRegionMap m_copy_regions {};

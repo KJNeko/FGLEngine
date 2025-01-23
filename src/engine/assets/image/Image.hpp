@@ -8,6 +8,8 @@
 
 #include <memory>
 
+#include "debug/Track.hpp"
+
 namespace fgl::engine
 {
 	namespace memory
@@ -23,6 +25,8 @@ namespace fgl::engine
 		std::shared_ptr< ImageHandle > m_handle;
 		std::weak_ptr< ImageView > m_view {};
 		vk::Extent2D m_extent;
+
+		debug::Track< "GPU", "Image" > m_track {};
 
 		friend class memory::TransferManager;
 

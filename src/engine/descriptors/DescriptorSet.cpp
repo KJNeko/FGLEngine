@@ -185,7 +185,7 @@ namespace fgl::engine::descriptors
 		write.descriptorCount = 1;
 		write.descriptorType = vk::DescriptorType::eInputAttachment;
 		write.pBufferInfo = VK_NULL_HANDLE;
-		write.pImageInfo = &( std::get< vk::DescriptorImageInfo >( m_infos.data()[ binding_idx ] ) );
+		write.pImageInfo = &( std::get< vk::DescriptorImageInfo >( m_infos[ binding_idx ] ) );
 		write.pTexelBufferView = VK_NULL_HANDLE;
 
 		descriptor_writes.push_back( write );
@@ -205,7 +205,7 @@ namespace fgl::engine::descriptors
 
 	void queueDescriptorDeletion( std::unique_ptr< DescriptorSet > set )
 	{
-		QUEUE.emplace_back( std::make_pair( 0, std::move( set ) ) );
+		QUEUE.emplace_back( 0, std::move( set ) );
 	}
 
 	void deleteQueuedDescriptors()

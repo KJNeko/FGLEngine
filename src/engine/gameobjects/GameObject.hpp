@@ -60,7 +60,8 @@ namespace fgl::engine
 
 		~GameObject();
 
-		GameObject& operator=( GameObject&& other ) = default;
+		GameObject& operator=( GameObject&& other ) noexcept;
+		GameObject( GameObject&& other ) noexcept;
 
 		template < typename T >
 			requires is_component< T >
@@ -71,7 +72,6 @@ namespace fgl::engine
 
 		Scale& getScale() { return m_transform.scale; }
 
-		GameObject( GameObject&& other ) = default;
 
 		template < typename T >
 			requires is_component< T >

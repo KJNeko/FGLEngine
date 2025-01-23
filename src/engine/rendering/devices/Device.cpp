@@ -186,11 +186,13 @@ namespace fgl::engine
 
 	Device::~Device()
 	{
+		vmaDestroyAllocator( m_allocator );
+
 		const auto leftover_tracks { debug::getAllTracks() };
 
 		for ( auto& track : leftover_tracks )
 		{
-			log::critical( "Important allocation leftover from {}", track.trace );
+			log::critical( "Important allocation leftover from {}:{}\n{}", track.group, track.name, track.trace );
 		}
 	}
 

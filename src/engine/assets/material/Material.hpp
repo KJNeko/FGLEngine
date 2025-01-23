@@ -114,9 +114,14 @@ namespace fgl::engine
 	{
 		MaterialID m_id;
 
+		debug::Track< "GPU", "Material" > m_track {};
+
 		Material();
 
 	  public:
+
+		FGL_DELETE_COPY( Material );
+		FGL_DELETE_MOVE( Material );
 
 		MaterialProperties properties {};
 
@@ -134,7 +139,4 @@ namespace fgl::engine
 		static descriptors::DescriptorSet& getDescriptorSet();
 	};
 
-	DeviceVector< DeviceMaterialData >& getDeviceMaterialGPUData();
-	void initMaterialDataVec( memory::Buffer& buffer );
-	void destroyMaterialDataVec();
 } // namespace fgl::engine

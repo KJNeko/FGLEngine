@@ -9,7 +9,34 @@ namespace fgl::engine
 
 	GameObject::~GameObject()
 	{
-		for ( const auto& component : components ) delete component;
+		if ( m_id != INVALID_ID )
+		{
+			log::debug( "Destroyed game object {}", this->m_id );
+			for ( const auto& component : components ) delete component;
+		}
+	}
+
+	GameObject& GameObject::operator=( GameObject&& other ) noexcept
+	{
+		m_id = other.m_id;
+		object_flags = other.object_flags;
+		m_transform = other.m_transform;
+		components = std::move( other.components );
+		m_name = std::move( other.m_name );
+
+		other.m_id = INVALID_ID;
+
+		return *this;
+	}
+
+	GameObject::GameObject( GameObject&& other ) noexcept :
+	  m_id( other.m_id ),
+	  object_flags( other.object_flags ),
+	  m_transform( other.m_transform ),
+	  components( std::move( other.components ) ),
+	  m_name( other.m_name )
+	{
+		other.m_id = INVALID_ID;
 	}
 
 	GameObject GameObject::createGameObject()
@@ -17,28 +44,5 @@ namespace fgl::engine
 		static GameObjectID current_id { 0 };
 		return GameObject( current_id++ );
 	}
-
-	/*
-	void GameObject::drawImGui()
-	{
-		ImGui::InputText( "Name", &( this->getName() ) );
-
-		// Transform - Position
-		WorldCoordinate& translation { this->m_transform.translation };
-		gui::dragFloat3( "Position", translation.vec() );
-
-		Rotation& rotation { this->m_transform.rotation };
-		gui::dragFloat3Rot( "Rotation", rotation );
-
-		auto& scale { this->m_transform.scale };
-		gui::dragFloat3( "Scale", scale );
-
-		for ( ComponentImGuiInterface* component : components )
-		{
-			ImGui::Separator();
-			component->drawImGui();
-		}
-	}
-	*/
 
 } // namespace fgl::engine

@@ -10,13 +10,10 @@
 #include "engine/debug/logging/logging.hpp"
 #include "engine/math/literals/size.hpp"
 
-namespace fgl::engine
+namespace fgl::engine::memory
 {
-	namespace memory
-	{
-		class Buffer;
-	}
-} // namespace fgl::engine
+	class Buffer;
+}
 
 namespace fgl::engine
 {
@@ -33,6 +30,9 @@ namespace fgl::engine
 			const auto size_str { fgl::literals::size_literals::toString( count * sizeof( T ) ) };
 			assert( count != 0 && "BufferSuballocationVector::BufferSuballocationVector() called with count == 0" );
 		}
+
+		FGL_DELETE_COPY( DeviceVector );
+		FGL_DEFAULT_MOVE( DeviceVector );
 
 		/**
 		 * @brief Constructs a new DeviceVector from a vector using an allocation of the supplied buffer

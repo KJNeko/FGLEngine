@@ -3,6 +3,7 @@
 //
 #include "Track.hpp"
 
+#include <cassert>
 #include <unordered_map>
 
 namespace fgl::engine::debug
@@ -29,10 +30,10 @@ namespace fgl::engine::debug
 
 	void deregisterTrack( std::string_view group, std::string_view name, std::size_t UID )
 	{
-		track_info.erase( UIDS );
+		assert( track_info.erase( UID ) > 0 && "Unable to find UID" );
 	}
 
-	std::vector< TrackInfo > getTracks( std::string_view group, std::string_view name )
+	std::vector< TrackInfo > getTracks( const std::string_view group, const std::string_view name )
 	{
 		std::vector< TrackInfo > tracks {};
 		tracks.reserve( track_info.size() );

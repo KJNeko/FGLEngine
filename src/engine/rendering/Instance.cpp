@@ -168,7 +168,6 @@ namespace fgl::engine
 			log::info( "Validation layers enabled" );
 		}
 
-
 		return extensions;
 	}
 

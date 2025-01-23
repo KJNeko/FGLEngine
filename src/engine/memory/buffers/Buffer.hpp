@@ -15,6 +15,7 @@
 #include <stacktrace>
 #include <unordered_map>
 
+#include "engine/debug/Track.hpp"
 #include "vma/vma_impl.hpp"
 
 namespace fgl::engine
@@ -43,6 +44,8 @@ namespace fgl::engine::memory
 		vk::Buffer m_buffer { VK_NULL_HANDLE };
 		VmaAllocation m_allocation {};
 		VmaAllocationInfo m_alloc_info {};
+
+		debug::Track< "GPU", "Buffer" > m_track {};
 
 		vk::DeviceSize m_memory_size;
 
@@ -124,7 +127,7 @@ namespace fgl::engine::memory
 		//! Returns a allocation block from this buffer. Block will be aligned with nonUniformBufferOffsetAlignment
 		//! and nonCoherentAtomSize if required (is_uniform_buffer and is_host_visible respectively)
 		/**
-		 * @param memory_size Size of each N
+		 * @param desired_memory_size Size of each N
 		 * @param alignment The alignment to use.
 		 * @param source_loc Source location.
 		 * @return
@@ -137,7 +140,7 @@ namespace fgl::engine::memory
 		 * @note Alignment for atom_size is 0 if buffer is not host visible
 		 */
 		std::shared_ptr< BufferSuballocationHandle >
-			allocate( vk::DeviceSize memory_size, std::uint32_t alignment = 1 );
+			allocate( vk::DeviceSize desired_memory_size, std::uint32_t alignment = 1 );
 
 		bool canAllocate( vk::DeviceSize memory_size, std::uint32_t alignment = 1 );
 

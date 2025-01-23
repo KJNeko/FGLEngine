@@ -78,6 +78,9 @@ namespace fgl::editor
 	EditorGuiContext::~EditorGuiContext()
 	{
 		ZoneScoped;
+
+		log::info( "Destroying EditorGUIContext" );
+
 		ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();

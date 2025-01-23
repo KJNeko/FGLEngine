@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <unordered_map>
 
+#include "descriptors/DescriptorSetLayout.hpp"
 #include "engine/FGL_DEFINES.hpp"
 #include "engine/rendering/pipelines/Shader.hpp"
 
@@ -29,9 +30,11 @@ namespace fgl::engine
 
 		vk::raii::PipelineLayout createLayout();
 
+		descriptors::DescriptorSetLayout m_empty_set_layout { descriptors::DescriptorSetLayout::createEmptySet() };
+
 	  public:
 
-		void addDescriptorSet( SetID idx, const vk::raii::DescriptorSetLayout& descriptor_set_layout );
+		void addDescriptorSet( SetID idx, const vk::raii::DescriptorSetLayout& descriptor_set_layout ) const;
 		void addDescriptorSet( descriptors::DescriptorSetLayout& descriptor );
 		void addDynamicState( vk::DynamicState dynamic_state );
 		void setPushConstant( vk::ShaderStageFlags flags, std::size_t size );
@@ -108,7 +111,7 @@ namespace fgl::engine
 
 		void setBindingDescriptions( const std::vector< vk::VertexInputBindingDescription >& descriptions );
 
-		void setAttributeDescriptions( const std::vector< vk::VertexInputAttributeDescription >& descriptions );
+		void setAttributeDescriptions( const std::vector< vk::VertexInputAttributeDescription >& descriptions ) const;
 
 		PipelineBuilder( std::uint32_t subpass );
 

@@ -22,8 +22,6 @@ namespace fgl::engine::memory
 		return active_buffers;
 	}
 
-	inline static std::uint16_t counter { 0 };
-
 	Buffer::Buffer(
 		vk::DeviceSize memory_size,
 		const vk::BufferUsageFlags usage,
@@ -45,7 +43,7 @@ namespace fgl::engine::memory
 
 			for ( const auto& [ offset, size ] : m_allocations )
 			{
-				log::info( "Stacktrace: Offset at {}", offset );
+				log::info( "Stacktrace: Offset at {} with a size of {}", offset, size );
 
 				const auto itter = this->m_allocation_traces.find( offset );
 
@@ -60,6 +58,7 @@ namespace fgl::engine::memory
 		}
 
 		dealloc();
+
 		if ( const auto itter = std::ranges::find( active_buffers, this ); itter != active_buffers.end() )
 			active_buffers.erase( itter );
 	}
@@ -155,27 +154,29 @@ namespace fgl::engine::memory
 	}
 
 	std::shared_ptr< BufferSuballocationHandle > Buffer::
-		allocate( vk::DeviceSize memory_size, const std::uint32_t t_alignment )
+		allocate( vk::DeviceSize desired_memory_size, const std::uint32_t t_alignment )
 	{
 		ZoneScoped;
 		//Calculate alignment from alignment, ubo_alignment, and atom_size_alignment
-		memory_size = align( memory_size, alignment() );
+		desired_memory_size = align( desired_memory_size, alignment() );
+
+		assert( desired_memory_size <= this->size() );
 
 		//findAvailableBlock( memory_size, t_alignment );
 
-		if ( !canAllocate( memory_size, t_alignment ) )
+		if ( !canAllocate( desired_memory_size, t_alignment ) )
 		{
 			//TODO: Write more detailed error message
 			throw BufferOOM();
 		}
 
-		auto itter { findAvailableBlock( memory_size, t_alignment ) };
+		auto itter { findAvailableBlock( desired_memory_size, t_alignment ) };
 
 		if ( itter == m_free_blocks.end() )
 		{
 			//If we can't find a block, then we need to merge the free blocks and try again
 			mergeFreeBlocks();
-			itter = findAvailableBlock( memory_size, t_alignment );
+			itter = findAvailableBlock( desired_memory_size, t_alignment );
 		}
 
 		//TODO: Move this error stuff into the exception message
@@ -185,33 +186,45 @@ namespace fgl::engine::memory
 		}
 
 		//Allocate
-		auto [ offset, size ] = *itter;
+		auto [ selected_block_offset, selected_block_size ] = *itter;
 		m_free_blocks.erase( itter );
 
-		const auto aligned_offset { align( offset, alignment(), t_alignment ) };
+		assert( selected_block_offset <= this->size() );
+		assert( selected_block_size <= this->size() );
+
+		const auto aligned_offset { align( selected_block_offset, alignment(), t_alignment ) };
 
 		//Fix the offset and size if they aren't alligned
-		if ( aligned_offset != offset )
+		if ( aligned_offset != selected_block_offset )
 		{
 			//Insert the space left over before the block starts back into the free blocks
-			const std::size_t leftover_start_size { aligned_offset - offset };
+			const std::size_t leftover_start_size { aligned_offset - selected_block_offset };
 
-			m_free_blocks.emplace_back( std::make_pair( offset, leftover_start_size ) );
+			m_free_blocks.emplace_back( std::make_pair( selected_block_offset, leftover_start_size ) );
 
 			mergeFreeBlocks();
 
-			offset = aligned_offset;
-			size -= leftover_start_size;
+			selected_block_offset = aligned_offset;
+			assert( selected_block_size >= leftover_start_size );
+			selected_block_size -= leftover_start_size;
 		}
 
 		//Add the suballocation
-		m_allocations.insert_or_assign( offset, memory_size );
+		m_allocations.insert_or_assign( selected_block_offset, desired_memory_size );
 
-		m_allocation_traces.insert_or_assign( offset, std::stacktrace::current() );
+		m_allocation_traces.insert_or_assign( selected_block_offset, std::stacktrace::current() );
+
+		assert( selected_block_size >= desired_memory_size );
+
+		assert( selected_block_size <= this->size() );
 
 		//If there is any memory left over, Then add it back into the free blocks
-		if ( size - memory_size > 0 )
-			m_free_blocks.emplace_back( std::make_pair( offset + memory_size, size - memory_size ) );
+		if ( ( selected_block_size >= desired_memory_size ) && ( selected_block_size - desired_memory_size > 0 ) )
+		{
+			assert( selected_block_size - desired_memory_size <= this->size() );
+			m_free_blocks
+				.emplace_back( selected_block_offset + desired_memory_size, selected_block_size - desired_memory_size );
+		}
 
 #ifndef NDEBUG
 		//Check that we haven't lost any memory
@@ -229,7 +242,7 @@ namespace fgl::engine::memory
 		assert( sum == this->size() );
 #endif
 
-		return std::make_shared< BufferSuballocationHandle >( *this, offset, memory_size );
+		return std::make_shared< BufferSuballocationHandle >( *this, selected_block_offset, desired_memory_size );
 	}
 
 	bool Buffer::canAllocate( const vk::DeviceSize memory_size, const std::uint32_t alignment )
@@ -254,7 +267,8 @@ namespace fgl::engine::memory
 		if ( m_free_blocks.size() <= 1 ) return;
 
 		//Sort the blocks by offset
-		std::ranges::sort( m_free_blocks, []( const auto& a, const auto& b ) -> bool { return a.first < b.first; } );
+		std::ranges::
+			sort( m_free_blocks, []( const auto& a, const auto& b ) noexcept -> bool { return a.first < b.first; } );
 
 		auto itter { m_free_blocks.begin() };
 		auto next_block { std::next( itter ) };
@@ -314,8 +328,12 @@ namespace fgl::engine::memory
 		//Remove the suballocation
 		m_allocations.erase( itter );
 
+		if ( info.m_offset >= this->size() ) throw std::runtime_error( "Offset was outside of bounds of buffer" );
+		if ( info.m_offset + info.m_size >= this->size() )
+			throw std::runtime_error( "Offset + m_size was outside of bounds of buffer" );
+
 		//Add the block back to the free blocks
-		m_free_blocks.emplace_back( std::make_pair( info.m_offset, info.m_size ) );
+		m_free_blocks.emplace_back( info.m_offset, info.m_size );
 
 		mergeFreeBlocks();
 
@@ -332,7 +350,9 @@ namespace fgl::engine::memory
 			sum += allocated.second;
 		}
 
-		assert( sum == this->size() );
+		if ( sum != this->size() )
+			throw std::runtime_error(
+				std::format( "Memory leaked! Expected {} was {}", static_cast< std::size_t >( this->size() ), sum ) );
 #endif
 	}
 

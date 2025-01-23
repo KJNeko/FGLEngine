@@ -32,7 +32,9 @@ namespace fgl::engine::memory
 	  m_handle( std::move( handle ) ),
 	  m_offset( m_handle->m_offset ),
 	  m_byte_size( m_handle->m_size )
-	{}
+	{
+		if ( handle.use_count() > 30 ) throw std::runtime_error( "AAAAAAAAA" );
+	}
 
 	BufferSuballocation::BufferSuballocation( BufferSuballocation&& other ) noexcept :
 	  m_handle( std::move( other.m_handle ) ),
@@ -48,19 +50,19 @@ namespace fgl::engine::memory
 	void* BufferSuballocation::ptr() const
 	{
 		assert( m_handle != nullptr );
-		FGL_ASSERT( m_handle->mapped, "Buffer must be mappable to use `ptr()`" );
-		return m_handle->mapped;
+		FGL_ASSERT( m_handle->m_ptr, "Buffer must be mappable to use `ptr()`" );
+		return m_handle->m_ptr;
 	}
 
 	void BufferSuballocation::flush( const vk::DeviceSize beg, const vk::DeviceSize end ) const
 	{
 		assert( beg < end );
 		assert( m_handle != nullptr );
-		assert( m_handle->mapped != nullptr && "BufferSuballocationT::flush() called before map()" );
+		assert( m_handle->m_ptr != nullptr && "BufferSuballocationT::flush() called before map()" );
 		assert( end <= this->m_byte_size );
 
 		vk::MappedMemoryRange range {};
-		range.memory = m_handle->buffer.getMemory();
+		range.memory = m_handle->m_buffer.getMemory();
 		range.offset = m_offset + beg;
 
 		const vk::DeviceSize min_atom_size { Device::getInstance().m_properties.limits.nonCoherentAtomSize };
@@ -83,14 +85,14 @@ namespace fgl::engine::memory
 	{
 		assert( m_handle != nullptr );
 
-		return m_handle->buffer;
+		return m_handle->m_buffer;
 	}
 
 	vk::Buffer BufferSuballocation::getVkBuffer() const
 	{
 		assert( m_handle != nullptr );
 
-		return m_handle->buffer.getVkBuffer();
+		return m_handle->m_buffer.getVkBuffer();
 	}
 
 	vk::DescriptorBufferInfo BufferSuballocation::descriptorInfo( const std::size_t byte_offset ) const
@@ -99,6 +101,12 @@ namespace fgl::engine::memory
 		assert( !std::isnan( m_byte_size ) );
 
 		return vk::DescriptorBufferInfo( getVkBuffer(), m_offset + byte_offset, m_byte_size );
+	}
+
+	BufferSuballocation::~BufferSuballocation()
+	{
+		if ( m_handle.use_count() > 1 ) [[unlikely]]
+			log::debug( "Destroyed buffer suballocation with {} use counts", m_handle.use_count() );
 	}
 
 	SuballocationView BufferSuballocation::view( const vk::DeviceSize offset, const vk::DeviceSize size ) const

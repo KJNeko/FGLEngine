@@ -33,7 +33,11 @@ namespace fgl::engine::memory
 			m_queue.pop();
 
 			if ( data.stage(
-					 command_buffer, *m_staging_buffer, m_copy_regions, m_transfer_queue_index, m_graphics_queue_index ) )
+					 command_buffer,
+					 *m_staging_buffer,
+					 m_copy_regions,
+					 m_transfer_queue_index,
+					 m_graphics_queue_index ) )
 			{
 				m_processing.emplace_back( std::move( data ) );
 			}
@@ -273,9 +277,14 @@ namespace fgl::engine::memory
 	}
 
 	TransferManager::TransferManager( Device& device, std::uint64_t buffer_size ) :
+	  m_staging_buffer(
+		  std::make_unique< Buffer >(
+			  buffer_size,
+			  vk::BufferUsageFlagBits::eTransferSrc,
+			  vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent ) ),
 	  m_transfer_queue_index( device.phyDevice()
-	                            .queueInfo()
-	                            .getIndex( vk::QueueFlagBits::eTransfer, vk::QueueFlagBits::eGraphics ) ),
+	                              .queueInfo()
+	                              .getIndex( vk::QueueFlagBits::eTransfer, vk::QueueFlagBits::eGraphics ) ),
 	  m_graphics_queue_index( device.phyDevice().queueInfo().getIndex( vk::QueueFlagBits::eGraphics ) ),
 	  m_transfer_queue( device->getQueue( m_transfer_queue_index, 0 ) ),
 	  m_transfer_semaphore( device->createSemaphore( {} ) ),
@@ -283,8 +292,6 @@ namespace fgl::engine::memory
 	  m_transfer_buffers( Device::getInstance().device().allocateCommandBuffers( m_cmd_buffer_allocinfo ) ),
 	  m_completion_fence( device->createFence( {} ) )
 	{
-		resizeBuffer( buffer_size );
-
 		log::info( "Transfer manager created with size {}", literals::size_literals::toString( buffer_size ) );
 
 		GLOBAL_TRANSFER_MANAGER = this;

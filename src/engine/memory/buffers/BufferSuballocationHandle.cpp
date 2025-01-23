@@ -12,27 +12,27 @@ namespace fgl::engine::memory
 {
 	vk::Buffer BufferSuballocationHandle::getBuffer() const
 	{
-		return buffer.getVkBuffer();
+		return m_buffer.getVkBuffer();
 	}
 
 	BufferSuballocationHandle::
 		BufferSuballocationHandle( Buffer& p_buffer, const vk::DeviceSize offset, const vk::DeviceSize memory_size ) :
-	  buffer( p_buffer ),
+	  m_buffer( p_buffer ),
 	  m_size( memory_size ),
 	  m_offset( offset ),
-	  mapped( buffer.map( *this ) )
+	  m_ptr( m_buffer.map( *this ) )
 	{
 		assert( memory_size != 0 && "BufferSuballocation::BufferSuballocation() called with memory_size == 0" );
 	}
 
 	vk::Buffer BufferSuballocationHandle::getVkBuffer() const
 	{
-		return buffer.getVkBuffer();
+		return m_buffer.getVkBuffer();
 	}
 
 	BufferSuballocationHandle::~BufferSuballocationHandle()
 	{
-		buffer.free( *this );
+		m_buffer.free( *this );
 	}
 
 	vk::BufferCopy BufferSuballocationHandle::

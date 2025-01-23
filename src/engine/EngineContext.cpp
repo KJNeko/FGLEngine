@@ -25,13 +25,10 @@
 namespace fgl::engine
 {
 	constexpr float MAX_DELTA_TIME { 0.5 };
+	inline static EngineContext* instance { nullptr };
 
 	EngineContext::EngineContext() :
 	  m_ubo_buffer_pool( 1_MiB, vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eHostVisible ),
-	  m_material_data_pool(
-		  1_MiB,
-		  vk::BufferUsageFlagBits::eUniformBuffer | vk::BufferUsageFlagBits::eTransferDst,
-		  vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible ),
 	  m_matrix_info_pool(
 		  256_MiB,
 		  vk::BufferUsageFlagBits::eVertexBuffer,
@@ -45,6 +42,8 @@ namespace fgl::engine
 		ZoneScoped;
 		using namespace fgl::literals::size_literals;
 
+		instance = this;
+
 		// memory::TransferManager::createInstance( device, 128_MiB );
 
 		m_matrix_info_pool.setDebugName( "Matrix info pool" );
@@ -52,10 +51,6 @@ namespace fgl::engine
 
 		m_vertex_buffer->setDebugName( "Vertex buffer" );
 		m_index_buffer->setDebugName( "Index buffer" );
-
-		m_material_data_pool.setDebugName( "Material data pool" );
-
-		initMaterialDataVec( m_material_data_pool );
 
 		constexpr float offset { 8.0f };
 		constexpr std::size_t grid_size { 6 };
@@ -236,13 +231,29 @@ namespace fgl::engine
 		return m_camera_manager;
 	}
 
+	MaterialManager& EngineContext::getMaterialManager()
+	{
+		return m_material_manager;
+	}
+
 	EngineContext::~EngineContext()
 	{
+		log::info( "Destroying EngineContext" );
+
 		// Destroy all objects
 		m_game_objects_root.clear();
-		destroyMaterialDataVec();
+
+		descriptors::deleteQueuedDescriptors();
+
+		log::info( "Performing {} destruction hooks", m_destruction_hooks.size() );
 
 		for ( const auto& hook : m_destruction_hooks ) hook();
+	}
+
+	EngineContext& EngineContext::getInstance()
+	{
+		assert( instance );
+		return *instance;
 	}
 
 	bool EngineContext::good()

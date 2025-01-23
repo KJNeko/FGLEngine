@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Window.hpp"
+#include "assets/MaterialManager.hpp"
 #include "camera/CameraManager.hpp"
 #include "clock.hpp"
 #include "engine/assets/transfer/TransferManager.hpp"
@@ -51,8 +52,6 @@ namespace fgl::engine
 			vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
 			vk::MemoryPropertyFlagBits::eDeviceLocal ) };
 
-		memory::TransferManager m_transfer_manager { m_device, 128_MiB };
-
 		//GameObject::Map game_objects {};
 		OctTreeNode m_game_objects_root { WorldCoordinate( constants::WORLD_CENTER ) };
 
@@ -76,13 +75,15 @@ namespace fgl::engine
 		// Memory pool for shader uniforms.
 		memory::Buffer m_ubo_buffer_pool;
 
-		memory::Buffer m_material_data_pool;
-
 		// Memory pool for matrix info and draw parameters
 		memory::Buffer m_matrix_info_pool;
 		memory::Buffer m_draw_parameter_pool;
 
+		MaterialManager m_material_manager {};
+
 		CameraManager m_camera_manager {};
+
+		memory::TransferManager m_transfer_manager { m_device, 128_MiB };
 
 		std::chrono::time_point< Clock > m_last_tick { Clock::now() };
 		double m_delta_time;
@@ -111,6 +112,8 @@ namespace fgl::engine
 		EngineContext();
 		~EngineContext();
 
+		static EngineContext& getInstance();
+
 		bool good();
 
 		//! Performs and pending memory transfers
@@ -138,6 +141,7 @@ namespace fgl::engine
 		float getWindowAspectRatio();
 
 		CameraManager& cameraManager();
+		MaterialManager& getMaterialManager();
 	};
 
 } // namespace fgl::engine

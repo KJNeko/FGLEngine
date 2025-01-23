@@ -141,8 +141,6 @@ namespace fgl::engine
 		return pipeline;
 	}
 
-	descriptors::DescriptorSetLayout empty_set_layout { descriptors::DescriptorSetLayout::createEmptySet() };
-
 	vk::raii::PipelineLayout PipelineBuilder::createLayout()
 	{
 		vk::PipelineLayoutCreateInfo info {};
@@ -169,13 +167,11 @@ namespace fgl::engine
 			if ( itter == m_state->descriptor_set_layouts.end() )
 			{
 				// Could not find it. Empty
-				set_layouts[ i ] = empty_set_layout.layout();
-				continue;
+				set_layouts[ i ] = m_empty_set_layout.layout();
 			}
 			else
 			{
 				set_layouts[ i ] = itter->second;
-				continue;
 			}
 		}
 
@@ -190,7 +186,7 @@ namespace fgl::engine
 	}
 
 	void PipelineBuilder::
-		addDescriptorSet( const SetID idx, const vk::raii::DescriptorSetLayout& descriptor_set_layout )
+		addDescriptorSet( const SetID idx, const vk::raii::DescriptorSetLayout& descriptor_set_layout ) const
 	{
 		FGL_ASSERT( !m_state->descriptor_set_layouts.contains( idx ), "Descriptor already set!" );
 		m_state->descriptor_set_layouts.insert( std::make_pair( idx, *descriptor_set_layout ) );
@@ -198,7 +194,7 @@ namespace fgl::engine
 
 	void PipelineBuilder::addDescriptorSet( descriptors::DescriptorSetLayout& descriptor )
 	{
-		return addDescriptorSet( descriptor.m_set_idx, descriptor.layout() );
+		addDescriptorSet( descriptor.m_set_idx, descriptor.layout() );
 	}
 
 	void PipelineBuilder::addDynamicState( vk::DynamicState dynamic_state )
@@ -313,7 +309,7 @@ namespace fgl::engine
 	}
 
 	void PipelineBuilder::
-		setAttributeDescriptions( const std::vector< vk::VertexInputAttributeDescription >& descriptions )
+		setAttributeDescriptions( const std::vector< vk::VertexInputAttributeDescription >& descriptions ) const
 	{
 		m_state->vertex_input_descriptions.attributes = descriptions;
 	}
