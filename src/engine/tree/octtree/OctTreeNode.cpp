@@ -34,7 +34,6 @@ namespace fgl::engine
 
 	void imGuiOctTreeSettings( const FrameInfo& info )
 	{
-#if ENABLE_IMGUI
 		if ( ImGui::CollapsingHeader( "OctTree debug settings" ) )
 		{
 			ImGui::Checkbox( "Draw leaf fitted bounding boxes", &draw_leaf_fit_bounds );
@@ -61,13 +60,17 @@ namespace fgl::engine
 				time = std::chrono::duration_cast< std::chrono::microseconds >( time_diff );
 			}
 
+			if ( ImGui::Button( "Optimize Octree Travel" ) )
+			{
+				info.game_objects.optimizePath();
+			}
+
 			if ( time.has_value() )
 			{
 				ImGui::Text( "Time spent reorganizing: %.2ldus", time.value().count() );
 				ImGui::Text( "Moved %ld objects", number_moved );
 			}
 		}
-#endif
 	}
 
 	void OctTreeNode::getAllLeafsInFrustum( const Frustum& frustum, std::vector< OctTreeNodeLeaf* >& out_leafs )
@@ -86,6 +89,12 @@ namespace fgl::engine
 					assert( std::holds_alternative< OctTreeNodeArray >( m_node_data ) );
 					const OctTreeNodeArray& node_array { std::get< OctTreeNodeArray >( m_node_data ) };
 					//Search deeper
+
+					if ( m_skip != nullptr )
+					{
+						m_skip->getAllLeafsInFrustum( frustum, out_leafs );
+						return;
+					}
 
 					node_array[ LEFT ][ FORWARD ][ TOP ]->getAllLeafsInFrustum( frustum, out_leafs );
 					node_array[ LEFT ][ FORWARD ][ BOTTOM ]->getAllLeafsInFrustum( frustum, out_leafs );
@@ -464,6 +473,8 @@ namespace fgl::engine
 
 		if ( std::holds_alternative< OctTreeNodeArray >( this->m_node_data ) )
 		{
+			if ( m_skip != nullptr ) return m_skip->findID( id );
+
 			const auto& node_array { std::get< OctTreeNodeArray >( this->m_node_data ) };
 
 			FOR_EACH_OCTTREE_NODE
@@ -532,7 +543,15 @@ namespace fgl::engine
 		}
 		else
 		{
+			if ( m_skip != nullptr )
+			{
+				m_skip->getAllLeafs( out_leafs );
+				return;
+			}
+
 			const auto& nodes { std::get< OctTreeNodeArray >( m_node_data ) };
+
+			// If we have a node to skip to, Skip to it.
 
 			FOR_EACH_OCTTREE_NODE
 			{
@@ -542,8 +561,56 @@ namespace fgl::engine
 		}
 	}
 
+	OctTreeNode* OctTreeNode::optimizePath()
+	{
+		ZoneScoped;
+
+		// The node returned here will be the optimal node to jump to. If we return nullptr then that means this node has multiple paths it can take.
+
+		if ( std::holds_alternative< NodeDataT >( m_node_data ) )
+		{
+			const auto& nodes { std::get< NodeDataT >( m_node_data ) };
+
+			OctTreeNode* optimal { nullptr };
+
+			FOR_EACH_OCTTREE_NODE
+			{
+				// Why did I skip the 0,0,0 node previously?
+				// if ( x == 0 && y == 0 && z == 0 ) continue;
+				const auto& node { nodes[ x ][ y ][ z ] };
+
+				if ( auto* optimal_ret = node->optimizePath(); optimal_ret != nullptr )
+				{
+					// If the node returns nullptr, Then it means that this node shouldn't jump to any node directly.
+					if ( optimal != nullptr )
+					{
+						m_skip = nullptr;
+						return this;
+					}
+
+					optimal = optimal_ret;
+				}
+			}
+
+			m_skip = optimal;
+			return optimal;
+		}
+
+		if ( std::holds_alternative< LeafDataT >( m_node_data ) )
+		{
+			const auto& leaf_data { std::get< LeafDataT >( m_node_data ) };
+
+			if ( leaf_data.empty() ) return nullptr;
+
+			return this;
+		}
+
+		FGL_UNREACHABLE();
+	}
+
 	std::size_t OctTreeNode::reorganize()
 	{
+		ZoneScoped;
 		std::size_t counter { 0 };
 		if ( std::holds_alternative< NodeDataT >( m_node_data ) )
 		{

@@ -5,8 +5,8 @@
 #pragma once
 
 //clang-format: off
-#include <vulkan/vulkan.hpp>
 #include <tracy/TracyVulkan.hpp>
+#include <vulkan/vulkan.hpp>
 //clang-format: on
 
 #include "descriptors/Descriptor.hpp"
@@ -58,6 +58,7 @@ namespace fgl::engine
 	constexpr descriptors::AttachmentDescriptor metallic_descriptor { 3, FRAG_STAGE };
 	constexpr descriptors::AttachmentDescriptor emissive_descriptor { 4, FRAG_STAGE };
 
+	//TODO: Move this from being static, It being here prevents safe cleanup
 	inline static descriptors::DescriptorSetLayout gbuffer_set {
 		0, color_descriptor, position_descriptor, normal_descriptor, metallic_descriptor, emissive_descriptor
 	};

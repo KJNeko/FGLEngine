@@ -87,8 +87,8 @@ namespace fgl::engine
 					}
 
 					obj.getTransform().translation = WorldCoordinate(
-						-10.0f + ( static_cast< float >( x ) * offset ),
-						-10.0f + ( static_cast< float >( y ) * offset ),
+						10.0f + ( static_cast< float >( x ) * offset ),
+						10.0f + ( static_cast< float >( y ) * offset ),
 						0.0f );
 
 					m_game_objects_root.addGameObject( std::move( obj ) );

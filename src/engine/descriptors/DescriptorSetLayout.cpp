@@ -27,9 +27,9 @@ namespace fgl::engine::descriptors
 			binding.stageFlags = descriptor.m_stage_flags;
 			binding.pImmutableSamplers = VK_NULL_HANDLE;
 
-			bindings.emplace_back( binding );
+			m_bindings.emplace_back( binding );
 
-			flags.emplace_back( descriptor.m_binding_flags );
+			m_flags.emplace_back( descriptor.m_binding_flags );
 		}
 	}
 
@@ -47,11 +47,11 @@ namespace fgl::engine::descriptors
 	vk::raii::DescriptorSetLayout DescriptorSetLayout::createLayout() const
 	{
 		vk::DescriptorSetLayoutBindingFlagsCreateInfo flags_info {};
-		flags_info.setBindingFlags( flags );
+		flags_info.setBindingFlags( m_flags );
 
 		vk::DescriptorSetLayoutCreateInfo info {};
 		info.setFlags( vk::DescriptorSetLayoutCreateFlagBits::eUpdateAfterBindPool );
-		info.setBindings( bindings );
+		info.setBindings( m_bindings );
 		info.setPNext( &flags_info );
 
 		return Device::getInstance()->createDescriptorSetLayout( info );

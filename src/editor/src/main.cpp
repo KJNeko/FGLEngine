@@ -42,7 +42,6 @@ int main()
 	{
 		EngineContext engine_ctx {};
 
-		/*
 		EditorGuiContext editor_ctx { engine_ctx.getWindow() };
 
 		// We start by hooking into the imgui rendering.
@@ -90,7 +89,6 @@ int main()
 		}
 
 		engine_ctx.waitIdle();
-		*/
 	}
 	catch ( const vk::LayerNotPresentError& e )
 	{

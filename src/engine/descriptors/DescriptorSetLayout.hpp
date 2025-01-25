@@ -19,8 +19,8 @@ namespace fgl::engine::descriptors
 
 	class DescriptorSetLayout
 	{
-		std::vector< vk::DescriptorSetLayoutBinding > bindings {};
-		std::vector< vk::DescriptorBindingFlags > flags {};
+		std::vector< vk::DescriptorSetLayoutBinding > m_bindings {};
+		std::vector< vk::DescriptorBindingFlags > m_flags {};
 
 		std::optional< vk::raii::DescriptorSetLayout > m_layout { std::nullopt };
 
@@ -45,7 +45,7 @@ namespace fgl::engine::descriptors
 		  DescriptorSetLayout( set_idx, std::vector< std::reference_wrapper< const Descriptor > > { descriptors... } )
 		{}
 
-		[[nodiscard]] std::size_t count() const { return bindings.size(); }
+		[[nodiscard]] std::size_t count() const { return m_bindings.size(); }
 
 		std::unique_ptr< DescriptorSet > create();
 		[[nodiscard]] vk::raii::DescriptorSetLayout createLayout() const;

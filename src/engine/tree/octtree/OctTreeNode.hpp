@@ -52,6 +52,11 @@ namespace fgl::engine
 
 		OctTreeNode* m_parent;
 
+		//! Node to skip too when attempting to parse this node.
+		//! This is done in order to prevent navigating through an empty set of nodes.
+		//! This is only set if there is only one leaf filled with data.
+		OctTreeNode* m_skip { nullptr };
+
 	  public:
 
 		OctTreeNode() = delete;
@@ -106,6 +111,7 @@ namespace fgl::engine
 
 		//! Rebuilds the tree checking if nodes have moved.
 		std::size_t reorganize();
+		OctTreeNode* optimizePath();
 
 		//! Returns true if the fixed bounding box is larger then the inital bounding box
 		bool isBoundsExpanded() const;
