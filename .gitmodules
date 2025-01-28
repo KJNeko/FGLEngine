@@ -54,4 +54,4 @@
 	url = https://github.com/KhronosGroup/glslang.git
 [submodule "fgl_cmake_modules"]
 	path = fgl_cmake_modules
-	url = git@github.com:KJNeko/fgl_cmake_modules.git
+	url = https://github.com/KJNeko/fgl_cmake_modules.git
