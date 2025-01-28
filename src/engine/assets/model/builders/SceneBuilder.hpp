@@ -56,13 +56,12 @@ namespace fgl::engine
 		std::vector< GameObject > game_objects {};
 
 		void handleScene( const tinygltf::Scene& scene, const tinygltf::Model& root );
-		void handleNode( const int node_idx, const tinygltf::Model& root );
+		void handleNode( int node_idx, const tinygltf::Model& root );
 
 		WorldTransform loadTransform( int node_idx, const tinygltf::Model& root );
-		std::shared_ptr< Model > loadModel( const int mesh_idx, const tinygltf::Model& root );
-		std::shared_ptr< Texture > loadTexture( int tex_id, const tinygltf::Model& root );
-		std::shared_ptr< fgl::engine::Material >
-			loadMaterial( const tinygltf::Primitive& prim, const tinygltf::Model& root );
+		std::shared_ptr< Model > loadModel( int mesh_idx, const tinygltf::Model& root );
+		std::shared_ptr< Texture > loadTexture( int tex_id, const tinygltf::Model& root ) const;
+		std::shared_ptr< Material > loadMaterial( const tinygltf::Primitive& prim, const tinygltf::Model& root );
 		Primitive loadPrimitive( const tinygltf::Primitive& prim, const tinygltf::Model& model );
 
 		int getTexcoordCount( const tinygltf::Primitive& prim ) const;
@@ -78,10 +77,10 @@ namespace fgl::engine
 
 		std::vector< glm::vec2 > extractUVInfo( const tinygltf::Primitive& prim, const tinygltf::Model& root );
 
-		bool hasAttribute( const tinygltf::Primitive& prim, const std::string_view str );
+		bool hasAttribute( const tinygltf::Primitive& prim, std::string_view str );
 
 		const tinygltf::Accessor& getAccessorForAttribute(
-			const tinygltf::Primitive& prim, const tinygltf::Model& root, const std::string attrib ) const;
+			const tinygltf::Primitive& prim, const tinygltf::Model& root, std::string attrib ) const;
 		std::shared_ptr< Texture >
 			getTextureForParameter( const tinygltf::Parameter& parameter, const tinygltf::Model& root );
 
@@ -95,7 +94,7 @@ namespace fgl::engine
 
 		SceneBuilder( memory::Buffer& vertex_buffer, memory::Buffer& index_buffer );
 
-		void loadScene( const std::filesystem::path path );
+		void loadScene( const std::filesystem::path& path );
 	};
 
 } // namespace fgl::engine

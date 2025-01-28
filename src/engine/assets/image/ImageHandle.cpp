@@ -105,7 +105,7 @@ namespace fgl::engine
 		Device::getInstance().setDebugUtilsObjectName( info );
 	}
 
-	VkImage ImageHandle::operator*()
+	VkImage ImageHandle::operator*() const
 	{
 		ZoneScoped;
 		if ( std::holds_alternative< vk::raii::Image >( m_image ) )

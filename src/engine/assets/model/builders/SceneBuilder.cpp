@@ -464,7 +464,7 @@ namespace fgl::engine
 
 			transform_component.rotation = rotation;
 		}
-		else if ( node.rotation.size() != 0 )
+		else if ( !node.rotation.empty() )
 		{
 			log::warn( "Invalid rotation size: {}", node.rotation.size() );
 			throw std::runtime_error( "Invalid rotation size" );
@@ -475,7 +475,7 @@ namespace fgl::engine
 			const glm::vec3 scale { convertToVec3( node.scale ) };
 			transform_component.scale = scale;
 		}
-		else if ( node.scale.size() != 0 )
+		else if ( !node.scale.empty() )
 		{
 			log::warn( "Odd scale size: {}", node.scale.size() );
 		}
@@ -485,7 +485,7 @@ namespace fgl::engine
 			const glm::vec3 translation { convertToVec3( node.translation ) };
 			transform_component.translation = WorldCoordinate( translation );
 		}
-		else if ( node.translation.size() != 0 )
+		else if ( !node.translation.empty() )
 		{
 			log::warn( "Odd translation size: {}", node.translation.size() );
 		}
@@ -513,7 +513,7 @@ namespace fgl::engine
 			Model >( std::move( finished_primitives ), bounding_box, mesh.name.empty() ? "Unnamed Model" : mesh.name );
 	}
 
-	std::shared_ptr< Texture > SceneBuilder::loadTexture( const int tex_id, const tinygltf::Model& root )
+	std::shared_ptr< Texture > SceneBuilder::loadTexture( const int tex_id, const tinygltf::Model& root ) const
 	{
 		if ( tex_id == -1 ) return { nullptr };
 
@@ -567,20 +567,14 @@ namespace fgl::engine
 			material->properties.pbr.roughness_factor = metallic_roughness.roughnessFactor;
 		}
 
-		{
-			material->properties.normal.texture = loadTexture( gltf_material.normalTexture.index, root );
-			material->properties.normal.scale = gltf_material.normalTexture.scale;
-		}
+		material->properties.normal.texture = loadTexture( gltf_material.normalTexture.index, root );
+		material->properties.normal.scale = gltf_material.normalTexture.scale;
 
-		{
-			material->properties.occlusion.texture = loadTexture( gltf_material.occlusionTexture.index, root );
-			material->properties.occlusion.strength = gltf_material.occlusionTexture.strength;
-		}
+		material->properties.occlusion.texture = loadTexture( gltf_material.occlusionTexture.index, root );
+		material->properties.occlusion.strength = gltf_material.occlusionTexture.strength;
 
-		{
-			material->properties.emissive.texture = loadTexture( gltf_material.emissiveTexture.index, root );
-			material->properties.emissive.factors = convertToVec3( gltf_material.emissiveFactor );
-		}
+		material->properties.emissive.texture = loadTexture( gltf_material.emissiveTexture.index, root );
+		material->properties.emissive.factors = convertToVec3( gltf_material.emissiveFactor );
 
 		material->update();
 
@@ -627,7 +621,7 @@ namespace fgl::engine
 		}
 	}
 
-	void SceneBuilder::loadScene( const std::filesystem::path path )
+	void SceneBuilder::loadScene( const std::filesystem::path& path )
 	{
 		ZoneScoped;
 		if ( !std::filesystem::exists( path ) ) throw std::runtime_error( "Failed to find scene at filepath" );

@@ -24,7 +24,7 @@ namespace fgl::engine
 		return Device::getInstance()->createImageView( info );
 	}
 
-	ImageView::ImageView( std::shared_ptr< ImageHandle >& img ) :
+	ImageView::ImageView( const std::shared_ptr< ImageHandle >& img ) :
 	  m_resource( img ),
 	  m_descriptor_info(),
 	  m_image_view( createImageView( img ) ),
@@ -35,7 +35,7 @@ namespace fgl::engine
 		m_descriptor_info.imageView = m_image_view;
 	}
 
-	vk::DescriptorImageInfo ImageView::descriptorInfo( vk::Sampler sampler, vk::ImageLayout layout ) const
+	vk::DescriptorImageInfo ImageView::descriptorInfo( const vk::Sampler sampler, const vk::ImageLayout layout ) const
 	{
 		vk::DescriptorImageInfo info { descriptorInfo( layout ) };
 
@@ -44,7 +44,7 @@ namespace fgl::engine
 		return info;
 	}
 
-	vk::DescriptorImageInfo ImageView::descriptorInfo( vk::ImageLayout layout ) const
+	vk::DescriptorImageInfo ImageView::descriptorInfo( const vk::ImageLayout layout ) const
 	{
 		vk::DescriptorImageInfo info {};
 		info.imageLayout = layout;
@@ -56,7 +56,7 @@ namespace fgl::engine
 	ImageView::~ImageView()
 	{}
 
-	void ImageView::setName( const std::string str )
+	void ImageView::setName( const std::string& str )
 	{
 		m_name = str;
 		m_sampler.setName( str + " Sampler" );
@@ -70,7 +70,7 @@ namespace fgl::engine
 		Device::getInstance().setDebugUtilsObjectName( info );
 	}
 
-	vk::ImageView ImageView::getVkView()
+	vk::ImageView ImageView::getVkView() const
 	{
 		return *m_image_view;
 	}
@@ -80,7 +80,7 @@ namespace fgl::engine
 		return m_resource->extent();
 	}
 
-	bool ImageView::ready()
+	bool ImageView::ready() const
 	{
 		return m_resource->ready();
 	}

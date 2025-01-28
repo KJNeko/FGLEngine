@@ -54,7 +54,7 @@ namespace fgl::engine
 
 		void setName( std::string str );
 
-		VkImage operator*();
+		VkImage operator*() const;
 
 		VkImage getVkImage() { return **this; }
 

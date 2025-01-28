@@ -17,31 +17,32 @@ PFN_vkSetDebugUtilsObjectNameEXT pfnVkSetDebugUtilsObjectNameEXT { nullptr };
 
 // Callback function for vulkan messaging.
 static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
-	[[maybe_unused]] VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-	[[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT messageType,
-	const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-	[[maybe_unused]] void* pUserData )
+	[[maybe_unused]] const vk::DebugUtilsMessageSeverityFlagBitsEXT message_severity,
+	[[maybe_unused]] vk::DebugUtilsMessageTypeFlagsEXT message_type,
+	const vk::DebugUtilsMessengerCallbackDataEXT* p_callback_data,
+	[[maybe_unused]] void* p_user_data )
 {
-	using Bits = VkDebugUtilsMessageSeverityFlagBitsEXT;
 	using namespace fgl::engine;
 
-	if ( pCallbackData->flags & Bits::VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT )
+	switch ( message_severity )
 	{
-		log::info( pCallbackData->pMessage );
-	}
-	else if ( pCallbackData->flags & Bits::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT )
-	{
-		log::warn( pCallbackData->pMessage );
-	}
-	else if ( pCallbackData->flags & Bits::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT )
-	{
-		log::error( pCallbackData->pMessage );
-		std::abort();
-	}
-	else
-	{
-		//log::critical( "Unknown severity message: {}", pCallbackData->pMessage );
-		//std::abort();
+		case vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose:
+			log::debug( p_callback_data->pMessage );
+			break;
+		case vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo:
+			log::info( p_callback_data->pMessage );
+			break;
+		case vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning:
+			log::warn( p_callback_data->pMessage );
+			break;
+		case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError:
+			log::error( p_callback_data->pMessage );
+			break;
+		default:
+			{
+				log::critical( "Unknown severity from debug callback: {}", p_callback_data->pMessage );
+				throw std::runtime_error { "Unknown severity from debug callback" };
+			}
 	}
 
 	return VK_FALSE;
@@ -49,12 +50,12 @@ static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateDebugUtilsMessengerEXT(
 	VkInstance instance,
-	const VkDebugUtilsMessengerCreateInfoEXT* create_info,
-	const VkAllocationCallbacks* allocator,
-	VkDebugUtilsMessengerEXT* messenger )
+	const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+	const VkAllocationCallbacks* pAllocator,
+	VkDebugUtilsMessengerEXT* pMessenger )
 {
 	assert( pfnVkCreateDebugUtilsMessengerEXT );
-	return pfnVkCreateDebugUtilsMessengerEXT( instance, create_info, allocator, messenger );
+	return pfnVkCreateDebugUtilsMessengerEXT( instance, pCreateInfo, pAllocator, pMessenger );
 }
 
 VKAPI_ATTR void VKAPI_CALL vkDestroyDebugUtilsMessengerEXT(

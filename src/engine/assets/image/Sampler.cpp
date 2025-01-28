@@ -104,19 +104,19 @@ namespace fgl::engine
 		  gl::wrappingToVk( wrapt ) )
 	{}
 
-	Sampler::Sampler( Sampler&& other ) : m_sampler( std::move( other.m_sampler ) )
+	Sampler::Sampler( Sampler&& other ) noexcept : m_sampler( std::move( other.m_sampler ) )
 	{
 		other.m_sampler = VK_NULL_HANDLE;
 	}
 
-	Sampler& Sampler::operator=( Sampler&& other )
+	Sampler& Sampler::operator=( Sampler&& other ) noexcept
 	{
 		m_sampler = std::move( other.m_sampler );
 		other.m_sampler = VK_NULL_HANDLE;
 		return *this;
 	}
 
-	void Sampler::setName( const std::string str )
+	void Sampler::setName( const std::string& str ) const
 	{
 		vk::DebugUtilsObjectNameInfoEXT info {};
 		info.objectType = vk::ObjectType::eSampler;

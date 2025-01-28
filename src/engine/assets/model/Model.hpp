@@ -49,7 +49,7 @@ namespace fgl::engine
 
 	  public:
 
-		bool ready();
+		bool ready() const;
 
 		//! Returns the bounding box in model space
 		const OrientedBoundingBox< CoordinateSpace::Model >& getBoundingBox() const { return m_bounding_box; }

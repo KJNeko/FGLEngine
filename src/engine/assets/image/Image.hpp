@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "FGL_DEFINES.hpp"
 #include "debug/Track.hpp"
 
 namespace fgl::engine
@@ -56,17 +57,18 @@ namespace fgl::engine
 
 		Image& setName( const std::string& str );
 
-		const vk::Extent2D& getExtent() const { return m_extent; }
+		[[nodiscard]] const vk::Extent2D& getExtent() const { return m_extent; }
 
 		[[nodiscard]] std::shared_ptr< ImageView > getView();
 
-		vk::ImageMemoryBarrier transitionTo(
+		[[nodiscard]] vk::ImageMemoryBarrier transitionTo(
 			vk::ImageLayout old_layout, vk::ImageLayout new_layout, const vk::ImageSubresourceRange& range ) const;
 
-		vk::ImageMemoryBarrier
+		[[nodiscard]] vk::ImageMemoryBarrier
 			transitionTo( vk::ImageLayout old_layout, vk::ImageLayout new_layout, vk::ImageAspectFlags aspect );
 
-		inline vk::ImageMemoryBarrier transitionColorTo( vk::ImageLayout old_layout, vk::ImageLayout new_layout )
+		FGL_FORCE_INLINE vk::ImageMemoryBarrier
+			transitionColorTo( const vk::ImageLayout old_layout, const vk::ImageLayout new_layout )
 		{
 			return transitionTo( old_layout, new_layout, vk::ImageAspectFlagBits::eColor );
 		}

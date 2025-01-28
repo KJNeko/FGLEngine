@@ -56,7 +56,7 @@ namespace fgl::engine
 		return box;
 	}
 
-	bool Model::ready()
+	bool Model::ready() const
 	{
 		//Return true if even a single primitive is ready
 		for ( auto& primitive : this->m_primitives )

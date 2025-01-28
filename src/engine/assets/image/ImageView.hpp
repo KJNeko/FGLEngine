@@ -28,11 +28,11 @@ namespace fgl::engine
 	  public:
 
 		//! Returns true if the resource has been staged
-		bool ready();
+		bool ready() const;
 
 		ImageView() = delete;
 
-		ImageView( std::shared_ptr< ImageHandle >& img );
+		explicit ImageView( const std::shared_ptr< ImageHandle >& img );
 
 		ImageView( const ImageView& ) = delete;
 		ImageView& operator=( const ImageView& ) = delete;
@@ -42,22 +42,22 @@ namespace fgl::engine
 
 		[[nodiscard]] vk::Extent2D getExtent() const;
 
-		[[nodiscard]] vk::ImageView getVkView();
+		[[nodiscard]] vk::ImageView getVkView() const;
 
-		[[nodiscard]] VkImageView operator*() { return *m_image_view; }
+		[[nodiscard]] VkImageView operator*() const { return *m_image_view; }
 
-		[[nodiscard]] VkImage getVkImage() { return m_resource->getVkImage(); }
+		[[nodiscard]] VkImage getVkImage() const { return m_resource->getVkImage(); }
 
 		void setSampler( Sampler&& sampler ) { m_sampler = std::forward< Sampler >( sampler ); }
 
 		[[nodiscard]] Sampler& getSampler() { return m_sampler; };
 
-		vk::DescriptorImageInfo descriptorInfo( vk::Sampler sampler, vk::ImageLayout layout ) const;
-		vk::DescriptorImageInfo descriptorInfo( vk::ImageLayout layout ) const;
+		[[nodiscard]] vk::DescriptorImageInfo descriptorInfo( vk::Sampler sampler, vk::ImageLayout layout ) const;
+		[[nodiscard]] vk::DescriptorImageInfo descriptorInfo( vk::ImageLayout layout ) const;
 
 		~ImageView();
 
-		void setName( std::string str );
+		void setName( const std::string& str );
 	};
 
 } // namespace fgl::engine

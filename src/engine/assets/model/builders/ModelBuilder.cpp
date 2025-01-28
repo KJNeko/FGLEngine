@@ -22,11 +22,11 @@ namespace fgl::engine
 			throw std::runtime_error( "Unknown model file extension" );
 	}
 
-	void ModelBuilder::loadVerts( const std::vector< ModelVertex >& verts, std::vector< std::uint32_t > indicies )
+	void ModelBuilder::loadVerts( const std::vector< ModelVertex >& verts, const std::vector< std::uint32_t >& indicies )
 	{
 		ZoneScoped;
 		VertexBufferSuballocation vertex_suballoc { this->m_vertex_buffer, verts };
-		IndexBufferSuballocation index_suballoc { this->m_index_buffer, std::move( indicies ) };
+		IndexBufferSuballocation index_suballoc { this->m_index_buffer, indicies };
 
 		this->m_primitives.emplace_back(
 			std::move( vertex_suballoc ),

@@ -8,7 +8,6 @@
 #include <vulkan/vulkan_raii.hpp>
 
 #include "engine/FGL_DEFINES.hpp"
-#include "engine/debug/logging/logging.hpp"
 
 namespace fgl::engine
 {
@@ -38,34 +37,36 @@ namespace fgl::engine
 			vk::SamplerAddressMode sampler_wrap_w );
 
 		FGL_FORCE_INLINE_FLATTEN Sampler(
-			vk::Filter min_filter,
-			vk::Filter mag_filter,
-			vk::SamplerMipmapMode mipmap_mode,
-			vk::SamplerAddressMode sampler_wrap_u,
-			vk::SamplerAddressMode sampler_wrap_v ) :
+			const vk::Filter min_filter,
+			const vk::Filter mag_filter,
+			const vk::SamplerMipmapMode mipmap_mode,
+			const vk::SamplerAddressMode sampler_wrap_u,
+			const vk::SamplerAddressMode sampler_wrap_v ) :
 		  Sampler( min_filter, mag_filter, mipmap_mode, sampler_wrap_u, sampler_wrap_v, sampler_wrap_v )
 		{}
 
 		FGL_FORCE_INLINE_FLATTEN Sampler(
-			vk::Filter min_filter,
-			vk::Filter mag_filter,
-			vk::SamplerMipmapMode mipmap_mode,
-			vk::SamplerAddressMode sampler_wrap_u ) :
+			const vk::Filter min_filter,
+			const vk::Filter mag_filter,
+			const vk::SamplerMipmapMode mipmap_mode,
+			const vk::SamplerAddressMode sampler_wrap_u ) :
 		  Sampler( min_filter, mag_filter, mipmap_mode, sampler_wrap_u, sampler_wrap_u, sampler_wrap_u )
 		{}
 
+		//TODO: This should be moved to favor a single sampler when possible, Making a duplicate sampler is not required.
+		//TODO: Singleton
 		Sampler( int min_filter, int mag_filter, int wraps, int wrapt );
 
-		VkSampler operator*() { return *m_sampler; }
+		VkSampler operator*() const { return *m_sampler; }
 
-		Sampler( Sampler&& other );
-		Sampler& operator=( Sampler&& );
+		Sampler( Sampler&& other ) noexcept;
+		Sampler& operator=( Sampler&& ) noexcept;
 
 		~Sampler() {}
 
 		vk::raii::Sampler& getVkSampler() { return m_sampler; }
 
-		void setName( const std::string str );
+		void setName( const std::string& str ) const;
 	};
 
 } // namespace fgl::engine
