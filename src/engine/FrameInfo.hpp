@@ -5,8 +5,8 @@
 #pragma once
 
 //clang-format: off
-#include <tracy/TracyVulkan.hpp>
 #include <vulkan/vulkan.hpp>
+#include <tracy/TracyVulkan.hpp>
 //clang-format: on
 
 #include "descriptors/Descriptor.hpp"
