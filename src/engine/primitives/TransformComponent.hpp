@@ -43,21 +43,21 @@ namespace fgl::engine
 		Rotation rotation { 0.0f, 0.0f, 0.0f };
 
 		//TODO: Figure this out and replace TransformComponent with a template of CType instead
-		glm::mat4 mat4() const;
+		[[nodiscard]] glm::mat4 mat4() const;
 
-		Matrix< MatrixTransformType< CType >() > mat() const;
+		[[nodiscard]] Matrix< MatrixTransformType< CType >() > mat() const;
 
-		NormalVector forward() const;
+		[[nodiscard]] NormalVector forward() const;
 
-		NormalVector backwards() const { return -forward(); }
+		[[nodiscard]] NormalVector backwards() const { return -forward(); }
 
-		NormalVector right() const;
+		[[nodiscard]] NormalVector right() const;
 
-		NormalVector left() const { return -right(); }
+		[[nodiscard]] NormalVector left() const { return -right(); }
 
-		NormalVector up() const;
+		[[nodiscard]] NormalVector up() const;
 
-		NormalVector down() const { return -up(); }
+		[[nodiscard]] NormalVector down() const { return -up(); }
 	};
 
 	template < CoordinateSpace CType, MatrixType MType >
@@ -65,9 +65,9 @@ namespace fgl::engine
 	{
 		glm::mat4 localMatrix = matrix;
 
-		[[maybe_unused]] glm::vec4 perspective;
-		glm::vec3 scale;
-		glm::vec3 skew;
+		[[maybe_unused]] glm::vec4 perspective {};
+		glm::vec3 scale {};
+		glm::vec3 skew {};
 
 		// Normalize the matrix
 		if ( glm::epsilonEqual( localMatrix[ 3 ][ 3 ], 0.0f, glm::epsilon< float >() ) )
@@ -97,7 +97,7 @@ namespace fgl::engine
 		localMatrix[ 3 ] = glm::vec4( 0, 0, 0, localMatrix[ 3 ].w );
 
 		// Extract scale and skew
-		glm::vec3 row[ 3 ];
+		std::array< glm::vec3, 3 > row {};
 		for ( int i = 0; i < 3; i++ ) row[ i ] = glm::vec3( localMatrix[ i ] );
 
 		// Compute X scale and normalize first row

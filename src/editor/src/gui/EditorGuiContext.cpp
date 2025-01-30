@@ -98,9 +98,11 @@ namespace fgl::editor
 	{
 		ZoneScoped;
 		auto timer = debug::timing::push( "Draw ImGui" );
-		ImGui::ShowDemoWindow();
+		// ImGui::ShowDemoWindow();
 
 		gui::drawDock();
+
+		gui::drawMenubar( info );
 
 		gui::drawCameraOutputs( info );
 		gui::drawEntityGUI( info );

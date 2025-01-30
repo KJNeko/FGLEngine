@@ -8,53 +8,12 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <imgui.h>
+
+#include "editor/src/gui/helpers.hpp"
 #pragma GCC diagnostic pop
 
 namespace fgl::engine
 {
-
-	void inputRotation( const char* label, Rotation& rot, const float speed )
-	{
-		enum Axis
-		{
-			Pitch = 0,
-			Yaw = 1,
-			Roll = 2
-		};
-
-		glm::vec3 dat { glm::degrees( rot.euler() ) };
-		const glm::vec3 c_dat { dat };
-
-		assert( &dat.x + 1 == &dat.y );
-		assert( &dat.y + 1 == &dat.z );
-
-		ImGui::DragFloat3( label, &dat.x, speed );
-
-		const glm::vec3 diff { c_dat - dat };
-		constexpr float epsilon { std::numeric_limits< float >::epsilon() };
-
-		const glm::vec< 3, bool > changed_high { glm::greaterThanEqual( diff, glm::vec3( epsilon ) ) };
-		const glm::vec< 3, bool > changed_low { glm::lessThanEqual( diff, glm::vec3( -epsilon ) ) };
-		const glm::vec< 3, bool > changed { changed_high || changed_low };
-
-		// Convert back to radians
-		dat = glm::radians( dat );
-
-		if ( changed[ Pitch ] )
-		{
-			rot.setX( dat[ Pitch ] );
-		}
-
-		if ( changed[ Roll ] )
-		{
-			rot.setZ( dat[ Roll ] );
-		}
-
-		if ( changed[ Yaw ] )
-		{
-			rot.setY( dat[ Yaw ] );
-		}
-	}
 
 	void drawComponentTransform( ComponentTransform& transform )
 	{
@@ -64,7 +23,7 @@ namespace fgl::engine
 
 			ImGui::DragFloat3( "Position", &transform.translation.x, speed );
 
-			inputRotation( "Rotation", transform.rotation, speed );
+			gui::dragFloat3Rot( "Rotation", transform.rotation );
 
 			ImGui::DragFloat3( "Scale", &transform.scale.x, speed );
 		}

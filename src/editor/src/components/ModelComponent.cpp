@@ -11,12 +11,9 @@
 namespace fgl::engine
 {
 
-#ifdef TITOR_EDITOR
 	void ModelComponent::drawImGui()
 	{
 		drawComponentTransform( m_transform );
-
-		//ImGui::Text( "MODEL COMPONENT WOOOOOO" );
 
 		// TODO: If the model is not set then we should be able to set it to one from the file selection
 		if ( this->m_model == nullptr )
@@ -30,13 +27,17 @@ namespace fgl::engine
 		ImGui::Text( "%i primitives", model.m_primitives.size() );
 	}
 
-	std::string_view ModelComponent::name() const
+	std::string_view ModelComponent::humanName() const
 	{
 		if ( !m_model ) return "Empty";
 
 		return m_model->getName();
 	}
-#endif
+
+	std::string_view ModelComponent::className() const
+	{
+		return "ModelComponent";
+	}
 
 	Model* ModelComponent::operator->()
 	{

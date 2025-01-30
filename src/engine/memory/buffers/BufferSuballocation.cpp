@@ -105,8 +105,6 @@ namespace fgl::engine::memory
 
 	BufferSuballocation::~BufferSuballocation()
 	{
-		if ( m_handle.use_count() > 1 ) [[unlikely]]
-			log::debug( "Destroyed buffer suballocation with {} use counts", m_handle.use_count() );
 	}
 
 	SuballocationView BufferSuballocation::view( const vk::DeviceSize offset, const vk::DeviceSize size ) const

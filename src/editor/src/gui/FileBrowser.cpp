@@ -222,7 +222,7 @@ namespace fgl::engine::filesystem
 		ImGui::PopID();
 	}
 
-	FileBrowser::FileBrowser()
+	FileBrowser::FileBrowser() : m_current_dir( std::make_unique< DirInfo >( TEST_PATH ) )
 	{
 		m_folder_texture = getTextureStore().load( "./assets/folder.png", vk::Format::eR8G8B8A8Unorm );
 		m_file_texture = getTextureStore().load( "./assets/file.png", vk::Format::eR8G8B8A8Unorm );

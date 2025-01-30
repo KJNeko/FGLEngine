@@ -17,7 +17,7 @@ namespace fgl::engine
 	void GameObjectComponentBase::drawNode( GameObjectComponentPtr& selected_out )
 	{
 		ImGui::Indent( INDENT_AMOUNT );
-		if ( ImGui::Selectable( this->name().data() ) )
+		if ( ImGui::Selectable( this->name().data(), selected_out == this ) )
 		{
 			selected_out = this;
 		}

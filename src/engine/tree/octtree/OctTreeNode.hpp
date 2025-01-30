@@ -90,7 +90,7 @@ namespace fgl::engine
 
 		//! returns true if this node should contain the given object
 		bool canContain( const GameObject& obj ) const;
-		bool canContain( const WorldCoordinate& obj ) const;
+		bool canContain( const WorldCoordinate& coord ) const;
 
 		GameObject extract( GameObject::GameObjectID id );
 

@@ -26,14 +26,27 @@ namespace fgl::engine::gui
 
 	void drawComponentsList( GameObject& game_object )
 	{
+		ImGui::PushStyleVar( ImGuiStyleVar_ChildRounding, 5.0f );
+		ImGui::BeginChild(
+			"ComponentsList",
+			ImVec2( 0, 0 ),
+			ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Border | ImGuiChildFlags_ResizeY );
+
 		ImGui::SeparatorText( "Components" );
 
-		for ( const GameObjectComponentPtr component : game_object.getComponents() )
+		const auto& components { game_object.getComponents() };
+
+		for ( const GameObjectComponentPtr component : components )
 		{
 			component->drawNode( SELECTED_COMPONENT );
 		}
 
-		if ( SELECTED_COMPONENT != nullptr )
+		ImGui::EndChild();
+		ImGui::PopStyleVar();
+
+		ImGui::BeginChild( "Selected", ImVec2( 0, 0 ), ImGuiChildFlags_Border );
+
+		if ( SELECTED_COMPONENT != nullptr && std::ranges::find( components, SELECTED_COMPONENT ) != components.end() )
 		{
 			ImGui::SeparatorText( "Selected Component" );
 
@@ -41,6 +54,12 @@ namespace fgl::engine::gui
 			SELECTED_COMPONENT->drawImGui();
 			ImGui::PopID();
 		}
+		else
+		{
+			ImGui::SeparatorText( "No component selected" );
+		}
+
+		ImGui::EndChild();
 	}
 
 } // namespace fgl::engine::gui

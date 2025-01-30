@@ -8,8 +8,6 @@
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/quaternion.hpp>
 
-#include <stdexcept>
-
 #include "engine/FGL_DEFINES.hpp"
 #include "engine/constants.hpp"
 
@@ -20,8 +18,9 @@ namespace fgl::engine
 
 	glm::quat toQuat( const float roll, const float pitch, const float yaw )
 	{
-		/*
-		const glm::vec3 euler { x / 2.0f, y / 2.0f, z / 2.0f };
+		static_assert( 0.0f / 2.0f == 0.0f );
+
+		const glm::vec3 euler { roll / 2.0f, -pitch / 2.0f, yaw / 2.0f };
 		const glm::vec3 sin { glm::sin( euler ) };
 		const glm::vec3 cos { glm::cos( euler ) };
 
@@ -30,16 +29,17 @@ namespace fgl::engine
 		q.x = sin.x * cos.y * cos.z - cos.x * sin.y * sin.z;
 		q.y = cos.x * sin.y * cos.z + sin.x * cos.y * sin.z;
 		q.z = cos.x * cos.y * sin.z - sin.x * sin.y * cos.z;
-		*/
 
+		/*
 		const glm::quat q_x { glm::angleAxis( roll, constants::WORLD_X ) }; // Roll
 		const glm::quat q_y { glm::angleAxis( -pitch, constants::WORLD_Y ) }; // Pitch
 		// In order to get it so that PITCH+ is UP we must invert the pitch
 		const glm::quat q_z { glm::angleAxis( yaw, constants::WORLD_Z ) }; // Yaw
 
 		const glm::quat q { q_z * q_y * q_x };
+		*/
 
-		return q;
+		return glm::normalize( q );
 	}
 
 	Rotation::Rotation( const float x_i, const float y_i, const float z_i ) : glm::quat( toQuat( x_i, y_i, z_i ) )
@@ -83,30 +83,30 @@ namespace fgl::engine
 		const float cosp { std::sqrt( 1.0f - 2.0f * ( w * y - x * z ) ) };
 
 		// We must invert the pitch in order to 'fix' it after being flipped in the constructor and add functions
-		return -( 2.0f * std::atan2( sinp, cosp ) - std::numbers::pi_v< float > / 2.0f );
+		return -( ( 2.0f * std::atan2( sinp, cosp ) ) - ( std::numbers::pi_v< float > / 2.0f ) );
 	}
 
 	float Rotation::zAngle() const
 	{
 		// Extract Z angle from quaternion
 		const float siny_cosp { 2.0f * ( w * z + x * y ) };
-		const float cosy_cosp { 1.0f - 2.0f * ( y * y + z * z ) };
+		const float cosy_cosp { 1.0f - ( 2.0f * ( y * y + z * z ) ) };
 		return std::atan2( siny_cosp, cosy_cosp );
 	}
 
 	void Rotation::setX( [[maybe_unused]] const float value )
 	{
-		FGL_UNIMPLEMENTED();
+		*this = Rotation( value, yAngle(), zAngle() );
 	}
 
 	void Rotation::setY( [[maybe_unused]] const float value )
 	{
-		FGL_UNIMPLEMENTED();
+		*this = Rotation( xAngle(), value, zAngle() );
 	}
 
 	void Rotation::setZ( [[maybe_unused]] const float value )
 	{
-		FGL_UNIMPLEMENTED();
+		*this = Rotation( xAngle(), yAngle(), value );
 	}
 
 	void Rotation::addX( const float value )

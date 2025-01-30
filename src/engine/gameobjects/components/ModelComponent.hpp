@@ -23,7 +23,8 @@ namespace fgl::engine
 
 		void drawImGui() override;
 
-		std::string_view name() const override;
+		std::string_view humanName() const override;
+		std::string_view className() const override;
 
 		virtual ~ModelComponent() override
 		{}

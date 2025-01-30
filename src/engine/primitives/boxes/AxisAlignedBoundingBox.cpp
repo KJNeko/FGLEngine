@@ -117,8 +117,8 @@ namespace fgl::engine
 	}
 
 	template < CoordinateSpace CType >
-	AxisAlignedBoundingBox< CType >& AxisAlignedBoundingBox< CType >::combine( const OrientedBoundingBox< CType >&
-	                                                                               other )
+	AxisAlignedBoundingBox< CType >& AxisAlignedBoundingBox<
+		CType >::combine( const OrientedBoundingBox< CType >& other )
 	{
 		const auto other_trf { other.topRightForward() };
 		const auto other_blb { other.bottomLeftBack() };

@@ -58,9 +58,7 @@ namespace fgl::engine
 	template < typename T >
 	concept is_component = requires( T t ) {
 		std::is_base_of_v< T, ComponentEngineInterface >;
-		{
-			t.ID
-		} -> std::same_as< const ComponentEngineInterface::ComponentID& >;
+		{ t.ID } -> std::same_as< const ComponentEngineInterface::ComponentID& >;
 	};
 
 } // namespace fgl::engine

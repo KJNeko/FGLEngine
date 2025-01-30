@@ -52,7 +52,7 @@ namespace fgl::engine
 		m_vertex_buffer->setDebugName( "Vertex buffer" );
 		m_index_buffer->setDebugName( "Index buffer" );
 
-		constexpr float offset { 8.0f };
+		constexpr float offset { 4.0f };
 		constexpr std::size_t grid_size { 6 };
 		constexpr float factor_offset { 1.0f / static_cast< float >( grid_size ) };
 
@@ -87,8 +87,8 @@ namespace fgl::engine
 					}
 
 					obj.getTransform().translation = WorldCoordinate(
-						10.0f + ( static_cast< float >( x ) * offset ),
-						10.0f + ( static_cast< float >( y ) * offset ),
+						-5.0f + ( static_cast< float >( x ) * offset ),
+						-5.0f + ( static_cast< float >( y ) * offset ),
 						0.0f );
 
 					m_game_objects_root.addGameObject( std::move( obj ) );

@@ -95,7 +95,6 @@ namespace fgl::engine
 	{
 		vk::DebugUtilsObjectNameInfoEXT info {};
 
-		log::debug( "Setting name of image to {}", str );
 		m_name = str;
 
 		info.objectType = vk::ObjectType::eImage;

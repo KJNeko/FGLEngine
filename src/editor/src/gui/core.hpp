@@ -20,6 +20,8 @@ namespace fgl::engine::gui
 
 	void drawDock();
 
+	void drawMenubar( FrameInfo& info );
+
 	void drawImGui( FrameInfo& );
 	void drawEntityGUI( FrameInfo& );
 

@@ -72,7 +72,6 @@ namespace fgl::engine
 
 		Scale& getScale() { return m_transform.scale; }
 
-
 		template < typename T >
 			requires is_component< T >
 		bool hasComponent() const
