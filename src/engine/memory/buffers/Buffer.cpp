@@ -329,8 +329,14 @@ namespace fgl::engine::memory
 		m_allocations.erase( itter );
 
 		if ( info.m_offset >= this->size() ) throw std::runtime_error( "Offset was outside of bounds of buffer" );
-		if ( info.m_offset + info.m_size >= this->size() )
-			throw std::runtime_error( "Offset + m_size was outside of bounds of buffer" );
+		if ( info.m_offset + info.m_size > this->size() )
+			throw std::runtime_error(
+				std::format(
+					"m_offset + m_size was outside the bounds of the buffer ({} + {} == {} >= {})",
+					info.m_offset,
+					info.m_size,
+					info.m_offset + info.m_size,
+					size() ) );
 
 		//Add the block back to the free blocks
 		m_free_blocks.emplace_back( info.m_offset, info.m_size );
