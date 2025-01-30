@@ -7,4 +7,6 @@ layout(location = 0) in vec3 in_color;
 void main() {
     out_color = vec4(in_color, 1.0f);
     out_normal = vec4(1.0f);
+    out_position = gl_FragCoord.xyz;
+    out_metallic = vec3(0.0, 0.0, 0.0);
 }
