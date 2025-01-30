@@ -151,16 +151,15 @@ namespace fgl::engine::gui
 		ZoneScoped;
 		ImGui::Begin( OBJECT_TREE_VIEW_NAME );
 
-		itterateGameObjectNode( info, info.game_objects );
+		// itterateGameObjectNode( info, info.game_objects );
 
-		/*
 		for ( OctTreeNodeLeaf* leaf : info.game_objects.getAllLeafs() )
 		{
 			for ( GameObject& entity : *leaf )
 			{
 				ImGui::PushID( entity.getId() );
 
-				if ( ImGui::Selectable( entity.getName().c_str() ) )
+				if ( ImGui::Selectable( entity.getName().c_str(), selected_object == &entity ) )
 				{
 					selected_object = &entity;
 				}
@@ -168,7 +167,6 @@ namespace fgl::engine::gui
 				ImGui::PopID();
 			}
 		}
-		*/
 
 		ImGui::End();
 	}
