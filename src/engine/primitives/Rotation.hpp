@@ -25,7 +25,17 @@ namespace fgl::engine
 namespace fgl::engine
 {
 
-	//TODO: Add in ability to use `operator+=` on return values for xAngle for local and world rotations
+	/*
+
+	TODO: Fix the singularity issue. Upon reaching +90y if x & z are both 0.0f then a singularity is entered and gimal locking occurs.
+
+	The fix for this seems to be detecting the singularity and doing a different formula for quat -> euler converstions.
+
+	There is also an issue with the editor in that it is impossible to reach beyond +90y because of how the math comes out.
+	The X and Z rapidly swap from +/-
+
+	This swapping effect also hapens on quaternions.online, So it might be that both our implementations have some sort of fix
+	 */
 
 	struct Rotation : private glm::quat
 	{
