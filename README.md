@@ -58,4 +58,3 @@ Long term plans:
 - Explicit model loading control. ( Allows for better control of model loading )
 - Scripts ( Eventually )
 - Multicore focus.
-- Compile-time pipeline checks for shaders.
