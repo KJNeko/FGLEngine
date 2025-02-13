@@ -15,7 +15,7 @@ target_link_libraries(FGLEngine PUBLIC stdc++exp)
 include(dependencies/spdlog)
 include(dependencies/imgui)
 
-target_link_libraries(FGLEngine PUBLIC Vulkan::Vulkan glm ImGui FGLLoader spdlog shaderc)
+target_link_libraries(FGLEngine PUBLIC Vulkan::Vulkan glm ImGui FGLLoader spdlog slang)
 target_link_libraries(FGLEngine PUBLIC glfw Tracy::TracyClient VMA)
 target_include_directories(FGLEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
 target_compile_features(FGLEngine PUBLIC cxx_std_23)
@@ -38,8 +38,11 @@ endif ()
 
 if (DEFINED FGL_ENABLE_TESTS AND FGL_ENABLE_TESTS)
 	target_compile_definitions(FGLEngine PUBLIC FGL_TESTS=1)
+	target_compile_definitions(FGLEngine PUBLIC FGL_ENABLE_TEST_ASSERT=1)
+	target_link_libraries(FGLEngine PUBLIC Catch2::Catch2)
 else ()
 	target_compile_definitions(FGLEngine PUBLIC FGL_TESTS=0)
+	target_compile_definitions(FGLEngine PUBLIC FGL_ENABLE_TEST_ASSERT=0)
 endif ()
 
 # Enable tracking for buffers, I need to find some way to disable this when trying to link

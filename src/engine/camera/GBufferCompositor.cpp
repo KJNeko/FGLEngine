@@ -63,8 +63,8 @@ namespace fgl::engine
 
 		builder.setPushConstant( vk::ShaderStageFlagBits::eFragment, sizeof( CompositionControl ) );
 
-		builder.setVertexShader( Shader::loadVertex( "shaders/fullscreen.vert" ) );
-		builder.setFragmentShader( Shader::loadFragment( "shaders/composition.frag" ) );
+		builder.setVertexShader( Shader::loadVertex( "shaders/composition.slang" ) );
+		builder.setFragmentShader( Shader::loadFragment( "shaders/composition.slang" ) );
 
 		builder.disableCulling();
 		builder.disableVertexInput();

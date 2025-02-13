@@ -5,6 +5,7 @@
 #include "Shader.hpp"
 
 #include <fstream>
+#include <utility>
 
 #include "engine/debug/logging/logging.hpp"
 #include "engine/rendering/devices/Device.hpp"
@@ -13,19 +14,35 @@
 namespace fgl::engine
 {
 
-	std::vector< std::byte > Shader::loadData( const std::filesystem::path& path )
+	std::string entrypointName( const ShaderType type, vk::PipelineShaderStageCreateInfo& info )
+	{
+		std::string str {};
+
+		switch ( type )
+		{
+			case Vertex:
+				str = "vertexMain";
+				break;
+			case Fragment:
+				str = "fragmentMain";
+				break;
+			case Compute:
+				str = "computeMain";
+				break;
+			default:
+				throw std::runtime_error( "Invalid shader stage flags" );
+		}
+
+		info.setPName( str.c_str() );
+
+		return str;
+	}
+
+	std::vector< std::byte > Shader::loadData( const std::filesystem::path& path, const ShaderType type )
 	{
 		if ( auto ifs = std::ifstream( path, std::ios::binary | std::ios::ate ); ifs )
 		{
-			std::vector< std::byte > data {};
-			data.resize( ifs.tellg() );
-			ifs.seekg( 0, std::ios::beg );
-
-			static_assert( sizeof( std::ifstream::char_type ) == sizeof( std::byte ) );
-
-			ifs.read( reinterpret_cast< std::ifstream::char_type* >( data.data() ), data.size() );
-
-			return compileShader( path.filename().string(), data );
+			return compileShader( path, type );
 		}
 		else
 		{
@@ -45,28 +62,32 @@ namespace fgl::engine
 		return module_info;
 	}
 
-	Shader::Shader( const std::filesystem::path& path, const vk::PipelineShaderStageCreateInfo& info ) :
-	  m_path( path ),
-	  shader_data( loadData( m_path ) ),
-	  module_create_info( createModuleInfo() ),
+	Shader::Shader( std::filesystem::path path, const vk::PipelineShaderStageCreateInfo& info, const ShaderType type ) :
+	  m_type( type ),
 	  stage_info( info ),
+	  m_entrypoint_name( entrypointName( type, stage_info ) ),
+	  m_path( std::move( path ) ),
+	  shader_data( loadData( m_path, type ) ),
+	  module_create_info( createModuleInfo() ),
 	  shader_module( Device::getInstance()->createShaderModule( module_create_info ) )
 	{
+		FGL_ASSERT( stage_info.pName == m_entrypoint_name.c_str(), "Entry point name mismatch" );
+		log::debug( "Created shader {}", stage_info.pName );
 		stage_info.module = shader_module;
 	}
 
-	std::shared_ptr< Shader > Shader::
-		loadShader( std::filesystem::path path, const vk::ShaderStageFlagBits stage_flags )
+	std::shared_ptr< Shader > Shader::loadShader(
+		const std::filesystem::path& path, const vk::ShaderStageFlagBits stage_flags, const ShaderType type )
 	{
 		std::filesystem::path full_path { std::filesystem::current_path() / path };
 
 		vk::PipelineShaderStageCreateInfo stage_info {};
 		stage_info.stage = stage_flags;
 		stage_info.flags = {};
-		stage_info.pName = "main";
+		stage_info.pName = nullptr;
 		stage_info.pSpecializationInfo = VK_NULL_HANDLE;
 
-		auto shader { std::make_shared< Shader >( path, stage_info ) };
+		auto shader { std::make_shared< Shader >( path, stage_info, type ) };
 
 		return shader;
 	}
@@ -74,7 +95,7 @@ namespace fgl::engine
 	void Shader::reload()
 	{
 		log::debug( "Reloading shader at {}", m_path.string() );
-		shader_data = loadData( m_path );
+		shader_data = loadData( m_path, m_type );
 		module_create_info = createModuleInfo();
 		shader_module = Device::getInstance()->createShaderModule( module_create_info );
 		stage_info.module = shader_module;

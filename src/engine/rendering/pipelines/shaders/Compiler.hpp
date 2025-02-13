@@ -3,19 +3,18 @@
 //
 
 #pragma once
-#include <string_view>
+#include <filesystem>
 #include <vector>
-
-namespace shaderc
-{
-	class Compiler;
-}
 
 namespace fgl::engine
 {
+	enum ShaderType
+	{
+		Vertex,
+		Fragment,
+		Compute
+	};
 
-	shaderc::Compiler& getInstance();
-
-	std::vector< std::byte > compileShader( const std::string_view input_name, const std::vector< std::byte >& input );
+	std::vector< std::byte > compileShader( const std::filesystem::path& input_name, ShaderType type );
 
 } // namespace fgl::engine

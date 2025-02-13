@@ -25,8 +25,8 @@ namespace fgl::engine
 		builder.setAttributeDescriptions( SimpleVertex::getAttributeDescriptions() );
 		builder.setBindingDescriptions( SimpleVertex::getBindingDescriptions() );
 
-		builder.setVertexShader( Shader::loadVertex( "shaders/fullscreen.vert" ) );
-		builder.setFragmentShader( Shader::loadFragment( "shaders/gui-compose.frag" ) );
+		builder.setVertexShader( Shader::loadVertex( "shaders/gui-compose.slang" ) );
+		builder.setFragmentShader( Shader::loadFragment( "shaders/gui-compose.slang" ) );
 
 		builder.addColorAttachment().setFormat( pickPresentFormat() ).finish();
 

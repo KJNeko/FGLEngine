@@ -31,7 +31,7 @@ include(dependencies/glm)
 include(cmake_modules/dependencies/tracy.cmake)
 include(dependencies/vulkan)
 include(dependencies/catch2)
-include(dependencies/shaderc)
+includE(dependencies/slang)
 
 add_subdirectory(src)
 

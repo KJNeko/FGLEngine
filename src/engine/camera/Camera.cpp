@@ -265,7 +265,7 @@ namespace fgl::engine
 	{
 		const auto& [ pos, scale, rotation ] = m_transform;
 
-		const auto rotation_matrix { rotation.mat() };
+		const auto rotation_matrix { rotation.mat3() };
 
 		const glm::vec3 forward { rotation_matrix * glm::vec4( constants::WORLD_FORWARD, 0.0f ) };
 
@@ -346,6 +346,7 @@ namespace fgl::engine
 			auto set { camera_descriptor_set.create() };
 			set->bindUniformBuffer( 0, m_camera_frame_info[ i ] );
 			set->update();
+			set->setName( std::format( "Camera {} descriptor set {}", m_camera_idx, i ) );
 
 			m_camera_info_descriptors.emplace_back( std::move( set ) );
 		}

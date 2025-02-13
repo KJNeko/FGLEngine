@@ -55,3 +55,6 @@
 [submodule "fgl_cmake_modules"]
 	path = fgl_cmake_modules
 	url = https://github.com/KJNeko/fgl_cmake_modules.git
+[submodule "dependencies/slang"]
+	path = dependencies/slang
+	url = https://github.com/shader-slang/slang.git

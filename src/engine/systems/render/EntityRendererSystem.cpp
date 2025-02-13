@@ -22,6 +22,7 @@ namespace fgl::engine
 	{
 		ZoneScoped;
 
+		/*
 		{
 			// PipelineConfigInfo standard_info { render_pass };
 			// PipelineConfigInfo::addGBufferAttachmentsConfig( standard_info );
@@ -42,6 +43,7 @@ namespace fgl::engine
 
 			m_standard_pipeline->setDebugName( "Standard entity pipeline" );
 		}
+		*/
 
 		{
 			// PipelineConfigInfo textured_info { render_pass };
@@ -55,8 +57,8 @@ namespace fgl::engine
 			builder.addDescriptorSet( Texture::getDescriptorLayout() );
 			builder.addDescriptorSet( Material::getDescriptorLayout() );
 
-			builder.setFragmentShader( Shader::loadFragment( "shaders/textured-gbuffer.frag" ) );
-			builder.setVertexShader( Shader::loadVertex( "shaders/textured-gbuffer.vert" ) );
+			builder.setFragmentShader( Shader::loadFragment( "shaders/textured.slang" ) );
+			builder.setVertexShader( Shader::loadVertex( "shaders/textured.slang" ) );
 
 			builder.setAttributeDescriptions( ModelVertex::getAttributeDescriptions() );
 			builder.setBindingDescriptions( ModelVertex::getBindingDescriptions() );

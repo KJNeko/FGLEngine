@@ -6,200 +6,161 @@
 
 #include <cassert>
 #include <fstream>
+#include <slang-com-ptr.h>
 
 #include "engine/FGL_DEFINES.hpp"
 #include "engine/constants.hpp"
 #include "engine/debug/logging/logging.hpp"
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
-#include <shaderc/shaderc.hpp>
-#pragma GCC diagnostic pop
+#include "rendering/pipelines/Shader.hpp"
 
 namespace fgl::engine
 {
 
-	inline static std::unique_ptr< shaderc::Compiler > compiler;
-
-	shaderc::Compiler& getInstance()
+	void checkDiag( Slang::ComPtr< slang::IBlob >& diag )
 	{
-		if ( !compiler )
-		{
-			compiler = std::make_unique< shaderc::Compiler >();
-		}
+		if ( !diag ) return;
 
-		FGL_ASSERT( compiler, "Compiler invalid!" );
-
-		return *compiler;
+		log::error( static_cast< const char* >( diag->getBufferPointer() ) );
+		throw std::logic_error( "unexpected diagnostic" );
 	}
 
-	shaderc_shader_kind getShaderKindFromName( const std::string_view str )
-	{
-		if ( str.ends_with( ".frag" ) ) return shaderc_shader_kind::shaderc_fragment_shader;
-		if ( str.ends_with( ".vert" ) ) return shaderc_shader_kind::shaderc_vertex_shader;
+	struct ShaderVertexFlags
+	{};
 
-		throw std::runtime_error( "Unknown shader type!" );
-	}
+	struct ShaderFragmentFlags
+	{};
 
-	class Includer : public shaderc::CompileOptions::IncluderInterface
+	using ShaderLayoutFlags = std::variant< ShaderVertexFlags, ShaderFragmentFlags >;
+
+	std::vector< std::byte > compileShader( const std::filesystem::path& path, const ShaderType type )
 	{
-		struct DataHolder
-		{
-			std::filesystem::path source_path {};
-			std::vector< char > content {};
+		using namespace slang;
+
+		Slang::ComPtr< IGlobalSession > global_session {};
+		SlangGlobalSessionDesc global_desc {};
+
+		global_desc.enableGLSL = true;
+
+		createGlobalSession( &global_desc, global_session.writeRef() );
+
+		SessionDesc session_desc {};
+
+		std::array< CompilerOptionEntry, 1 > options {
+			{ { CompilerOptionName::VulkanUseEntryPointName,
+			    { .kind = CompilerOptionValueKind::Int, .intValue0 = 1 } } }
 		};
 
-		shaderc_include_result* GetInclude(
-			const char* requested_source,
-			shaderc_include_type type,
-			const char* requesting_source,
-			size_t include_depth ) override;
+		session_desc.compilerOptionEntries = options.data();
+		session_desc.compilerOptionEntryCount = options.size();
 
-		void ReleaseInclude( shaderc_include_result* data ) override;
-	};
+		TargetDesc target_desc {};
+		target_desc.format = SLANG_SPIRV;
+		target_desc.profile = global_session->findProfile( "glsl_450" );
 
-	shaderc_include_result* Includer::GetInclude(
-		const char* requested_source,
-		[[maybe_unused]] shaderc_include_type type,
-		const char* requesting_source,
-		[[maybe_unused]] size_t include_depth )
-	{
-		const std::string_view requsted { requested_source };
-		const std::string_view requster { requesting_source };
+		FGL_ASSERT( target_desc.profile != SLANG_PROFILE_UNKNOWN, "Invalid profile" );
 
-		std::vector< char > file_data {};
+		session_desc.targets = &target_desc;
+		session_desc.targetCount = 1;
 
-		const auto path { std::filesystem::current_path() / "shaders" / requsted };
+		const auto search_path { std::filesystem::path() / "shaders" };
+		const std::string search_path_str { search_path.string() };
+		const char* const search_pathr_str_ptr { search_path_str.data() };
+		session_desc.searchPaths = &search_pathr_str_ptr;
+		session_desc.searchPathCount = 1;
 
-		if ( std::ifstream ifs( path ); ifs )
+		Slang::ComPtr< ISession > session {};
+		global_session->createSession( session_desc, session.writeRef() );
+
+		const auto module_name { path.filename().string() };
+
+		Slang::ComPtr< IBlob > diagnostics;
+		IModule* module { session->loadModule( module_name.c_str(), diagnostics.writeRef() ) };
+
+		checkDiag( diagnostics );
+
+		FGL_ASSERT( module != nullptr, "Invalid module" );
+
+		std::string entry_point_name {};
+
+		switch ( type )
 		{
-			file_data.resize( std::filesystem::file_size( path ) );
-
-			ifs.read( file_data.data(), file_data.size() );
-		}
-		else
-		{
-			log::error( "Failed to find include {} for {}", path, requster );
-			//throw std::runtime_error( std::format( "Failed to open include file {} for file {}", requsted, requster ) );
-
-			auto error_return { new shaderc_include_result() };
-			error_return->user_data = nullptr;
-			error_return->source_name = "";
-			error_return->source_name_length = 0;
-			error_return->content = "Failed to find include for requsted file";
-
-			return error_return;
-		}
-
-		auto* data_holder { new DataHolder( path, std::move( file_data ) ) };
-
-		auto data { new shaderc_include_result() };
-		data->user_data = data_holder;
-		data->content = data_holder->content.data();
-		data->content_length = data_holder->content.size();
-		data->source_name = data_holder->source_path.c_str();
-		data->source_name_length = data_holder->source_path.string().size();
-
-		return data;
-	}
-
-	void Includer::ReleaseInclude( shaderc_include_result* data )
-	{
-		delete static_cast< DataHolder* >( data->user_data );
-		delete data;
-	}
-
-	std::vector< std::byte > compileShader( const std::string_view input_name, const std::vector< std::byte >& input )
-	{
-		shaderc::CompileOptions options {};
-
-		options.SetTargetEnvironment( shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_3 );
-
-		options.SetIncluder( std::make_unique< Includer >() );
-
-#ifndef NDEBUG
-		options.SetOptimizationLevel( shaderc_optimization_level_zero );
-#else
-		options.SetOptimizationLevel( shaderc_optimization_level_performance );
-#endif
-
-		options.SetVulkanRulesRelaxed( false );
-
-		// Add macro defs to the shader
-		options.AddMacroDefinition( "INVALID_TEXTURE_ID", std::to_string( constants::INVALID_TEXTURE_ID ) );
-		options.AddMacroDefinition( "NEAR_PLANE", std::to_string( constants::NEAR_PLANE ) );
-		options.AddMacroDefinition( "FAR_PLANE", std::to_string( constants::FAR_PLANE ) );
-
-		// Helpful constants
-		options.AddMacroDefinition( "PI", std::to_string( std::numbers::pi_v< float > ) );
-
-		const shaderc_shader_kind kind { getShaderKindFromName( input_name ) };
-
-		const auto preprocessed_source { getInstance().PreprocessGlsl(
-			reinterpret_cast< const char* >( input.data() ), input.size(), kind, input_name.data(), options ) };
-
-		const auto result { getInstance().CompileGlslToSpv(
-			reinterpret_cast< const char* >( input.data() ), input.size(), kind, input_name.data(), options ) };
-
-		switch ( result.GetCompilationStatus() )
-		{
-			case shaderc_compilation_status_success:
+			case ShaderType::Compute:
+				entry_point_name = "computeMain";
 				break;
-			case shaderc_compilation_status_compilation_error:
-				log::critical(
-					"Compilation error when compiling shader {} with error: {}", input_name, result.GetErrorMessage() );
-				throw std::runtime_error( "Failed to compile shader" );
+			case Vertex:
+				entry_point_name = "vertexMain";
+				break;
+			case Fragment:
+				entry_point_name = "fragmentMain";
+				break;
 			default:
-				[[fallthrough]];
-			case shaderc_compilation_status_internal_error:
-				log::critical(
-					"internal error while compiling shader {} with error: {}", input_name, result.GetErrorMessage() );
-				throw std::runtime_error( "Failed to compile shader" );
-				[[fallthrough]];
-			case shaderc_compilation_status_null_result_object:
-				log::critical(
-					"null result object when compiling shader {} with error: {}",
-					input_name,
-					result.GetErrorMessage() );
-				throw std::runtime_error( "Failed to compile shader" );
-				[[fallthrough]];
-			case shaderc_compilation_status_invalid_assembly:
-				log::critical( "Failed to compile shader {} with error: {}", input_name, result.GetErrorMessage() );
-				throw std::runtime_error( "Failed to compile shader" );
-				[[fallthrough]];
-			case shaderc_compilation_status_validation_error:
-				log::critical( "Failed to compile shader {} with error: {}", input_name, result.GetErrorMessage() );
-				throw std::runtime_error( "Failed to compile shader" );
-			case shaderc_compilation_status_transformation_error:
-				log::critical( "Failed to compile shader {} with error: {}", input_name, result.GetErrorMessage() );
-				throw std::runtime_error( "Failed to compile shader" );
-			case shaderc_compilation_status_invalid_stage:
-				log::critical( "Failed to compile shader {} with error: {}", input_name, result.GetErrorMessage() );
-				throw std::runtime_error( "Failed to compile shader" );
-			case shaderc_compilation_status_configuration_error:
-				log::critical( "Failed to compile shader {} with error: {}", input_name, result.GetErrorMessage() );
-				throw std::runtime_error( "Failed to compile shader" );
-				break;
+				throw std::logic_error( "Invalid shader type" );
 		}
 
-		log::debug( "Compiled shader {}", input_name );
+		Slang::ComPtr< IEntryPoint > entry_point {};
+		module->findEntryPointByName( entry_point_name.c_str(), entry_point.writeRef() );
 
-		std::vector< std::byte > output {};
-		output.reserve( result.cend() - result.cbegin() );
+		std::array< IComponentType*, 2 > components { module, entry_point };
+		Slang::ComPtr< IComponentType > program;
+		session->createCompositeComponentType(
+			components.data(), components.size(), program.writeRef(), diagnostics.writeRef() );
+		checkDiag( diagnostics );
 
-		for ( const auto& word : result )
+		Slang::ComPtr< IComponentType > linked_program {};
+
+		program->link( linked_program.writeRef(), diagnostics.writeRef() );
+		checkDiag( diagnostics );
+
+		const auto parent_path { path.parent_path() };
+
 		{
-			output.insert(
-				output.end(),
-				reinterpret_cast< const std::byte* >( &word ),
-				reinterpret_cast< const std::byte* >( &word ) + sizeof( std::remove_reference_t< decltype( word ) > ) );
+			slang::ProgramLayout* layout { linked_program->getLayout() };
+
+			Slang::ComPtr< IBlob > json_glob {};
+			layout->toJson( json_glob.writeRef() );
+
+			log::debug(
+				"Shader layout: {}",
+				std::string_view(
+					static_cast< const char* >( json_glob->getBufferPointer() ), json_glob->getBufferSize() ) );
+
+			/*
+			if ( std::ofstream
+			         ofs( path.parent_path()
+			              / std::format( "{}-{}.json", path.filename().string(), entry_point_name ) );
+			     ofs )
+			{
+				ofs.write( static_cast< const char* >( json_glob->getBufferPointer() ), json_glob->getBufferSize() );
+			}
+			*/
+
+			FGL_ASSERT( layout != nullptr, "Layout must be valid" );
 		}
 
-		// Should be a multiple of 4
-		assert( output.size() % 4 == 0 );
-		assert( output.size() > 0 );
+		int entry_index { 0 };
+		int target_index { 0 };
 
-		return output;
+		Slang::ComPtr< IBlob > kernel_blob {};
+		linked_program->getEntryPointCode( entry_index, target_index, kernel_blob.writeRef(), diagnostics.writeRef() );
+		checkDiag( diagnostics );
+
+		FGL_ASSERT( kernel_blob != nullptr, "Kernel blob is not valid" );
+
+		log::debug( "Compiled shader {} with a length of {}", path.filename().string(), kernel_blob->getBufferSize() );
+
+		// if ( std::ofstream ofs( parent_path / std::format( "{}-{}.bin", path.filename().string(), entry_point_name ) );
+		//      ofs )
+		// {
+		// 	ofs.write(
+		// 		static_cast< const std::ostream::char_type* >( kernel_blob->getBufferPointer() ),
+		// 		kernel_blob->getBufferSize() );
+		// }
+
+		std::vector< std::byte > compiled_code {};
+		compiled_code.resize( kernel_blob->getBufferSize() );
+		std::memcpy( compiled_code.data(), kernel_blob->getBufferPointer(), kernel_blob->getBufferSize() );
+
+		return compiled_code;
 	}
 
 } // namespace fgl::engine

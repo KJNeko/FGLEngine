@@ -8,22 +8,26 @@
 
 #include <filesystem>
 
+#include "shaders/Compiler.hpp"
+
 namespace fgl::engine
 {
 
 	struct Shader
 	{
+		ShaderType m_type;
+		vk::PipelineShaderStageCreateInfo stage_info;
+		std::string m_entrypoint_name;
 		std::filesystem::path m_path;
 		std::vector< std::byte > shader_data;
 		vk::ShaderModuleCreateInfo module_create_info;
-		vk::PipelineShaderStageCreateInfo stage_info;
 
 		vk::raii::ShaderModule shader_module;
 
-		static std::vector< std::byte > loadData( const std::filesystem::path& );
+		static std::vector< std::byte > loadData( const std::filesystem::path&, ShaderType type );
 		vk::ShaderModuleCreateInfo createModuleInfo() const;
 
-		Shader( const std::filesystem::path& path, const vk::PipelineShaderStageCreateInfo& info );
+		Shader( std::filesystem::path path, const vk::PipelineShaderStageCreateInfo& info, ShaderType type );
 
 		Shader( const Shader& other ) = delete;
 
@@ -33,16 +37,17 @@ namespace fgl::engine
 
 		Shader& operator=( Shader&& other ) = delete;
 
-		static std::shared_ptr< Shader > loadShader( std::filesystem::path path, vk::ShaderStageFlagBits stage_flags );
+		static std::shared_ptr< Shader >
+			loadShader( const std::filesystem::path& path, vk::ShaderStageFlagBits stage_flags, ShaderType type );
 
-		inline static std::shared_ptr< Shader > loadVertex( std::filesystem::path path )
+		static std::shared_ptr< Shader > loadVertex( const std::filesystem::path& path )
 		{
-			return loadShader( path, vk::ShaderStageFlagBits::eVertex );
+			return loadShader( path, vk::ShaderStageFlagBits::eVertex, ShaderType::Vertex );
 		}
 
-		inline static std::shared_ptr< Shader > loadFragment( std::filesystem::path path )
+		static std::shared_ptr< Shader > loadFragment( const std::filesystem::path& path )
 		{
-			return loadShader( path, vk::ShaderStageFlagBits::eFragment );
+			return loadShader( path, vk::ShaderStageFlagBits::eFragment, ShaderType::Fragment );
 		}
 
 		//! Reloads the shader from disk

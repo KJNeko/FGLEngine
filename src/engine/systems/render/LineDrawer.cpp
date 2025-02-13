@@ -37,8 +37,8 @@ namespace fgl::engine
 
 		builder.setTopology( vk::PrimitiveTopology::eLineList );
 
-		builder.setVertexShader( Shader::loadVertex( "shaders/line.vert" ) );
-		builder.setFragmentShader( Shader::loadFragment( "shaders/line.frag" ) );
+		builder.setVertexShader( Shader::loadVertex( "shaders/line.slang" ) );
+		builder.setFragmentShader( Shader::loadFragment( "shaders/line.slang" ) );
 
 		builder.addDynamicState( vk::DynamicState::eLineWidth );
 
