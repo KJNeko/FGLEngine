@@ -58,3 +58,11 @@ Long term plans:
 - Explicit model loading control. ( Allows for better control of model loading )
 - Scripts ( Eventually )
 - Multicore focus.
+
+# Building
+
+- Install vulkan sdk with vulkan 1.4 at minimum
+- Clone w/ submodules
+- `cmake -DCMAKE_BUILD_TYPE=Debug -B build`
+- `cmake --build build -j<THREAD_COUNT>`
+- Cry because running it crashes the GPU driver on linux again and validation layers barely prevent it....
