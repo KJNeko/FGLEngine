@@ -4,10 +4,10 @@
 
 #pragma once
 
-//clang-format: off
+// clang-format off
 #include <vulkan/vulkan.hpp>
 #include <tracy/TracyVulkan.hpp>
-//clang-format: on
+// clang-format on
 
 #include "descriptors/Descriptor.hpp"
 #include "descriptors/DescriptorSetLayout.hpp"
