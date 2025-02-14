@@ -5,7 +5,6 @@
 #pragma once
 
 #include "GBufferCompositor.hpp"
-#include "GBufferSwapchain.hpp"
 #include "engine/systems/prerender/CullingSystem.hpp"
 #include "engine/systems/render/EntityRendererSystem.hpp"
 #include "engine/systems/render/LineDrawer.hpp"
@@ -17,8 +16,8 @@ namespace fgl::engine
 	{
 		GBufferCompositor m_compositor;
 
-		void setViewport( const vk::raii::CommandBuffer& command_buffer, vk::Extent2D extent );
-		void setScissor( const vk::raii::CommandBuffer& command_buffer, vk::Extent2D extent );
+		void setViewport( const CommandBuffer& command_buffer, vk::Extent2D extent );
+		void setScissor( const CommandBuffer& command_buffer, vk::Extent2D extent );
 
 		CullingSystem m_culling_system {};
 
@@ -30,10 +29,9 @@ namespace fgl::engine
 		// SubPass 1
 		// CompositionSystem m_composition_system {};
 
-		void beginRenderPass(
-			const vk::raii::CommandBuffer& command_buffer, GBufferSwapchain& swapchain, FrameIndex index );
+		void beginRenderPass( const CommandBuffer& command_buffer, GBufferSwapchain& swapchain, FrameIndex index );
 
-		void endRenderPass( const vk::raii::CommandBuffer& command_buffer );
+		void endRenderPass( const CommandBuffer& command_buffer );
 
 	  public:
 

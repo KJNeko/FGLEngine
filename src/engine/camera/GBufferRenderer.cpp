@@ -5,13 +5,14 @@
 #include "GBufferRenderer.hpp"
 
 #include "Camera.hpp"
+#include "GBufferSwapchain.hpp"
 #include "engine/rendering/renderpass/RenderPass.hpp"
 
 namespace fgl::engine
 {
 	class GBufferSwapchain;
 
-	void GBufferRenderer::setViewport( const vk::raii::CommandBuffer& command_buffer, const vk::Extent2D extent )
+	void GBufferRenderer::setViewport( const CommandBuffer& command_buffer, const vk::Extent2D extent )
 	{
 		vk::Viewport viewport {};
 		viewport.x = 0.0f;
@@ -24,32 +25,32 @@ namespace fgl::engine
 
 		const std::vector< vk::Viewport > viewports { viewport };
 
-		command_buffer.setViewport( 0, viewports );
+		command_buffer->setViewport( 0, viewports );
 	}
 
-	void GBufferRenderer::setScissor( const vk::raii::CommandBuffer& command_buffer, const vk::Extent2D extent )
+	void GBufferRenderer::setScissor( const CommandBuffer& command_buffer, const vk::Extent2D extent )
 	{
 		const vk::Rect2D scissor { { 0, 0 }, extent };
 
 		const std::vector< vk::Rect2D > scissors { scissor };
 
-		command_buffer.setScissor( 0, scissors );
+		command_buffer->setScissor( 0, scissors );
 	}
 
-	void GBufferRenderer::beginRenderPass(
-		const vk::raii::CommandBuffer& command_buffer, GBufferSwapchain& swapchain, const FrameIndex index )
+	void GBufferRenderer::
+		beginRenderPass( const CommandBuffer& command_buffer, GBufferSwapchain& swapchain, const FrameIndex index )
 	{
 		const vk::RenderingInfo info { swapchain.getRenderingInfo( index ) };
 
-		command_buffer.beginRendering( info );
+		command_buffer->beginRendering( info );
 
 		setViewport( command_buffer, swapchain.getExtent() );
 		setScissor( command_buffer, swapchain.getExtent() );
 	}
 
-	void GBufferRenderer::endRenderPass( const vk::raii::CommandBuffer& command_buffer )
+	void GBufferRenderer::endRenderPass( const CommandBuffer& command_buffer )
 	{
-		command_buffer.endRendering();
+		command_buffer->endRendering();
 	}
 
 	void GBufferRenderer::pass( FrameInfo& frame_info, GBufferSwapchain& camera_swapchain )
@@ -57,7 +58,7 @@ namespace fgl::engine
 		ZoneScopedN( "CameraRenderer::pass" );
 		m_culling_system.startPass( frame_info );
 
-		auto& command_buffer { frame_info.command_buffer };
+		auto& command_buffer { frame_info.command_buffer.render_cb };
 
 		camera_swapchain.transitionImages( command_buffer, GBufferSwapchain::INITAL, frame_info.frame_idx );
 

@@ -53,7 +53,7 @@ namespace fgl::engine
 			FINAL
 		};
 
-		void transitionImages( vk::raii::CommandBuffer& command_buffer, std::uint16_t stage_id, FrameIndex index );
+		void transitionImages( CommandBuffer& command_buffer, std::uint16_t stage_id, FrameIndex index );
 		vk::RenderingInfo getRenderingInfo( const FrameIndex frame_index );
 
 		GBufferSwapchain( vk::Extent2D extent );

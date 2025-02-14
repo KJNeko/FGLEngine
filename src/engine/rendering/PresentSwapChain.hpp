@@ -15,8 +15,6 @@ namespace fgl::engine
 	{
 	  public:
 
-		static constexpr FrameIndex MAX_FRAMES_IN_FLIGHT { 2 };
-
 		enum StageID
 		{
 			INITAL,
@@ -105,12 +103,12 @@ namespace fgl::engine
 
 		[[nodiscard]] std::pair< vk::Result, PresentIndex > acquireNextImage();
 		[[nodiscard]] vk::Result
-			submitCommandBuffers( const vk::raii::CommandBuffer& buffers, PresentIndex present_index );
+			submitCommandBuffers( const CommandBuffer& buffers, PresentIndex present_index );
 
-		void transitionImages( const vk::raii::CommandBuffer& command_buffer, StageID inital, FrameIndex frame_index );
+		void transitionImages( const CommandBuffer& command_buffer, StageID stage_id, FrameIndex frame_index );
 	};
 
 	template < typename T >
-	using PerFrameArray = std::array< T, PresentSwapChain::MAX_FRAMES_IN_FLIGHT >;
+	using PerFrameArray = std::array< T, constants::MAX_FRAMES_IN_FLIGHT >;
 
 } // namespace fgl::engine

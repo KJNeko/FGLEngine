@@ -10,8 +10,7 @@ namespace fgl::engine
 {
 	class Texture;
 
-	void CompositeSwapchain::
-		transitionImages( vk::raii::CommandBuffer& command_buffer, StageID stage_id, FrameIndex index )
+	void CompositeSwapchain::transitionImages( CommandBuffer& command_buffer, StageID stage_id, FrameIndex index )
 	{
 		switch ( stage_id )
 		{
@@ -24,7 +23,7 @@ namespace fgl::engine
 							.transitionColorTo( vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal ),
 					};
 
-					command_buffer.pipelineBarrier(
+					command_buffer->pipelineBarrier(
 						vk::PipelineStageFlagBits::eTopOfPipe,
 						vk::PipelineStageFlagBits::eColorAttachmentOutput,
 						vk::DependencyFlags( 0 ),
@@ -41,7 +40,7 @@ namespace fgl::engine
 							vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eShaderReadOnlyOptimal ),
 					};
 
-					command_buffer.pipelineBarrier(
+					command_buffer->pipelineBarrier(
 						vk::PipelineStageFlagBits::eColorAttachmentOutput,
 						vk::PipelineStageFlagBits::eFragmentShader,
 						vk::DependencyFlags( 0 ),
@@ -58,7 +57,7 @@ namespace fgl::engine
 							vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR ),
 					};
 
-					command_buffer.pipelineBarrier(
+					command_buffer->pipelineBarrier(
 						vk::PipelineStageFlagBits::eColorAttachmentOutput,
 						vk::PipelineStageFlagBits::eBottomOfPipe,
 						vk::DependencyFlags( 0 ),
@@ -94,7 +93,7 @@ namespace fgl::engine
 
 	CompositeSwapchain::CompositeSwapchain( vk::Extent2D extent ) : m_extent( extent )
 	{
-		constexpr auto image_count { PresentSwapChain::MAX_FRAMES_IN_FLIGHT };
+		constexpr auto image_count { constants::MAX_FRAMES_IN_FLIGHT };
 
 		m_buffer.m_target.createResources( image_count, m_extent, vk::ImageUsageFlagBits::eTransferSrc );
 		m_buffer.m_target.setName( "CompositeSwapchain::m_target" );

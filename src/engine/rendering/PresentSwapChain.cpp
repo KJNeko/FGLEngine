@@ -117,8 +117,7 @@ namespace fgl::engine
 		return result;
 	}
 
-	vk::Result PresentSwapChain::
-		submitCommandBuffers( const vk::raii::CommandBuffer& buffers, const PresentIndex present_index )
+	vk::Result PresentSwapChain::submitCommandBuffers( const CommandBuffer& buffers, const PresentIndex present_index )
 	{
 		ZoneScoped;
 
@@ -142,7 +141,7 @@ namespace fgl::engine
 		m_submit_info.setWaitDstStageMask( wait_stages );
 
 		m_submit_info.commandBufferCount = 1;
-		m_submit_info.pCommandBuffers = &( *buffers );
+		m_submit_info.pCommandBuffers = &( **buffers );
 
 		std::vector< vk::Semaphore > signaled_semaphores { m_render_finished_sem[ m_current_frame_index ] };
 		m_submit_info.setSignalSemaphores( signaled_semaphores );
@@ -171,14 +170,14 @@ namespace fgl::engine
 			throw std::runtime_error( "failed to present swap chain image!" );
 		}
 
-		m_current_frame_index = static_cast<
-			FrameIndex >( ( m_current_frame_index + static_cast< FrameIndex >( 1 ) ) % MAX_FRAMES_IN_FLIGHT );
+		m_current_frame_index = static_cast< FrameIndex >(
+			( m_current_frame_index + static_cast< FrameIndex >( 1 ) ) % constants::MAX_FRAMES_IN_FLIGHT );
 
 		return vk::Result::eSuccess;
 	}
 
 	void PresentSwapChain::
-		transitionImages( const vk::raii::CommandBuffer& command_buffer, StageID stage_id, FrameIndex frame_index )
+		transitionImages( const CommandBuffer& command_buffer, const StageID stage_id, const FrameIndex frame_index )
 	{
 		switch ( stage_id )
 		{
@@ -196,7 +195,7 @@ namespace fgl::engine
 								vk::ImageAspectFlagBits::eDepth )
 					};
 
-					command_buffer.pipelineBarrier(
+					command_buffer->pipelineBarrier(
 						vk::PipelineStageFlagBits::eTopOfPipe,
 						vk::PipelineStageFlagBits::eColorAttachmentOutput
 							| vk::PipelineStageFlagBits::eEarlyFragmentTests
@@ -216,7 +215,7 @@ namespace fgl::engine
 								vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR ),
 					};
 
-					command_buffer.pipelineBarrier(
+					command_buffer->pipelineBarrier(
 						vk::PipelineStageFlagBits::eColorAttachmentOutput,
 						vk::PipelineStageFlagBits::eBottomOfPipe,
 						vk::DependencyFlags( 0 ),
@@ -315,7 +314,7 @@ namespace fgl::engine
 		vk::FenceCreateInfo fenceInfo {};
 		fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
 
-		for ( size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
+		for ( size_t i = 0; i < constants::MAX_FRAMES_IN_FLIGHT; i++ )
 		{
 			auto& device { Device::getInstance() };
 

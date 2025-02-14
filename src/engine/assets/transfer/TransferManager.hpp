@@ -84,10 +84,10 @@ namespace fgl::engine::memory
 		vk::raii::Semaphore& getFinishedSem() { return m_transfer_semaphore; }
 
 		//! Takes ownership of memory regions from the graphics queue via memory barriers.
-		void takeOwnership( vk::raii::CommandBuffer& buffer );
+		void takeOwnership( CommandBuffer& command_buffer );
 
 		//! Records the barriers required for transfering queue ownership
-		void recordOwnershipTransferDst( vk::raii::CommandBuffer& command_buffer );
+		void recordOwnershipTransferDst( CommandBuffer& command_buffer );
 
 		//! Drops the processed items
 		void dump();

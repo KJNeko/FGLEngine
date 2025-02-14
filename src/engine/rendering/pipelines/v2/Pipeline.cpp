@@ -26,7 +26,7 @@ namespace fgl::engine
 	  m_builder_state( std::forward< std::unique_ptr< PipelineBuilder::BuilderState > >( builder_state ) )
 	{}
 
-	void Pipeline::bind( vk::raii::CommandBuffer& cmd_buffer )
+	void Pipeline::bind( CommandBuffer& cmd_buffer )
 	{
 		if ( flags::shouldReloadShaders() )
 		{
@@ -40,21 +40,21 @@ namespace fgl::engine
 			}
 		}
 
-		cmd_buffer.bindPipeline( vk::PipelineBindPoint::eGraphics, m_pipeline );
+		cmd_buffer->bindPipeline( vk::PipelineBindPoint::eGraphics, m_pipeline );
 	}
 
 	void Pipeline::bindDescriptor(
-		vk::raii::CommandBuffer& command_buffer,
+		CommandBuffer& command_buffer,
 		const descriptors::DescriptorIDX descriptor_idx,
 		descriptors::DescriptorSet& set )
 	{
 		const std::vector< vk::DescriptorSet > sets { *set };
 		constexpr std::vector< std::uint32_t > offsets {};
 
-		command_buffer.bindDescriptorSets( vk::PipelineBindPoint::eGraphics, m_layout, descriptor_idx, sets, offsets );
+		command_buffer->bindDescriptorSets( vk::PipelineBindPoint::eGraphics, m_layout, descriptor_idx, sets, offsets );
 	}
 
-	void Pipeline::bindDescriptor( vk::raii::CommandBuffer& comd_buffer, descriptors::DescriptorSet& set )
+	void Pipeline::bindDescriptor( CommandBuffer& comd_buffer, descriptors::DescriptorSet& set )
 	{
 		bindDescriptor( comd_buffer, set.setIDX(), set );
 	}

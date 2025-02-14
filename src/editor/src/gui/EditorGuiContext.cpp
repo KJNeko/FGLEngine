@@ -117,13 +117,22 @@ namespace fgl::editor
 		gui::drawStats( info );
 	}
 
-	void EditorGuiContext::endDraw( vk::raii::CommandBuffer& command_buffer )
+	void EditorGuiContext::endDraw( CommandBuffer& command_buffer )
 	{
 		ZoneScoped;
 		ImGui::Render();
 
+		constexpr static std::string_view label { "IMGUI Rendering" };
+
+		vk::DebugUtilsLabelEXT debug_label;
+		debug_label.pLabelName = label.data();
+
+		command_buffer->beginDebugUtilsLabelEXT( debug_label );
+
 		ImDrawData* data { ImGui::GetDrawData() };
-		ImGui_ImplVulkan_RenderDrawData( data, *command_buffer );
+		ImGui_ImplVulkan_RenderDrawData( data, **command_buffer );
+
+		command_buffer->endDebugUtilsLabelEXT();
 
 		//ImGui::UpdatePlatformWindows();
 		//ImGui::RenderPlatformWindowsDefault();
@@ -131,6 +140,6 @@ namespace fgl::editor
 
 	void EditorGuiContext::endDraw( FrameInfo& info )
 	{
-		return endDraw( info.command_buffer );
+		return endDraw( info.command_buffer.imgui_cb );
 	}
 } // namespace fgl::editor

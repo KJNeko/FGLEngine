@@ -24,7 +24,7 @@ namespace fgl::engine
 
 	inline static std::vector< VertexLine > m_lines {};
 
-	LineDrawer::LineDrawer(  )
+	LineDrawer::LineDrawer()
 	{
 		PipelineBuilder builder { 0 };
 
@@ -48,9 +48,9 @@ namespace fgl::engine
 	LineDrawer::~LineDrawer()
 	{}
 
-	vk::raii::CommandBuffer& LineDrawer::setupSystem( FrameInfo& info )
+	CommandBuffer& LineDrawer::setupSystem( FrameInfo& info )
 	{
-		auto& command_buffer { info.command_buffer };
+		auto& command_buffer { info.command_buffer.render_cb };
 		m_pipeline->bind( command_buffer );
 
 		m_pipeline->bindDescriptor( command_buffer, info.getCameraDescriptor() );
@@ -72,11 +72,11 @@ namespace fgl::engine
 
 		line_vertex_buffer = std::make_unique< HostVector< VertexLine > >( info.model_matrix_info_buffer, m_lines );
 
-		command_buffer.bindVertexBuffers( 0, line_vertex_buffer->getVkBuffer(), { line_vertex_buffer->getOffset() } );
+		command_buffer->bindVertexBuffers( 0, line_vertex_buffer->getVkBuffer(), { line_vertex_buffer->getOffset() } );
 
-		command_buffer.setLineWidth( 5.0f );
+		command_buffer->setLineWidth( 5.0f );
 
-		command_buffer.draw(
+		command_buffer->draw(
 			static_cast< std::uint32_t >( m_lines.size() * 2 ), static_cast< std::uint32_t >( m_lines.size() ), 0, 0 );
 
 		m_lines.clear();

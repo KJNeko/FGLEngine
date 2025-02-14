@@ -54,6 +54,11 @@ namespace fgl::engine::memory
 
 		const std::vector< vk::BufferMemoryBarrier > from_memory_barriers { createFromGraphicsBarriers() };
 
+		vk::DebugUtilsLabelEXT debug_label {};
+		debug_label.pLabelName = "Transfer";
+
+		command_buffer.beginDebugUtilsLabelEXT( debug_label );
+
 		// Acquire the buffer from the queue family
 		command_buffer.pipelineBarrier(
 			vk::PipelineStageFlagBits::eBottomOfPipe,
@@ -66,7 +71,7 @@ namespace fgl::engine::memory
 		//Record all the buffer copies
 		for ( auto& [ key, regions ] : m_copy_regions )
 		{
-			auto& [ source, target ] = key;
+			const auto& [ source, target ] = key;
 
 			command_buffer.copyBuffer( source, target, regions );
 		}
@@ -81,6 +86,8 @@ namespace fgl::engine::memory
 			{},
 			to_buffer_memory_barriers,
 			{} );
+
+		command_buffer.endDebugUtilsLabelEXT();
 	}
 
 	void TransferManager::resizeBuffer( const std::uint64_t size )
@@ -218,21 +225,21 @@ namespace fgl::engine::memory
 
 	inline static TransferManager* GLOBAL_TRANSFER_MANAGER {};
 
-	void TransferManager::takeOwnership( vk::raii::CommandBuffer& command_buffer )
+	void TransferManager::takeOwnership( CommandBuffer& command_buffer )
 	{
 		std::vector< vk::BufferMemoryBarrier > barriers { createToTransferBarriers() };
 
-		command_buffer.pipelineBarrier(
+		command_buffer->pipelineBarrier(
 			vk::PipelineStageFlagBits::eNone, vk::PipelineStageFlagBits::eTransfer, {}, {}, barriers, {} );
 	}
 
-	void TransferManager::recordOwnershipTransferDst( vk::raii::CommandBuffer& command_buffer )
+	void TransferManager::recordOwnershipTransferDst( CommandBuffer& command_buffer )
 	{
 		ZoneScoped;
 
 		std::vector< vk::BufferMemoryBarrier > barriers { createToGraphicsBarriers() };
 
-		command_buffer.pipelineBarrier(
+		command_buffer->pipelineBarrier(
 			vk::PipelineStageFlagBits::eTransfer,
 			vk::PipelineStageFlagBits::eVertexInput | vk::PipelineStageFlagBits::eVertexShader,
 			{},

@@ -25,7 +25,7 @@ namespace fgl::engine
 		FGL_DELETE_COPY( LineDrawer );
 		FGL_DELETE_MOVE( LineDrawer );
 
-		vk::raii::CommandBuffer& setupSystem( FrameInfo& info );
+		CommandBuffer& setupSystem( FrameInfo& info );
 		void pass( FrameInfo& info );
 
 		LineDrawer();

@@ -20,7 +20,7 @@ namespace fgl::engine
 		std::unique_ptr< Pipeline > m_pipeline {};
 
 		//Setup isn't needed for this. So we can just never define this safely.
-		[[maybe_unused]] vk::raii::CommandBuffer& setupSystem( FrameInfo& info );
+		[[maybe_unused]] CommandBuffer& setupSystem( FrameInfo& info );
 
 	  public:
 

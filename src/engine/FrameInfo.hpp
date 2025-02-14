@@ -12,6 +12,7 @@
 #include "descriptors/Descriptor.hpp"
 #include "descriptors/DescriptorSetLayout.hpp"
 #include "primitives/Frustum.hpp"
+#include "rendering/CommandBuffers.hpp"
 #include "rendering/types.hpp"
 
 #define MAX_LIGHTS 10
@@ -75,7 +76,7 @@ namespace fgl::engine
 		PresentIndex present_idx;
 		double delta_time;
 
-		vk::raii::CommandBuffer& command_buffer;
+		CommandBuffers& command_buffer;
 
 		Camera* camera { nullptr };
 

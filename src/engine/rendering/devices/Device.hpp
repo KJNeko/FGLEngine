@@ -10,6 +10,7 @@
 #include "engine/rendering/Instance.hpp"
 #include "engine/rendering/Surface.hpp"
 #include "extensions.hpp"
+#include "rendering/CommandBufferPool.hpp"
 #include "vma/vma_impl.hpp"
 
 namespace fgl::engine
@@ -89,6 +90,8 @@ namespace fgl::engine
 
 		vk::raii::Device m_device;
 
+		CommandBufferPool m_command_pool;
+
 		vk::raii::CommandPool m_commandPool;
 
 		vk::raii::Queue m_graphics_queue;
@@ -101,6 +104,7 @@ namespace fgl::engine
 		vk::PhysicalDeviceProperties m_properties;
 
 		vk::CommandPoolCreateInfo commandPoolInfo();
+		CommandBufferPool& getCmdBufferPool() { return m_command_pool; }
 
 		Device( Window&, Instance& );
 		~Device();

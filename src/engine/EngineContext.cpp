@@ -145,16 +145,18 @@ namespace fgl::engine
 	void EngineContext::renderFrame()
 	{
 		ZoneScoped;
-		if ( auto& command_buffer = m_renderer.beginFrame(); *command_buffer )
+		if ( auto command_buffers_o = m_renderer.beginFrame(); command_buffers_o.has_value() )
 		{
 			const auto timer = debug::timing::push( "Render Frame" );
 			const FrameIndex frame_index { m_renderer.getFrameIndex() };
 			const PresentIndex present_idx { m_renderer.getPresentIndex() };
 
+			auto& command_buffers { command_buffers_o.value() };
+
 			FrameInfo frame_info { frame_index,
 				                   present_idx,
 				                   m_delta_time,
-				                   command_buffer,
+				                   command_buffers,
 				                   nullptr, // Camera
 				                   m_camera_manager.getCameras(),
 				                   // global_descriptor_sets[ frame_index ],
@@ -172,25 +174,25 @@ namespace fgl::engine
 				for ( const auto& hook : m_pre_frame_hooks ) hook( frame_info );
 			}
 
-			TracyVkCollect( frame_info.tracy_ctx, *command_buffer );
+			TracyVkCollect( frame_info.tracy_ctx, *command_buffers.transfer_cb );
 
 			//TODO: Setup semaphores to make this pass not always required.
-			m_transfer_manager.recordOwnershipTransferDst( command_buffer );
+			m_transfer_manager.recordOwnershipTransferDst( command_buffers.transfer_cb );
 
 			for ( const auto& hook : m_early_render_hooks ) hook( frame_info );
 			//TODO: Add some way of 'activating' cameras. We don't need to render cameras that aren't active.
 			renderCameras( frame_info );
 			for ( const auto& hook : m_render_hooks ) hook( frame_info );
 
-			m_renderer.beginSwapchainRendererPass( command_buffer );
+			m_renderer.beginSwapchainRendererPass( command_buffers.imgui_cb );
 
 			m_gui_system.pass( frame_info );
 
 			for ( const auto& hook : m_late_render_hooks ) hook( frame_info );
 
-			m_renderer.endSwapchainRendererPass( command_buffer );
+			m_renderer.endSwapchainRendererPass( command_buffers.imgui_cb );
 
-			m_renderer.endFrame();
+			m_renderer.endFrame( command_buffers );
 
 			m_transfer_manager.dump();
 

@@ -4,17 +4,16 @@
 
 #pragma once
 
+// clang-format off
 #include <vulkan/vulkan.hpp>
+#include <tracy/TracyVulkan.hpp>
+// clang-format on
 
 #include <cassert>
 #include <memory>
 
+#include "CommandBuffers.hpp"
 #include "PresentSwapChain.hpp"
-
-//clang-format: off
-#include <tracy/TracyVulkan.hpp>
-
-//clang-format: on
 
 namespace fgl::engine
 {
@@ -24,9 +23,6 @@ namespace fgl::engine
 		Window& m_window;
 		PhysicalDevice& m_phy_device;
 		std::unique_ptr< PresentSwapChain > m_swapchain;
-
-		std::vector< vk::raii::CommandBuffer > m_command_buffer {};
-		std::vector< vk::raii::CommandBuffer > m_gui_command_buffer {};
 
 		TracyVkCtx m_tracy_ctx { nullptr };
 
@@ -53,26 +49,20 @@ namespace fgl::engine
 
 		bool isFrameInProgress() const { return is_frame_started; }
 
-		vk::raii::CommandBuffer& getCurrentCommandbuffer()
-		{
-			assert( is_frame_started && "Cannot get command buffer while frame not in progress" );
-			return m_command_buffer[ current_frame_idx ];
-		}
-
-		vk::raii::CommandBuffer& getCurrentGuiCommandBuffer() { return m_gui_command_buffer[ current_frame_idx ]; }
-
 		TracyVkCtx getCurrentTracyCTX() const { return m_tracy_ctx; }
 
 		float getAspectRatio() const { return m_swapchain->extentAspectRatio(); }
 
-		vk::raii::CommandBuffer& beginFrame();
-		void endFrame();
+		// vk::raii::CommandBuffer& beginFrame();
+		std::optional< CommandBuffers > beginFrame();
 
-		void setViewport( const vk::raii::CommandBuffer& buffer );
-		void setScissor( const vk::raii::CommandBuffer& buffer );
+		void endFrame( CommandBuffers& buffers );
 
-		void beginSwapchainRendererPass( vk::raii::CommandBuffer& buffer );
-		void endSwapchainRendererPass( vk::raii::CommandBuffer& buffer );
+		void setViewport( const CommandBuffer& buffer );
+		void setScissor( const CommandBuffer& buffer );
+
+		void beginSwapchainRendererPass( CommandBuffer& buffer );
+		void endSwapchainRendererPass( CommandBuffer& buffer );
 
 		PresentSwapChain& getSwapChain() { return *m_swapchain; }
 

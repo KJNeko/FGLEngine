@@ -18,7 +18,7 @@
 
 namespace fgl::engine
 {
-	EntityRendererSystem::EntityRendererSystem(  )
+	EntityRendererSystem::EntityRendererSystem()
 	{
 		ZoneScoped;
 
@@ -71,9 +71,9 @@ namespace fgl::engine
 	EntityRendererSystem::~EntityRendererSystem()
 	{}
 
-	vk::raii::CommandBuffer& EntityRendererSystem::setupSystem( const FrameInfo& info )
+	CommandBuffer& EntityRendererSystem::setupSystem( const FrameInfo& info )
 	{
-		auto& command_buffer { info.command_buffer };
+		auto& command_buffer { info.command_buffer.render_cb };
 
 		//This function becomes a dummy since we have multiple pipelines.
 		//We will instead bind the pipeline and descriptors for each stage of this pass.
@@ -144,7 +144,7 @@ namespace fgl::engine
 	void EntityRendererSystem::texturedPass( const FrameInfo& info )
 	{
 		ZoneScopedN( "Textured pass" );
-		auto& command_buffer { info.command_buffer };
+		auto& command_buffer { info.command_buffer.render_cb };
 		TracyVkZone( info.tracy_ctx, *command_buffer, "Render textured entities" );
 
 		auto [ draw_commands, model_matricies ] =
@@ -172,10 +172,10 @@ namespace fgl::engine
 		const std::vector< vk::Buffer > vert_buffers { info.model_vertex_buffer.getVkBuffer(),
 			                                           model_matrix_info_buffer->getVkBuffer() };
 
-		command_buffer.bindVertexBuffers( 0, vert_buffers, { 0, model_matrix_info_buffer->getOffset() } );
-		command_buffer.bindIndexBuffer( info.model_index_buffer.getVkBuffer(), 0, vk::IndexType::eUint32 );
+		command_buffer->bindVertexBuffers( 0, vert_buffers, { 0, model_matrix_info_buffer->getOffset() } );
+		command_buffer->bindIndexBuffer( info.model_index_buffer.getVkBuffer(), 0, vk::IndexType::eUint32 );
 
-		command_buffer.drawIndexedIndirect(
+		command_buffer->drawIndexedIndirect(
 			draw_parameter_buffer->getVkBuffer(),
 			draw_parameter_buffer->getOffset(),
 			draw_parameter_buffer->size(),

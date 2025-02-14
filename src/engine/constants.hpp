@@ -49,4 +49,6 @@ namespace fgl::engine::constants
 
 	constexpr TextureID INVALID_TEXTURE_ID { 0 };
 
+	constexpr std::uint8_t MAX_FRAMES_IN_FLIGHT { 2 };
+
 } // namespace fgl::engine::constants

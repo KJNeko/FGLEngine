@@ -36,20 +36,19 @@ namespace fgl::engine
 		command_buffer.setScissor( 0, scissors );
 	}
 
-	void GBufferCompositor::
-		beginPass( vk::raii::CommandBuffer& cmd, CompositeSwapchain& swapchain, const FrameIndex& index )
+	void GBufferCompositor::beginPass( CommandBuffer& cmd, CompositeSwapchain& swapchain, const FrameIndex& index )
 	{
 		const vk::RenderingInfo info { swapchain.getRenderingInfo( index ) };
 
-		cmd.beginRendering( info );
+		cmd->beginRendering( info );
 
-		setViewport( cmd, swapchain.getExtent() );
-		setScissor( cmd, swapchain.getExtent() );
+		setViewport( *cmd, swapchain.getExtent() );
+		setScissor( *cmd, swapchain.getExtent() );
 	}
 
-	void GBufferCompositor::endPass( vk::raii::CommandBuffer& cmd )
+	void GBufferCompositor::endPass( CommandBuffer& cmd )
 	{
-		cmd.endRendering();
+		cmd->endRendering();
 	}
 
 	GBufferCompositor::GBufferCompositor( const CompositeFlags flags ) : m_flags( flags )
@@ -74,8 +73,7 @@ namespace fgl::engine
 		m_pipeline->setDebugName( "Composition pipeline" );
 	}
 
-	void GBufferCompositor::
-		composite( vk::raii::CommandBuffer& command_buffer, Camera& camera, const FrameIndex frame_index )
+	void GBufferCompositor::composite( CommandBuffer& command_buffer, Camera& camera, const FrameIndex frame_index )
 	{
 		auto& gbuffer_swapchain { camera.getSwapchain() };
 		auto& composite_swapchain { camera.getCompositeSwapchain() };
@@ -91,7 +89,7 @@ namespace fgl::engine
 
 		m_pipeline->pushConstant( command_buffer, vk::ShaderStageFlagBits::eFragment, m_control );
 
-		command_buffer.draw( 3, 1, 0, 0 );
+		command_buffer->draw( 3, 1, 0, 0 );
 
 		endPass( command_buffer );
 

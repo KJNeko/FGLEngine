@@ -42,7 +42,7 @@ namespace fgl::engine
 		PerFrameArray< std::unique_ptr< DrawParameterBufferSuballocation > > m_draw_textured_parameter_buffers {};
 		PerFrameArray< std::unique_ptr< ModelMatrixInfoBufferSuballocation > > m_textured_model_matrix_info_buffers {};
 
-		vk::raii::CommandBuffer& setupSystem( const FrameInfo& );
+		CommandBuffer& setupSystem( const FrameInfo& );
 
 	  public:
 

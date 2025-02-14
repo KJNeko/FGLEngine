@@ -5,7 +5,6 @@
 #include "GuiSystem.hpp"
 
 #include "engine/FrameInfo.hpp"
-#include "engine/assets/model/SimpleVertex.hpp"
 #include "engine/rendering/pipelines/v2/AttachmentBuilder.hpp"
 #include "engine/rendering/pipelines/v2/Pipeline.hpp"
 #include "engine/rendering/pipelines/v2/PipelineBuilder.hpp"
@@ -22,8 +21,10 @@ namespace fgl::engine
 
 		builder.addDescriptorSet( gui_descriptor_set );
 
-		builder.setAttributeDescriptions( SimpleVertex::getAttributeDescriptions() );
-		builder.setBindingDescriptions( SimpleVertex::getBindingDescriptions() );
+		// VUID-vkCmdDraw-None-04008: States that vertex binding 0 is null handle, and must be bound.
+		// Not entirely sure why we had added vertex bindings to this in the first place?
+		// builder.setAttributeDescriptions( SimpleVertex::getAttributeDescriptions() );
+		// builder.setBindingDescriptions( SimpleVertex::getBindingDescriptions() );
 
 		builder.setVertexShader( Shader::loadVertex( "shaders/gui-compose.slang" ) );
 		builder.setFragmentShader( Shader::loadFragment( "shaders/gui-compose.slang" ) );
@@ -34,9 +35,9 @@ namespace fgl::engine
 		m_pipeline->setDebugName( "Gui Pipeline" );
 	}
 
-	vk::raii::CommandBuffer& GuiSystem::setupSystem( FrameInfo& info )
+	CommandBuffer& GuiSystem::setupSystem( FrameInfo& info )
 	{
-		auto& command_buffer { info.command_buffer };
+		auto& command_buffer { info.command_buffer.imgui_cb };
 
 		m_pipeline->bind( command_buffer );
 
@@ -50,7 +51,7 @@ namespace fgl::engine
 		ZoneScopedN( "GuiSystem::pass" );
 		auto& command_buffer { setupSystem( info ) };
 
-		command_buffer.draw( 3, 1, 0, 0 );
+		command_buffer->draw( 3, 1, 0, 0 );
 	}
 
 } // namespace fgl::engine

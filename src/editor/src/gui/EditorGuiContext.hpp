@@ -17,7 +17,7 @@ namespace fgl::editor
 
 		void beginDraw();
 		void draw( engine::FrameInfo& info );
-		void endDraw( vk::raii::CommandBuffer& command_buffer );
+		void endDraw( engine::CommandBuffer& command_buffer );
 		void endDraw( engine::FrameInfo& info );
 	};
 } // namespace fgl::editor

@@ -39,8 +39,8 @@ namespace fgl::engine
 		void setViewport( const vk::raii::CommandBuffer& cmd, vk::Extent2D extent_2d );
 		void setScissor( const vk::raii::CommandBuffer& cmd, vk::Extent2D extent_2d );
 
-		void beginPass( vk::raii::CommandBuffer& cmd, CompositeSwapchain& swapchain, const FrameIndex& index );
-		void endPass( vk::raii::CommandBuffer& cmd );
+		void beginPass( CommandBuffer& cmd, CompositeSwapchain& swapchain, const FrameIndex& index );
+		void endPass( CommandBuffer& cmd );
 
 		CompositionControl m_control {};
 
@@ -48,7 +48,7 @@ namespace fgl::engine
 
 		GBufferCompositor( CompositeFlags flags = CompositeFlagBits_Standard );
 
-		void composite( vk::raii::CommandBuffer& command_buffer, Camera& camera, FrameIndex frame_index );
+		void composite( CommandBuffer& command_buffer, Camera& camera, FrameIndex frame_index );
 
 		inline void switchMode( const CompositeFlags flags ) { m_flags = flags; }
 	};

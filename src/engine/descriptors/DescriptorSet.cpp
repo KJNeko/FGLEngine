@@ -214,7 +214,7 @@ namespace fgl::engine::descriptors
 		{
 			auto& [ counter, set ] = *itter;
 			// Prevent deleting a descriptor until we are sure it's been here long enough
-			if ( counter > PresentSwapChain::MAX_FRAMES_IN_FLIGHT + 1 )
+			if ( counter > constants::MAX_FRAMES_IN_FLIGHT + 1 )
 			{
 				itter = QUEUE.erase( itter );
 			}

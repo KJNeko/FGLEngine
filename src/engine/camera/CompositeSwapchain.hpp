@@ -7,6 +7,7 @@
 #include "FGL_DEFINES.hpp"
 #include "engine/rendering/RenderingFormats.hpp"
 #include "engine/rendering/pipelines/Attachment.hpp"
+#include "rendering/CommandBufferPool.hpp"
 
 namespace fgl::engine
 {
@@ -35,7 +36,7 @@ namespace fgl::engine
 			FINAL_PRESENT,
 		};
 
-		void transitionImages( vk::raii::CommandBuffer& command_buffer, StageID stage_id, FrameIndex index );
+		void transitionImages( CommandBuffer& command_buffer, StageID stage_id, FrameIndex index );
 
 		vk::RenderingInfo getRenderingInfo( FrameIndex index );
 

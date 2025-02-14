@@ -12,9 +12,9 @@ namespace fgl::engine
 	std::vector< std::unique_ptr< descriptors::DescriptorSet > > GBufferSwapchain::createGBufferDescriptors()
 	{
 		std::vector< std::unique_ptr< descriptors::DescriptorSet > > data {};
-		data.resize( PresentSwapChain::MAX_FRAMES_IN_FLIGHT );
+		data.resize( constants::MAX_FRAMES_IN_FLIGHT );
 
-		for ( PresentIndex i = 0; i < PresentSwapChain::MAX_FRAMES_IN_FLIGHT; ++i )
+		for ( PresentIndex i = 0; i < constants::MAX_FRAMES_IN_FLIGHT; ++i )
 		{
 			//auto set { std::make_unique< descriptors::DescriptorSet >( GBufferDescriptorSet::createLayout() ) };
 			auto set { gbuffer_set.create() };
@@ -37,8 +37,8 @@ namespace fgl::engine
 		return data;
 	}
 
-	void GBufferSwapchain::transitionImages(
-		vk::raii::CommandBuffer& command_buffer, const std::uint16_t stage_id, const FrameIndex index )
+	void GBufferSwapchain::
+		transitionImages( CommandBuffer& command_buffer, const std::uint16_t stage_id, const FrameIndex index )
 	{
 		switch ( stage_id )
 		{
@@ -63,7 +63,7 @@ namespace fgl::engine
 							vk::ImageAspectFlagBits::eDepth ),
 					};
 
-					command_buffer.pipelineBarrier(
+					command_buffer->pipelineBarrier(
 						vk::PipelineStageFlagBits::eTopOfPipe,
 						vk::PipelineStageFlagBits::eColorAttachmentOutput
 							| vk::PipelineStageFlagBits::eEarlyFragmentTests
@@ -96,7 +96,7 @@ namespace fgl::engine
 						// 	vk::ImageAspectFlagBits::eDepth ),
 					};
 
-					command_buffer.pipelineBarrier(
+					command_buffer->pipelineBarrier(
 						vk::PipelineStageFlagBits::eColorAttachmentOutput,
 						vk::PipelineStageFlagBits::eFragmentShader,
 						vk::DependencyFlags( 0 ),
@@ -157,7 +157,7 @@ namespace fgl::engine
 	GBufferSwapchain::GBufferSwapchain( const vk::Extent2D extent ) : m_extent( extent )
 	// m_gbuffer_descriptor_set( createGBufferDescriptors() )
 	{
-		constexpr auto image_count { PresentSwapChain::MAX_FRAMES_IN_FLIGHT };
+		constexpr auto image_count { constants::MAX_FRAMES_IN_FLIGHT };
 
 		m_gbuffer.m_color.createResources( image_count, m_extent );
 		m_gbuffer.m_position.createResources( image_count, m_extent );

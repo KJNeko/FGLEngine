@@ -167,6 +167,7 @@ namespace fgl::engine
 	  m_physical_device( m_instance, m_surface_khr ),
 	  device_creation_info( m_physical_device ),
 	  m_device( m_physical_device, device_creation_info.m_create_info ),
+	  m_command_pool( createGraphicsPool( m_device, m_physical_device ) ),
 	  m_commandPool( m_device.createCommandPool( commandPoolInfo() ) ),
 	  m_graphics_queue( m_device
 	                        .getQueue( m_physical_device.queueInfo().getIndex( vk::QueueFlagBits::eGraphics ), 0 ) ),
