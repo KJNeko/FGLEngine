@@ -4,7 +4,6 @@
 #include "CommandBuffer.hpp"
 
 #include "CommandBufferPool.hpp"
-#include "debug/logging/logging.hpp"
 
 namespace fgl::engine
 {
@@ -14,9 +13,7 @@ namespace fgl::engine
 	{}
 
 	CommandBufferHandle::~CommandBufferHandle()
-	{
-		log::warn( "Command buffer handle destroyed!" );
-	}
+	{}
 
 	vk::raii::CommandBuffer& CommandBufferHandle::cmd()
 	{
