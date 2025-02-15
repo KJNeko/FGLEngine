@@ -65,4 +65,3 @@ Long term plans:
 - Clone w/ submodules
 - `cmake -DCMAKE_BUILD_TYPE=Debug -B build`
 - `cmake --build build -j<THREAD_COUNT>`
-- Cry because running it crashes the GPU driver on linux again and validation layers barely prevent it....
