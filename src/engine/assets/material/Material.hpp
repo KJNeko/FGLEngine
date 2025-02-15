@@ -81,27 +81,44 @@ namespace fgl::engine
 	// Alignas to prevent the struct from becoming bigger then needed
 	struct DeviceMaterialData
 	{
-		TextureID color_texture_id { constants::INVALID_TEXTURE_ID };
+		struct Albedo
+		{
+			TextureID color_texture_id { constants::INVALID_TEXTURE_ID };
+			PAD(1, 12);
+			glm::vec4 color_factors {};
+		} color;
 
-		PAD( 0, 12 );
+		struct Metallic
+		{
+			// Padding to shove metallic_texture_id to offset 32
+			TextureID metallic_texture_id { constants::INVALID_TEXTURE_ID };
+			float metallic_factor { 0.0f };
+			float roughness_factor { 0.0f };
+			PAD(1, 4);
+		} metallic;
 
-		glm::vec4 color_factors { 0.0f, 0.0f, 0.0f, 0.0f };
+		struct Normal
+		{
+			TextureID normal_texture_id { constants::INVALID_TEXTURE_ID };
+			float normal_tex_scale { 0.0f };
+			PAD(1,8);
+		} normal;
 
-		// Padding to shove metallic_texture_id to offset 32
-		TextureID metallic_texture_id { constants::INVALID_TEXTURE_ID };
-		float metallic_factor { 0.0f };
-		float roughness_factor { 0.0f };
+		struct Occlusion
+		{
+			TextureID occlusion_texture_id { constants::INVALID_TEXTURE_ID };
+			float occlusion_tex_strength { 0.0f };
+			PAD(1,8);
+		} occlusion;
 
-		TextureID normal_texture_id { constants::INVALID_TEXTURE_ID };
-		float normal_tex_scale { 0.0f };
-
-		TextureID occlusion_texture_id { constants::INVALID_TEXTURE_ID };
-		float occlusion_tex_strength { 0.0f };
-
-		TextureID emissive_texture_id { constants::INVALID_TEXTURE_ID };
-		glm::vec3 emissive_factors { 0.0f, 0.0f, 0.0f };
+		struct Emissive
+		{
+			TextureID emissive_texture_id { constants::INVALID_TEXTURE_ID };
+			glm::vec3 emissive_factors { 0.0f, 0.0f, 0.0f };
+		} emissive;
 	};
 
+	/*
 	static_assert( sizeof( DeviceMaterialData ) == 76 );
 	static_assert( offsetof( DeviceMaterialData, color_factors ) == 16 );
 	static_assert( offsetof( DeviceMaterialData, metallic_texture_id ) == 32 );
@@ -109,6 +126,7 @@ namespace fgl::engine
 	static_assert( offsetof( DeviceMaterialData, occlusion_texture_id ) == 52 );
 	static_assert( offsetof( DeviceMaterialData, emissive_texture_id ) == 60 );
 	static_assert( offsetof( DeviceMaterialData, emissive_factors ) == 64 );
+	*/
 
 	class Material
 	{

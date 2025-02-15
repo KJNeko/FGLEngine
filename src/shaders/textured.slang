@@ -5,10 +5,10 @@ import camera;
 import gbuffer;
 import material;
 
-struct Vertex {
+struct CoarseVertex {
 	vec3 normal;
 	vec2 tex_coord;
-	vec3 world_pos;
+	float4 position : SV_Position;
 	uint material_id;
 }
 
@@ -16,17 +16,17 @@ struct Vertex {
 ParameterBlock< CameraData > camera : CAMERA;
 
 [shader("vertex")]
-Vertex vertexMain( ModelVertex in_vertex )
+CoarseVertex vertexMain( ModelVertex in_vertex )
 {
-	Vertex out_vertex;
+	CoarseVertex out_vertex;
 
-    vec4 world_pos = in_vertex.model_matrix * vec4(in_vertex.simple.position, 1.0);
+    vec4 world_pos = mul(in_vertex.model_matrix, vec4(in_vertex.simple.position, 1.0));
 
-    out_vertex.world_pos = (camera.projection * camera.view * world_pos).xyz;
+    out_vertex.position = mul(mul(camera.projection , camera.view), world_pos);
 
 	mat3 normal_matrix = transpose( inverse( mat3( in_vertex.model_matrix ) ) );
 
-	out_vertex.normal = normalize( normal_matrix * in_vertex.simple.normal );
+	out_vertex.normal = normalize( mul(normal_matrix, in_vertex.simple.normal) );
 	out_vertex.tex_coord = in_vertex.simple.uv;
 	out_vertex.material_id = in_vertex.material_id;
 
@@ -42,15 +42,18 @@ Sampler2D[ ] tex : TEXTURES;
 static const float MIN_ROUGHNESS = 0.04;
 
 [shader("fragment")]
-GBufferFragment fragmentMain( Vertex vertex : Vertex )
+GBufferFragment fragmentMain( CoarseVertex vertex )
 {
 	GBufferFragment frag;
-	frag.position = vertex.world_pos;
+	frag.position = vertex.position.xyz;
 
 	vec3 diffuse_color;
 	vec4 base_color;
 
 	vec3 f0 = vec3( 0.04 );
+
+	frag.color = vec4(1.0, 1.0, 1.0, 1.0);
+
 
 	if ( vertex.material_id == INVALID_TEXTURE_ID )
 	{
@@ -58,6 +61,8 @@ GBufferFragment fragmentMain( Vertex vertex : Vertex )
     }
 
     Material material = materials[vertex.material_id];
+
+	frag.color = material.color.factors;
 
 	if ( material.color.isTexture() )
 	{
@@ -68,7 +73,7 @@ GBufferFragment fragmentMain( Vertex vertex : Vertex )
 	else
 	{
 		frag.color = material.color.factors;
-    }
+  	}
 
 	float metallic_scalar = 0.0;
 	float roughness_scalar = 0.0;
@@ -100,7 +105,7 @@ GBufferFragment fragmentMain( Vertex vertex : Vertex )
 	else
 	{
 		frag.normal = vec4( vertex.normal, 1.0 );
-    }
+	}
 
 	return frag;
 }

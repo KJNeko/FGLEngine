@@ -267,7 +267,7 @@ namespace fgl::engine
 	{
 		const auto& [ pos, scale, rotation ] = m_transform;
 
-		const auto rotation_matrix { rotation.mat3() };
+		const auto rotation_matrix { rotation.mat() };
 
 		const glm::vec3 forward { rotation_matrix * glm::vec4( constants::WORLD_FORWARD, 0.0f ) };
 

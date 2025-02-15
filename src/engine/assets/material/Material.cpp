@@ -23,24 +23,24 @@ namespace fgl::engine
 		};
 
 		// PBR
-		data.color_texture_id = getTexID( pbr.color_tex );
-		data.color_factors = pbr.color_factors;
+		data.color.color_texture_id = getTexID( pbr.color_tex );
+		data.color.color_factors = pbr.color_factors;
 
-		data.metallic_texture_id = getTexID( pbr.metallic_roughness_tex );
-		data.roughness_factor = pbr.roughness_factor;
-		data.metallic_factor = pbr.metallic_factor;
+		data.metallic.metallic_texture_id = getTexID( pbr.metallic_roughness_tex );
+		data.metallic.roughness_factor = pbr.roughness_factor;
+		data.metallic.metallic_factor = pbr.metallic_factor;
 
 		// Normal
-		data.normal_texture_id = getTexID( normal.texture );
-		data.normal_tex_scale = normal.scale;
+		data.normal.normal_texture_id = getTexID( normal.texture );
+		data.normal.normal_tex_scale = normal.scale;
 
 		// Occlusion
-		data.occlusion_texture_id = getTexID( occlusion.texture );
-		data.occlusion_tex_strength = occlusion.strength;
+		data.occlusion.occlusion_texture_id = getTexID( occlusion.texture );
+		data.occlusion.occlusion_tex_strength = occlusion.strength;
 
 		// Emissive
-		data.emissive_texture_id = getTexID( emissive.texture );
-		data.emissive_factors = emissive.factors;
+		data.emissive.emissive_texture_id = getTexID( emissive.texture );
+		data.emissive.emissive_factors = emissive.factors;
 	}
 
 	DeviceMaterialData MaterialProperties::data() const

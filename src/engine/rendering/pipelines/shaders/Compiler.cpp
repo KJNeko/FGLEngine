@@ -32,18 +32,51 @@ namespace fgl::engine
 
 	using ShaderLayoutFlags = std::variant< ShaderVertexFlags, ShaderFragmentFlags >;
 
+	void dumpJson( slang::ProgramLayout* layout )
+	{
+		Slang::ComPtr< slang::IBlob > json_glob {};
+		layout->toJson( json_glob.writeRef() );
+
+		log::debug(
+			"Shader layout: {}",
+			std::string_view(
+				static_cast< const char* >( json_glob->getBufferPointer() ), json_glob->getBufferSize() ) );
+
+		if ( std::ofstream ofs( "./shaders/slang-dump.json" ); ofs )
+		{
+			ofs.write( static_cast< const char* >( json_glob->getBufferPointer() ), json_glob->getBufferSize() );
+		}
+	}
+
+	void checkMaterialDataLayout( slang::ProgramLayout* layout )
+	{
+		auto* const type_info { layout->findTypeByName( "Material" ) };
+
+		if ( type_info == nullptr ) return;
+
+		//TODO: This
+	}
+
 	std::vector< std::byte > compileShader( const std::filesystem::path& path, const ShaderType type )
 	{
 		using namespace slang;
 
-		Slang::ComPtr< IGlobalSession > global_session {};
-		SlangGlobalSessionDesc global_desc {};
+		static Slang::ComPtr< IGlobalSession > global_session {};
+		static SlangGlobalSessionDesc global_desc {};
 
-		global_desc.enableGLSL = true;
+		const auto setupGlobalSession = [ & ]()
+		{
+			global_desc.enableGLSL = true;
 
-		createGlobalSession( &global_desc, global_session.writeRef() );
+			createGlobalSession( &global_desc, global_session.writeRef() );
+		};
+
+		static std::once_flag once {};
+		std::call_once( once, setupGlobalSession );
 
 		SessionDesc session_desc {};
+
+		session_desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
 
 		std::array< CompilerOptionEntry, 1 > options {
 			{ { CompilerOptionName::VulkanUseEntryPointName,
@@ -119,12 +152,12 @@ namespace fgl::engine
 			Slang::ComPtr< IBlob > json_glob {};
 			layout->toJson( json_glob.writeRef() );
 
+			/*
 			log::debug(
 				"Shader layout: {}",
 				std::string_view(
 					static_cast< const char* >( json_glob->getBufferPointer() ), json_glob->getBufferSize() ) );
 
-			/*
 			if ( std::ofstream
 			         ofs( path.parent_path()
 			              / std::format( "{}-{}.json", path.filename().string(), entry_point_name ) );

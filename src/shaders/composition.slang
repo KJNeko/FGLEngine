@@ -3,7 +3,6 @@
 import camera;
 
 struct Vertex {
-	vec2 uv;
 	vec4 position : SV_Position;
 };
 
@@ -11,8 +10,12 @@ struct Vertex {
 Vertex vertexMain( uint index : SV_VertexID )
 {
 	Vertex vertex;
-	vertex.uv = vec2( ( index << 1 ) & 2, index & 2 );
-	vertex.position = vec4( vertex.uv * 2.0 - 1.0f, 0.0f, 0.0f );
+	vec2 uv = vec2( ( index << 1 ) & 2, index & 2 );
+
+	vec2 mulled = uv * vec2( 2.0 );
+	vec2 minone = mulled - vec2( 1.0, 1.0 );
+
+	vertex.position = vec4(minone, 0.0f, 1.0f );
 
 	return vertex;
 }
@@ -31,6 +34,7 @@ struct GBufferInput {
 
 // SubpassInput< vec4 > test : TEST;
 
+[[vk::binding(0,0)]]
 ParameterBlock<GBufferInput> gbuffer : GBUFFER;
 
 // SubpassInput<vec4> color : COLOR;
@@ -91,17 +95,6 @@ CompositeFragment fragmentMain( Vertex vertex )
     // metallic, roughness, occlusion
     // r,        g,         b
 	const vec3 metallic_comb = gbuffer.metallic.SubpassLoad().xyz;
-
-	/*
-	const vec3 albedo = color.SubpassLoad().xyz;
-
-	const vec3 position = position.SubpassLoad().xyz;
-	const vec3 normal = normal.SubpassLoad().xyz;
-
-    // metallic, roughness, occlusion
-    // r,        g,         b
-	const vec3 metallic_comb = metallic.SubpassLoad().xyz;
-	*/
 
 	const float metallic = metallic_comb.r;
 	const float roughness = metallic_comb.g;

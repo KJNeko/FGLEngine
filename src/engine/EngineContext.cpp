@@ -195,6 +195,7 @@ namespace fgl::engine
 			m_renderer.endFrame( command_buffers );
 
 			m_transfer_manager.dump();
+			m_device.getCmdBufferPool().advanceInFlight();
 
 			{
 				ZoneScopedN( "Post frame hooks" );
