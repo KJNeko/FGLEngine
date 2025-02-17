@@ -125,7 +125,7 @@ namespace fgl::engine::filesystem
 
 	void FileBrowser::drawTexture( const FileInfo& info )
 	{
-		if ( auto itter = m_file_textures.find( info.path ); itter != m_file_textures.end() )
+		if ( auto itter = m_file_textures.find( info.m_path ); itter != m_file_textures.end() )
 		{
 			auto& [ path, texture ] = *itter;
 
@@ -135,17 +135,17 @@ namespace fgl::engine::filesystem
 		{
 			m_file_texture->drawImGuiButton( { DESIRED_SIZE, DESIRED_SIZE } );
 
-			auto tex { getTextureStore().load( info.path ) };
+			auto tex { getTextureStore().load( info.m_path ) };
 
 			// Add the texture
-			m_file_textures.insert( std::make_pair( info.path, std::move( tex ) ) );
+			m_file_textures.insert( std::make_pair( info.m_path, std::move( tex ) ) );
 		}
 
 		if ( ImGui::BeginDragDropSource() )
 		{
 			ImGui::SetDragDropPayload(
 				DRAG_TYPE_FILE_TEXTURE_INFO, &info, sizeof( info ), ImGuiCond_Once /* Only copy the info once */ );
-			ImGui::SetTooltip( info.filename.c_str() );
+			ImGui::SetTooltip( info.m_filename.c_str() );
 
 			ImGui::EndDragDropSource();
 		}
@@ -168,7 +168,7 @@ namespace fgl::engine::filesystem
 		{
 			ImGui::SetDragDropPayload(
 				DRAG_TYPE_FILE_MODEL_INFO, &info, sizeof( info ), ImGuiCond_Once /* Only copy the info once */ );
-			ImGui::SetTooltip( info.filename.c_str() );
+			ImGui::SetTooltip( info.m_filename.c_str() );
 
 			ImGui::EndDragDropSource();
 		}
@@ -176,9 +176,9 @@ namespace fgl::engine::filesystem
 
 	void FileBrowser::drawFile( const FileInfo& data )
 	{
-		ImGui::PushID( data.path.c_str() );
+		ImGui::PushID( data.m_path.c_str() );
 
-		switch ( data.engine_type )
+		switch ( data.m_engine_type )
 		{
 			case TEXTURE:
 				drawTexture( data );
@@ -197,9 +197,9 @@ namespace fgl::engine::filesystem
 				break;
 		}
 
-		ImGui::Text( data.filename.c_str() );
+		ImGui::Text( data.m_filename.c_str() );
 
-		const std::string str { toHumanByteSize( data.size ) };
+		const std::string str { toHumanByteSize( data.m_size ) };
 		ImGui::Text( str.c_str() );
 		ImGui::NextColumn();
 		ImGui::PopID();

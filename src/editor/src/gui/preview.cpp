@@ -30,7 +30,7 @@ namespace fgl::engine::gui
 					const filesystem::FileInfo* data { static_cast< filesystem::FileInfo* >( payload->Data ) };
 
 					//Determine what the file is
-					switch ( data->engine_type )
+					switch ( data->m_engine_type )
 					{
 						default:
 							[[fallthrough]];
@@ -48,7 +48,7 @@ namespace fgl::engine::gui
 								GameObject obj { GameObject::createGameObject() };
 
 								std::shared_ptr< Model > model {
-									Model::createModel( data->path, info.model_vertex_buffer, info.model_index_buffer )
+									Model::createModel( data->m_path, info.model_vertex_buffer, info.model_index_buffer )
 								};
 
 								obj.addFlag( IsEntity | IsVisible );
@@ -65,7 +65,7 @@ namespace fgl::engine::gui
 							{
 								SceneBuilder builder { info.model_vertex_buffer, info.model_index_buffer };
 
-								builder.loadScene( data->path );
+								builder.loadScene( data->m_path );
 
 								std::vector< GameObject > objs { builder.getGameObjects() };
 

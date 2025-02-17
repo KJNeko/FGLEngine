@@ -16,7 +16,7 @@
 namespace fgl::engine::filesystem
 {
 
-	DirInfo::DirInfo( const std::filesystem::path& path ) : m_path( path ), total_size( 0 )
+	DirInfo::DirInfo( const std::filesystem::path& path ) : m_path( path ), m_total_size( 0 )
 	{
 		FGL_ASSERT( std::filesystem::exists( path ), "Path must exist" );
 		for ( auto itter = std::filesystem::directory_iterator( path ); itter != std::filesystem::directory_iterator();
@@ -24,11 +24,11 @@ namespace fgl::engine::filesystem
 		{
 			if ( itter->is_regular_file() )
 			{
-				files.emplace_back( *itter );
+				m_files.emplace_back( *itter );
 			}
 			else if ( itter->is_directory() )
 			{
-				nested_dirs_to_scan.push( *itter );
+				m_nested_dirs_to_scan.push( *itter );
 			}
 			else
 			{
@@ -36,7 +36,7 @@ namespace fgl::engine::filesystem
 			}
 		}
 
-		nested_dirs.reserve( nested_dirs_to_scan.size() );
+		m_nested_dirs.reserve( m_nested_dirs_to_scan.size() );
 	}
 
 	EngineFileType determineEngineFileType( const std::filesystem::path& path )
@@ -63,32 +63,32 @@ namespace fgl::engine::filesystem
 
 	std::size_t DirInfo::fileCount() const
 	{
-		return files.size();
+		return m_files.size();
 	}
 
 	FileInfo& DirInfo::file( const std::size_t index )
 	{
-		return files[ index ];
+		return m_files[ index ];
 	}
 
 	DirInfo& DirInfo::dir( std::size_t index )
 	{
-		if ( index >= nested_dirs.size() + nested_dirs_to_scan.size() ) throw std::runtime_error( "Index OOB" );
+		if ( index >= m_nested_dirs.size() + m_nested_dirs_to_scan.size() ) throw std::runtime_error( "Index OOB" );
 
-		if ( index >= nested_dirs.size() )
+		if ( index >= m_nested_dirs.size() )
 		{
-			while ( nested_dirs.size() <= index )
+			while ( m_nested_dirs.size() <= index )
 			{
-				std::filesystem::path to_scan { std::move( nested_dirs_to_scan.front() ) };
-				nested_dirs_to_scan.pop();
+				std::filesystem::path to_scan { std::move( m_nested_dirs_to_scan.front() ) };
+				m_nested_dirs_to_scan.pop();
 
 				DirInfo info { to_scan };
 
-				nested_dirs.push_back( std::move( info ) );
+				m_nested_dirs.push_back( std::move( info ) );
 			}
 		}
 
-		return nested_dirs[ index ];
+		return m_nested_dirs[ index ];
 	}
 
 } // namespace fgl::engine::filesystem

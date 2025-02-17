@@ -17,14 +17,14 @@ namespace fgl::engine::filesystem
 	struct DirInfo
 	{
 		std::filesystem::path m_path;
-		std::size_t total_size { 0 };
-		std::vector< FileInfo > files {};
-		std::vector< DirInfo > nested_dirs {};
-		std::queue< std::filesystem::path > nested_dirs_to_scan {};
+		std::size_t m_total_size { 0 };
+		std::vector< FileInfo > m_files {};
+		std::vector< DirInfo > m_nested_dirs {};
+		std::queue< std::filesystem::path > m_nested_dirs_to_scan {};
 
 	  public:
 
-		inline std::unique_ptr< DirInfo > up() const
+		std::unique_ptr< DirInfo > up() const
 		{
 			assert( std::filesystem::exists( m_path ) );
 
@@ -36,7 +36,7 @@ namespace fgl::engine::filesystem
 
 		bool hasParent() const { return !( m_path == "/" || m_path == "" ); }
 
-		inline std::size_t folderCount() const { return nested_dirs.size() + nested_dirs_to_scan.size(); }
+		std::size_t folderCount() const { return m_nested_dirs.size() + m_nested_dirs_to_scan.size(); }
 
 		DirInfo& dir( std::size_t index );
 
@@ -46,10 +46,10 @@ namespace fgl::engine::filesystem
 
 		DirInfo( const DirInfo& other ) :
 		  m_path( other.m_path ),
-		  total_size( other.total_size ),
-		  files( other.files ),
-		  nested_dirs( other.nested_dirs ),
-		  nested_dirs_to_scan( other.nested_dirs_to_scan )
+		  m_total_size( other.m_total_size ),
+		  m_files( other.m_files ),
+		  m_nested_dirs( other.m_nested_dirs ),
+		  m_nested_dirs_to_scan( other.m_nested_dirs_to_scan )
 		{
 			assert( std::filesystem::exists( other.m_path ) );
 		}
@@ -58,10 +58,10 @@ namespace fgl::engine::filesystem
 		{
 			assert( std::filesystem::exists( other.m_path ) );
 			m_path = other.m_path;
-			total_size = other.total_size;
-			files = other.files;
-			nested_dirs = other.nested_dirs;
-			nested_dirs_to_scan = other.nested_dirs_to_scan;
+			m_total_size = other.m_total_size;
+			m_files = other.m_files;
+			m_nested_dirs = other.m_nested_dirs;
+			m_nested_dirs_to_scan = other.m_nested_dirs_to_scan;
 			return *this;
 		}
 
@@ -83,22 +83,22 @@ namespace fgl::engine::filesystem
 
 	struct FileInfo
 	{
-		std::string filename;
-		std::string ext;
-		std::filesystem::path path;
-		std::size_t size;
-		bool is_folder;
-		EngineFileType engine_type;
+		std::string m_filename;
+		std::string m_ext;
+		std::filesystem::path m_path;
+		std::size_t m_size;
+		bool m_is_folder;
+		EngineFileType m_engine_type;
 
 		FileInfo() = delete;
 
-		FileInfo( const std::filesystem::path& path_in ) :
-		  filename( path_in.filename().string() ),
-		  ext( path_in.extension().string() ),
-		  path( path_in ),
-		  size( std::filesystem::file_size( path_in ) ),
-		  is_folder( std::filesystem::is_directory( path ) ),
-		  engine_type( determineEngineFileType( path_in ) )
+		explicit FileInfo( const std::filesystem::path& path_in ) :
+		  m_filename( path_in.filename().string() ),
+		  m_ext( path_in.extension().string() ),
+		  m_path( path_in ),
+		  m_size( std::filesystem::file_size( path_in ) ),
+		  m_is_folder( std::filesystem::is_directory( m_path ) ),
+		  m_engine_type( determineEngineFileType( path_in ) )
 		{
 			assert( std::filesystem::exists( path_in ) );
 		}
