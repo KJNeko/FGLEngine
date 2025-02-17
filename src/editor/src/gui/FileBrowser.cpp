@@ -17,8 +17,6 @@
 namespace fgl::engine::filesystem
 {
 
-	//! Textures for files (pre-rendered image, images, ect)
-
 	constexpr std::uint32_t DESIRED_SIZE { 128 };
 	constexpr std::uint32_t PADDING { 2 };
 
@@ -27,24 +25,6 @@ namespace fgl::engine::filesystem
 	void FileBrowser::drawGui( [[maybe_unused]] FrameInfo& info )
 	{
 		ZoneScoped;
-
-		/*
-		if ( ImGui::BeginMenuBar() )
-		{
-			if ( ImGui::BeginMenu( "File" ) )
-			{
-				if ( ImGui::MenuItem( "Open File" ) )
-				{}
-
-				if ( ImGui::MenuItem( "Open Folder" ) )
-				{}
-
-				ImGui::EndMenu();
-			}
-
-			ImGui::EndMenuBar();
-		}
-		*/
 
 		if ( !m_current_dir )
 		{
@@ -111,11 +91,13 @@ namespace fgl::engine::filesystem
 		{
 			return format_ns::format( "{} B", size );
 		}
-		else if ( size < 1000 * 1000 )
+
+		if ( size < 1000 * 1000 )
 		{
 			return format_ns::format( "{:0.2f} KB", static_cast< float >( size ) / 1000.0f );
 		}
-		else if ( size < 1000 * 1000 * 1000 )
+
+		if ( size < 1000 * 1000 * 1000 )
 		{
 			return format_ns::format( "{:0.2f} MB", static_cast< float >( size ) / 1000.0f / 1000.0f );
 		}
@@ -151,7 +133,7 @@ namespace fgl::engine::filesystem
 		}
 	}
 
-	void FileBrowser::drawBinary( [[maybe_unused]] const FileInfo& info )
+	void FileBrowser::drawBinary( [[maybe_unused]] const FileInfo& info ) const
 	{
 		// file_texture->drawImGui( { 128, 128 } );
 		m_file_texture->drawImGuiButton( { DESIRED_SIZE, DESIRED_SIZE } );

@@ -40,7 +40,7 @@ namespace fgl::engine::filesystem
 		void drawFolder( const DirInfo& data );
 
 		// drawers
-		void drawBinary( const FileInfo& info );
+		void drawBinary( const FileInfo& info ) const;
 		void drawModel( const FileInfo& info );
 		void drawTexture( const FileInfo& info );
 	};

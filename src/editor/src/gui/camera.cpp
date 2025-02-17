@@ -106,7 +106,7 @@ namespace fgl::engine::gui
 
 			Camera& camera { *camera_ptr };
 
-			std::string name { "" };
+			std::string name {};
 
 			if ( camera.getName() == "" )
 				name = std::format( "Camera: ID {}", camera.getIDX() );

@@ -8,7 +8,6 @@
 #include "engine/assets/model/Model.hpp"
 #include "engine/assets/model/builders/SceneBuilder.hpp"
 #include "engine/camera/Camera.hpp"
-#include "engine/camera/GBufferSwapchain.hpp"
 #include "engine/filesystem/scanner/FileScanner.hpp"
 #include "engine/filesystem/types.hpp"
 #include "engine/gameobjects/components/ModelComponent.hpp"

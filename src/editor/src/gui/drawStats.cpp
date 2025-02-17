@@ -20,21 +20,21 @@ namespace fgl::engine::gui
 			vk::DeviceSize m_total;
 			vk::DeviceSize m_used;
 
-			inline vk::DeviceSize free() const { return m_total - m_used; }
+			vk::DeviceSize free() const { return m_total - m_used; }
 
 			vk::DeviceSize m_largest_free_block { std::numeric_limits< vk::DeviceSize >::max() };
 		};
 
-		AllocationInfo gpu {};
-		AllocationInfo host {};
+		AllocationInfo m_gpu {};
+		AllocationInfo m_host {};
 	};
 
 	AllocationList getTotalAllocated()
 	{
 		AllocationList info {};
 
-		auto& [ gpu_allocated, gpu_used, gpu_largest_free ] = info.gpu;
-		auto& [ host_allocated, host_used, host_largest_free ] = info.host;
+		auto& [ gpu_allocated, gpu_used, gpu_largest_free ] = info.m_gpu;
+		auto& [ host_allocated, host_used, host_largest_free ] = info.m_host;
 
 		for ( const auto* buffer : memory::getActiveBuffers() )
 		{
@@ -113,10 +113,10 @@ namespace fgl::engine::gui
 		ImGui::Begin( "Stats" );
 
 		ImGui::Text( "FPS: %0.1f", static_cast< double >( ImGui::GetIO().Framerate ) );
-		const auto& counters { profiling::getCounters() };
-		ImGui::Text( "Models drawn: %zu", counters.m_models_draw );
-		ImGui::Text( "Verts drawn: %zu", counters.m_verts_drawn );
-		ImGui::Text( "Draw instances: %zu", counters.m_instance_count );
+		const auto& [ verts_drawn, models_draw, instance_count ] { profiling::getCounters() };
+		ImGui::Text( "Models drawn: %zu", models_draw );
+		ImGui::Text( "Verts drawn: %zu", verts_drawn );
+		ImGui::Text( "Draw instances: %zu", instance_count );
 
 		if ( ImGui::CollapsingHeader( "Memory" ) )
 		{
