@@ -27,8 +27,8 @@ Titor rendering engine.
 ### 3. SLANG (CURRENT)
 
 - [x] Convert all shaders to slang
-- [ ] Figure out SubpassInput grouping, If it's even possible(?)
-- [ ] Finish slang compilation
+- [x] Figure out SubpassInput grouping, If it's even possible(?)
+- [x] Finish slang compilation
 - [ ] Implement reflection testing
 - [ ] Implement reflection assertions (Assert classes are expected sizes)
 
