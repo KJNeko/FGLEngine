@@ -6,7 +6,15 @@
 
 #include <cassert>
 #include <fstream>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
+#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
 #include <slang-com-ptr.h>
+#include <slang.h>
+#pragma GCC diagnostic pop
 
 #include "engine/FGL_DEFINES.hpp"
 #include "engine/constants.hpp"
@@ -50,9 +58,16 @@ namespace fgl::engine
 
 	void checkMaterialDataLayout( slang::ProgramLayout* layout )
 	{
+		using namespace slang;
+
 		auto* const type_info { layout->findTypeByName( "Material" ) };
 
 		if ( type_info == nullptr ) return;
+
+		if ( type_info->getKind() != TypeReflection::Kind::Struct )
+		{
+			throw std::logic_error( "unexpected type" );
+		}
 
 		//TODO: This
 	}
@@ -152,20 +167,18 @@ namespace fgl::engine
 			Slang::ComPtr< IBlob > json_glob {};
 			layout->toJson( json_glob.writeRef() );
 
-			/*
-			log::debug(
-				"Shader layout: {}",
-				std::string_view(
-					static_cast< const char* >( json_glob->getBufferPointer() ), json_glob->getBufferSize() ) );
+#ifndef NDEBUG
 
-			if ( std::ofstream
-			         ofs( path.parent_path()
-			              / std::format( "{}-{}.json", path.filename().string(), entry_point_name ) );
-			     ofs )
+			// dump the compilation layout json to a file
+			std::filesystem::create_directory( parent_path / "dumps" );
+			const std::string file_name { std::format( "{}-{}.json", path.stem().string(), entry_point_name ) };
+			const auto target_path { parent_path / "dumps" / file_name };
+
+			if ( std::ofstream ofs( target_path ); ofs )
 			{
 				ofs.write( static_cast< const char* >( json_glob->getBufferPointer() ), json_glob->getBufferSize() );
 			}
-			*/
+#endif
 
 			FGL_ASSERT( layout != nullptr, "Layout must be valid" );
 		}
