@@ -12,7 +12,7 @@ namespace fgl::engine::descriptors
 	vk::raii::DescriptorPool createPool( std::uint32_t set_count )
 	{
 		std::vector< vk::DescriptorPoolSize > pool_sizes {};
-		for ( auto& [ type, ratio ] : descriptor_allocation_ratios )
+		for ( auto& [ type, ratio ] : DESCRIPTOR_ALLOCATION_RATIOS )
 		{
 			pool_sizes.emplace_back( type, static_cast< std::uint32_t >( static_cast< float >( set_count ) * ratio ) );
 		}
@@ -27,10 +27,11 @@ namespace fgl::engine::descriptors
 		return Device::getInstance()->createDescriptorPool( pool_info );
 	}
 
-	DescriptorPool::DescriptorPool( std::uint32_t set_count ) : m_pool( createPool( set_count ) )
+	DescriptorPool::DescriptorPool( const std::uint32_t set_count ) : m_pool( createPool( set_count ) )
 	{}
 
 	[[nodiscard]] vk::raii::DescriptorSet DescriptorPool::allocateSet( const vk::raii::DescriptorSetLayout& layout )
+		const
 	{
 		vk::DescriptorSetAllocateInfo alloc_info {};
 		alloc_info.setDescriptorPool( m_pool );
@@ -45,12 +46,13 @@ namespace fgl::engine::descriptors
 		return set;
 	}
 
-	static DescriptorPool* s_pool { nullptr };
+	static std::unique_ptr< DescriptorPool > s_pool { nullptr };
 
 	DescriptorPool& DescriptorPool::init()
 	{
 		assert( !s_pool && "Descriptor pool already initialized" );
-		s_pool = new DescriptorPool( 1000 );
+
+		s_pool = std::unique_ptr< DescriptorPool >( new DescriptorPool( 1000 ) );
 		return *s_pool;
 	}
 

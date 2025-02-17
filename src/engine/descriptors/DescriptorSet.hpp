@@ -31,30 +31,34 @@ namespace fgl::engine::descriptors
 	{
 		DescriptorIDX m_set_idx;
 		//TODO: Maybe redo this to not be a monostate variant?
-		std::vector< std::variant< std::monostate, vk::DescriptorImageInfo, vk::DescriptorBufferInfo > > m_infos {};
-		std::vector< vk::WriteDescriptorSet > descriptor_writes {};
+		std::vector< std::variant< std::monostate, vk::DescriptorImageInfo, vk::DescriptorBufferInfo > > m_infos;
+		std::vector< vk::WriteDescriptorSet > m_descriptor_writes;
 
-		std::vector< std::variant< std::shared_ptr< ImageView >, std::shared_ptr< memory::BufferSuballocation > > >
-			m_resources {};
+		using Resource = std::variant< std::shared_ptr< ImageView >, std::shared_ptr< memory::BufferSuballocation > >;
+
+		//! Resources to keep allocated for as long as this descriptor exists.
+		std::vector< Resource > m_resources;
 
 		vk::raii::DescriptorSet m_set;
 
 		std::size_t m_binding_count;
 
+		//! Resets the binding update list
+		void resetUpdate();
+
 	  public:
 
-		void reset();
-
+		//! Updates the descriptor set, updates all pending writes created by using bindImage(), bindUniformBuffer(), bindArray(), bindAttachment(), or bindTexture().
 		void update();
 
 		VkDescriptorSet operator*() const { return *m_set; }
 
-		VkDescriptorSet getVkDescriptorSet() const { return *m_set; }
+		[[nodiscard]] VkDescriptorSet getVkDescriptorSet() const { return *m_set; }
 
-		inline DescriptorIDX setIDX() const { return m_set_idx; }
+		[[nodiscard]] DescriptorIDX setIDX() const { return m_set_idx; }
 
 		DescriptorSet() = delete;
-		DescriptorSet( const vk::raii::DescriptorSetLayout& layout, const DescriptorIDX idx, std::size_t binding_count );
+		DescriptorSet( const vk::raii::DescriptorSetLayout& layout, DescriptorIDX idx, std::size_t binding_count );
 
 		//Copy
 		DescriptorSet( const DescriptorSet& other ) = delete;

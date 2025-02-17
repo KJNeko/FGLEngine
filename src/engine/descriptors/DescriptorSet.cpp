@@ -7,7 +7,6 @@
 #include <vulkan/vulkan.hpp>
 
 #include <iostream>
-#include <queue>
 
 #include "DescriptorPool.hpp"
 #include "engine/assets/image/ImageView.hpp"
@@ -30,7 +29,7 @@ namespace fgl::engine::descriptors
 	DescriptorSet::DescriptorSet( DescriptorSet&& other ) noexcept :
 	  m_set_idx( other.m_set_idx ),
 	  m_infos( std::move( other.m_infos ) ),
-	  descriptor_writes( std::move( other.descriptor_writes ) ),
+	  m_descriptor_writes( std::move( other.m_descriptor_writes ) ),
 	  m_resources( std::move( other.m_resources ) ),
 	  m_set( std::move( other.m_set ) ),
 	  m_binding_count( other.m_binding_count )
@@ -43,7 +42,7 @@ namespace fgl::engine::descriptors
 	{
 		m_set_idx = other.m_set_idx;
 		m_infos = std::move( other.m_infos );
-		descriptor_writes = std::move( other.descriptor_writes );
+		m_descriptor_writes = std::move( other.m_descriptor_writes );
 		m_resources = std::move( other.m_resources );
 		m_set = std::move( other.m_set );
 		other.m_set = VK_NULL_HANDLE;
@@ -69,7 +68,7 @@ namespace fgl::engine::descriptors
 		write.pImageInfo = VK_NULL_HANDLE;
 		write.pTexelBufferView = VK_NULL_HANDLE;
 
-		descriptor_writes.push_back( write );
+		m_descriptor_writes.push_back( write );
 	}
 
 	void DescriptorSet::bindArray(
@@ -95,7 +94,7 @@ namespace fgl::engine::descriptors
 		write.pImageInfo = VK_NULL_HANDLE;
 		write.pTexelBufferView = VK_NULL_HANDLE;
 
-		descriptor_writes.push_back( write );
+		m_descriptor_writes.push_back( write );
 	}
 
 	void DescriptorSet::bindImage(
@@ -119,7 +118,7 @@ namespace fgl::engine::descriptors
 		write.pImageInfo = &( std::get< vk::DescriptorImageInfo >( m_infos[ binding_idx ] ) );
 		write.pTexelBufferView = VK_NULL_HANDLE;
 
-		descriptor_writes.push_back( write );
+		m_descriptor_writes.push_back( write );
 	}
 
 	void DescriptorSet::bindTexture( const std::uint32_t binding_idx, const std::shared_ptr< Texture >& tex_ptr )
@@ -146,23 +145,23 @@ namespace fgl::engine::descriptors
 		write.descriptorType = vk::DescriptorType::eCombinedImageSampler;
 		write.pImageInfo = &( std::get< vk::DescriptorImageInfo >( m_infos.data()[ binding_idx ] ) );
 
-		descriptor_writes.push_back( write );
+		m_descriptor_writes.push_back( write );
 	}
 
 	void DescriptorSet::update()
 	{
-		Device::getInstance().device().updateDescriptorSets( descriptor_writes, {} );
-		reset();
+		Device::getInstance().device().updateDescriptorSets( m_descriptor_writes, {} );
+		resetUpdate();
 	}
 
 	DescriptorSet::~DescriptorSet()
 	{}
 
-	void DescriptorSet::reset()
+	void DescriptorSet::resetUpdate()
 	{
 		m_infos.clear();
 		//Clear all writes
-		descriptor_writes.clear();
+		m_descriptor_writes.clear();
 
 		m_infos.resize( m_binding_count );
 	}
@@ -188,7 +187,7 @@ namespace fgl::engine::descriptors
 		write.pImageInfo = &( std::get< vk::DescriptorImageInfo >( m_infos[ binding_idx ] ) );
 		write.pTexelBufferView = VK_NULL_HANDLE;
 
-		descriptor_writes.push_back( write );
+		m_descriptor_writes.push_back( write );
 	}
 
 	void DescriptorSet::setName( const std::string& str ) const

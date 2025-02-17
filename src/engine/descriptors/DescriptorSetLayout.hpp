@@ -36,12 +36,12 @@ namespace fgl::engine::descriptors
 	  public:
 
 		//! Used to make creating an empty set VERY EXPLICIT
-		inline static DescriptorSetLayout createEmptySet() { return {}; }
+		static DescriptorSetLayout createEmptySet() { return {}; }
 
 		friend class ::fgl::engine::PipelineBuilder;
 
 		template < typename... Args >
-		DescriptorSetLayout( const DescriptorIDX set_idx, const Args&... descriptors ) :
+		explicit DescriptorSetLayout( const DescriptorIDX set_idx, const Args&... descriptors ) :
 		  DescriptorSetLayout( set_idx, std::vector< std::reference_wrapper< const Descriptor > > { descriptors... } )
 		{}
 

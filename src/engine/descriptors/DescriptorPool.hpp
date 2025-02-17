@@ -17,7 +17,7 @@ namespace fgl::engine
 namespace fgl::engine::descriptors
 {
 
-	static const std::unordered_map< vk::DescriptorType, float > descriptor_allocation_ratios {
+	static const std::unordered_map< vk::DescriptorType, float > DESCRIPTOR_ALLOCATION_RATIOS {
 		{ vk::DescriptorType::eUniformBuffer, 2.0f }, { vk::DescriptorType::eCombinedImageSampler, 2.0f }
 	};
 
@@ -25,7 +25,7 @@ namespace fgl::engine::descriptors
 	{
 		vk::raii::DescriptorPool m_pool;
 
-		DescriptorPool( std::uint32_t set_count );
+		explicit DescriptorPool( std::uint32_t set_count );
 
 	  public:
 
@@ -36,12 +36,12 @@ namespace fgl::engine::descriptors
 
 		vk::raii::DescriptorPool& getPool() { return m_pool; }
 
-		VkDescriptorPool operator*() { return *m_pool; }
+		VkDescriptorPool operator*() const { return *m_pool; }
 
 		static DescriptorPool& init();
 		[[nodiscard]] static DescriptorPool& getInstance();
 
-		[[nodiscard]] vk::raii::DescriptorSet allocateSet( const vk::raii::DescriptorSetLayout& layout );
+		[[nodiscard]] vk::raii::DescriptorSet allocateSet( const vk::raii::DescriptorSetLayout& layout ) const;
 	};
 } // namespace fgl::engine::descriptors
 

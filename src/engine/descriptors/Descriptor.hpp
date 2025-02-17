@@ -31,7 +31,8 @@ namespace fgl::engine::descriptors
 		  m_type( type ),
 		  m_stage_flags( stage_flags ),
 		  m_count( count ),
-		  m_binding_flags( binding_flags )
+		  m_binding_flags( binding_flags ),
+		  m_layout_binding( generateLayoutBinding() )
 		{}
 
 		constexpr vk::DescriptorSetLayoutBinding generateLayoutBinding()
@@ -45,7 +46,7 @@ namespace fgl::engine::descriptors
 			return layout_binding;
 		}
 
-		vk::DescriptorSetLayoutBinding m_layout_binding { generateLayoutBinding() };
+		vk::DescriptorSetLayoutBinding m_layout_binding;
 	};
 
 	struct ImageDescriptor : Descriptor
