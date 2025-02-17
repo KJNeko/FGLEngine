@@ -9,6 +9,7 @@ struct CoarseVertex {
 	vec3 normal;
 	vec2 tex_coord;
 	float4 position : SV_Position;
+	float3 world_pos;
 	uint material_id;
 }
 
@@ -22,7 +23,9 @@ CoarseVertex vertexMain( ModelVertex in_vertex )
 
     vec4 world_pos = mul(in_vertex.model_matrix, vec4(in_vertex.simple.position, 1.0));
 
-    out_vertex.position = mul(mul(camera.projection , camera.view), world_pos);
+	const float4 transformed_pos = mul( mul( camera.projection, camera.view ), world_pos );
+	out_vertex.position = transformed_pos;
+	out_vertex.world_pos = world_pos.xyz;
 
 	mat3 normal_matrix = transpose( inverse( mat3( in_vertex.model_matrix ) ) );
 
@@ -45,7 +48,7 @@ static const float MIN_ROUGHNESS = 0.04;
 GBufferFragment fragmentMain( CoarseVertex vertex )
 {
 	GBufferFragment frag;
-	frag.position = vertex.position.xyz;
+	frag.position = vertex.world_pos;
 
 	vec3 diffuse_color;
 	vec4 base_color;
@@ -53,7 +56,6 @@ GBufferFragment fragmentMain( CoarseVertex vertex )
 	vec3 f0 = vec3( 0.04 );
 
 	frag.color = vec4(1.0, 1.0, 1.0, 1.0);
-
 
 	if ( vertex.material_id == INVALID_TEXTURE_ID )
 	{
@@ -99,8 +101,9 @@ GBufferFragment fragmentMain( CoarseVertex vertex )
 	var normal = material.normal;
 	if ( normal.isTexture() )
 	{
-		vec3 sample = texture( tex[ normal.texture_id ], vertex.tex_coord ).rgb;
-		frag.normal = vec4( sample * vec3( normal.scale ), 1.0 );
+		const vec3 sample = texture( tex[ normal.texture_id ], vertex.tex_coord ).rgb;
+		const vec3 scaled_sample = mul( sample, vec3(normal.scale) );
+		frag.normal = vec4( scaled_sample, 1.0 );
     }
 	else
 	{

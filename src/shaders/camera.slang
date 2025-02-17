@@ -10,7 +10,8 @@ public struct CameraData
 
 	public vec3 getPos()
 	{
-		return vec3( inverse_view[ 3 ][ 0 ], inverse_view[ 3 ][ 1 ], inverse_view[ 3 ][ 2 ] );
+	    //TODO: For some reason even though the compiler is set to be column major, This array access is inverted. Need to look into this.
+		return vec3( inverse_view[ 0 ][ 3 ], inverse_view[ 1 ][ 3 ], inverse_view[ 2 ][ 3 ] );
 	}
 
 }
