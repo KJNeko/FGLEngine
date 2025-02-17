@@ -17,7 +17,7 @@ PFN_vkSetDebugUtilsObjectNameEXT pfnVkSetDebugUtilsObjectNameEXT { nullptr };
 
 // Callback function for vulkan messaging.
 static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
-	[[maybe_unused]] const vk::DebugUtilsMessageSeverityFlagBitsEXT message_severity,
+	const vk::DebugUtilsMessageSeverityFlagBitsEXT message_severity,
 	[[maybe_unused]] vk::DebugUtilsMessageTypeFlagsEXT message_type,
 	const vk::DebugUtilsMessengerCallbackDataEXT* p_callback_data,
 	[[maybe_unused]] void* p_user_data )
@@ -153,9 +153,8 @@ namespace fgl::engine
 			if ( error_msg )
 				throw std::runtime_error(
 					std::format( "Failed to get required extensions from glfw: {}:{}", glfw_error_id, error_msg ) );
-			else
-				throw std::
-					runtime_error( std::format( "Failed to get required extensions from glfw: {}", glfw_error_id ) );
+
+			throw std::runtime_error( std::format( "Failed to get required extensions from glfw: {}", glfw_error_id ) );
 		}
 
 		std::vector< const char* > extensions( glfwExtensions, glfwExtensions + glfwExtensionCount );
@@ -190,7 +189,7 @@ namespace fgl::engine
 	{
 		std::vector< vk::ExtensionProperties > instance_extensions { vk::enumerateInstanceExtensionProperties() };
 
-		std::cout << "available instance instance_extensions:" << std::endl;
+		log::info( "Available instance extensions: " );
 		std::unordered_set< std::string > available {};
 		//Get list of all available instance extensions
 		for ( const auto& extension : instance_extensions )
@@ -199,16 +198,15 @@ namespace fgl::engine
 			available.insert( extension.extensionName );
 		}
 
-		std::cout << "required instance instance_extensions:" << std::endl;
+		log::info( "Required instance extensions:" );
 		//Get the list of the required extensions
 
 		auto requiredExtensions { getRequiredInstanceExtensions() };
 		for ( const char* required : requiredExtensions )
 		{
-			if ( std::find_if(
-					 instance_extensions.begin(),
-					 instance_extensions.end(),
-					 [ required ]( const vk::ExtensionProperties& prop )
+			if ( std::ranges::find_if(
+					 instance_extensions,
+					 [ required ]( const vk::ExtensionProperties& prop ) noexcept
 					 { return std::strcmp( prop.extensionName, required ); } )
 			     == instance_extensions.end() )
 			{
@@ -216,7 +214,7 @@ namespace fgl::engine
 				throw std::runtime_error( "Failed to find required extention: " );
 			}
 			else
-				std::cout << required << std::endl;
+				log::info( required );
 		}
 	}
 

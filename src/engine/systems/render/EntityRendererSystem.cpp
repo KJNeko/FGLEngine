@@ -90,14 +90,14 @@ namespace fgl::engine
 	{
 		ZoneScopedN( "Entity pass" );
 		[[maybe_unused]] auto& command_buffer { setupSystem( info ) };
-		TracyVkZone( info.tracy_ctx, *command_buffer, "Render entities" );
+		TracyVkZone( info.tracy_ctx, **command_buffer, "Render entities" );
 		auto timer = debug::timing::push( "Render entities" );
 
 		texturelessPass( info );
 		texturedPass( info );
 	}
 
-	void EntityRendererSystem::texturelessPass( const FrameInfo& info )
+	void EntityRendererSystem::texturelessPass( [[maybe_unused]] const FrameInfo& info )
 	{
 		/*
 		ZoneScopedN( "Textureless pass" );
@@ -145,7 +145,7 @@ namespace fgl::engine
 	{
 		ZoneScopedN( "Textured pass" );
 		auto& command_buffer { info.command_buffer.render_cb };
-		TracyVkZone( info.tracy_ctx, *command_buffer, "Render textured entities" );
+		TracyVkZone( info.tracy_ctx, **command_buffer, "Render textured entities" );
 
 		auto [ draw_commands, model_matricies ] =
 			getDrawCallsFromTree( info.game_objects, info.camera->getFrustumBounds(), IsVisible | IsEntity );

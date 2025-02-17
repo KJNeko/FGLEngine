@@ -5,6 +5,11 @@
 #pragma once
 #include "engine/primitives/boxes/AxisAlignedBoundingCube.hpp"
 
+namespace fgl::engine
+{
+	struct Frustum;
+}
+
 namespace fgl::engine::intersections
 {
 

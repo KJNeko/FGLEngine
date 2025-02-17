@@ -14,13 +14,14 @@ namespace fgl::engine
 		return ray;
 	}
 
-	bool rayHit( const Ray& ray, const OrientedBoundingBox< CS::World >& obb )
+	bool rayHit( [[maybe_unused]] const Ray& ray, [[maybe_unused]] const OrientedBoundingBox< CS::World >& obb )
 	{
+		//TODO: Implement raycasts
 		FGL_TODO();
 		return false;
 	}
 
-	bool rayHit( const Ray& ray, const AxisAlignedBoundingBox< CS::World >& aabb )
+	bool rayHit( [[maybe_unused]] const Ray& ray, [[maybe_unused]] const AxisAlignedBoundingBox< CS::World >& aabb )
 	{
 		FGL_TODO();
 	}

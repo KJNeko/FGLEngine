@@ -249,7 +249,8 @@ namespace fgl::engine::memory
 		const std::shared_ptr< BufferSuballocationHandle >& source, const std::shared_ptr< ImageHandle >& target ) :
 	  m_type( IMAGE_FROM_BUFFER ),
 	  m_source( source ),
-	  m_target( target )
+	  m_target( target ),
+	  m_target_offset( 0 )
 	{
 		markBad();
 	}
@@ -258,7 +259,8 @@ namespace fgl::engine::memory
 	TransferData::TransferData( std::vector< std::byte >&& source, const std::shared_ptr< ImageHandle >& target ) :
 	  m_type( IMAGE_FROM_RAW ),
 	  m_source( std::forward< std::vector< std::byte > >( source ) ),
-	  m_target( target )
+	  m_target( target ),
+	  m_target_offset( 0 )
 	{
 		assert( std::get< RawData >( m_source ).size() > 0 );
 		markBad();

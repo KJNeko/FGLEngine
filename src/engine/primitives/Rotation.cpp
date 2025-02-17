@@ -8,7 +8,8 @@
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/quaternion.hpp>
 
-#include "engine/FGL_DEFINES.hpp"
+#include <numbers>
+
 #include "engine/constants.hpp"
 
 namespace fgl::engine

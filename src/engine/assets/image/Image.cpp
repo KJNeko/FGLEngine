@@ -26,6 +26,8 @@ namespace fgl::engine
 	{
 		switch ( layout )
 		{
+			default:
+				FGL_UNREACHABLE();
 			case vk::ImageLayout::eUndefined:
 				return vk::AccessFlags( 0 );
 			case vk::ImageLayout::eGeneral:
@@ -86,8 +88,8 @@ namespace fgl::engine
 				break;
 			case vk::ImageLayout::eAttachmentFeedbackLoopOptimalEXT:
 				break;
-			default:
-				FGL_UNREACHABLE();
+			case vk::ImageLayout::eVideoEncodeQuantizationMapKHR:
+				break;
 		}
 
 		FGL_UNREACHABLE();
@@ -156,6 +158,8 @@ namespace fgl::engine
 			case vk::ImageLayout::eVideoEncodeDpbKHR:
 				break;
 			case vk::ImageLayout::eAttachmentFeedbackLoopOptimalEXT:
+				break;
+			case vk::ImageLayout::eVideoEncodeQuantizationMapKHR:
 				break;
 		}
 

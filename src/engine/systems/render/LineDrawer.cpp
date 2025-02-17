@@ -64,7 +64,7 @@ namespace fgl::engine
 		debug::drawAxisHelper();
 
 		auto& command_buffer { setupSystem( info ) };
-		TracyVkZone( info.tracy_ctx, *command_buffer, "Draw debug lines" );
+		TracyVkZone( info.tracy_ctx, **command_buffer, "Draw debug lines" );
 
 		if ( m_lines.empty() ) return;
 

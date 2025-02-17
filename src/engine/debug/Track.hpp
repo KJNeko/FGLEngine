@@ -2,7 +2,6 @@
 // Created by kj16609 on 1/22/25.
 //
 #pragma once
-#include <cstdint>
 #include <stacktrace>
 #include <vector>
 
@@ -22,9 +21,9 @@ namespace fgl::engine::debug
 	};
 
 	std::size_t
-		registerTrack( std::string_view group, std::string_view name, std::size_t size, std::stacktrace& trace );
+		registerTrack( std::string_view group, std::string_view name, std::size_t size, const std::stacktrace& trace );
 
-	void deregisterTrack( std::string_view group, std::string_view name, std::size_t UID );
+	void deregisterTrack( std::size_t UID );
 
 	std::vector< TrackInfo > getTracks( std::string_view group, std::string_view name );
 	std::vector< TrackInfo > getAllTracks();
@@ -40,7 +39,7 @@ namespace fgl::engine::debug
 		  UID( registerTrack( Group, Name, size, trace ) )
 		{}
 
-		~Track() { deregisterTrack( Group, Name, UID ); }
+		~Track() { deregisterTrack( UID ); }
 	};
 
 } // namespace fgl::engine::debug

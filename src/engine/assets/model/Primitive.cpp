@@ -46,7 +46,7 @@ namespace fgl::engine
 	  m_mode( mode ),
 	  m_material()
 	{
-		assert( m_bounding_box.m_transform.scale != glm::vec3( 0.0f ) );
+		assert( m_bounding_box.getTransform().scale != glm::vec3( 0.0f ) );
 	}
 
 	Primitive::Primitive(
@@ -61,7 +61,7 @@ namespace fgl::engine
 	  m_mode( mode ),
 	  m_material( material )
 	{
-		assert( m_bounding_box.m_transform.scale != glm::vec3( 0.0f ) );
+		assert( m_bounding_box.getTransform().scale != glm::vec3( 0.0f ) );
 	}
 
 	Primitive Primitive::fromVerts(

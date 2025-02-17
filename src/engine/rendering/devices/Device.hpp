@@ -56,7 +56,7 @@ namespace fgl::engine
 				vk::PhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT,
 				vk::PhysicalDeviceDescriptorIndexingFeatures >;
 
-			InfoChain m_info_chain;
+			InfoChain m_info_chain {};
 
 			vk::PhysicalDeviceFeatures getDeviceFeatures( PhysicalDevice& );
 			void getIndexingFeatures();

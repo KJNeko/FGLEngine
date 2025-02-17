@@ -5,7 +5,9 @@ project(TitorGameEngine LANGUAGES CXX C)
 
 find_program(CCACHE_FOUND ccache)
 if (CCACHE_FOUND)
-	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+	set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
+else ()
+	message("ccache not found. Not using it")
 endif ()
 
 add_subdirectory(fgl_cmake_modules)
@@ -22,8 +24,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules")
 
 message("-- CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
 string(TOUPPER ${CMAKE_BUILD_TYPE} UPPER_BUILD_TYPE)
-
-message("-- FGL_FLAGS: ${FGL_FLAGS}")
 
 add_subdirectory(dependencies/vma)
 include(dependencies/glfw)

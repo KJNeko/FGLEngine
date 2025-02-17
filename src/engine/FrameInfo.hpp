@@ -74,7 +74,7 @@ namespace fgl::engine
 	{
 		FrameIndex frame_idx;
 		PresentIndex present_idx;
-		double delta_time;
+		DeltaTime delta_time;
 
 		CommandBuffers& command_buffer;
 

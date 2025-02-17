@@ -21,7 +21,7 @@ namespace fgl::engine::debug
 
 	struct Node
 	{
-		std::string_view m_name;
+		std::string_view m_name { "" };
 		ProfilingClock::time_point m_start {};
 		ProfilingClock::time_point m_end {};
 		std::vector< Node > m_children {};
@@ -34,10 +34,9 @@ namespace fgl::engine::debug
 
 		Duration getTotalTime() const
 		{
-			if ( m_parent != nullptr )
-				return m_parent->getTotalTime();
-			else
-				return getDuration();
+			if ( m_parent != nullptr ) return m_parent->getTotalTime();
+
+			return getDuration();
 		}
 
 		Node() = default;
@@ -45,7 +44,7 @@ namespace fgl::engine::debug
 		FGL_DELETE_COPY( Node );
 
 		Node( Node&& other ) noexcept :
-		  m_name( std::move( other.m_name ) ),
+		  m_name( other.m_name ),
 		  m_start( other.m_start ),
 		  m_end( other.m_end ),
 		  m_children( std::move( other.m_children ) ),
@@ -56,7 +55,7 @@ namespace fgl::engine::debug
 
 		Node& operator=( Node&& other ) noexcept
 		{
-			m_name = std::move( other.m_name );
+			m_name = other.m_name;
 			m_start = other.m_start;
 			m_end = other.m_end;
 			m_children = std::move( other.m_children );

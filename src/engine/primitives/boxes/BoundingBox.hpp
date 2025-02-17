@@ -11,7 +11,7 @@ namespace fgl::engine::interface
 
 	struct NormalVector;
 
-	//! Dummy class to allow for inheriting to pass 'is_bounding_box[
+	//! Dummy class to allow for inheriting to pass 'is_bounding_box
 	struct BoundingBox
 	{
 	  public:

@@ -37,7 +37,7 @@ namespace fgl::engine
 		void addDescriptorSet( SetID idx, const vk::raii::DescriptorSetLayout& descriptor_set_layout ) const;
 		void addDescriptorSet( descriptors::DescriptorSetLayout& descriptor );
 		void addDynamicState( vk::DynamicState dynamic_state );
-		void setPushConstant( vk::ShaderStageFlags flags, std::size_t size );
+		void setPushConstant( vk::ShaderStageFlags flags, std::uint32_t size );
 
 		struct BuilderState
 		{
@@ -75,7 +75,7 @@ namespace fgl::engine
 				vk::Format depth;
 
 				Formats();
-			} formats;
+			} formats {};
 
 			uint32_t m_subpass_stage;
 

@@ -22,6 +22,11 @@ namespace fgl::engine
 		return m_projection_matrix * m_view_matrix;
 	}
 
+	glm::mat4 Camera::getInverseViewMatrix() const
+	{
+		return glm::inverse( m_view_matrix );
+	}
+
 	void Camera::setOrthographicProjection( float left, float right, float top, float bottom, float near, float far )
 	{
 		m_projection_matrix = Matrix< MatrixType::CameraToScreen >( glm::ortho( left, right, bottom, top, near, far ) );

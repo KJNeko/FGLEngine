@@ -8,6 +8,7 @@
 #include "engine/primitives/boxes/AxisAlignedBoundingCube.hpp"
 #include "engine/utils.hpp"
 
+/*
 namespace fgl::engine::tree
 {
 
@@ -95,3 +96,4 @@ namespace fgl::engine::tree
 	}
 
 } // namespace fgl::engine::tree
+*/

@@ -202,7 +202,7 @@ namespace fgl::engine
 		m_state->m_dynamic_state.emplace_back( dynamic_state );
 	}
 
-	void PipelineBuilder::setPushConstant( const vk::ShaderStageFlags flags, std::size_t size )
+	void PipelineBuilder::setPushConstant( const vk::ShaderStageFlags flags, std::uint32_t size )
 	{
 		m_state->push_constant.offset = 0;
 		m_state->push_constant.size = size;

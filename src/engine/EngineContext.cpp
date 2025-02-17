@@ -109,7 +109,7 @@ namespace fgl::engine
 		ZoneScoped;
 		// Get delta time
 		const auto now { fgl::Clock::now() };
-		const std::chrono::duration< double, std::chrono::seconds::period > time_diff { now - m_last_tick };
+		const std::chrono::duration< DeltaTime, std::chrono::seconds::period > time_diff { now - m_last_tick };
 		m_last_tick = now;
 
 		// Convert from ms to s
@@ -174,7 +174,7 @@ namespace fgl::engine
 				for ( const auto& hook : m_pre_frame_hooks ) hook( frame_info );
 			}
 
-			TracyVkCollect( frame_info.tracy_ctx, *command_buffers.transfer_cb );
+			TracyVkCollect( frame_info.tracy_ctx, **command_buffers.transfer_cb );
 
 			//TODO: Setup semaphores to make this pass not always required.
 			m_transfer_manager.recordOwnershipTransferDst( command_buffers.transfer_cb );

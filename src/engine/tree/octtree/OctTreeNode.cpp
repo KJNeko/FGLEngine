@@ -462,7 +462,8 @@ namespace fgl::engine
 			//We are the last node. Check if we have the ID
 			const auto& game_objects { std::get< OctTreeNodeLeaf >( m_node_data ) };
 
-			if ( std::ranges::find_if( game_objects, [ id ]( const GameObject& obj ) { return obj.getId() == id; } )
+			if ( std::ranges::
+			         find_if( game_objects, [ id ]( const GameObject& obj ) noexcept { return obj.getId() == id; } )
 			     != game_objects.end() )
 			{
 				return this;

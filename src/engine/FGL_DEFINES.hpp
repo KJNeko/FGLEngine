@@ -55,9 +55,13 @@
 #ifndef NDEBUG
 #include <format>
 #include <stdexcept>
+#pragma GCC diagnostic push
+// Placed here to prevent strict warnings from preventing compilation, This is intentional.
+#pragma GCC diagnostic ignored "-Wterminate"
 #define FGL_ASSERT( test, msg )                                                                                        \
 	if ( !( test ) )                                                                                                   \
 		throw std::runtime_error( std::format( "{}:{}:{}: {}", __FILE__, __LINE__, __PRETTY_FUNCTION__, msg ) );
+#pragma GCC diagnostic pop
 #else
 #define FGL_ASSERT( test, msg )
 #endif

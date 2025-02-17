@@ -25,8 +25,8 @@ namespace fgl::engine::gui
 		auto& yaw_change { original_rotation };
 		auto& pitch_change { original_rotation };
 
-		constexpr double pitch_rate { 1.0 };
-		constexpr double yaw_rate { 1.0 };
+		constexpr float pitch_rate { 1.0 };
+		constexpr float yaw_rate { 1.0 };
 
 		if ( ImGui::IsKeyDown( ImGuiKey_UpArrow ) )
 		{

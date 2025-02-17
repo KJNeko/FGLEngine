@@ -12,4 +12,6 @@ namespace fgl::engine
 	using FrameIndex = std::uint16_t;
 
 	using CameraIndex = std::uint16_t;
-}
+
+	using DeltaTime = float;
+} // namespace fgl::engine

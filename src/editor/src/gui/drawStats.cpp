@@ -92,11 +92,16 @@ namespace fgl::engine::gui
 			for ( const auto* buffer : memory::getActiveBuffers() )
 			{
 				ImGui::Text( "Name: %s", buffer->m_debug_name.c_str() );
+
+				const double used_percent { static_cast< float >( buffer->used() )
+					                        / static_cast< float >( buffer->size() ) * 100.0f };
+
 				ImGui::Text(
-					"Allocated: %s/%s (%2.1f\%)",
+					"Allocated: %s/%s (%2.1f%%)",
 					toString( buffer->used() ).c_str(),
 					toString( buffer->size() ).c_str(),
-					( static_cast< float >( buffer->used() ) / static_cast< float >( buffer->size() ) * 100.0f ) );
+					static_cast< double >( used_percent ) );
+
 				ImGui::Text( "Largest block: %s", toString( buffer->largestBlock() ).c_str() );
 				ImGui::Separator();
 			}
@@ -107,7 +112,7 @@ namespace fgl::engine::gui
 	{
 		ImGui::Begin( "Stats" );
 
-		ImGui::Text( "FPS: %0.1f", ImGui::GetIO().Framerate );
+		ImGui::Text( "FPS: %0.1f", static_cast< double >( ImGui::GetIO().Framerate ) );
 		const auto& counters { profiling::getCounters() };
 		ImGui::Text( "Models drawn: %zu", counters.m_models_draw );
 		ImGui::Text( "Verts drawn: %zu", counters.m_verts_drawn );

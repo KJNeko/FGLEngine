@@ -96,7 +96,7 @@ namespace fgl::engine::gui
 		float width_size { ratio * static_cast< float >( max_extent.height ) };
 
 		// If the width is higher then the max extent, Then we wanna use the width instead
-		if ( width_size > max_extent.width )
+		if ( width_size > static_cast< float >( max_extent.width ) )
 		{
 			width_size = static_cast< float >( max_extent.width );
 			height_size = static_cast< float >( max_extent.width ) / ratio;
@@ -110,7 +110,10 @@ namespace fgl::engine::gui
 
 	FGL_FORCE_INLINE_FLATTEN inline vk::Extent2D calculateTargetSize( const float ratio, const ImVec2 max_extent )
 	{
-		return calculateTargetSize( ratio, vk::Extent2D( max_extent.x, max_extent.y ) );
+		const vk::Extent2D max_size_i { static_cast< std::uint32_t >( max_extent.x ),
+			                            static_cast< std::uint32_t >( max_extent.y ) };
+
+		return calculateTargetSize( ratio, max_size_i );
 	}
 
 	enum RenderingOutputSelection : std::uint_fast8_t
@@ -154,7 +157,7 @@ namespace fgl::engine::gui
 					current = Position;
 				}
 
-				if ( ImGui::MenuItem( "Enable Hotkeys" ), nullptr, hotkeys_enabled )
+				if ( ImGui::MenuItem( "Enable Hotkeys", nullptr, hotkeys_enabled ) )
 				{
 					hotkeys_enabled = !hotkeys_enabled;
 				}

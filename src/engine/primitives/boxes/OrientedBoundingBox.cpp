@@ -343,7 +343,7 @@ namespace fgl::engine
 	}
 
 	//Synthesize the template
-	template struct OrientedBoundingBox< CoordinateSpace::Model >;
-	template struct OrientedBoundingBox< CoordinateSpace::World >;
+	template class OrientedBoundingBox< CoordinateSpace::Model >;
+	template class OrientedBoundingBox< CoordinateSpace::World >;
 
 } // namespace fgl::engine

@@ -14,10 +14,7 @@ namespace fgl::engine
 
 	class GBufferRenderer
 	{
-		GBufferCompositor m_compositor;
-
-		void setViewport( const CommandBuffer& command_buffer, vk::Extent2D extent );
-		void setScissor( const CommandBuffer& command_buffer, vk::Extent2D extent );
+		GBufferCompositor m_compositor {};
 
 		CullingSystem m_culling_system {};
 
@@ -30,6 +27,9 @@ namespace fgl::engine
 		// CompositionSystem m_composition_system {};
 
 		void beginRenderPass( const CommandBuffer& command_buffer, GBufferSwapchain& swapchain, FrameIndex index );
+
+		void setViewport( const CommandBuffer& command_buffer, vk::Extent2D extent );
+		void setScissor( const CommandBuffer& command_buffer, vk::Extent2D extent );
 
 		void endRenderPass( const CommandBuffer& command_buffer );
 

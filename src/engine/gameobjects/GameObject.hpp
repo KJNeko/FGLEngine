@@ -17,7 +17,7 @@ namespace fgl::engine
 {
 	struct Scale;
 	template < CoordinateSpace CType >
-	struct OrientedBoundingBox;
+	class OrientedBoundingBox;
 
 	class Model;
 

@@ -33,10 +33,10 @@ int main()
 		const auto patch 	{ ( version & PATCH_BITMASK ) 	>> 0};
 		const auto minor 	{ ( version & MINOR_BITMASK ) 	>> 10};
 		const auto major 	{ ( version & MAJOR_BITMASK ) 	>> (10 + 12)};
-		const auto variant 	{ ( version & VARIANT_BITMASK ) >> (10 + 12 + 7) };
-	// clang-format on
+		[[maybe_unused]] const auto variant 	{ ( version & VARIANT_BITMASK ) >> (10 + 12 + 7) };
+		// clang-format on
 
-	log::debug( "Vulkan instance version: {}.{}.{}.{}", major, minor, patch, minor );
+		log::debug( "Vulkan instance version: {}.{}.{}.{}", major, minor, patch, minor );
 
 	try
 	{

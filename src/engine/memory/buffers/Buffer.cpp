@@ -54,7 +54,9 @@ namespace fgl::engine::memory
 				std::cout << trace << std::endl;
 			}
 
-			throw std::runtime_error( "Buffer allocations not empty" );
+			log::critical( "Buffer allocations were not empty!" );
+			// Call will always terminate
+			// throw std::runtime_error( "Buffer allocations not empty" );
 		}
 
 		dealloc();
@@ -357,8 +359,7 @@ namespace fgl::engine::memory
 		}
 
 		if ( sum != this->size() )
-			throw std::runtime_error(
-				std::format( "Memory leaked! Expected {} was {}", static_cast< std::size_t >( this->size() ), sum ) );
+			throw std::runtime_error( std::format( "Memory leaked! Expected {} was {}", this->size(), sum ) );
 #endif
 	}
 

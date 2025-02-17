@@ -54,9 +54,9 @@ namespace fgl::engine
 
 		vk::Extent2D m_target_extent;
 
-		std::unique_ptr< CompositeSwapchain > m_old_composite_swapchain;
+		std::unique_ptr< CompositeSwapchain > m_old_composite_swapchain { nullptr };
 		std::unique_ptr< CompositeSwapchain > m_composite_swapchain;
-		std::unique_ptr< GBufferSwapchain > m_old_gbuffer_swapchain;
+		std::unique_ptr< GBufferSwapchain > m_old_gbuffer_swapchain { nullptr };
 		std::unique_ptr< GBufferSwapchain > m_gbuffer_swapchain;
 
 		std::shared_ptr< GBufferRenderer > m_camera_renderer;
@@ -82,7 +82,7 @@ namespace fgl::engine
 		Frustum m_frustum {};
 		WorldCoordinate m_last_frustum_pos { constants::WORLD_CENTER };
 
-		WorldTransform m_transform;
+		WorldTransform m_transform {};
 
 		float m_fov_y { glm::radians( 90.0f ) };
 
@@ -91,7 +91,7 @@ namespace fgl::engine
 		// Camera info is expected at binding 0
 		std::vector< std::unique_ptr< descriptors::DescriptorSet > > m_camera_info_descriptors {};
 
-		std::string m_name;
+		std::string m_name { "Unnamed Camera" };
 
 		[[nodiscard]] Matrix< MatrixType::ModelToWorld > frustumTranslationMatrix() const;
 
@@ -146,7 +146,7 @@ namespace fgl::engine
 
 		[[nodiscard]] Matrix< MatrixType::WorldToScreen > getProjectionViewMatrix() const;
 
-		[[nodiscard]] glm::mat4 getInverseViewMatrix() const { return glm::inverse( m_view_matrix ); }
+		[[nodiscard]] glm::mat4 getInverseViewMatrix() const;
 
 		enum ViewMode
 		{

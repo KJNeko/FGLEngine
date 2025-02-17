@@ -86,7 +86,7 @@ namespace fgl::engine
 		memory::TransferManager m_transfer_manager { m_device, 128_MiB };
 
 		std::chrono::time_point< Clock > m_last_tick { Clock::now() };
-		double m_delta_time;
+		DeltaTime m_delta_time;
 
 	  public:
 

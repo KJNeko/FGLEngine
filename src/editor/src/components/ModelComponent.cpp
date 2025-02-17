@@ -24,7 +24,7 @@ namespace fgl::engine
 
 		const auto& model { *this->m_model };
 
-		ImGui::Text( "%i primitives", model.m_primitives.size() );
+		ImGui::Text( "%li primitives", model.m_primitives.size() );
 	}
 
 	std::string_view ModelComponent::humanName() const

@@ -12,6 +12,9 @@
 #pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Wredundant-tags"
+#pragma GCC diagnostic ignored "-Wcast-qual"
+#pragma GCC diagnostic ignored "-Weffc++"
 #include <slang-com-ptr.h>
 #include <slang.h>
 #pragma GCC diagnostic pop
@@ -148,7 +151,7 @@ namespace fgl::engine
 		Slang::ComPtr< IEntryPoint > entry_point {};
 		module->findEntryPointByName( entry_point_name.c_str(), entry_point.writeRef() );
 
-		std::array< IComponentType*, 2 > components { module, entry_point };
+		std::array< IComponentType*, 2 > components { { module, entry_point } };
 		Slang::ComPtr< IComponentType > program;
 		session->createCompositeComponentType(
 			components.data(), components.size(), program.writeRef(), diagnostics.writeRef() );

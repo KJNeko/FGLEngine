@@ -28,8 +28,6 @@ namespace fgl::engine
 		return result;
 	}
 
-	inline static bool show_intersect { false };
-
 	FGL_FORCE_INLINE inline NormalVector Frustum::forwardVec() const
 	{
 		return m_near.getDirection();

@@ -42,7 +42,11 @@ namespace fgl::engine
 
 		~Instance();
 
-		vk::raii::Instance& handle() { return m_instance; }
+		vk::raii::Instance& handle()
+		{
+			FGL_ASSERT( *m_instance, "m_instance was not initalized!" );
+			return m_instance;
+		}
 
 		operator vk::Instance() { return m_instance; }
 

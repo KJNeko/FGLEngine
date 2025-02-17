@@ -47,7 +47,7 @@ namespace fgl::engine
 
 		friend class TransferManager;
 
-		debug::Track< "GPU", "Texture" > m_gpu_track;
+		debug::Track< "GPU", "Texture" > m_gpu_track {};
 
 		//! Key used for the global map keeping track of Textures
 		using UIDKeyT = std::filesystem::path;

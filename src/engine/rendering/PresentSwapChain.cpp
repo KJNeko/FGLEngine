@@ -346,24 +346,29 @@ namespace fgl::engine
 		{
 			switch ( mode )
 			{
+				case vk::PresentModeKHR::eFifoLatestReadyEXT:
+					log::info( "Available present mode: FIFO Latest ready" );
+					break;
 				case vk::PresentModeKHR::eImmediate:
-					std::cout << "Present mode: Immediate" << std::endl;
+					log::info( "Available present mode: IMMEDIATE" );
 					break;
 				case vk::PresentModeKHR::eMailbox:
-					std::cout << "Present mode: Mailbox" << std::endl;
+					log::info( "Available present mode: MAILBOX" );
 					break;
 				case vk::PresentModeKHR::eFifo:
-					std::cout << "Present mode: V-Sync" << std::endl;
+					log::info( "Available present mode: FIFO" );
 					break;
 				case vk::PresentModeKHR::eFifoRelaxed:
-					std::cout << "Present mode: V-Sync: RELAXED" << std::endl;
+					log::info( "Available present mode: FIFO RELAXED" );
 					break;
 				case vk::PresentModeKHR::eSharedDemandRefresh:
-					std::cout << "Present mode: Shared Demand Refresh" << std::endl;
+					log::info( "Available present mode: SHARED DEMAND REFRESH" );
 					break;
 				case vk::PresentModeKHR::eSharedContinuousRefresh:
-					std::cout << "Present mode: Shared Continuous Refresh" << std::endl;
+					log::info( "Avaialble present mode: SHARED CONTINOUS REFRESH" );
 					break;
+				default:
+					throw std::runtime_error( "Unhandled present mode" );
 			}
 		}
 
@@ -371,12 +376,12 @@ namespace fgl::engine
 		{
 			if ( mode == vk::PresentModeKHR::eMailbox )
 			{
-				std::cout << "Present mode: Mailbox: ACTIVE" << std::endl;
+				log::info( "ACTIVE present mode: MAILBOX" );
 				return mode;
 			}
 		}
 
-		std::cout << "Present mode: V-Sync: ACTIVE" << std::endl;
+		log::info( "ACTIVE present mode: FIFO" );
 		return vk::PresentModeKHR::eFifo;
 	}
 

@@ -9,6 +9,7 @@
 
 #include "engine/gameobjects/GameObject.hpp"
 
+/*
 namespace fgl::engine
 {
 	struct Frustum;
@@ -23,7 +24,7 @@ namespace fgl::engine::tree
 	class ChunkManager
 	{
 		std::unordered_map< ChunkID, std::shared_ptr< Chunk > > m_chunks {};
-		std::mutex m_delete_mtx;
+		std::mutex m_delete_mtx {};
 		std::queue< std::shared_ptr< Chunk > > m_delete_list {};
 
 		std::shared_ptr< Chunk > createChunk( ChunkID id );
@@ -81,3 +82,4 @@ namespace fgl::engine::tree
 	};
 
 } // namespace fgl::engine::tree
+*/

@@ -5,12 +5,10 @@
 #include "Model.hpp"
 
 #include <cassert>
-#include <iostream>
 
 #include "builders/ModelBuilder.hpp"
 #include "builders/SceneBuilder.hpp"
 #include "engine/assets/image/ImageView.hpp"
-#include "engine/memory/buffers/Buffer.hpp"
 
 namespace fgl::engine
 {
@@ -37,7 +35,7 @@ namespace fgl::engine
 			cmd.firstInstance = 0;
 			cmd.instanceCount = 1;
 
-			draw_parameters.emplace_back( std::move( cmd ) );
+			draw_parameters.emplace_back( cmd );
 		}
 
 		return draw_parameters;
@@ -46,8 +44,8 @@ namespace fgl::engine
 	OrientedBoundingBox< CoordinateSpace::Model > Model::buildBoundingBox( const std::vector< Primitive >& primitives )
 	{
 		ZoneScoped;
-		assert( primitives.size() > 0 );
-		if ( primitives.size() <= 0 ) return {};
+		assert( !primitives.empty() );
+		if ( primitives.empty() ) return {};
 
 		OrientedBoundingBox< CoordinateSpace::Model > box { primitives.at( 0 ).m_bounding_box };
 
@@ -98,7 +96,7 @@ namespace fgl::engine
 	  m_bounding_box( bounding_box )
 	{
 		assert( !name.empty() );
-		assert( bounding_box.m_transform.translation.vec() != constants::DEFAULT_VEC3 );
+		assert( bounding_box.getTransform().translation.vec() != constants::DEFAULT_VEC3 );
 		m_primitives = std::move( primitives );
 	}
 
@@ -106,7 +104,8 @@ namespace fgl::engine
 		createModel( const std::filesystem::path& path, memory::Buffer& vertex_buffer, memory::Buffer& index_buffer )
 	{
 		ZoneScoped;
-		std::cout << "Creating model: " << path << std::endl;
+		log::debug( "Creating model {}", path );
+
 		ModelBuilder builder { vertex_buffer, index_buffer };
 		builder.loadModel( path );
 
@@ -115,7 +114,8 @@ namespace fgl::engine
 
 		auto model_ptr { std::make_shared< Model >( builder, bounding_box ) };
 
-		std::cout << "Finished making model: " << path << std::endl;
+		log::debug( "Finished creating model {}", path );
+
 		return model_ptr;
 	}
 

@@ -88,7 +88,7 @@ namespace fgl::engine::descriptors
 		vk::WriteDescriptorSet write {};
 		write.dstSet = m_set;
 		write.dstBinding = binding_idx;
-		write.dstArrayElement = array_idx;
+		write.dstArrayElement = static_cast< std::uint32_t >( array_idx );
 		write.descriptorCount = 1;
 		write.descriptorType = vk::DescriptorType::eUniformBuffer;
 		write.pBufferInfo = &( std::get< vk::DescriptorBufferInfo >( m_infos[ binding_idx ] ) );
