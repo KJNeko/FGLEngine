@@ -13,44 +13,6 @@
 
 namespace fgl::engine
 {
-	namespace v2
-	{
-		struct Coordinate : public glm::vec3
-		{
-		  public:
-
-			glm::vec3 vec() const { return static_cast< glm::vec3 >( *this ); }
-
-			Coordinate() = delete;
-
-			Coordinate( const float x, const float y, const float z ) : glm::vec3( x, y, z ) {}
-		};
-
-		struct Matrix : public glm::mat4
-		{
-		  public:
-
-			Matrix() = delete;
-
-			explicit Matrix( const float value ) : glm::mat4( value ) {}
-
-			explicit Matrix( const glm::mat4& matrix ) : glm::mat4( matrix ) {}
-		};
-
-		class TransformComponent
-		{
-			Coordinate m_position;
-			Scale m_scale;
-			QuatRotation m_rotation;
-
-		  public:
-
-			TransformComponent();
-
-			Matrix mat() const;
-		};
-	} // namespace v2
-
 	template < MatrixType >
 	class Matrix;
 
