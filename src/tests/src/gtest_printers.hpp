@@ -9,7 +9,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-#include "engine/primitives/Rotation.hpp"
+#include "../../engine/primitives/rotation/QuatRotation.hpp"
 #include "engine/primitives/Scale.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
@@ -33,15 +33,6 @@ namespace Catch
 	};
 
 	template <>
-	struct StringMaker< fgl::engine::Rotation >
-	{
-		static std::string convert( const fgl::engine::Rotation& rot )
-		{
-			return StringMaker< glm::vec3 >::convert( { rot.xAngle(), rot.yAngle(), rot.zAngle() } );
-		}
-	};
-
-	template <>
 	struct StringMaker< glm::mat4 >
 	{
 		static std::string convert( const glm::mat4& mat )
@@ -57,6 +48,24 @@ namespace Catch
 		static std::string convert( const glm::quat& quat )
 		{
 			return std::format( "({},{},{},{})", quat.w, quat.x, quat.y, quat.z );
+		}
+	};
+
+	template <>
+	struct StringMaker< fgl::engine::QuatRotation >
+	{
+		static std::string convert( const fgl::engine::QuatRotation& rot )
+		{
+			return StringMaker< glm::quat >::convert( rot.internal_quat() );
+		}
+	};
+
+	template <>
+	struct StringMaker< fgl::engine::EulerRotation >
+	{
+		static std::string convert( const fgl::engine::QuatRotation& rot )
+		{
+			return StringMaker< glm::vec3 >::convert( glm::vec3( rot.x, rot.y, rot.z ) );
 		}
 	};
 

@@ -10,7 +10,7 @@ namespace fgl::engine
 	template < CoordinateSpace CType >
 	glm::mat4 TransformComponent< CType >::mat4() const
 	{
-		const glm::mat3 rotation_mat { rotation.mat() };
+		const glm::mat3 rotation_mat { rotation.forcedQuat().mat() };
 
 		// We must flip the z axis in order to match vulkan. Where 0,0 is the top left of the screen and Z+ is down
 
@@ -46,5 +46,32 @@ namespace fgl::engine
 
 	template struct TransformComponent< CoordinateSpace::World >;
 	template struct TransformComponent< CoordinateSpace::Model >;
+
+	namespace v2
+	{
+		TransformComponent::TransformComponent() :
+		  m_position( 0.0f, 0.0f, 0.0f ),
+		  m_scale( 1.0, 1.0, 1.0 ),
+		  m_rotation()
+		{}
+
+		Matrix TransformComponent::mat() const
+		{
+			glm::mat3 rotation_mat { m_rotation.mat() };
+			rotation_mat[ 0 ] = rotation_mat[ 0 ] * m_scale.x;
+			rotation_mat[ 1 ] = rotation_mat[ 1 ] * m_scale.y;
+			rotation_mat[ 2 ] = rotation_mat[ 2 ] * m_scale.z;
+
+			const glm::mat4 mat { { rotation_mat[ 0 ], 0.0f },
+				                  { rotation_mat[ 1 ], 0.0f },
+				                  { rotation_mat[ 2 ], 0.0f },
+				                  { m_position.vec(), 1.0f } };
+
+			const Matrix matrix { mat };
+
+			return matrix;
+		}
+
+	} // namespace v2
 
 } // namespace fgl::engine

@@ -462,7 +462,7 @@ namespace fgl::engine
 				                       static_cast< float >( y ),
 				                       static_cast< float >( z ) };
 
-			transform_component.rotation = rotation;
+			transform_component.rotation = UniversalRotation( rotation );
 		}
 		else if ( !node.rotation.empty() )
 		{

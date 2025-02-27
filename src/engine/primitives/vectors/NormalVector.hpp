@@ -10,8 +10,8 @@
 #include <glm/vec3.hpp>
 #pragma GCC diagnostic pop
 
+#include "../rotation/QuatRotation.hpp"
 #include "engine/primitives/CoordinateSpace.hpp"
-#include "engine/primitives/Rotation.hpp"
 
 namespace fgl::engine
 {

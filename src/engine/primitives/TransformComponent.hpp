@@ -4,14 +4,53 @@
 
 #pragma once
 
-#include "Rotation.hpp"
 #include "Scale.hpp"
 #include "engine/FGL_DEFINES.hpp"
 #include "engine/debug/logging/logging.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
+#include "rotation/QuatRotation.hpp"
+#include "rotation/UniversalRotation.hpp"
 
 namespace fgl::engine
 {
+	namespace v2
+	{
+		struct Coordinate : public glm::vec3
+		{
+		  public:
+
+			glm::vec3 vec() const { return static_cast< glm::vec3 >( *this ); }
+
+			Coordinate() = delete;
+
+			Coordinate( const float x, const float y, const float z ) : glm::vec3( x, y, z ) {}
+		};
+
+		struct Matrix : public glm::mat4
+		{
+		  public:
+
+			Matrix() = delete;
+
+			explicit Matrix( const float value ) : glm::mat4( value ) {}
+
+			explicit Matrix( const glm::mat4& matrix ) : glm::mat4( matrix ) {}
+		};
+
+		class TransformComponent
+		{
+			Coordinate m_position;
+			Scale m_scale;
+			QuatRotation m_rotation;
+
+		  public:
+
+			TransformComponent();
+
+			Matrix mat() const;
+		};
+	} // namespace v2
+
 	template < MatrixType >
 	class Matrix;
 
@@ -40,7 +79,7 @@ namespace fgl::engine
 	{
 		Coordinate< CType > translation { constants::WORLD_CENTER };
 		Scale scale { 1.0f, 1.0f, 1.0f };
-		Rotation rotation { 0.0f, 0.0f, 0.0f };
+		UniversalRotation rotation { constants::DEFAULT_ROTATION };
 
 		//TODO: Figure this out and replace TransformComponent with a template of CType instead
 		[[nodiscard]] glm::mat4 mat4() const;
@@ -128,7 +167,7 @@ namespace fgl::engine
 		// At this point, the rotation matrix is orthogonal (no skew), so it's safe to calculate the quaternion.
 		const glm::quat rotation { glm::quat_cast( glm::mat3( row[ 0 ], row[ 1 ], row[ 2 ] ) ) };
 
-		return { Coordinate< CType >( translation ), Scale( scale ), Rotation( rotation ) };
+		return { Coordinate< CType >( translation ), Scale( scale ), QuatRotation( rotation ) };
 	}
 
 	// A game object will be going from world to camera space

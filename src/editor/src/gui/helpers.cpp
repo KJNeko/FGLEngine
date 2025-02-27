@@ -4,26 +4,24 @@
 
 #include "helpers.hpp"
 
-#include "primitives/Rotation.hpp"
+#include "../../../engine/primitives/rotation/QuatRotation.hpp"
+#include "primitives/rotation/EulerRotation.hpp"
 
 namespace fgl::engine::gui
 {
 
 	float clampEuler( const float value )
 	{
-		if ( value >= 180.0f )
-		{
-			// Wrap around.
-			return value - 360.0f;
-		}
-		else if ( value <= -180.0f )
-		{
-			return value + 360.0f;
-		}
+		constexpr float max { 180.0f };
+		constexpr float wrap { 360.0f };
+
+		if ( value >= max ) return clampEuler( value - wrap );
+		if ( value <= -max ) return clampEuler( value + wrap );
+
 		return value;
 	}
 
-	void dragFloat3Rot( const char* const label, Rotation& rot )
+	void dragFloat3Rot( const char* const label, EulerRotation& rot )
 	{
 		enum Axis
 		{
@@ -32,7 +30,7 @@ namespace fgl::engine::gui
 			Roll = 2
 		};
 
-		const glm::vec3 c_dat { rot.euler() };
+		const glm::vec3 c_dat { rot.vec() };
 		glm::vec3 dat { glm::degrees( c_dat ) };
 
 		ImGui::DragFloat3( label, &dat.x, 1.0f );
@@ -49,19 +47,19 @@ namespace fgl::engine::gui
 		if ( changed[ Pitch ] )
 		{
 			dat[ Pitch ] = clampEuler( dat[ Pitch ] );
-			rot.setX( dat[ Pitch ] );
-		}
-
-		if ( changed[ Roll ] )
-		{
-			dat[ Roll ] = clampEuler( dat[ Roll ] );
-			rot.setZ( dat[ Roll ] );
+			rot.x = dat[ Pitch ];
 		}
 
 		if ( changed[ Yaw ] )
 		{
 			dat[ Yaw ] = clampEuler( dat[ Yaw ] );
-			rot.setY( dat[ Yaw ] );
+			rot.y = dat[ Yaw ];
+		}
+
+		if ( changed[ Roll ] )
+		{
+			dat[ Roll ] = clampEuler( dat[ Roll ] );
+			rot.z = dat[ Roll ];
 		}
 	}
 } // namespace fgl::engine::gui

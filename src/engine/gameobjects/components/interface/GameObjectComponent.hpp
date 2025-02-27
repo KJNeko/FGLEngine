@@ -18,7 +18,7 @@ namespace fgl::engine
 	{
 		enum Mode
 		{
-			//! Object is non moving, When this is set only the transform on the component should be used.
+			//! Object is non-moving, When this is set only the transform on the component should be used.
 			Static,
 			//! Object moves in relation to it's parent
 			Local,
@@ -28,7 +28,7 @@ namespace fgl::engine
 
 		ComponentTransform() = default;
 
-		ComponentTransform( const WorldCoordinate position_i, const Scale scale_i, const Rotation rotation_i ) :
+		ComponentTransform( const WorldCoordinate position_i, const Scale scale_i, const QuatRotation rotation_i ) :
 		  TransformComponent( position_i, scale_i, rotation_i )
 		{}
 	};
@@ -50,7 +50,7 @@ namespace fgl::engine
 	struct GameObjectComponent : public GameObjectComponentBase
 	{
 		constexpr static ComponentID ID { T_ID };
-		ComponentTransform m_transform { WorldCoordinate( 0.0f ), Scale( 1.0 ), Rotation() };
+		ComponentTransform m_transform { WorldCoordinate( 0.0f ), Scale( 1.0 ), QuatRotation() };
 
 		virtual ComponentID id() const override final { return ID; }
 	};

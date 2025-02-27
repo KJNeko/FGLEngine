@@ -135,7 +135,7 @@ namespace fgl::engine
 
 		// const Rotation& getRotation() const { return m_transform.rotation; }
 
-		Rotation& getRotation() { return m_transform.rotation; }
+		QuatRotation getRotation() const { return m_transform.rotation.forcedQuat(); }
 
 		//Misc
 		static GameObject createGameObject();

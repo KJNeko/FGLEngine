@@ -156,25 +156,15 @@ namespace fgl::engine
 		FGL_NOTNANVEC3( this->m_top_right_forward );
 		FGL_NOTNANVEC3( this->m_bottom_left_back );
 
-		if ( oobb.m_transform.rotation
-		     == Rotation() ) // If default rotation then we can simply just take it as the box is
+		for ( const auto& point : oobb.points() )
 		{
-			m_top_right_forward = oobb.topRightForward();
-			m_bottom_left_back = oobb.bottomLeftBack();
-		}
-		else
-		{
-			//Rotation has been done. Need to use the points to figure it out
-			for ( const auto& point : oobb.points() )
-			{
-				m_top_right_forward.x = std::max( m_top_right_forward.x, point.x );
-				m_top_right_forward.y = std::max( m_top_right_forward.y, point.y );
-				m_top_right_forward.z = std::max( m_top_right_forward.z, point.z );
+			m_top_right_forward.x = std::max( m_top_right_forward.x, point.x );
+			m_top_right_forward.y = std::max( m_top_right_forward.y, point.y );
+			m_top_right_forward.z = std::max( m_top_right_forward.z, point.z );
 
-				m_bottom_left_back.x = std::min( m_bottom_left_back.x, point.x );
-				m_bottom_left_back.y = std::min( m_bottom_left_back.y, point.y );
-				m_bottom_left_back.z = std::min( m_bottom_left_back.z, point.z );
-			}
+			m_bottom_left_back.x = std::min( m_bottom_left_back.x, point.x );
+			m_bottom_left_back.y = std::min( m_bottom_left_back.y, point.y );
+			m_bottom_left_back.z = std::min( m_bottom_left_back.z, point.z );
 		}
 	}
 

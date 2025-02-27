@@ -12,13 +12,13 @@
 #include <glm/gtx/string_cast.hpp>
 #pragma GCC diagnostic pop
 
+#include "../primitives/rotation/QuatRotation.hpp"
 #include "CompositeSwapchain.hpp"
 #include "debug/Track.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/memory/buffers/HostSingleT.hpp"
 #include "engine/memory/buffers/UniqueFrameSuballocation.hpp"
 #include "engine/primitives/Frustum.hpp"
-#include "engine/primitives/Rotation.hpp"
 #include "engine/primitives/TransformComponent.hpp"
 #include "engine/rendering/types.hpp"
 
@@ -122,9 +122,7 @@ namespace fgl::engine
 
 		void setExtent( vk::Extent2D extent );
 
-		[[nodiscard]] const Rotation& getRotation() const { return m_transform.rotation; }
-
-		Rotation& getRotation() { return m_transform.rotation; }
+		[[nodiscard]] QuatRotation getRotation() const { return m_transform.rotation.forcedQuat(); }
 
 		[[nodiscard]] const WorldTransform& getTransform() const { return m_transform; }
 
@@ -154,7 +152,7 @@ namespace fgl::engine
 			TaitBryan
 		};
 
-		void setView( WorldCoordinate pos, const Rotation& rotation, ViewMode mode = TaitBryan );
+		void setView( WorldCoordinate pos, const QuatRotation& rotation, ViewMode mode = TaitBryan );
 		void setOrthographicProjection( float left, float right, float top, float bottom, float near, float far );
 		void setPerspectiveProjection( float fovy, float aspect, float near, float far );
 

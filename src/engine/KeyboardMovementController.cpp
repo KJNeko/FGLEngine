@@ -35,15 +35,6 @@ namespace fgl::engine
 		constexpr float pitch_modifier { 1.0f };
 		constexpr float yaw_modifier { 1.0f };
 
-		float pitch_change { 0.0f };
-		float yaw_change { 0.0f };
-
-		if ( glfwGetKey( window, key_mappings.look_right ) == GLFW_PRESS ) yaw_change += rotation_rate * yaw_modifier;
-		if ( glfwGetKey( window, key_mappings.look_left ) == GLFW_PRESS ) yaw_change -= rotation_rate * yaw_modifier;
-		if ( glfwGetKey( window, key_mappings.look_up ) == GLFW_PRESS ) pitch_change += rotation_rate * pitch_modifier;
-		if ( glfwGetKey( window, key_mappings.look_down ) == GLFW_PRESS )
-			pitch_change -= rotation_rate * pitch_modifier;
-
 		static bool cursor_enabled { true };
 		static bool cursor_restored { true };
 		static glm::vec2 stored_cursor_pos {};
@@ -78,6 +69,21 @@ namespace fgl::engine
 
 		if ( cursor_enabled )
 		{
+			float pitch_change { 0.0f };
+			float yaw_change { 0.0f };
+
+			if ( glfwGetKey( window, key_mappings.look_right ) == GLFW_PRESS )
+				yaw_change += rotation_rate * yaw_modifier;
+
+			if ( glfwGetKey( window, key_mappings.look_left ) == GLFW_PRESS )
+				yaw_change -= rotation_rate * yaw_modifier;
+
+			if ( glfwGetKey( window, key_mappings.look_up ) == GLFW_PRESS )
+				pitch_change += rotation_rate * pitch_modifier;
+
+			if ( glfwGetKey( window, key_mappings.look_down ) == GLFW_PRESS )
+				pitch_change -= rotation_rate * pitch_modifier;
+
 			if ( pitch_change > std::numeric_limits< float >::epsilon()
 			     || pitch_change < -std::numeric_limits< float >::epsilon() )
 				target.getTransform().rotation.addX( dt * pitch_change );
@@ -92,12 +98,10 @@ namespace fgl::engine
 			const float xpos { pos.x };
 			const float ypos { pos.y };
 
-			Rotation target_rotation { target.getTransform().rotation };
+			UniversalRotation& target_rotation { target.getTransform().rotation };
 
 			target_rotation.addZ( ( xpos * 0.006f ) * look_speed );
 			target_rotation.addX( ( ypos * 0.006f ) * look_speed );
-
-			target.getTransform().rotation = target_rotation;
 
 			setCursorPos( window, { 0, 0 } );
 		}

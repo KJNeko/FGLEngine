@@ -14,12 +14,21 @@ namespace fgl::engine::gui
 		ImGui::InputText( "Name", &name_input_temp );
 		if ( game_object.getName() != name_input_temp ) game_object.setName( name_input_temp );
 
+		auto& transform { game_object.getTransform() };
+
 		// Transform - Position
-		dragFloat3( "Position", game_object.getTransform().translation.vec() );
+		dragFloat3( "Position", transform.translation.vec() );
 
-		dragFloat3Rot( "Rotation", game_object.getRotation() );
+		if ( transform.rotation.isEuler() )
+		{
+			dragFloat3Rot( "Rotation", transform.rotation.euler() );
+		}
+		else
+		{
+			ImGui::Text( "Rotation was in quaternion" );
+		}
 
-		dragFloat3( "Scale", game_object.getScale() );
+		dragFloat3( "Scale", transform.scale );
 	}
 
 	static GameObjectComponentPtr SELECTED_COMPONENT { nullptr };

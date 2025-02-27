@@ -51,4 +51,6 @@ namespace fgl::engine::constants
 
 	constexpr std::uint8_t MAX_FRAMES_IN_FLIGHT { 2 };
 
+	constexpr glm::vec3 DEFAULT_SCALE { 1.0f };
+
 } // namespace fgl::engine::constants

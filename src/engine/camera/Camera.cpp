@@ -272,7 +272,7 @@ namespace fgl::engine
 	{
 		const auto& [ pos, scale, rotation ] = m_transform;
 
-		const auto rotation_matrix { rotation.mat() };
+		const auto rotation_matrix { rotation.forcedQuat().mat() };
 
 		const glm::vec3 forward { rotation_matrix * glm::vec4( constants::WORLD_FORWARD, 0.0f ) };
 
@@ -287,7 +287,7 @@ namespace fgl::engine
 		updateFrustum();
 	}
 
-	FGL_FLATTEN_HOT void Camera::setView( const WorldCoordinate pos, const Rotation& rotation, const ViewMode mode )
+	FGL_FLATTEN_HOT void Camera::setView( const WorldCoordinate pos, const QuatRotation& rotation, const ViewMode mode )
 	{
 		switch ( mode )
 		{
@@ -346,7 +346,7 @@ namespace fgl::engine
 	{
 		FGL_ASSERT( renderer, "Camera renderer is null" );
 		this->setPerspectiveProjection( m_fov_y, aspectRatio(), constants::NEAR_PLANE, constants::FAR_PLANE );
-		this->setView( WorldCoordinate( constants::CENTER ), Rotation( 0.0f, 0.0f, 0.0f ) );
+		this->setView( WorldCoordinate( constants::CENTER ), QuatRotation( 0.0f, 0.0f, 0.0f ) );
 
 		for ( std::uint8_t i = 0; i < constants::MAX_FRAMES_IN_FLIGHT; ++i )
 		{

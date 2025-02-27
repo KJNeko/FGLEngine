@@ -23,7 +23,14 @@ namespace fgl::engine
 
 			ImGui::DragFloat3( "Position", &transform.translation.x, speed );
 
-			gui::dragFloat3Rot( "Rotation", transform.rotation );
+			if ( transform.rotation.isEuler() )
+			{
+				gui::dragFloat3Rot( "Rotation", transform.rotation.euler() );
+			}
+			else
+			{
+				ImGui::Text( "Rotation could not be edited: Was quaternion" );
+			}
 
 			ImGui::DragFloat3( "Scale", &transform.scale.x, speed );
 		}

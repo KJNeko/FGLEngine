@@ -12,22 +12,7 @@ TEST_CASE( "Quaternions", "[math][rotation]" )
 {
 	SECTION( "Default" )
 	{
-		fgl::engine::Rotation rot {};
-
-		SECTION( "X Euler" )
-		{
-			REQUIRE( rot.xAngle() == 0.0f );
-		}
-
-		SECTION( "Y Euler" )
-		{
-			REQUIRE( rot.yAngle() == 0.0f );
-		}
-
-		SECTION( "Z Euler" )
-		{
-			REQUIRE( rot.zAngle() == 0.0f );
-		}
+		fgl::engine::QuatRotation rot {};
 
 		SECTION( "Raw" )
 		{
@@ -43,41 +28,81 @@ TEST_CASE( "Quaternions", "[math][rotation]" )
 	{
 		SECTION( "-1.126, 1.012, -0.548" )
 		{
-			fgl::engine::Rotation rot { -1.256f, 1.012f, -0.548 };
+			fgl::engine::QuatRotation rot { -1.256f, 1.012f, -0.548 };
 
-			REQUIRE_THAT( rot.internal_quat().w, Catch::Matchers::WithinRel( 0.604f, 0.1f ) );
-			REQUIRE_THAT( rot.internal_quat().x, Catch::Matchers::WithinRel( -0.601f, 0.1f ) );
-			REQUIRE_THAT( rot.internal_quat().y, Catch::Matchers::WithinRel( -0.239f, 0.1f ) );
-			REQUIRE_THAT( rot.internal_quat().z, Catch::Matchers::WithinRel( -0.466f, 0.1f ) );
+			REQUIRE_THAT( rot.internal_quat().w, Catch::Matchers::WithinAbs( 0.604f, 0.1f ) );
+			REQUIRE_THAT( rot.internal_quat().x, Catch::Matchers::WithinAbs( -0.601f, 0.1f ) );
+			REQUIRE_THAT( rot.internal_quat().y, Catch::Matchers::WithinAbs( -0.239f, 0.1f ) );
+			REQUIRE_THAT( rot.internal_quat().z, Catch::Matchers::WithinAbs( -0.466f, 0.1f ) );
 		}
 	}
 
-	SECTION( "Singularity" )
+	SECTION( "Test xRange" )
 	{
-		SECTION( "North" )
+		for ( std::size_t i = 0; i < 360; ++i )
 		{
-			fgl::engine::Rotation rot { 0.0f, 90.0f, 0.0f };
-			REQUIRE_THAT( rot.euler().x, Catch::Matchers::WithinRel( 0.0f, 0.1f ) );
-			REQUIRE_THAT( rot.euler().y, Catch::Matchers::WithinRel( 90.0f, 0.1f ) );
-			REQUIRE_THAT( rot.euler().z, Catch::Matchers::WithinRel( 0.0f, 0.1f ) );
+			DYNAMIC_SECTION( "X Angle" << i )
+			{
+				constexpr float offset { std::numbers::pi_v< float > / 360.0f };
+				fgl::engine::QuatRotation rot1 { static_cast< float >( i ) * offset, 0.0f, 0.0f };
+
+				fgl::engine::QuatRotation rot2 { 0.0f, 0.0f, 0.0f };
+				for ( std::size_t x = 0; x < i; ++x ) rot2.addX( offset );
+
+				// compare both quaternions
+				using namespace Catch::Matchers;
+
+				REQUIRE_THAT( rot1.internal_quat().x, WithinAbs( rot2.internal_quat().x, 0.01f ) );
+				REQUIRE_THAT( rot1.internal_quat().y, WithinAbs( rot2.internal_quat().y, 0.01f ) );
+				REQUIRE_THAT( rot1.internal_quat().z, WithinAbs( rot2.internal_quat().z, 0.01f ) );
+				REQUIRE_THAT( rot1.internal_quat().w, WithinAbs( rot2.internal_quat().w, 0.01f ) );
+			}
 		}
 
-		SECTION( "South" )
+		SECTION( "Test yRange" )
 		{
-			fgl::engine::Rotation rot { 0.0f, -90.0f, 0.0f };
+			for ( std::size_t i = 0; i < 360; ++i )
+			{
+				DYNAMIC_SECTION( "Y Angle: " << i )
+				{
+					constexpr float offset { std::numbers::pi_v< float > / 360.0f };
+					fgl::engine::QuatRotation rot1 { 0.0f, static_cast< float >( i ) * offset, 0.0f };
 
-			REQUIRE_THAT( rot.euler().x, Catch::Matchers::WithinRel( 0.0f, 0.1f ) );
-			REQUIRE_THAT( rot.euler().y, Catch::Matchers::WithinRel( 90.0f, 0.1f ) );
-			REQUIRE_THAT( rot.euler().z, Catch::Matchers::WithinRel( 0.0f, 0.1f ) );
+					fgl::engine::QuatRotation rot2 { 0.0f, 0.0f, 0.0f };
+					for ( std::size_t x = 0; x < i; ++x ) rot2.addY( offset );
+
+					// compare both quaternions
+					using namespace Catch::Matchers;
+
+					REQUIRE_THAT( rot1.internal_quat().x, WithinAbs( rot2.internal_quat().x, 0.01f ) );
+					REQUIRE_THAT( rot1.internal_quat().y, WithinAbs( rot2.internal_quat().y, 0.01f ) );
+					REQUIRE_THAT( rot1.internal_quat().z, WithinAbs( rot2.internal_quat().z, 0.01f ) );
+					REQUIRE_THAT( rot1.internal_quat().w, WithinAbs( rot2.internal_quat().w, 0.01f ) );
+				}
+			}
 		}
-	}
 
-	SECTION( "Beyond Singularity Y" )
-	{
-		fgl::engine::Rotation rot { 0.0f, 1.548f, 0.0f };
+		SECTION( "Test zRange" )
+		{
+			for ( std::size_t i = 0; i < 360; ++i )
+			{
+				DYNAMIC_SECTION( "Z Angle" << i )
+				{
+					constexpr float offset { std::numbers::pi_v< float > / 360.0f };
+					fgl::engine::QuatRotation rot1 { 0.0f, 0.0f, static_cast< float >( i ) * offset };
 
-		REQUIRE_THAT( rot.euler().x, Catch::Matchers::WithinRel( -3.142f, 0.1f ) );
-		REQUIRE_THAT( rot.euler().y, Catch::Matchers::WithinRel( 1.548f, 0.1f ) );
-		REQUIRE_THAT( rot.euler().z, Catch::Matchers::WithinRel( -3.142f, 0.1f ) );
+					fgl::engine::QuatRotation rot2 { 0.0f, 0.0f, 0.0f };
+					for ( std::size_t x = 0; x < i; ++x ) rot2.addZ( offset );
+
+					// compare both quaternions
+					using namespace Catch::Matchers;
+
+					REQUIRE_THAT( rot1.internal_quat().x, WithinAbs( rot2.internal_quat().x, 0.01f ) );
+					REQUIRE_THAT( rot1.internal_quat().y, WithinAbs( rot2.internal_quat().y, 0.01f ) );
+					REQUIRE_THAT( rot1.internal_quat().z, WithinAbs( rot2.internal_quat().z, 0.01f ) );
+					REQUIRE_THAT( rot1.internal_quat().w, WithinAbs( rot2.internal_quat().w, 0.01f ) );
+				}
+			}
+		}
 	}
 }

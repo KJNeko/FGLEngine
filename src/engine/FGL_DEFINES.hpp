@@ -16,9 +16,9 @@
 
 #define FGL_DEFAULT_DEFAULT_CTOR( ClassName ) ClassName() = default;
 #define FGL_DEFAULT_COPY_ASSIGN( ClassName ) ClassName& operator=( const ClassName& ) = default;
-#define FGL_DEFAULT_COPY_CTOR( ClassName ) ClassName( const ClassName& ) = default;
+#define FGL_DEFAULT_COPY_CTOR( ClassName ) [[nodiscard]] ClassName( const ClassName& ) = default;
 #define FGL_DEFAULT_MOVE_ASSIGN( ClassName ) ClassName& operator=( ClassName&& ) = default;
-#define FGL_DEFAULT_MOVE_CTOR( ClassName ) ClassName( ClassName&& ) = default;
+#define FGL_DEFAULT_MOVE_CTOR( ClassName ) [[nodiscard]] ClassName( ClassName&& ) = default;
 #define FGL_DEFAULT_COPY( ClassName ) FGL_DEFAULT_COPY_CTOR( ClassName ) FGL_DEFAULT_COPY_ASSIGN( ClassName )
 #define FGL_DEFAULT_MOVE( ClassName ) FGL_DEFAULT_MOVE_CTOR( ClassName ) FGL_DEFAULT_MOVE_ASSIGN( ClassName )
 #define FGL_DEFAULT_ALL_RO5( ClassName )                                                                               \

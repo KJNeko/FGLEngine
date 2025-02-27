@@ -12,8 +12,9 @@
 
 namespace fgl::engine
 {
-	struct Rotation;
-}
+	struct EulerRotation;
+	struct QuatRotation;
+} // namespace fgl::engine
 
 namespace fgl::engine::gui
 {
@@ -22,6 +23,6 @@ namespace fgl::engine::gui
 		ImGui::DragFloat3( label, &vec.x );
 	}
 
-	void dragFloat3Rot( const char* label, Rotation& rot );
+	void dragFloat3Rot( const char* label, EulerRotation& rot );
 
 } // namespace fgl::engine::gui

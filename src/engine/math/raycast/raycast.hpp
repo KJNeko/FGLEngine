@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "engine/primitives/Rotation.hpp"
+#include "../../primitives/rotation/QuatRotation.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 
