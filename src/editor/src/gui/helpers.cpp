@@ -4,7 +4,7 @@
 
 #include "helpers.hpp"
 
-#include "../../../engine/primitives/rotation/QuatRotation.hpp"
+#include "engine/primitives/rotation/QuatRotation.hpp"
 #include "primitives/rotation/EulerRotation.hpp"
 
 namespace fgl::engine::gui
