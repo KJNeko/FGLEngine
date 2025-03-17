@@ -7,7 +7,7 @@
 #include <filesystem>
 #include <vector>
 
-#include "engine/primitives/TransformComponent.hpp"
+#include "engine/primitives/Transform.hpp"
 
 namespace fgl::engine
 {

@@ -19,6 +19,7 @@ namespace fgl::engine::memory
 
 		//! Number of items in the vector
 		std::uint32_t m_count { std::numeric_limits< std::uint32_t >::quiet_NaN() };
+		std::uint32_t m_capacity { std::numeric_limits< std::uint32_t >::quiet_NaN() };
 
 		//! Bytes for each item
 		std::uint32_t m_stride { std::numeric_limits< std::uint32_t >::quiet_NaN() };
@@ -43,7 +44,9 @@ namespace fgl::engine::memory
 		std::uint32_t getOffsetCount() const;
 		std::uint32_t stride() const noexcept;
 		std::uint32_t size() const noexcept;
+		std::uint32_t capacity() const noexcept;
 		void resize( std::uint32_t count );
+		// void reserve( std::uint32_t count );
 	};
 
 } // namespace fgl::engine::memory

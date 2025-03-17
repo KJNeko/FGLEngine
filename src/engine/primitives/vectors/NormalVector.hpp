@@ -59,6 +59,8 @@ namespace fgl::engine
 		Vector operator*( const float scalar ) const;
 
 		NormalVector operator-() const { return NormalVector( -static_cast< glm::vec3 >( *this ) ); }
+
+		explicit operator glm::vec3() const { return static_cast< glm::vec3 >( *this ); }
 	};
 
 } // namespace fgl::engine

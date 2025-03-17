@@ -7,7 +7,6 @@
 #include "engine/flags.hpp"
 #include "engine/math/literals/size.hpp"
 #include "engine/memory/buffers/Buffer.hpp"
-#include "engine/tree/octtree/OctTreeNode.hpp"
 #include "safe_include.hpp"
 
 namespace fgl::engine::gui
@@ -127,8 +126,6 @@ namespace fgl::engine::gui
 		{
 			debug::timing::render();
 		}
-
-		imGuiOctTreeSettings( info );
 
 		if ( ImGui::Button( "Reload shaders" ) )
 		{

@@ -72,7 +72,7 @@ namespace fgl::engine
 			struct Formats
 			{
 				std::vector< vk::Format > colors {};
-				vk::Format depth;
+				vk::Format depth { vk::Format::eUndefined };
 
 				Formats();
 			} formats {};
@@ -106,6 +106,7 @@ namespace fgl::engine
 
 		void disableCulling();
 
+		void addDepthAttachment();
 		[[nodiscard]] AttachmentBuilder addAttachment();
 		[[nodiscard]] AttachmentBuilder addColorAttachment();
 

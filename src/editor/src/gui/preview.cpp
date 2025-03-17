@@ -10,9 +10,7 @@
 #include "engine/camera/Camera.hpp"
 #include "engine/filesystem/scanner/FileScanner.hpp"
 #include "engine/filesystem/types.hpp"
-#include "engine/gameobjects/components/ModelComponent.hpp"
 #include "engine/rendering/PresentSwapChain.hpp"
-#include "engine/tree/octtree/OctTreeNode.hpp"
 #include "safe_include.hpp"
 
 namespace fgl::engine::gui
@@ -47,12 +45,16 @@ namespace fgl::engine::gui
 								GameObject obj { GameObject::createGameObject() };
 
 								std::shared_ptr< Model > model {
-									Model::createModel( data->m_path, info.model_vertex_buffer, info.model_index_buffer )
+									Model::
+										createModel( data->m_path, info.model_vertex_buffer, info.model_index_buffer )
 								};
 
 								obj.addFlag( IsEntity | IsVisible );
 
-								auto component { std::make_unique< ModelComponent >( std::move( model ) ) };
+								info.context.models()
+									.loadModel( data->m_path, info.model_vertex_buffer, info.model_index_buffer );
+
+								auto component { std::make_unique< components::ModelComponent >( std::move( model ) ) };
 
 								obj.addComponent( std::move( component ) );
 

@@ -11,7 +11,7 @@
 #include "engine/assets/transfer/TransferManager.hpp"
 #include "engine/math/literals/size.hpp"
 #include "engine/rendering/Renderer.hpp"
-#include "engine/tree/octtree/OctTreeNode.hpp"
+#include "scene/World.hpp"
 #include "systems/composition/GuiSystem.hpp"
 
 namespace fgl::engine
@@ -43,17 +43,10 @@ namespace fgl::engine
 
 		Renderer m_renderer { m_window, m_device.phyDevice() };
 
-		std::unique_ptr< memory::Buffer > m_vertex_buffer { std::make_unique< memory::Buffer >(
-			1_GiB,
-			vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst,
-			vk::MemoryPropertyFlagBits::eDeviceLocal ) };
-		std::unique_ptr< memory::Buffer > m_index_buffer { std::make_unique< memory::Buffer >(
-			512_MiB,
-			vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
-			vk::MemoryPropertyFlagBits::eDeviceLocal ) };
+		ModelManager m_model_manager {};
 
-		//GameObject::Map game_objects {};
-		OctTreeNode m_game_objects_root { WorldCoordinate( constants::WORLD_CENTER ) };
+		// GameObject::Map game_objects {};
+		// OctTreeNode m_game_objects_root { WorldCoordinate( constants::WORLD_CENTER ) };
 
 		// SubPass 0
 		GuiSystem m_gui_system {};
@@ -88,7 +81,11 @@ namespace fgl::engine
 		std::chrono::time_point< Clock > m_last_tick { Clock::now() };
 		DeltaTime m_delta_time;
 
+		World m_world;
+
 	  public:
+
+		ModelManager& models() { return m_model_manager; }
 
 		FGL_FORCE_INLINE_FLATTEN void hookInitImGui( const std::function< void( Window&, Renderer& ) >& func )
 		{
@@ -106,6 +103,8 @@ namespace fgl::engine
 		void hookPostFrame( const FrameHookFunc& func ) { m_post_frame_hooks.emplace_back( func ); }
 
 		void hookDestruction( const std::function< void() >& func ) { m_destruction_hooks.emplace_back( func ); }
+
+		void setWorld( const World& world );
 
 	  public:
 
@@ -126,7 +125,7 @@ namespace fgl::engine
 		void processInput();
 
 		void tickDeltaTime();
-		void tickSimulation();
+		World tickSimulation();
 		void renderCameras( FrameInfo frame_info );
 
 		void renderFrame();

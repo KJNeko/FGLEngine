@@ -11,7 +11,6 @@
 #include <iostream>
 
 #include "KeyboardMovementController.hpp"
-#include "assets/material/Material.hpp"
 #include "camera/Camera.hpp"
 #include "camera/CameraManager.hpp"
 #include "camera/GBufferRenderer.hpp"
@@ -48,52 +47,6 @@ namespace fgl::engine
 
 		m_matrix_info_pool.setDebugName( "Matrix info pool" );
 		m_draw_parameter_pool.setDebugName( "Draw parameter pool" );
-
-		m_vertex_buffer->setDebugName( "Vertex buffer" );
-		m_index_buffer->setDebugName( "Index buffer" );
-
-		constexpr float offset { 4.0f };
-		constexpr std::size_t grid_size { 6 };
-		constexpr float factor_offset { 1.0f / static_cast< float >( grid_size ) };
-
-		for ( std::size_t x = 0; x < grid_size; ++x )
-			for ( std::size_t y = 0; y < grid_size; ++y )
-			{
-				const std::filesystem::path path {
-					"/home/kj16609/Desktop/Projects/cxx/Mecha/src/assets/PBRSphere.gltf"
-				};
-
-				SceneBuilder builder { *m_vertex_buffer, *m_index_buffer };
-
-				builder.loadScene( path );
-
-				std::vector< GameObject > objs { builder.getGameObjects() };
-
-				for ( auto& obj : objs )
-				{
-					auto model_components { obj.getComponents< ModelComponent >() };
-
-					for ( const auto& model_component : model_components )
-					{
-						auto& prims = ( *model_component )->m_primitives;
-
-						for ( auto& prim : prims )
-						{
-							auto& pbr { prim.m_material->properties.pbr };
-							pbr.roughness_factor = static_cast< float >( x ) * factor_offset;
-							pbr.metallic_factor = static_cast< float >( y ) * factor_offset;
-							prim.m_material->update();
-						}
-					}
-
-					obj.getTransform().translation = WorldCoordinate(
-						-5.0f + ( static_cast< float >( x ) * offset ),
-						-5.0f + ( static_cast< float >( y ) * offset ),
-						0.0f );
-
-					m_game_objects_root.addGameObject( std::move( obj ) );
-				}
-			}
 	}
 
 	static Average< float, 60 * 15 > rolling_ms_average;
@@ -116,7 +69,7 @@ namespace fgl::engine
 		m_delta_time = time_diff.count();
 	}
 
-	void EngineContext::tickSimulation()
+	World EngineContext::tickSimulation()
 	{
 		ZoneScoped;
 		auto timer = debug::timing::push( "Tick Simulation" );
@@ -124,6 +77,8 @@ namespace fgl::engine
 		// The first step here should be culling things that aren't needed to be ticked.
 		// Perhaps implementing a tick system that doesn't care about the refresh rate might be good?
 		// That way we can still tick consistantly without actually needing to render anything.
+
+		return {};
 	}
 
 	void EngineContext::renderCameras( FrameInfo frame_info )
@@ -160,12 +115,10 @@ namespace fgl::engine
 				                   nullptr, // Camera
 				                   m_camera_manager.getCameras(),
 				                   // global_descriptor_sets[ frame_index ],
-				                   m_game_objects_root,
+				                   m_model_manager,
 				                   m_renderer.getCurrentTracyCTX(),
 				                   m_matrix_info_pool,
 				                   m_draw_parameter_pool,
-				                   *this->m_vertex_buffer,
-				                   *this->m_index_buffer,
 				                   // m_renderer.getSwapChain().getInputDescriptor( present_idx ),
 				                   this->m_renderer.getSwapChain() };
 

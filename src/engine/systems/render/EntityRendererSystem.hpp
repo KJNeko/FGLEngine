@@ -29,6 +29,7 @@ namespace fgl::engine
 
 		//! Pipeline for basic textured models (Single texture)
 		std::unique_ptr< Pipeline > m_textured_pipeline {};
+		// std::unique_ptr< ComputePipeline > m_cull_pipeline {};
 
 		using DrawParameterBufferSuballocation = HostVector< vk::DrawIndexedIndirectCommand >;
 

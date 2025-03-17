@@ -18,7 +18,7 @@
 
 #include "engine/assets/material/Material.hpp"
 #include "engine/gameobjects/GameObject.hpp"
-#include "engine/primitives/TransformComponent.hpp"
+#include "engine/primitives/Transform.hpp"
 
 namespace fgl::engine
 {

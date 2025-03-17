@@ -8,7 +8,6 @@
 
 #include "engine/FrameInfo.hpp"
 #include "engine/camera/Camera.hpp"
-#include "engine/tree/octtree/OctTreeNode.hpp"
 
 namespace fgl::engine
 {

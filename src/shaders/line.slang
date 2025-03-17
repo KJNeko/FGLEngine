@@ -1,7 +1,7 @@
 #version 450
 
-import camera;
-import gbuffer;
+import objects.camera;
+import objects.gbuffer;
 
 struct LineVertex
 {

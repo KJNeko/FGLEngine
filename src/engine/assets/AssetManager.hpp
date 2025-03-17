@@ -53,8 +53,8 @@ namespace fgl::engine
 		//! Key type given by T
 		using KeyT = typename T::UIDKeyT;
 
-		std::unordered_map< KeyT, std::weak_ptr< T > > active_map {};
-		std::mutex map_mtx {};
+		std::unordered_map< KeyT, std::weak_ptr< T > > m_active_map {};
+		std::mutex m_map_mtx {};
 
 	  public:
 
@@ -71,9 +71,9 @@ namespace fgl::engine
 			ZoneScoped;
 			const auto key { T::extractKey( std::forward< T_Args >( args )... ) };
 
-			std::lock_guard guard { map_mtx };
+			std::lock_guard guard { m_map_mtx };
 
-			if ( auto itter = active_map.find( key ); itter != active_map.end() )
+			if ( auto itter = m_active_map.find( key ); itter != m_active_map.end() )
 			{
 				// We've found the item in the map. We can now check if it's still active
 
@@ -83,13 +83,13 @@ namespace fgl::engine
 				}
 
 				//Item was expired. Remove it from the map and continue
-				active_map.erase( itter );
+				m_active_map.erase( itter );
 			}
 
 			std::shared_ptr< T > s_ptr { new T( std::forward< T_Args >( args )... ) };
 
 			// Add the weak pointer to the map so we can find it later.
-			active_map.insert( std::make_pair( key, s_ptr ) );
+			m_active_map.insert( std::make_pair( key, s_ptr ) );
 
 			return s_ptr;
 		}

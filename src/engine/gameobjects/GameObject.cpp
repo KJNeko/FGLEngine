@@ -12,7 +12,7 @@ namespace fgl::engine
 		if ( m_id != INVALID_ID )
 		{
 			log::debug( "Destroyed game object {}", this->m_id );
-			for ( const auto& component : components ) delete component;
+			for ( const auto& component : m_components ) delete component;
 		}
 	}
 
@@ -20,8 +20,7 @@ namespace fgl::engine
 	{
 		m_id = other.m_id;
 		object_flags = other.object_flags;
-		m_transform = other.m_transform;
-		components = std::move( other.components );
+		m_components = std::move( other.m_components );
 		m_name = std::move( other.m_name );
 
 		other.m_id = INVALID_ID;
@@ -32,8 +31,7 @@ namespace fgl::engine
 	GameObject::GameObject( GameObject&& other ) noexcept :
 	  m_id( other.m_id ),
 	  object_flags( other.object_flags ),
-	  m_transform( other.m_transform ),
-	  components( std::move( other.components ) ),
+	  m_components( std::move( other.m_components ) ),
 	  m_name( other.m_name )
 	{
 		other.m_id = INVALID_ID;

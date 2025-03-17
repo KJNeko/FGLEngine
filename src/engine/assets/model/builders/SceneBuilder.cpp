@@ -595,7 +595,10 @@ namespace fgl::engine
 
 		assert( model );
 
-		std::unique_ptr< ModelComponent > component { std::make_unique< ModelComponent >( std::move( model ) ) };
+		std::unique_ptr< components::ModelComponent > component {
+			std::make_unique< components::ModelComponent >( std::move( model ) )
+		};
+
 		obj.addComponent( std::move( component ) );
 
 		obj.addFlag( IsVisible | IsEntity );

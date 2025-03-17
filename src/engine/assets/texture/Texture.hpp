@@ -91,6 +91,7 @@ namespace fgl::engine
 		Texture() = delete;
 
 		~Texture();
+		Texture( const std::shared_ptr<Image>& image, Sampler sampler = Sampler() );
 
 		Image& getImageRef();
 
@@ -99,8 +100,6 @@ namespace fgl::engine
 
 		Texture( Texture&& other ) = delete;
 		Texture& operator=( Texture&& ) = delete;
-
-		Texture( Image& image, Sampler sampler = Sampler() );
 
 		bool ready() const;
 

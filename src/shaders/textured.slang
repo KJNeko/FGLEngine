@@ -1,8 +1,8 @@
 #version 450
 
 import model.vertex;
-import camera;
-import gbuffer;
+import objects.camera;
+import objects.gbuffer;
 import material;
 
 struct CoarseVertex {
@@ -37,7 +37,7 @@ CoarseVertex vertexMain( ModelVertex in_vertex )
 }
 
 [[vk::binding(0,3)]]
-ParameterBlock<Material> materials[] : MATERIALS;
+ConstantBuffer<Material> materials[] : MATERIALS;
 
 [[vk::binding(0,2)]]
 Sampler2D[ ] tex : TEXTURES;

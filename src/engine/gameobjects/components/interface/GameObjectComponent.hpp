@@ -7,14 +7,14 @@
 #include <vector>
 
 #include "ComponentEngineInterface.hpp"
-#include "engine/primitives/TransformComponent.hpp"
+#include "engine/primitives/Transform.hpp"
 
 #define COMPONENT_CLASS( class_name, id_name ) class class_name final : public GameObjectComponent< id_name >
 
 namespace fgl::engine
 {
 
-	struct ComponentTransform final : public TransformComponent< CoordinateSpace::World >
+	struct ComponentTransform final : public Transform< CoordinateSpace::World >
 	{
 		enum Mode
 		{
@@ -29,7 +29,7 @@ namespace fgl::engine
 		ComponentTransform() = default;
 
 		ComponentTransform( const WorldCoordinate position_i, const Scale scale_i, const QuatRotation rotation_i ) :
-		  TransformComponent( position_i, scale_i, rotation_i )
+		  Transform( position_i, scale_i, rotation_i )
 		{}
 	};
 
@@ -50,7 +50,6 @@ namespace fgl::engine
 	struct GameObjectComponent : public GameObjectComponentBase
 	{
 		constexpr static ComponentID ID { T_ID };
-		ComponentTransform m_transform { WorldCoordinate( 0.0f ), Scale( 1.0 ), QuatRotation() };
 
 		virtual ComponentID id() const override final { return ID; }
 	};

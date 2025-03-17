@@ -14,6 +14,7 @@ namespace fgl::engine::gui
 		ImGui::InputText( "Name", &name_input_temp );
 		if ( game_object.getName() != name_input_temp ) game_object.setName( name_input_temp );
 
+		/*
 		auto& transform { game_object.getTransform() };
 
 		// Transform - Position
@@ -29,6 +30,7 @@ namespace fgl::engine::gui
 		}
 
 		dragFloat3( "Scale", transform.scale );
+		*/
 	}
 
 	static GameObjectComponentPtr SELECTED_COMPONENT { nullptr };

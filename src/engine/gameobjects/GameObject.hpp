@@ -11,7 +11,7 @@
 
 #include "components/ModelComponent.hpp"
 #include "engine/gameobjects/components/interface/GameObjectComponent.hpp"
-#include "engine/primitives/TransformComponent.hpp"
+#include "engine/primitives/Transform.hpp"
 
 namespace fgl::engine
 {
@@ -45,9 +45,11 @@ namespace fgl::engine
 
 		GameObjectID m_id { INVALID_ID };
 		GameObjectFlagType object_flags { GameObjectFlagMask::MaskDefault };
-		GameObjectTransform m_transform {};
 
-		std::vector< GameObjectComponentPtr > components {};
+		std::vector< GameObjectComponentPtr > m_components {};
+
+		GameObject* m_parent { nullptr };
+		std::vector< GameObject > m_children {};
 
 		std::string m_name {};
 
@@ -67,17 +69,15 @@ namespace fgl::engine
 			requires is_component< T >
 		void addComponent( std::unique_ptr< T >&& ptr )
 		{
-			components.emplace_back( ptr.release() );
+			m_components.emplace_back( ptr.release() );
 		}
-
-		Scale& getScale() { return m_transform.scale; }
 
 		template < typename T >
 			requires is_component< T >
 		bool hasComponent() const
 		{
 			ZoneScoped;
-			for ( const GameObjectComponentPtr comp : components )
+			for ( const GameObjectComponentPtr comp : m_components )
 			{
 				if ( comp->id() == T::ID ) return true;
 			}
@@ -92,7 +92,7 @@ namespace fgl::engine
 			ZoneScopedN( "Get components" );
 			std::vector< const T* > temp {};
 
-			for ( const ComponentEngineInterface* comp : components )
+			for ( const ComponentEngineInterface* comp : m_components )
 			{
 				if ( comp->id() == T::ID ) temp.emplace_back( static_cast< const T* >( comp ) );
 			}
@@ -107,7 +107,7 @@ namespace fgl::engine
 			ZoneScopedN( "Get components" );
 			std::vector< T* > temp {};
 
-			for ( ComponentEngineInterface* comp : components )
+			for ( ComponentEngineInterface* comp : m_components )
 			{
 				if ( comp->id() == T::ID ) temp.emplace_back( static_cast< T* >( comp ) );
 			}
@@ -115,9 +115,9 @@ namespace fgl::engine
 			return temp;
 		}
 
-		std::vector< GameObjectComponentPtr >& getComponents() { return components; }
+		std::vector< GameObjectComponentPtr >& getComponents() { return m_components; }
 
-		const std::vector< GameObjectComponentPtr >& getComponents() const { return components; }
+		const std::vector< GameObjectComponentPtr >& getComponents() const { return m_components; }
 
 		//Flags
 		GameObjectFlagType flags() const { return object_flags; }
@@ -125,17 +125,6 @@ namespace fgl::engine
 		void addFlag( GameObjectFlagType flag ) { object_flags |= flag; }
 
 		void removeFlag( GameObjectFlagType flag ) { object_flags &= ( ~flag ); }
-
-		//Transform
-		GameObjectTransform& getTransform() { return m_transform; }
-
-		const GameObjectTransform& getTransform() const { return m_transform; }
-
-		const WorldCoordinate& getPosition() const { return m_transform.translation; }
-
-		// const Rotation& getRotation() const { return m_transform.rotation; }
-
-		QuatRotation getRotation() const { return m_transform.rotation.forcedQuat(); }
 
 		//Misc
 		static GameObject createGameObject();

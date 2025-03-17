@@ -11,6 +11,8 @@ namespace fgl::engine
 {
 	using ComponentID = std::uint32_t;
 
+	ASSIGN_COMPONENT_ID( TransformComponentID, 0 );
+
 	ASSIGN_COMPONENT_ID( ModelComponentID, 1 );
 
 	ASSIGN_COMPONENT_ID( CameraComponentID, 2 );

@@ -197,12 +197,12 @@ namespace fgl::engine
 		return m_imgui_set;
 	}
 
-	Texture::Texture( Image& image, Sampler sampler ) :
+	Texture::Texture( const std::shared_ptr< Image >& image, Sampler sampler ) :
 	  m_texture_id( texture_id_pool.getID() ),
-	  m_image(),
-	  m_image_view( image.getView() ),
+	  m_image( image ),
+	  m_image_view( image->getView() ),
 	  //TODO: Figure out how to get extents from images.
-	  m_extent(),
+	  m_extent( image->getExtent() ),
 	  m_name( "Default Texture Name" )
 	{
 		m_image_view->getSampler() = std::move( sampler );

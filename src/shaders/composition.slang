@@ -1,6 +1,6 @@
 #version 450
 
-import camera;
+import objects.camera;
 
 struct Vertex {
 	vec4 position : SV_Position;

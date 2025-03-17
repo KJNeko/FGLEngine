@@ -19,7 +19,7 @@
 #include "engine/memory/buffers/HostSingleT.hpp"
 #include "engine/memory/buffers/UniqueFrameSuballocation.hpp"
 #include "engine/primitives/Frustum.hpp"
-#include "engine/primitives/TransformComponent.hpp"
+#include "engine/primitives/Transform.hpp"
 #include "engine/rendering/types.hpp"
 
 namespace vk::raii
@@ -54,10 +54,12 @@ namespace fgl::engine
 
 		vk::Extent2D m_target_extent;
 
-		std::unique_ptr< CompositeSwapchain > m_old_composite_swapchain { nullptr };
 		std::unique_ptr< CompositeSwapchain > m_composite_swapchain;
-		std::unique_ptr< GBufferSwapchain > m_old_gbuffer_swapchain { nullptr };
 		std::unique_ptr< GBufferSwapchain > m_gbuffer_swapchain;
+
+		//TODO: Move to deffered deleter
+		std::unique_ptr< CompositeSwapchain > m_old_composite_swapchain { nullptr };
+		std::unique_ptr< GBufferSwapchain > m_old_gbuffer_swapchain { nullptr };
 
 		std::shared_ptr< GBufferRenderer > m_camera_renderer;
 

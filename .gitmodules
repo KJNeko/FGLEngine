@@ -58,3 +58,6 @@
 [submodule "dependencies/slang"]
 	path = dependencies/slang
 	url = https://github.com/shader-slang/slang.git
+[submodule "dependencies/json"]
+	path = dependencies/json
+	url = https://github.com/nlohmann/json.git

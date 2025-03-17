@@ -5,15 +5,14 @@
 #include "engine/gameobjects/components/ModelComponent.hpp"
 
 #include "engine/assets/model/Model.hpp"
-#include "engine/gameobjects/components/drawers.hpp"
 #include "gui/safe_include.hpp"
 
-namespace fgl::engine
+namespace fgl::engine::components
 {
 
 	void ModelComponent::drawImGui()
 	{
-		drawComponentTransform( m_transform );
+		// drawComponentTransform( m_transform );
 
 		// TODO: If the model is not set then we should be able to set it to one from the file selection
 		if ( this->m_model == nullptr )

@@ -35,15 +35,15 @@ namespace fgl::engine
 		FGL_UNREACHABLE();
 	};
 
-	//TransformComponent is always in world space
+	//Transform is always in world space
 	template < CoordinateSpace CType = CoordinateSpace::World >
-	struct TransformComponent
+	struct Transform
 	{
 		Coordinate< CType > translation { constants::WORLD_CENTER };
 		Scale scale { 1.0f, 1.0f, 1.0f };
 		UniversalRotation rotation { constants::DEFAULT_ROTATION };
 
-		//TODO: Figure this out and replace TransformComponent with a template of CType instead
+		//TODO: Figure this out and replace Transform with a template of CType instead
 		[[nodiscard]] glm::mat4 mat4() const;
 
 		[[nodiscard]] Matrix< MatrixTransformType< CType >() > mat() const;
@@ -61,8 +61,17 @@ namespace fgl::engine
 		[[nodiscard]] NormalVector down() const { return -up(); }
 	};
 
+	template < CoordinateSpace CType = CoordinateSpace::World >
+	struct UniversalTransform
+	{
+		std::variant< Transform< CType >, glm::mat4 > m_variant;
+
+		//! Converts the transform into a matrix
+		void decay() { m_variant = std::get< Transform< CType > >( m_variant ).mat4(); }
+	};
+
 	template < CoordinateSpace CType, MatrixType MType >
-	TransformComponent< CType > decompose( const glm::mat4 matrix )
+	Transform< CType > decompose( const glm::mat4 matrix )
 	{
 		glm::mat4 localMatrix = matrix;
 
@@ -133,8 +142,8 @@ namespace fgl::engine
 	}
 
 	// A game object will be going from world to camera space
-	using GameObjectTransform = TransformComponent< CoordinateSpace::World >;
-	// using ModelTransform = TransformComponent< CoordinateSpace::Model >;
-	using WorldTransform = TransformComponent< CoordinateSpace::World >;
+	using GameObjectTransform = Transform< CoordinateSpace::World >;
+	// using ModelTransform = Transform< CoordinateSpace::Model >;
+	using WorldTransform = Transform< CoordinateSpace::World >;
 
 } // namespace fgl::engine

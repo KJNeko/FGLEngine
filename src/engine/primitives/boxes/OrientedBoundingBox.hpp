@@ -10,7 +10,7 @@
 #include "BoundingBox.hpp"
 #include "engine/constants.hpp"
 #include "engine/primitives/Scale.hpp"
-#include "engine/primitives/TransformComponent.hpp"
+#include "engine/primitives/Transform.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 
@@ -43,7 +43,7 @@ namespace fgl::engine
 
 		union
 		{
-			TransformComponent< CType > m_transform;
+			Transform< CType > m_transform;
 			glm::mat4 m_matrix;
 		};
 
@@ -64,7 +64,7 @@ namespace fgl::engine
 			assert( inital_scale != constants::DEFAULT_VEC3 );
 		}
 
-		[[nodiscard]] OrientedBoundingBox( const TransformComponent< CType >& transform ) :
+		[[nodiscard]] OrientedBoundingBox( const Transform< CType >& transform ) :
 		  transform_mode( TransformMode::Transform ),
 		  m_transform( transform )
 		{
@@ -131,14 +131,14 @@ namespace fgl::engine
 
 		TransformMode getMode() const { return transform_mode; }
 
-		[[nodiscard]] TransformComponent< CType >& getTransform()
+		[[nodiscard]] Transform< CType >& getTransform()
 		{
 			FGL_ASSERT(
 				transform_mode == TransformMode::Transform, "FIXME: Transform not initalized. Mode switch needed" );
 			return m_transform;
 		}
 
-		[[nodiscard]] const TransformComponent< CType >& getTransform() const
+		[[nodiscard]] const Transform< CType >& getTransform() const
 		{
 			FGL_ASSERT(
 				transform_mode == TransformMode::Transform, "FIXME: Transform not initalized. Mode switch needed" );

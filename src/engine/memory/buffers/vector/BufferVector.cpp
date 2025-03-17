@@ -13,7 +13,8 @@ namespace fgl::engine::memory
 	[[nodiscard]] BufferVector::BufferVector( Buffer& buffer, std::uint32_t count, std::uint32_t stride ) :
 	  BufferSuballocation( buffer.allocate( count * stride ) ),
 	  m_count( count ),
-	  m_stride( stride )
+	  m_stride( stride ),
+	  m_capacity( count )
 	{}
 
 	//! Returns the offset count from the start of the buffer to the first element
@@ -41,21 +42,38 @@ namespace fgl::engine::memory
 		return m_count;
 	}
 
+	[[nodiscard]] std::uint32_t BufferVector::capacity() const noexcept
+	{
+		assert( !std::isnan( m_count ) );
+		assert( m_count * m_stride <= this->bytesize() );
+		return m_capacity;
+	}
+
 	void BufferVector::resize( const std::uint32_t count )
 	{
 		assert( count > 0 );
 		assert( !std::isnan( m_stride ) );
 		assert( !std::isnan( m_count ) );
 
-		//If the capacity is higher then what we are requesting then we simply just ignore the request.
-		// TODO: Maybe this is bad? I'm unsure. But reducing the number of allocations is always good
-		if ( count < m_count ) return;
+		// we are reclaiming size
+		//TODO: Figure out a way to truely reclaim any size
+		if ( count < capacity() )
+		{
+			m_count = count;
+			return;
+		}
 
-		BufferVector other { this->getBuffer(), count, m_stride };
+		// the capacity is not enough for the new size, we must reallocate.
+		if ( count > capacity() )
+		{
+			BufferVector other { this->getBuffer(), count, m_stride };
 
-		TransferManager::getInstance().copyToVector( *this, other, 0 );
+			TransferManager::getInstance().copyToVector( *this, other, 0 );
 
-		*this = std::move( other );
+			*this = std::move( other );
+		}
+
+		this->m_count = count;
 	}
 
 } // namespace fgl::engine::memory

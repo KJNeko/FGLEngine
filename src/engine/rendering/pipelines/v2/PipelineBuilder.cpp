@@ -132,7 +132,8 @@ namespace fgl::engine
 
 		rendering_info.setColorAttachmentFormats( state.formats.colors );
 
-		rendering_info.setDepthAttachmentFormat( state.formats.depth );
+		if ( state.formats.depth != vk::Format::eUndefined )
+			rendering_info.setDepthAttachmentFormat( state.formats.depth );
 
 		if ( state.m_dynamic_state.size() > 0 ) info.setPDynamicState( &dynamic_state_create_info );
 
@@ -209,7 +210,7 @@ namespace fgl::engine
 		m_state->push_constant.stageFlags = flags;
 	}
 
-	PipelineBuilder::BuilderState::Formats::Formats() : depth( pickDepthFormat() )
+	PipelineBuilder::BuilderState::Formats::Formats()
 	{}
 
 	[[nodiscard]] vk::PipelineColorBlendAttachmentState& PipelineBuilder::BuilderState::addColorAttachment()
@@ -290,6 +291,11 @@ namespace fgl::engine
 	void PipelineBuilder::disableCulling()
 	{
 		m_state->rasterization_info.cullMode = vk::CullModeFlagBits::eNone;
+	}
+
+	void PipelineBuilder::addDepthAttachment()
+	{
+		m_state->formats.depth = pickDepthFormat();
 	}
 
 	AttachmentBuilder PipelineBuilder::addAttachment()

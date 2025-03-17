@@ -83,15 +83,12 @@ namespace fgl::engine
 		std::vector< std::weak_ptr< Camera > >& m_camera_list;
 
 		// descriptors::DescriptorSet& global_descriptor_set;
-		OctTreeNode& game_objects;
+		// OctTreeNode& game_objects;
 		TracyVkCtx tracy_ctx;
 
 		//Buffers
 		memory::Buffer& model_matrix_info_buffer;
 		memory::Buffer& draw_parameter_buffer;
-
-		memory::Buffer& model_vertex_buffer;
-		memory::Buffer& model_index_buffer;
 
 		// descriptors::DescriptorSet& gui_input_descriptor;
 

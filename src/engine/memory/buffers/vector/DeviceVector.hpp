@@ -45,8 +45,7 @@ namespace fgl::engine
 			memory::TransferManager::getInstance().copyToVector< T, DeviceVector< T > >( data, *this );
 		}
 
-		//TODO: This
-		void resize( const std::size_t new_size );
+		void resize( const std::size_t new_size ) { BufferVector::resize( new_size ); }
 
 		void updateData( const std::size_t idx, const T& data )
 		{

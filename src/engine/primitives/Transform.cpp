@@ -2,13 +2,13 @@
 // Created by kj16609 on 2/27/24.
 //
 
-#include "TransformComponent.hpp"
+#include "Transform.hpp"
 
 namespace fgl::engine
 {
 
 	template < CoordinateSpace CType >
-	glm::mat4 TransformComponent< CType >::mat4() const
+	glm::mat4 Transform< CType >::mat4() const
 	{
 		const glm::mat3 rotation_mat { rotation.forcedQuat().mat() };
 
@@ -21,30 +21,30 @@ namespace fgl::engine
 	}
 
 	template < CoordinateSpace CType >
-	Matrix< MatrixTransformType< CType >() > TransformComponent< CType >::mat() const
+	Matrix< MatrixTransformType< CType >() > Transform< CType >::mat() const
 	{
 		return Matrix< MatrixTransformType< CType >() >( mat4() );
 	}
 
 	template < CoordinateSpace CType >
-	NormalVector TransformComponent< CType >::forward() const
+	NormalVector Transform< CType >::forward() const
 	{
 		return rotation.forward();
 	}
 
 	template < CoordinateSpace CType >
-	NormalVector TransformComponent< CType >::right() const
+	NormalVector Transform< CType >::right() const
 	{
 		return rotation.right();
 	}
 
 	template < CoordinateSpace CType >
-	NormalVector TransformComponent< CType >::up() const
+	NormalVector Transform< CType >::up() const
 	{
 		return rotation.up();
 	}
 
-	template struct TransformComponent< CoordinateSpace::World >;
-	template struct TransformComponent< CoordinateSpace::Model >;
+	template struct Transform< CoordinateSpace::World >;
+	template struct Transform< CoordinateSpace::Model >;
 
 } // namespace fgl::engine

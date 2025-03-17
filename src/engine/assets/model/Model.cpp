@@ -54,6 +54,11 @@ namespace fgl::engine
 		return box;
 	}
 
+	std::shared_ptr< ModelRenderInfo > Model::getRenderHandle() const
+	{
+		return m_render_handle.lock();
+	}
+
 	bool Model::ready() const
 	{
 		//Return true if even a single primitive is ready

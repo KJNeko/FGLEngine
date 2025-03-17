@@ -9,7 +9,6 @@
 #include "engine/debug/timing/FlameGraph.hpp"
 #include "engine/gameobjects/components/CameraComponent.hpp"
 #include "gui/EditorGuiContext.hpp"
-#include "gui/core.hpp"
 
 int main()
 {
@@ -63,11 +62,21 @@ int main()
 
 		editor_camera->setFOV( glm::radians( 90.0f ) );
 
+		// Create a default world to assign to the engine before we load or create a new one.
+		World world {};
+
+		constexpr bool playing { false };
+
 		//! Will be true until the window says it wants to close.
 		while ( engine_ctx.good() )
 		{
 			debug::timing::reset();
+
 			engine_ctx.tickDeltaTime();
+
+			engine_ctx.setWorld( world );
+
+			if ( playing ) world = engine_ctx.tickSimulation();
 
 			engine_ctx.handleTransfers();
 

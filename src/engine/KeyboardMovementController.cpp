@@ -10,6 +10,7 @@
 
 #include "engine/primitives/vectors/Vector.hpp"
 #include "gameobjects/GameObject.hpp"
+#include "gameobjects/components/TransformComponent.hpp"
 
 namespace fgl::engine
 {
@@ -31,6 +32,18 @@ namespace fgl::engine
 	void KeyboardMovementController::moveInPlaneXZ( GLFWwindow* window, float dt, GameObject& target )
 	{
 		assert( window );
+
+		auto components { target.getComponents< components::TransformComponent >() };
+
+		if ( components.empty() )
+		{
+			log::warn( "KeyboardMovementController: Attempted to move object with no transform" );
+			return;
+		}
+
+		components::TransformComponent& component { *components[ 0 ] };
+		WorldTransform& transform { *component };
+
 		constexpr float rotation_rate { 1.0f };
 		constexpr float pitch_modifier { 1.0f };
 		constexpr float yaw_modifier { 1.0f };
@@ -86,11 +99,11 @@ namespace fgl::engine
 
 			if ( pitch_change > std::numeric_limits< float >::epsilon()
 			     || pitch_change < -std::numeric_limits< float >::epsilon() )
-				target.getTransform().rotation.addX( dt * pitch_change );
+				transform.rotation.addX( dt * pitch_change );
 
 			if ( yaw_change > std::numeric_limits< float >::epsilon()
 			     || yaw_change < -std::numeric_limits< float >::epsilon() )
-				target.getTransform().rotation.addY( dt * yaw_change );
+				transform.rotation.addY( dt * yaw_change );
 		}
 		else // No cursor
 		{
@@ -98,7 +111,7 @@ namespace fgl::engine
 			const float xpos { pos.x };
 			const float ypos { pos.y };
 
-			UniversalRotation& target_rotation { target.getTransform().rotation };
+			UniversalRotation& target_rotation { transform.rotation };
 
 			target_rotation.addZ( ( xpos * 0.006f ) * look_speed );
 			target_rotation.addX( ( ypos * 0.006f ) * look_speed );
@@ -106,9 +119,9 @@ namespace fgl::engine
 			setCursorPos( window, { 0, 0 } );
 		}
 
-		const Vector forward_dir { target.getTransform().rotation.forward() };
-		const Vector up_dir { target.getTransform().rotation.up() };
-		const Vector right_dir { target.getTransform().rotation.right() };
+		const Vector forward_dir { transform.rotation.forward() };
+		const Vector up_dir { transform.rotation.up() };
+		const Vector right_dir { transform.rotation.right() };
 
 		Vector move_dir { 0.0f };
 		if ( glfwGetKey( window, key_mappings.move_forward ) == GLFW_PRESS ) move_dir += forward_dir;
@@ -121,7 +134,7 @@ namespace fgl::engine
 		const NormalVector n_move_dir { move_dir };
 
 		if ( glm::dot( move_dir.vec(), move_dir.vec() ) > std::numeric_limits< float >::epsilon() )
-			target.getTransform().translation += n_move_dir * ( move_speed * dt );
+			transform.translation += n_move_dir * ( move_speed * dt );
 	}
 
 } // namespace fgl::engine

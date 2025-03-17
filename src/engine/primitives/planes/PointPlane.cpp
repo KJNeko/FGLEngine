@@ -47,6 +47,12 @@ namespace fgl::engine
 		return point - ( this->getDirection() * distance );
 	}
 
+	template < CoordinateSpace CType >
+	SimplePlane< CType > PointPlane< CType >::toSimple() const
+	{
+		return SimplePlane< CType >( m_vector, -glm::dot( m_vector.vec(), m_coordinate.vec() ) );
+	}
+
 	template class PointPlane< CoordinateSpace::World >;
 	template class PointPlane< CoordinateSpace::Model >;
 	template class PointPlane< CoordinateSpace::Screen >;

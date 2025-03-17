@@ -15,11 +15,16 @@
 #include <vector>
 
 #include "Primitive.hpp"
+#include "assets/AssetManager.hpp"
 #include "engine/assets/material/Material.hpp"
 #include "engine/primitives/boxes/OrientedBoundingBox.hpp"
+#include "memory/buffers/vector/IndexedVector.hpp"
 
 namespace fgl::engine
 {
+	struct ModelRenderInfo;
+	class ModelRenderHandle;
+
 	namespace memory
 	{
 		class Buffer;
@@ -33,30 +38,31 @@ namespace fgl::engine
 		MaterialID material_id { constants::INVALID_TEXTURE_ID };
 	};
 
-	class Model
+	class Model final : public AssetInterface< Model >
 	{
-		static std::vector< vk::DrawIndexedIndirectCommand > buildParameters( const std::vector< Primitive >&
-		                                                                          primitives );
-		static OrientedBoundingBox< CoordinateSpace::Model > buildBoundingBox( const std::vector< Primitive >&
-		                                                                           primitives );
-
-		std::vector< vk::DrawIndexedIndirectCommand > m_draw_parameters;
+		static OrientedBoundingBox< CoordinateSpace::Model >
+			buildBoundingBox( const std::vector< Primitive >& primitives );
 
 		std::string m_name { "Unnamed model" };
 
 		//! Bounding box of the model
 		OrientedBoundingBox< CoordinateSpace::Model > m_bounding_box;
 
+		IndexedVector< ModelMatrixInfo >::Index m_model_info {};
+
 	  public:
 
-		bool ready() const;
+		[[nodiscard]] bool ready() const;
 
 		//! Returns the bounding box in model space
-		const OrientedBoundingBox< CoordinateSpace::Model >& getBoundingBox() const { return m_bounding_box; }
+		[[nodiscard]] const OrientedBoundingBox< CoordinateSpace::Model >& getBoundingBox() const
+		{
+			return m_bounding_box;
+		}
 
 		std::vector< Primitive > m_primitives {};
 
-		std::vector< vk::DrawIndexedIndirectCommand > getDrawCommand( std::uint32_t index ) const;
+		[[nodiscard]] std::vector< vk::DrawIndexedIndirectCommand > getDrawCommand( std::uint32_t index ) const;
 
 		//TODO: Switch to using shared_ptr instead of unique_ptr
 		static std::shared_ptr< Model > createModel(
