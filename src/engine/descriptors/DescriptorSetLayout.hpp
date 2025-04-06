@@ -47,7 +47,8 @@ namespace fgl::engine::descriptors
 
 		[[nodiscard]] std::size_t count() const { return m_bindings.size(); }
 
-		std::unique_ptr< DescriptorSet > create();
+		[[nodiscard]] std::unique_ptr< DescriptorSet > create();
+
 		[[nodiscard]] vk::raii::DescriptorSetLayout createLayout() const;
 		vk::raii::DescriptorSetLayout& layout();
 	};

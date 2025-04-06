@@ -122,7 +122,12 @@ namespace fgl::engine::memory
 
 	vk::DeviceSize Buffer::alignment() const
 	{
-		vk::DeviceSize size { 0 };
+		vk::DeviceSize size { 1 };
+
+		if ( m_usage & vk::BufferUsageFlagBits::eStorageBuffer )
+		{
+			size = std::max( size, Device::getInstance().m_properties.limits.minStorageBufferOffsetAlignment );
+		}
 
 		if ( m_usage & vk::BufferUsageFlagBits::eUniformBuffer )
 		{
@@ -176,14 +181,6 @@ namespace fgl::engine::memory
 
 		if ( itter == m_free_blocks.end() )
 		{
-			//If we can't find a block, then we need to merge the free blocks and try again
-			mergeFreeBlocks();
-			itter = findAvailableBlock( desired_memory_size, t_alignment );
-		}
-
-		//TODO: Move this error stuff into the exception message
-		if ( itter == m_free_blocks.end() )
-		{
 			throw BufferOOM();
 		}
 
@@ -195,6 +192,7 @@ namespace fgl::engine::memory
 		assert( selected_block_size <= this->size() );
 
 		const auto aligned_offset { align( selected_block_offset, alignment(), t_alignment ) };
+		FGL_ASSERT( aligned_offset % combineAlignment( alignment(), t_alignment ) == 0, "Alignment failed!" );
 
 		//Fix the offset and size if they aren't alligned
 		if ( aligned_offset != selected_block_offset )
@@ -359,7 +357,8 @@ namespace fgl::engine::memory
 		}
 
 		if ( sum != this->size() )
-			throw std::runtime_error( std::format( "Memory leaked! Expected {} was {}", this->size(), sum ) );
+			throw std::runtime_error(
+				std::format( "Memory leaked! Expected {} was {}: Lost {}", this->size(), sum, this->size() - sum ) );
 #endif
 	}
 

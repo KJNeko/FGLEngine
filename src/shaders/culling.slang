@@ -6,49 +6,53 @@ import objects.frustum;
 import objects.gamemodel;
 
 
+// in(vf)
+ConstantBuffer< AxisAlignedBoundingBox > bounding_boxes[] : AA_BOUNDS;
 
-struct ModelInstance
-{
-	uint32_t model_index;
-	mat4x4 matrix;
-};
-
-RWStructuredBuffer< vk::DrawIndexedIndirectCommand > commands : COMMANDS;
-RWStructuredBuffer< ModelInstance > instances : COMMAND_INSTANCES;
-
-ConstantBuffer< AxisAlignedBoundingBox > bounding_boxes[] : BOUNDS;
-
+// in constant (push constant maybe?:tm:)
 ConstantBuffer< Frustum > frustum : FRUSTUM;
 
-ConstantBuffer< ModelInstance > model_instances[] : MODEL_INSTANCES;
-ConstantBuffer< GameModel > models[] : MODELS;
+// in(c)
+[[vk::binding(0,0)]]
+StructuredBuffer< PrimitiveRenderInfo > primitives : PRIMITIVES;
+
+// in(vr)
+[[vk::binding(0,1)]]
+StructuredBuffer< PrimitiveInstanceInfo > primitive_instances : PRIMITIVE_INSTANCES;
+
+[ [ vk::binding( 1, 1 ) ] ]
+StructuredBuffer< ModelInstanceInfo > model_instances : MODEL_INSTANCES;
+
+// out
+[[vk::binding(0,2)]]
+RWStructuredBuffer< vk::DrawIndexedIndirectCommand > commands : COMMANDS;
+
+// vertex info generated from compute shader. This information is used in the rendering process
+[ [ vk::binding( 1, 2 ) ] ]
+RWStructuredBuffer< InstanceRenderInfo, ScalarDataLayout > out_instances : OUT_INSTANCES;
 
 //TODO: shader command constants
 struct PushConstants
 {
 	// number of total models and their instances
 	uint32_t draw_count;
-	uint32_t start_idx;
-	uint32_t end_idx;
 };
 
-ConstantBuffer<PushConstants> pc;
-
+[[push_constant]]
+PushConstants pc;
 
 [[shader("compute")]]
 [numthreads(64,1,1)]
-void main( uint3 dispatch_id : SV_DispatchThreadID)
+void computeMain( uint3 dispatch_id : SV_DispatchThreadID)
 {
 	// this will be dispatched with 0..N instances, each thread will be 1 instance from `model_instances`
-	uint instance_index = pc.start_idx + dispatch_id.x; // global thread
+	// each instance of this represents a unique primitive to be rendered
+	const uint instance_index = dispatch_id.x; // global thread
 
-	if ( dispatch_id.x > pc.end_idx ) return;
 	if ( instance_index > pc.draw_count ) return;
 
-	ModelInstance model_instance = model_instances[ instance_index ];
-	var model_index = model_instance.model_index;
-
-	GameModel model = models[ model_index ];
+	const PrimitiveInstanceInfo instance = primitive_instances[ instance_index ];
+	const PrimitiveRenderInfo primitive = primitives[ instance.render_info_id ];
 
 	//TODO: Cull (For now we will just pretend it's all in view)
 
@@ -56,30 +60,29 @@ void main( uint3 dispatch_id : SV_DispatchThreadID)
 
 	if ( in_view )
 	{
-		uint32_t old_instance_count = 0;
-		InterlockedAdd( commands[ model_index ].instance_count, 1, old_instance_count );
+		// We instead will use the simpler approach of having a unique draw command for each instance of the model. in the future we might have a seperate processing segment for high-count items.
+		vk::DrawIndexedIndirectCommand command;
+		command.first_index = primitive.first_index;
+		command.index_count = primitive.index_count;
 
-		var command = &commands[ model_index ];
+		command.first_instance = instance_index;
+		command.instance_count = 1;
 
-		// if the old instance count was zero, we are the first command and need to populate.
-		if ( old_instance_count == 0 )
-		{
-			// first index, populate the command's data
+		command.vertex_offset = primitive.first_vertex;
 
-			//TODO: Populate from GameModel once i've actually implemented that class properly
-			command->first_index = 0;
-			command->index_count = 0;
-			command->vertex_offset = 0;
+		commands[ instance_index ] = command;
 
-			atomicAdd( command->first_instance, instance_index );
-		}
+		out_instances[instance_index].mat_id = instance.material_id;
 
-		barrier();
-
-		var idx = command->first_instance + old_instance_count;
-
-		instances[ instance_index ] = model_instances[ idx ];
+		const ModelInstanceInfo model_instance = model_instances[ instance.model_index ];
+		out_instances[ instance_index ].matrix = model_instance.model_matrix;
 	}
+	else
+	{
+		const vk::DrawIndexedIndirectCommand default_command = vk::DrawIndexedIndirectCommand( 0, 0, 0, 0, 0 );
+		commands[ instance_index ] = default_command;
+	}
+
 }
 
 

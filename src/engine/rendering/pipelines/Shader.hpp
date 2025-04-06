@@ -50,6 +50,11 @@ namespace fgl::engine
 			return loadShader( path, vk::ShaderStageFlagBits::eFragment, ShaderType::Fragment );
 		}
 
+		static std::shared_ptr< Shader > loadCompute( const std::filesystem::path& path )
+		{
+			return loadShader( path, vk::ShaderStageFlagBits::eCompute, ShaderType::Compute );
+		}
+
 		//! Reloads the shader from disk
 		void reload();
 	};

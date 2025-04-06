@@ -33,6 +33,7 @@ namespace fgl::engine
 		ImageView() = delete;
 
 		explicit ImageView( const std::shared_ptr< ImageHandle >& img );
+		explicit ImageView( const std::shared_ptr< ImageHandle >& img, Sampler&& sampler );
 
 		ImageView( const ImageView& ) = delete;
 		ImageView& operator=( const ImageView& ) = delete;
@@ -48,9 +49,8 @@ namespace fgl::engine
 
 		[[nodiscard]] VkImage getVkImage() const { return m_resource->getVkImage(); }
 
-		void setSampler( Sampler&& sampler ) { m_sampler = std::forward< Sampler >( sampler ); }
-
-		[[nodiscard]] Sampler& getSampler() { return m_sampler; };
+		// void setSampler( Sampler&& sampler ) { m_sampler = std::forward< Sampler >( sampler ); }
+		[[nodiscard]] const Sampler& getSampler() const { return m_sampler; };
 
 		[[nodiscard]] vk::DescriptorImageInfo descriptorInfo( vk::Sampler sampler, vk::ImageLayout layout ) const;
 		[[nodiscard]] vk::DescriptorImageInfo descriptorInfo( vk::ImageLayout layout ) const;

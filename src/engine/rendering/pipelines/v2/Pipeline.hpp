@@ -20,6 +20,7 @@ namespace fgl::engine
 		vk::raii::Pipeline m_pipeline;
 		vk::raii::PipelineLayout m_layout;
 		std::unique_ptr< PipelineBuilder::BuilderState > m_builder_state;
+		vk::PipelineBindPoint m_bind_point;
 
 		vk::raii::Pipeline rebuildPipeline();
 
@@ -29,6 +30,7 @@ namespace fgl::engine
 		Pipeline(
 			vk::raii::Pipeline&& pipeline_in,
 			vk::raii::PipelineLayout&& layout,
+			vk::PipelineBindPoint bind_point,
 			std::unique_ptr< PipelineBuilder::BuilderState >&& builder_state );
 
 		void bind( CommandBuffer& cmd_buffer );
@@ -45,6 +47,8 @@ namespace fgl::engine
 		{
 			command_buffer->pushConstants< T >( m_layout, stage, 0, { t } );
 		}
+
+		const vk::raii::PipelineLayout& layout() const { return m_layout; }
 	};
 
 } // namespace fgl::engine

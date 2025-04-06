@@ -7,9 +7,10 @@
 #include <tracy/TracyC.h>
 #include <vulkan/vulkan.hpp>
 
+#include "EngineContext.hpp"
+#include "assets/model/ModelVertex.hpp"
 #include "engine/assets/material/Material.hpp"
 #include "engine/camera/Camera.hpp"
-#include "engine/debug/profiling/counters.hpp"
 #include "engine/debug/timing/FlameGraph.hpp"
 #include "engine/rendering/pipelines/v2/Pipeline.hpp"
 #include "engine/rendering/pipelines/v2/PipelineBuilder.hpp"
@@ -66,7 +67,7 @@ namespace fgl::engine
 		TracyVkZone( info.tracy_ctx, **command_buffer, "Render entities" );
 		auto timer = debug::timing::push( "Render entities" );
 
-		texturelessPass( info );
+		// texturelessPass( info );
 		texturedPass( info );
 	}
 
@@ -84,25 +85,22 @@ namespace fgl::engine
 		m_textured_pipeline->bindDescriptor( command_buffer, Texture::getDescriptorSet() );
 		m_textured_pipeline->bindDescriptor( command_buffer, Material::getDescriptorSet() );
 
-		auto& model_matrix_info_buffer { m_textured_model_matrix_info_buffers[ info.frame_idx ] };
-		model_matrix_info_buffer =
-			std::make_unique< ModelMatrixInfoBufferSuballocation >( info.model_matrix_info_buffer, model_matricies );
+		auto& model_buffers { getModelBuffers() };
 
-		auto& draw_parameter_buffer { m_draw_textured_parameter_buffers[ info.frame_idx ] };
-		draw_parameter_buffer =
-			std::make_unique< DrawParameterBufferSuballocation >( info.draw_parameter_buffer, draw_commands );
+		const std::vector< vk::Buffer > vert_buffers {
+			model_buffers.m_vertex_buffer.getVkBuffer(),
+			model_buffers.m_generated_instance_info[ info.in_flight_idx ].getVkBuffer()
+		};
 
-		const std::vector< vk::Buffer > vert_buffers { info.model_vertex_buffer.getVkBuffer(),
-			                                           model_matrix_info_buffer->getVkBuffer() };
-
-		command_buffer->bindVertexBuffers( 0, vert_buffers, { 0, model_matrix_info_buffer->getOffset() } );
-		command_buffer->bindIndexBuffer( info.model_index_buffer.getVkBuffer(), 0, vk::IndexType::eUint32 );
+		command_buffer->bindVertexBuffers(
+			0, vert_buffers, { 0, model_buffers.m_generated_instance_info[ info.in_flight_idx ].getOffset() } );
+		command_buffer->bindIndexBuffer( model_buffers.m_index_buffer.getVkBuffer(), 0, vk::IndexType::eUint32 );
 
 		command_buffer->drawIndexedIndirect(
-			draw_parameter_buffer->getVkBuffer(),
-			draw_parameter_buffer->getOffset(),
-			draw_parameter_buffer->size(),
-			draw_parameter_buffer->stride() );
+			info.m_commands.getVkBuffer(),
+			info.m_commands.getOffset(),
+			info.m_commands.size(),
+			info.m_commands.stride() );
 	};
 
 } // namespace fgl::engine

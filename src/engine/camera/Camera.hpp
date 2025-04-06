@@ -14,6 +14,7 @@
 
 #include "../primitives/rotation/QuatRotation.hpp"
 #include "CompositeSwapchain.hpp"
+#include "GBufferSwapchain.hpp"
 #include "debug/Track.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/memory/buffers/HostSingleT.hpp"
@@ -39,7 +40,6 @@ namespace fgl::engine
 	class GBufferRenderer;
 
 	struct CameraInfo;
-	class GBufferSwapchain;
 	class Camera;
 
 	FrustumBase createFrustum( float aspect, float fovy, float near, float far );
@@ -58,8 +58,8 @@ namespace fgl::engine
 		std::unique_ptr< GBufferSwapchain > m_gbuffer_swapchain;
 
 		//TODO: Move to deffered deleter
-		std::unique_ptr< CompositeSwapchain > m_old_composite_swapchain { nullptr };
-		std::unique_ptr< GBufferSwapchain > m_old_gbuffer_swapchain { nullptr };
+		std::queue< std::unique_ptr< CompositeSwapchain > > m_old_composite_swapchain {};
+		std::queue< std::unique_ptr< GBufferSwapchain > > m_old_gbuffer_swapchain {};
 
 		std::shared_ptr< GBufferRenderer > m_camera_renderer;
 

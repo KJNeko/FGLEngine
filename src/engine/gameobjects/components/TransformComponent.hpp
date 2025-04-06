@@ -14,19 +14,18 @@ namespace fgl::engine::components
 
 	  public:
 
-		explicit TransformComponent( WorldTransform & transform );
+		TransformComponent() = default;
+		explicit TransformComponent( const WorldTransform& transform );
 
 		void drawImGui() override;
 
 		std::string_view humanName() const override;
 		std::string_view className() const override;
 
-		WorldTransform& operator*()
-		{
-			return m_transform;
-		}
+		WorldTransform& operator*();
 
-		virtual ~TransformComponent() override = default;
+		virtual ~TransformComponent() override
+		{}
 	};
 
 } // namespace fgl::engine::components

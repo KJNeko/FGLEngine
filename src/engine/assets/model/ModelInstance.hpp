@@ -6,9 +6,8 @@
 
 #include <memory>
 
-#include "memory/buffers/vector/DeviceVector.hpp"
-#include "primitives/Transform.hpp"
-#include "rendering/PresentSwapChain.hpp"
+#include "ModelInstanceInfo.hpp"
+#include "Primitive.hpp"
 
 namespace fgl::engine
 {
@@ -23,30 +22,31 @@ namespace fgl::engine
 
 	using InstanceIndex = std::uint32_t;
 
-	using namespace fgl::literals::size_literals;
+	struct ModelMatrixInfo
+	{
+		glm::mat4 model_matrix;
+	};
 
 	class ModelInstance
 	{
 		std::shared_ptr< Model > m_model;
-		InstanceIndex m_index;
 
-		//! CPU side data to be modified
-		ModelGPUInstance m_cpu_data;
+		ModelInstanceInfoIndex m_model_instance;
+		std::vector< PrimitiveInstanceInfoIndex > m_primitive_instances;
 
 		//! True if the last frame changed this instance in any way
 		bool m_updated { false };
 
 	  public:
 
-		//! Returns GPU instance data
-		ModelGPUInstance gpuInstanceData() const
-		{
-			ModelGPUInstance data {};
-
-			data.m_model_index = m_model->getGPUID();
-
-			return data;
-		}
+		ModelInstance(
+			std::vector< PrimitiveInstanceInfoIndex >&& primative_instances,
+			ModelInstanceInfoIndex&& model_instance,
+			const std::shared_ptr< Model >& model ) noexcept :
+		  m_model( model ),
+		  m_model_instance( std::move( model_instance ) ),
+		  m_primitive_instances( std::move( primative_instances ) )
+		{}
 
 		//! Returns the current update state and sets it to false if it was true.
 		bool acquireNeedsUpdate()

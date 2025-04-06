@@ -21,6 +21,7 @@ namespace fgl::engine::filesystem
 	struct FileBrowser
 	{
 		std::unordered_map< std::filesystem::path, std::shared_ptr< Texture > > m_file_textures {};
+		std::queue< std::unordered_map< std::filesystem::path, std::shared_ptr< Texture > > > m_old_textures;
 
 		std::unique_ptr< DirInfo > m_current_dir { nullptr };
 

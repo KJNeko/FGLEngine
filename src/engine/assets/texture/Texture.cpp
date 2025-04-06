@@ -28,8 +28,8 @@ namespace fgl::engine
 
 	static IDPool< TextureID > texture_id_pool { 1 };
 
-	std::tuple< std::vector< std::byte >, int, int, vk::Format >
-		loadTexture( const std::filesystem::path& path, vk::Format format = vk::Format::eUndefined )
+	std::tuple< std::vector< std::byte >, int, int, vk::Format, Sampler >
+		loadTexture( const std::filesystem::path& path, Sampler&& sampler, vk::Format format = vk::Format::eUndefined )
 	{
 		ZoneScoped;
 		if ( !std::filesystem::exists( path ) ) throw std::runtime_error( "Failed to open file: " + path.string() );
@@ -54,7 +54,7 @@ namespace fgl::engine
 
 		//TODO: Write check to ensure the format matches the number of channels
 
-		return { std::move( data ), x, y, format };
+		return { std::move( data ), x, y, format, std::forward< Sampler >( sampler ) };
 	}
 
 	void Texture::drawImGui( vk::Extent2D extent )
@@ -98,16 +98,25 @@ namespace fgl::engine
 		return ImGui::ImageButton( m_name.c_str(), getImGuiDescriptorSet(), imgui_size );
 	}
 
-	Texture::Texture( std::tuple< std::vector< std::byte >, int, int, vk::Format > tuple ) :
+	Texture::Texture( std::tuple< std::vector< std::byte >, int, int, vk::Format, Sampler > tuple ) :
 	  Texture(
-		  std::move( std::get< 0 >( tuple ) ), std::get< 1 >( tuple ), std::get< 2 >( tuple ), std::get< 3 >( tuple ) )
+		  std::move( std::get< 0 >( tuple ) ),
+		  std::get< 1 >( tuple ),
+		  std::get< 2 >( tuple ),
+		  std::get< 3 >( tuple ),
+		  std::move( std::get< 4 >( tuple ) ) )
 	{}
 
-	Texture::Texture( std::vector< std::byte >&& data, const int x, const int y, const vk::Format format ) :
-	  Texture( std::forward< std::vector< std::byte > >( data ), vk::Extent2D( x, y ), format )
+	Texture::Texture(
+		std::vector< std::byte >&& data, const int x, const int y, const vk::Format format, Sampler&& sampler ) :
+	  Texture(
+		  std::forward< std::vector< std::byte > >( data ),
+		  vk::Extent2D( x, y ),
+		  std::forward< Sampler >( sampler ),
+		  format )
 	{}
 
-	Texture::Texture( std::vector< std::byte >&& data, const vk::Extent2D extent, const vk::Format format ) :
+	Texture::Texture( std::vector< std::byte >&& data, const vk::Extent2D extent, Sampler&&, const vk::Format format ) :
 	  m_texture_id( texture_id_pool.getID() ),
 	  m_image(
 		  std::make_shared< Image >(
@@ -128,16 +137,21 @@ namespace fgl::engine
 #endif
 	}
 
-	Texture::Texture( const std::filesystem::path& path, const vk::Format format ) :
-	  Texture( loadTexture( path, format ) )
+	Texture::Texture( const std::filesystem::path& path, Sampler&& sampler, const vk::Format format ) :
+	  Texture( loadTexture( path, std::forward< Sampler >( sampler ), format ) )
 	{
 		setName( path.filename() );
 	}
 
-	Texture::Texture( const std::filesystem::path& path ) : Texture( loadTexture( path ) )
-	{
-		setName( path.filename() );
-	}
+	Texture::Texture( const std::filesystem::path& path, Sampler&& sampler ) :
+	  Texture( loadTexture( path, std::forward< Sampler >( sampler ) ) )
+	{}
+
+	Texture::Texture( const std::filesystem::path& path ) : Texture( path, {} )
+	{}
+
+	Texture::Texture( const std::filesystem::path& path, const vk::Format format ) : Texture( path, {}, format )
+	{}
 
 	Texture::~Texture()
 	{
@@ -200,13 +214,19 @@ namespace fgl::engine
 	Texture::Texture( const std::shared_ptr< Image >& image, Sampler sampler ) :
 	  m_texture_id( texture_id_pool.getID() ),
 	  m_image( image ),
-	  m_image_view( image->getView() ),
+	  m_image_view( image->getView( std::move( sampler ) ) ),
 	  //TODO: Figure out how to get extents from images.
 	  m_extent( image->getExtent() ),
 	  m_name( "Default Texture Name" )
-	{
-		m_image_view->getSampler() = std::move( sampler );
-	}
+	{}
+
+	Texture::Texture( const std::shared_ptr< Image >& image, Sampler&& sampler ) :
+	  m_texture_id( texture_id_pool.getID() ),
+	  m_image( image ),
+	  m_image_view( image->getView( std::forward< Sampler >( sampler ) ) ),
+	  m_extent( image->getExtent() ),
+	  m_name( "Default Texture Name" )
+	{}
 
 	bool Texture::ready() const
 	{

@@ -48,21 +48,26 @@ namespace fgl::engine::descriptors
 
 	  public:
 
+		[[nodiscard]] bool hasUpdates() const { return !m_descriptor_writes.empty(); }
+
 		//! Updates the descriptor set, updates all pending writes created by using bindImage(), bindUniformBuffer(), bindArray(), bindAttachment(), or bindTexture().
 		void update();
 
-		VkDescriptorSet operator*() const { return *m_set; }
+		VkDescriptorSet operator*() const
+		{
+			FGL_ASSERT( !hasUpdates(), "Descriptor set has updates but binding was attempted" );
+			return *m_set;
+		}
 
 		[[nodiscard]] VkDescriptorSet getVkDescriptorSet() const { return *m_set; }
 
 		[[nodiscard]] DescriptorIDX setIDX() const { return m_set_idx; }
 
-		DescriptorSet() = delete;
+		FGL_DELETE_DEFAULT_CTOR( DescriptorSet );
+
 		DescriptorSet( const vk::raii::DescriptorSetLayout& layout, DescriptorIDX idx, std::size_t binding_count );
 
-		//Copy
-		DescriptorSet( const DescriptorSet& other ) = delete;
-		DescriptorSet& operator=( const DescriptorSet& other ) = delete;
+		FGL_DELETE_COPY( DescriptorSet );
 
 		//Move
 		DescriptorSet( DescriptorSet&& other ) noexcept;
@@ -77,6 +82,7 @@ namespace fgl::engine::descriptors
 			const vk::raii::Sampler& sampler = VK_NULL_HANDLE );
 
 		void bindUniformBuffer( std::uint32_t binding_idx, const memory::BufferSuballocation& buffer );
+		void bindStorageBuffer( std::uint32_t binding_idx, const memory::BufferSuballocation& buffer );
 		void bindArray(
 			std::uint32_t binding_idx,
 			const memory::BufferSuballocation& buffer,

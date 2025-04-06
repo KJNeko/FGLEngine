@@ -64,7 +64,7 @@ namespace fgl::engine
 
 		~Sampler() {}
 
-		vk::raii::Sampler& getVkSampler() { return m_sampler; }
+		const vk::raii::Sampler& getVkSampler() const { return m_sampler; }
 
 		void setName( const std::string& str ) const;
 	};

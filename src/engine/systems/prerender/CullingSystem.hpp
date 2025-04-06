@@ -7,6 +7,7 @@
 #include <thread>
 
 #include "engine/systems/concepts.hpp"
+#include "rendering/pipelines/v2/Pipeline.hpp"
 
 namespace fgl::engine
 {
@@ -14,18 +15,20 @@ namespace fgl::engine
 
 	class CullingSystem
 	{
-		std::thread m_thread;
+		// std::thread m_thread;
 
-		std::optional< FrameInfo* > m_info { std::nullopt };
-		std::stop_source m_source {};
-		std::stop_token m_stop_token { m_source.get_token() };
+		// std::optional< FrameInfo* > m_info { std::nullopt };
+		// std::stop_source m_source {};
+		// std::stop_token m_stop_token { m_source.get_token() };
 
-		void runner();
+		std::unique_ptr< Pipeline > m_cull_compute { nullptr };
 
-		//Semaphore to signal the thread to start
-		std::binary_semaphore m_start_sem { 0 };
+		// void runner();
 
-		std::binary_semaphore m_end_sem { 0 };
+		// Semaphore to signal the thread to start
+		// std::binary_semaphore m_start_sem { 0 };
+
+		// std::binary_semaphore m_end_sem { 0 };
 
 	  public:
 
@@ -36,12 +39,9 @@ namespace fgl::engine
 		~CullingSystem();
 
 		void pass( FrameInfo& info );
-		void startPass( FrameInfo& info );
-
-		void wait();
 	};
 
 	static_assert( is_system< CullingSystem > );
-	static_assert( is_threaded_system< CullingSystem > );
+	// static_assert( is_threaded_system< CullingSystem > );
 
 } // namespace fgl::engine

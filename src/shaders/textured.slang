@@ -59,7 +59,8 @@ GBufferFragment fragmentMain( CoarseVertex vertex )
 
 	if ( vertex.material_id == INVALID_TEXTURE_ID )
 	{
-		discard;
+		frag.color = vec4( 227.0 / 255.0, 61. / 255.0, 148.0 / 255.0, 1.0 );
+		return frag;
     }
 
     Material material = materials[vertex.material_id];

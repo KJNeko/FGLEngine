@@ -218,6 +218,10 @@ namespace fgl::engine::filesystem
 
 	void FileBrowser::openFolder( const DirInfo& dir )
 	{
+		m_old_textures.push( m_file_textures );
+
+		if ( m_old_textures.size() > constants::MAX_FRAMES_IN_FLIGHT ) m_old_textures.pop();
+
 		m_file_textures.clear();
 		m_current_dir = std::make_unique< DirInfo >( dir.m_path );
 	}

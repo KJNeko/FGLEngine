@@ -6,6 +6,7 @@
 namespace fgl::engine
 {
 
+	/*
 	bool World::sceneExists( const std::string& name )
 	{
 		return std::ranges::
@@ -40,5 +41,6 @@ namespace fgl::engine
 
 	World::World( const std::filesystem::path& path )
 	{}
+	*/
 
 } // namespace fgl::engine

@@ -65,33 +65,36 @@ namespace fgl::engine
 
 		std::string m_name;
 
-		[[nodiscard]] Texture( std::tuple< std::vector< std::byte >, int, int, vk::Format > );
+		[[nodiscard]] Texture( std::tuple< std::vector< std::byte >, int, int, vk::Format, Sampler > );
 
 		//! Construct texture with a specific extent and data
-		[[nodiscard]] Texture( std::vector< std::byte >&& data, int x, int y, vk::Format texture_format );
+		[[nodiscard]] Texture(
+			std::vector< std::byte >&& data, int x, int y, vk::Format texture_format, Sampler&& sampler );
 
 		//! Construct texture with a specific extent and data
-		[[nodiscard]] Texture( std::vector< std::byte >&& data, vk::Extent2D extent, vk::Format texture_format );
+		[[nodiscard]] Texture(
+			std::vector< std::byte >&& data, vk::Extent2D extent, Sampler&& sampler, vk::Format texture_format );
 
 		//! Construct with a specific format
-		[[nodiscard]] Texture( const std::filesystem::path& path, vk::Format format );
+		[[nodiscard]] Texture( const std::filesystem::path& path, Sampler&&, vk::Format format );
 
-		//! Construct with no format
+		[[nodiscard]] Texture( const std::filesystem::path& path, Sampler&& sampler );
 		[[nodiscard]] Texture( const std::filesystem::path& path );
+		[[nodiscard]] Texture( const std::filesystem::path& path, vk::Format format );
 
 	  public:
 
+		static UIDKeyT extractKey( const std::filesystem::path& path, [[maybe_unused]] Sampler&& ) { return path; }
+
 		static UIDKeyT extractKey( const std::filesystem::path& path ) { return path; }
 
-		static UIDKeyT extractKey( const std::filesystem::path& path, [[maybe_unused]] const vk::Format format )
-		{
-			return path;
-		}
+		static UIDKeyT extractKey( const std::filesystem::path& path, [[maybe_unused]] vk::Format ) { return path; }
 
 		Texture() = delete;
 
 		~Texture();
-		Texture( const std::shared_ptr<Image>& image, Sampler sampler = Sampler() );
+		Texture( const std::shared_ptr< Image >& image, Sampler sampler = Sampler() );
+		Texture( const std::shared_ptr< Image >& image, Sampler&& sampler );
 
 		Image& getImageRef();
 

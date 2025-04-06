@@ -11,6 +11,8 @@
 
 #include "descriptors/Descriptor.hpp"
 #include "descriptors/DescriptorSetLayout.hpp"
+#include "gameobjects/GameObject.hpp"
+#include "memory/buffers/vector/DeviceVector.hpp"
 #include "primitives/Frustum.hpp"
 #include "rendering/CommandBuffers.hpp"
 #include "rendering/types.hpp"
@@ -19,8 +21,9 @@
 
 namespace fgl::engine
 {
+	struct PrimitiveRenderInfo;
+	struct PrimitiveInstanceInfo;
 	class Pipeline;
-	class GameObject;
 
 	namespace descriptors
 	{
@@ -72,7 +75,7 @@ namespace fgl::engine
 
 	struct FrameInfo
 	{
-		FrameIndex frame_idx;
+		FrameIndex in_flight_idx;
 		PresentIndex present_idx;
 		DeltaTime delta_time;
 
@@ -86,18 +89,21 @@ namespace fgl::engine
 		// OctTreeNode& game_objects;
 		TracyVkCtx tracy_ctx;
 
-		//Buffers
-		memory::Buffer& model_matrix_info_buffer;
-		memory::Buffer& draw_parameter_buffer;
+		descriptors::DescriptorSet& m_primitives_desc;
+		descriptors::DescriptorSet& m_instances_desc;
+		descriptors::DescriptorSet& m_command_buffer_desc;
+		// out for rendering process
+
+		//! Populated commands buffer by the culling pass
+		DeviceVector< vk::DrawIndexedIndirectCommand >& m_commands;
+		std::vector< GameObject >& game_objects;
 
 		// descriptors::DescriptorSet& gui_input_descriptor;
 
-		descriptors::DescriptorSet& getGBufferDescriptor() const;
-		descriptors::DescriptorSet& getCameraDescriptor() const;
+		[[nodiscard]] descriptors::DescriptorSet& getGBufferDescriptor() const;
+		[[nodiscard]] descriptors::DescriptorSet& getCameraDescriptor() const;
 
 		PresentSwapChain& swap_chain;
-
-		std::vector< std::vector< GameObject >* > in_view_leafs {};
 
 		//! Binds the camera descriptor to the command buffer
 		void bindCamera( Pipeline& pipeline );

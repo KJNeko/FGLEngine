@@ -12,12 +12,12 @@ namespace fgl::engine
 
 	descriptors::DescriptorSet& FrameInfo::getGBufferDescriptor() const
 	{
-		return camera->getSwapchain().getGBufferDescriptor( frame_idx );
+		return camera->getSwapchain().getGBufferDescriptor( in_flight_idx );
 	}
 
 	descriptors::DescriptorSet& FrameInfo::getCameraDescriptor() const
 	{
-		return camera->getDescriptor( frame_idx );
+		return camera->getDescriptor( in_flight_idx );
 	}
 
 	void FrameInfo::bindCamera( [[maybe_unused]] Pipeline& pipeline )

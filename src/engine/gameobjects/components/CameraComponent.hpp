@@ -5,6 +5,7 @@
 #pragma once
 #include <memory>
 
+#include "ComponentIDS.hpp"
 #include "engine/gameobjects/components/interface/GameObjectComponent.hpp"
 
 namespace fgl::engine

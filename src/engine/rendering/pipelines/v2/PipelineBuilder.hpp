@@ -38,6 +38,15 @@ namespace fgl::engine
 		void addDescriptorSet( descriptors::DescriptorSetLayout& descriptor );
 		void addDynamicState( vk::DynamicState dynamic_state );
 		void setPushConstant( vk::ShaderStageFlags flags, std::uint32_t size );
+		void setBindPoint( vk::PipelineBindPoint bind_point );
+
+		template < typename T >
+		void addPushConstants( vk::ShaderStageFlags stage_flags, const std::uint16_t offset = 0 )
+		{
+			m_state->push_constant.offset = offset;
+			m_state->push_constant.size = sizeof( T );
+			m_state->push_constant.stageFlags = stage_flags;
+		}
 
 		struct BuilderState
 		{
@@ -55,6 +64,7 @@ namespace fgl::engine
 			{
 				std::shared_ptr< Shader > vertex { nullptr };
 				std::shared_ptr< Shader > fragment { nullptr };
+				std::shared_ptr< Shader > compute { nullptr };
 			} shaders {};
 
 			std::unordered_map< SetID, vk::DescriptorSetLayout > descriptor_set_layouts {};
@@ -78,6 +88,7 @@ namespace fgl::engine
 			} formats {};
 
 			uint32_t m_subpass_stage;
+			vk::PipelineBindPoint bind_point;
 
 			vk::PipelineColorBlendAttachmentState& addColorAttachment();
 
@@ -119,10 +130,15 @@ namespace fgl::engine
 		void setVertexShader( std::shared_ptr< Shader >&& shader );
 
 		void setFragmentShader( std::shared_ptr< Shader >&& shader );
+		void setComputeShader( std::shared_ptr< Shader >&& shader );
 
 		static vk::raii::Pipeline
 			createRenderPassPipeline( BuilderState& state, const vk::raii::PipelineLayout& layout );
+
 		static vk::raii::Pipeline createDynamicPipeline( BuilderState& state, vk::raii::PipelineLayout& layout );
+
+		static vk::raii::Pipeline createComputePipeline( BuilderState& state, vk::raii::PipelineLayout& layout );
+		static vk::raii::Pipeline createGraphicsPipeline( BuilderState& state, vk::raii::PipelineLayout& layout );
 
 		static vk::raii::Pipeline createFromState( BuilderState& state, vk::raii::PipelineLayout& layout );
 		static vk::raii::Pipeline rebuildFromState( BuilderState& state, vk::raii::PipelineLayout& layout );

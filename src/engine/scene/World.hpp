@@ -14,6 +14,7 @@ namespace fgl::engine
 	* a world is comprised up of multiple scenes. Only one world can be running at any given time
 	*
 	*/
+	/*
 	class World
 	{
 		std::vector< std::shared_ptr< Scene > > m_scenes {};
@@ -35,5 +36,6 @@ namespace fgl::engine
 
 		~World() = default;
 	};
+	*/
 
 } // namespace fgl::engine

@@ -4,11 +4,11 @@
 #pragma once
 
 #include "engine/memory/buffers/Buffer.hpp"
+#include "material/Material.hpp"
 #include "memory/buffers/vector/DeviceVector.hpp"
 
 namespace fgl::engine
 {
-	struct DeviceMaterialData;
 
 	class MaterialManager
 	{

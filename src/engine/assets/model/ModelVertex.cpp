@@ -13,6 +13,7 @@
 #pragma GCC diagnostic pop
 
 #include "Model.hpp"
+#include "ModelInstance.hpp"
 #include "engine/utils.hpp"
 
 namespace fgl::engine
@@ -28,7 +29,7 @@ namespace fgl::engine
 	{
 		std::vector< vk::VertexInputBindingDescription > binding_descriptions {
 			{ 0, sizeof( ModelVertex ), vk::VertexInputRate::eVertex },
-			{ 1, sizeof( ModelMatrixInfo ), vk::VertexInputRate::eInstance }
+			{ 1, sizeof( PerVertexInstanceInfo ), vk::VertexInputRate::eInstance }
 		};
 
 		return binding_descriptions;
@@ -55,7 +56,8 @@ namespace fgl::engine
 		attribute_descriptions.emplace_back( 6, 1, vk::Format::eR32G32B32A32Sfloat, 2 * sizeof( glm::vec4 ) );
 		attribute_descriptions.emplace_back( 7, 1, vk::Format::eR32G32B32A32Sfloat, 3 * sizeof( glm::vec4 ) );
 
-		attribute_descriptions.emplace_back( 8, 1, vk::Format::eR32Uint, offsetof( ModelMatrixInfo, material_id ) );
+		attribute_descriptions
+			.emplace_back( 8, 1, vk::Format::eR32Uint, offsetof( PerVertexInstanceInfo, material_id ) );
 
 		return attribute_descriptions;
 	}

@@ -32,7 +32,7 @@ namespace fgl::engine
 	template < typename T, typename... TArgs >
 	concept can_extract_key = requires( TArgs&&... args ) {
 		{
-			T::extractKey( args... )
+			T::extractKey( std::declval< std::remove_reference_t< TArgs > >()... )
 		} -> std::same_as< typename T::UIDKeyT >;
 	};
 

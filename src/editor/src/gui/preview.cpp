@@ -44,27 +44,24 @@ namespace fgl::engine::gui
 								// Load model and drop it into the game objects
 								GameObject obj { GameObject::createGameObject() };
 
-								std::shared_ptr< Model > model {
-									Model::
-										createModel( data->m_path, info.model_vertex_buffer, info.model_index_buffer )
-								};
+								std::shared_ptr< Model > model { Model::createModel( data->m_path ) };
 
 								obj.addFlag( IsEntity | IsVisible );
 
-								info.context.models()
-									.loadModel( data->m_path, info.model_vertex_buffer, info.model_index_buffer );
+								// info.context.models().loadModel( data->m_path );
 
-								auto component { std::make_unique< components::ModelComponent >( std::move( model ) ) };
+								auto component { std::make_unique< components::ModelComponent >( model ) };
 
 								obj.addComponent( std::move( component ) );
 
-								info.game_objects.addGameObject( std::move( obj ) );
+								info.game_objects.emplace_back( std::move( obj ) );
 
 								break;
 							}
 						case filesystem::SCENE:
 							{
-								SceneBuilder builder { info.model_vertex_buffer, info.model_index_buffer };
+								auto& buffers { getModelBuffers() };
+								SceneBuilder builder { buffers.m_vertex_buffer, buffers.m_index_buffer };
 
 								builder.loadScene( data->m_path );
 
@@ -72,7 +69,7 @@ namespace fgl::engine::gui
 
 								for ( auto& obj : objs )
 								{
-									info.game_objects.addGameObject( std::move( obj ) );
+									info.game_objects.emplace_back( std::move( obj ) );
 								}
 							}
 					}
@@ -173,7 +170,7 @@ namespace fgl::engine::gui
 	void drawRenderingOutputs( FrameInfo& info, const Camera& camera )
 	{
 		ZoneScoped;
-		const auto frame_index { info.frame_idx };
+		const auto frame_index { info.in_flight_idx };
 
 		static std::uint_fast8_t current { Composite };
 

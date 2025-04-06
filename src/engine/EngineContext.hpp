@@ -6,6 +6,7 @@
 
 #include "Window.hpp"
 #include "assets/MaterialManager.hpp"
+#include "assets/model/Model.hpp"
 #include "camera/CameraManager.hpp"
 #include "clock.hpp"
 #include "engine/assets/transfer/TransferManager.hpp"
@@ -43,8 +44,6 @@ namespace fgl::engine
 
 		Renderer m_renderer { m_window, m_device.phyDevice() };
 
-		ModelManager m_model_manager {};
-
 		// GameObject::Map game_objects {};
 		// OctTreeNode m_game_objects_root { WorldCoordinate( constants::WORLD_CENTER ) };
 
@@ -69,8 +68,20 @@ namespace fgl::engine
 		memory::Buffer m_ubo_buffer_pool;
 
 		// Memory pool for matrix info and draw parameters
-		memory::Buffer m_matrix_info_pool;
 		memory::Buffer m_draw_parameter_pool;
+
+		std::vector< GameObject > game_objects {};
+
+	  public:
+
+		ModelGPUBuffers m_model_buffers {};
+
+	  private:
+
+		PerFrameArray< DeviceVector< vk::DrawIndexedIndirectCommand > > m_gpu_draw_commands;
+		//TODO: Outright remove this. Or the one in model buffers.
+		PerFrameArray< DeviceVector< PerVertexInstanceInfo > >& m_per_vertex_infos;
+		PerFrameArray< std::unique_ptr< descriptors::DescriptorSet > > m_gpu_draw_cmds_desc;
 
 		MaterialManager m_material_manager {};
 
@@ -81,11 +92,11 @@ namespace fgl::engine
 		std::chrono::time_point< Clock > m_last_tick { Clock::now() };
 		DeltaTime m_delta_time;
 
-		World m_world;
+		// World m_world;
 
 	  public:
 
-		ModelManager& models() { return m_model_manager; }
+		// ModelManager& models() { return m_model_manager; }
 
 		FGL_FORCE_INLINE_FLATTEN void hookInitImGui( const std::function< void( Window&, Renderer& ) >& func )
 		{

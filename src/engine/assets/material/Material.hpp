@@ -10,13 +10,14 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
+#include "glm/vec3.hpp"
+#include "glm/vec4.hpp"
+#pragma GCC diagnostic pop
+
 #include "engine/constants.hpp"
 #include "engine/descriptors/Descriptor.hpp"
 #include "engine/descriptors/DescriptorSetLayout.hpp"
 #include "engine/memory/buffers/vector/DeviceVector.hpp"
-#include "glm/vec3.hpp"
-#include "glm/vec4.hpp"
-#pragma GCC diagnostic pop
 
 namespace fgl::engine
 {
@@ -84,7 +85,7 @@ namespace fgl::engine
 		struct Albedo
 		{
 			TextureID color_texture_id { constants::INVALID_TEXTURE_ID };
-			PAD(1, 12);
+			PAD( 1, 12 );
 			glm::vec4 color_factors {};
 		} color;
 
@@ -94,21 +95,21 @@ namespace fgl::engine
 			TextureID metallic_texture_id { constants::INVALID_TEXTURE_ID };
 			float metallic_factor { 0.0f };
 			float roughness_factor { 0.0f };
-			PAD(1, 4);
+			PAD( 1, 4 );
 		} metallic;
 
 		struct Normal
 		{
 			TextureID normal_texture_id { constants::INVALID_TEXTURE_ID };
 			float normal_tex_scale { 0.0f };
-			PAD(1,8);
+			PAD( 1, 8 );
 		} normal;
 
 		struct Occlusion
 		{
 			TextureID occlusion_texture_id { constants::INVALID_TEXTURE_ID };
 			float occlusion_tex_strength { 0.0f };
-			PAD(1,8);
+			PAD( 1, 8 );
 		} occlusion;
 
 		struct Emissive
@@ -116,6 +117,8 @@ namespace fgl::engine
 			TextureID emissive_texture_id { constants::INVALID_TEXTURE_ID };
 			glm::vec3 emissive_factors { 0.0f, 0.0f, 0.0f };
 		} emissive;
+
+		DeviceMaterialData() = default;
 	};
 
 	/*

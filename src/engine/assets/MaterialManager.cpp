@@ -3,6 +3,7 @@
 //
 #include "MaterialManager.hpp"
 
+#include "engine/debug/logging/logging.hpp"
 #include "engine/math/literals/size.hpp"
 #include "material/Material.hpp"
 

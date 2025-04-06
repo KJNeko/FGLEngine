@@ -93,13 +93,27 @@ namespace fgl::engine
 		std::call_once( once, setupGlobalSession );
 
 		SessionDesc session_desc {};
-
 		session_desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
 
+#ifdef NDEBUG
 		std::array< CompilerOptionEntry, 1 > options {
-			{ { CompilerOptionName::VulkanUseEntryPointName,
-			    { .kind = CompilerOptionValueKind::Int, .intValue0 = 1 } } }
+			{ { .name = CompilerOptionName::VulkanUseEntryPointName,
+			    .value = { .kind = CompilerOptionValueKind::Int, .intValue0 = 1 } } }
 		};
+#else
+		std::array< CompilerOptionEntry, 4 > options { {
+			{ .name = CompilerOptionName::VulkanUseEntryPointName,
+			  .value = { .kind = CompilerOptionValueKind::Int, .intValue0 = true } },
+			{ .name = CompilerOptionName::Optimization,
+			  .value = { .kind = CompilerOptionValueKind::Int,
+			             .intValue0 = static_cast< int32_t >( SLANG_OPTIMIZATION_LEVEL_NONE ) } },
+			{ .name = CompilerOptionName::DebugInformation,
+			  .value = { .kind = CompilerOptionValueKind::Int,
+			             .intValue0 = static_cast< int32_t >( SLANG_DEBUG_INFO_LEVEL_MAXIMAL ) } },
+			{ .name = CompilerOptionName::EmitSpirvDirectly,
+			  .value = { .kind = CompilerOptionValueKind::Int, .intValue0 = static_cast< int32_t >( true ) } },
+		} };
+#endif
 
 		session_desc.compilerOptionEntries = options.data();
 		session_desc.compilerOptionEntryCount = options.size();
@@ -135,7 +149,7 @@ namespace fgl::engine
 
 		switch ( type )
 		{
-			case ShaderType::Compute:
+			case Compute:
 				entry_point_name = "computeMain";
 				break;
 			case Vertex:
@@ -171,7 +185,6 @@ namespace fgl::engine
 			layout->toJson( json_glob.writeRef() );
 
 #ifndef NDEBUG
-
 			// dump the compilation layout json to a file
 			std::filesystem::create_directory( parent_path / "dumps" );
 			const std::string file_name { std::format( "{}-{}.json", path.stem().string(), entry_point_name ) };

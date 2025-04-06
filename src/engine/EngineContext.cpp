@@ -26,16 +26,39 @@ namespace fgl::engine
 	constexpr float MAX_DELTA_TIME { 0.5 };
 	inline static EngineContext* instance { nullptr };
 
+	PerFrameArray< std::unique_ptr< descriptors::DescriptorSet > > createDrawCommandsDescriptors(
+		PerFrameArray< DeviceVector< vk::DrawIndexedIndirectCommand > >& gpu_draw_commands,
+		PerFrameArray< DeviceVector< PerVertexInstanceInfo > >& per_vertex_info )
+	{
+		PerFrameArray< std::unique_ptr< descriptors::DescriptorSet > > descriptors {};
+
+		for ( std::uint16_t i = 0; i < gpu_draw_commands.size(); ++i )
+		{
+			auto& command_buffer { gpu_draw_commands[ i ] };
+			auto& per_vertex_buffer { per_vertex_info[ i ] };
+			auto descriptor { COMMANDS_SET.create() };
+
+			descriptor->bindStorageBuffer( 0, command_buffer );
+			descriptor->bindStorageBuffer( 1, per_vertex_buffer );
+			descriptor->update();
+			descriptor->setName( "Command Buffer + Vertex Buffer" );
+
+			descriptors[ i ] = std::move( descriptor );
+		}
+
+		return descriptors;
+	}
+
 	EngineContext::EngineContext() :
 	  m_ubo_buffer_pool( 1_MiB, vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eHostVisible ),
-	  m_matrix_info_pool(
-		  256_MiB,
-		  vk::BufferUsageFlagBits::eVertexBuffer,
-		  vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible ),
 	  m_draw_parameter_pool(
 		  128_MiB,
-		  vk::BufferUsageFlagBits::eIndirectBuffer,
+		  vk::BufferUsageFlagBits::eIndirectBuffer | vk::BufferUsageFlagBits::eStorageBuffer,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible ),
+	  m_gpu_draw_commands(
+		  constructPerFrame< DeviceVector< vk::DrawIndexedIndirectCommand > >( m_draw_parameter_pool ) ),
+	  m_per_vertex_infos( m_model_buffers.m_generated_instance_info ),
+	  m_gpu_draw_cmds_desc( createDrawCommandsDescriptors( m_gpu_draw_commands, m_per_vertex_infos ) ),
 	  m_delta_time( 0.0 )
 	{
 		ZoneScoped;
@@ -45,7 +68,6 @@ namespace fgl::engine
 
 		// memory::TransferManager::createInstance( device, 128_MiB );
 
-		m_matrix_info_pool.setDebugName( "Matrix info pool" );
 		m_draw_parameter_pool.setDebugName( "Draw parameter pool" );
 	}
 
@@ -69,6 +91,7 @@ namespace fgl::engine
 		m_delta_time = time_diff.count();
 	}
 
+	/*
 	World EngineContext::tickSimulation()
 	{
 		ZoneScoped;
@@ -80,6 +103,7 @@ namespace fgl::engine
 
 		return {};
 	}
+	*/
 
 	void EngineContext::renderCameras( FrameInfo frame_info )
 	{
@@ -103,23 +127,29 @@ namespace fgl::engine
 		if ( auto command_buffers_o = m_renderer.beginFrame(); command_buffers_o.has_value() )
 		{
 			const auto timer = debug::timing::push( "Render Frame" );
-			const FrameIndex frame_index { m_renderer.getFrameIndex() };
+			const FrameIndex in_flight_idx { m_renderer.getFrameIndex() };
 			const PresentIndex present_idx { m_renderer.getPresentIndex() };
 
 			auto& command_buffers { command_buffers_o.value() };
 
-			FrameInfo frame_info { frame_index,
+			// Begin by getting every single instance ready.
+			DeviceVector< PrimitiveInstanceInfo >& instances { m_model_buffers.m_primitive_instances.vec() };
+
+			m_gpu_draw_commands[ in_flight_idx ].resize( instances.size() );
+			m_model_buffers.m_generated_instance_info[ in_flight_idx ].resize( instances.size() );
+
+			FrameInfo frame_info { in_flight_idx,
 				                   present_idx,
 				                   m_delta_time,
 				                   command_buffers,
 				                   nullptr, // Camera
 				                   m_camera_manager.getCameras(),
-				                   // global_descriptor_sets[ frame_index ],
-				                   m_model_manager,
 				                   m_renderer.getCurrentTracyCTX(),
-				                   m_matrix_info_pool,
-				                   m_draw_parameter_pool,
-				                   // m_renderer.getSwapChain().getInputDescriptor( present_idx ),
+				                   *m_model_buffers.m_primitives_desc,
+				                   *m_model_buffers.m_instances_desc,
+				                   *m_gpu_draw_cmds_desc[ in_flight_idx ],
+				                   m_gpu_draw_commands[ in_flight_idx ],
+				                   game_objects,
 				                   this->m_renderer.getSwapChain() };
 
 			{
@@ -197,7 +227,7 @@ namespace fgl::engine
 		log::info( "Destroying EngineContext" );
 
 		// Destroy all objects
-		m_game_objects_root.clear();
+		// m_game_objects_root.clear();
 
 		descriptors::deleteQueuedDescriptors();
 

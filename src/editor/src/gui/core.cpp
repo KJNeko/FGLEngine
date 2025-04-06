@@ -99,6 +99,7 @@ namespace fgl::engine::gui
 
 	void itterateGameObjectNode( FrameInfo& info, OctTreeNode& node )
 	{
+		/*
 		if ( node.isLeaf() )
 		{
 			if ( node.itemCount() == 0 ) return;
@@ -143,6 +144,7 @@ namespace fgl::engine::gui
 				}
 			}
 		}
+		*/
 	}
 
 	void drawEntityGUI( FrameInfo& info )
@@ -152,6 +154,7 @@ namespace fgl::engine::gui
 
 		// itterateGameObjectNode( info, info.game_objects );
 
+		/*
 		for ( OctTreeNodeLeaf* leaf : info.game_objects.getAllLeafs() )
 		{
 			for ( GameObject& entity : *leaf )
@@ -166,6 +169,7 @@ namespace fgl::engine::gui
 				ImGui::PopID();
 			}
 		}
+		*/
 
 		ImGui::End();
 	}

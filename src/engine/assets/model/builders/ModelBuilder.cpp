@@ -7,6 +7,7 @@
 #include <tracy/Tracy.hpp>
 
 #include "engine/assets/model/Primitive.hpp"
+#include "engine/assets/model/ModelVertex.hpp"
 
 namespace fgl::engine
 {

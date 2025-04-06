@@ -55,6 +55,7 @@ namespace fgl::engine::descriptors
 	void DescriptorSet::bindUniformBuffer( const std::uint32_t binding_idx, const memory::BufferSuballocation& buffer )
 	{
 		assert( binding_idx < m_infos.size() && "Binding index out of range" );
+		if ( buffer.bytesize() == 0 ) return;
 
 		m_infos[ binding_idx ] = buffer.descriptorInfo();
 
@@ -64,6 +65,26 @@ namespace fgl::engine::descriptors
 		write.dstArrayElement = 0;
 		write.descriptorCount = 1;
 		write.descriptorType = vk::DescriptorType::eUniformBuffer;
+		write.pBufferInfo = &( std::get< vk::DescriptorBufferInfo >( m_infos.data()[ binding_idx ] ) );
+		write.pImageInfo = VK_NULL_HANDLE;
+		write.pTexelBufferView = VK_NULL_HANDLE;
+
+		m_descriptor_writes.push_back( write );
+	}
+
+	void DescriptorSet::bindStorageBuffer( const std::uint32_t binding_idx, const memory::BufferSuballocation& buffer )
+	{
+		assert( binding_idx < m_infos.size() && "Binding index out of range" );
+		if ( buffer.bytesize() == 0 ) return;
+
+		m_infos[ binding_idx ] = buffer.descriptorInfo();
+
+		vk::WriteDescriptorSet write {};
+		write.dstSet = m_set;
+		write.dstBinding = binding_idx;
+		write.dstArrayElement = 0;
+		write.descriptorCount = 1;
+		write.descriptorType = vk::DescriptorType::eStorageBuffer;
 		write.pBufferInfo = &( std::get< vk::DescriptorBufferInfo >( m_infos[ binding_idx ] ) );
 		write.pImageInfo = VK_NULL_HANDLE;
 		write.pTexelBufferView = VK_NULL_HANDLE;
@@ -143,7 +164,7 @@ namespace fgl::engine::descriptors
 		write.dstArrayElement = tex.getID();
 		write.descriptorCount = 1;
 		write.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-		write.pImageInfo = &( std::get< vk::DescriptorImageInfo >( m_infos.data()[ binding_idx ] ) );
+		write.pImageInfo = &( std::get< vk::DescriptorImageInfo >( m_infos[ binding_idx ] ) );
 
 		m_descriptor_writes.push_back( write );
 	}

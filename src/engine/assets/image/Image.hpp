@@ -9,6 +9,7 @@
 #include <memory>
 
 #include "FGL_DEFINES.hpp"
+#include "Sampler.hpp"
 #include "debug/Track.hpp"
 
 namespace fgl::engine
@@ -59,7 +60,7 @@ namespace fgl::engine
 
 		[[nodiscard]] const vk::Extent2D& getExtent() const { return m_extent; }
 
-		[[nodiscard]] std::shared_ptr< ImageView > getView();
+		[[nodiscard]] std::shared_ptr< ImageView > getView( Sampler sampler = {});
 
 		[[nodiscard]] vk::ImageMemoryBarrier transitionTo(
 			vk::ImageLayout old_layout, vk::ImageLayout new_layout, const vk::ImageSubresourceRange& range ) const;

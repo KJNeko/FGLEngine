@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "assets/model/ModelInstance.hpp"
 #include "engine/assets/model/Model.hpp"
 #include "engine/memory/buffers/vector/HostVector.hpp"
 #include "engine/rendering/PresentSwapChain.hpp"
@@ -25,10 +26,10 @@ namespace fgl::engine
 	class EntityRendererSystem
 	{
 		//! Standard pipeline for textureless models
-		std::unique_ptr< Pipeline > m_standard_pipeline {};
+		std::unique_ptr< Pipeline > m_standard_pipeline;
 
 		//! Pipeline for basic textured models (Single texture)
-		std::unique_ptr< Pipeline > m_textured_pipeline {};
+		std::unique_ptr< Pipeline > m_textured_pipeline;
 		// std::unique_ptr< ComputePipeline > m_cull_pipeline {};
 
 		using DrawParameterBufferSuballocation = HostVector< vk::DrawIndexedIndirectCommand >;

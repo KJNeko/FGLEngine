@@ -29,6 +29,11 @@ namespace fgl::engine
 		m_state->shaders.fragment = std::forward< std::shared_ptr< Shader > >( shader );
 	}
 
+	void PipelineBuilder::setComputeShader( std::shared_ptr< Shader >&& shader )
+	{
+		m_state->shaders.compute = std::forward< std::shared_ptr< Shader > >( shader );
+	}
+
 	vk::raii::Pipeline PipelineBuilder::
 		createRenderPassPipeline( BuilderState& state, const vk::raii::PipelineLayout& layout )
 	{
@@ -82,7 +87,32 @@ namespace fgl::engine
 		return pipeline;
 	}
 
+	vk::raii::Pipeline PipelineBuilder::createComputePipeline( BuilderState& state, vk::raii::PipelineLayout& layout )
+	{
+		vk::StructureChain< vk::ComputePipelineCreateInfo > chain {};
+
+		vk::ComputePipelineCreateInfo& info { chain.get< vk::ComputePipelineCreateInfo >() };
+
+		info.pNext = VK_NULL_HANDLE;
+		info.flags = {};
+
+		info.stage = state.shaders.compute->stage_info;
+		info.layout = layout;
+		info.basePipelineHandle = VK_NULL_HANDLE;
+		info.basePipelineIndex = -1;
+
+		state.bind_point = vk::PipelineBindPoint::eCompute;
+
+		return Device::getInstance()->createComputePipeline( VK_NULL_HANDLE, info );
+	}
+
 	vk::raii::Pipeline PipelineBuilder::createDynamicPipeline( BuilderState& state, vk::raii::PipelineLayout& layout )
+	{
+		if ( state.shaders.compute ) return createComputePipeline( state, layout );
+		return createGraphicsPipeline( state, layout );
+	}
+
+	vk::raii::Pipeline PipelineBuilder::createGraphicsPipeline( BuilderState& state, vk::raii::PipelineLayout& layout )
 	{
 		vk::StructureChain< vk::GraphicsPipelineCreateInfo, vk::PipelineRenderingCreateInfo > chain {};
 		vk::GraphicsPipelineCreateInfo& info { chain.get< vk::GraphicsPipelineCreateInfo >() };
@@ -136,6 +166,8 @@ namespace fgl::engine
 			rendering_info.setDepthAttachmentFormat( state.formats.depth );
 
 		if ( state.m_dynamic_state.size() > 0 ) info.setPDynamicState( &dynamic_state_create_info );
+
+		state.bind_point = vk::PipelineBindPoint::eGraphics;
 
 		vk::raii::Pipeline pipeline { Device::getInstance()->createGraphicsPipeline( VK_NULL_HANDLE, info ) };
 
@@ -208,6 +240,11 @@ namespace fgl::engine
 		m_state->push_constant.offset = 0;
 		m_state->push_constant.size = size;
 		m_state->push_constant.stageFlags = flags;
+	}
+
+	void PipelineBuilder::setBindPoint( vk::PipelineBindPoint bind_point )
+	{
+		m_state->bind_point = bind_point;
 	}
 
 	PipelineBuilder::BuilderState::Formats::Formats()
@@ -339,15 +376,16 @@ namespace fgl::engine
 	{
 		// Precheck
 		{
-			FGL_ASSERT( m_state->shaders.fragment, "Pipeline requires fragment shader" );
-			FGL_ASSERT( m_state->shaders.vertex, "Pipeline requires vertex shader" );
+			// FGL_ASSERT( m_state->shaders.fragment, "Pipeline requires fragment shader" );
+			// FGL_ASSERT( m_state->shaders.vertex, "Pipeline requires vertex shader" );
 		}
 
 		vk::raii::PipelineLayout layout { createLayout() };
 
 		vk::raii::Pipeline pipeline { createFromState( *m_state, layout ) };
 
-		return std::make_unique< Pipeline >( std::move( pipeline ), std::move( layout ), std::move( m_state ) );
+		return std::make_unique<
+			Pipeline >( std::move( pipeline ), std::move( layout ), m_state->bind_point, std::move( m_state ) );
 	}
 
 	void setGBufferOutputAttachments( PipelineBuilder::BuilderState& config )

@@ -56,17 +56,14 @@ namespace fgl::engine
 	void GBufferRenderer::pass( FrameInfo& frame_info, GBufferSwapchain& camera_swapchain )
 	{
 		ZoneScopedN( "CameraRenderer::pass" );
-		m_culling_system.startPass( frame_info );
+
+		m_culling_system.pass( frame_info );
 
 		auto& command_buffer { frame_info.command_buffer.render_cb };
 
-		camera_swapchain.transitionImages( command_buffer, GBufferSwapchain::INITAL, frame_info.frame_idx );
+		camera_swapchain.transitionImages( command_buffer, GBufferSwapchain::INITAL, frame_info.in_flight_idx );
 
-		beginRenderPass( command_buffer, camera_swapchain, frame_info.frame_idx );
-
-		// Transition the gbuffer to it's inital state
-
-		m_culling_system.wait();
+		beginRenderPass( command_buffer, camera_swapchain, frame_info.in_flight_idx );
 
 		//m_terrain_system.pass( frame_info );
 
@@ -75,9 +72,9 @@ namespace fgl::engine
 
 		endRenderPass( command_buffer );
 
-		camera_swapchain.transitionImages( command_buffer, GBufferSwapchain::FINAL, frame_info.frame_idx );
+		camera_swapchain.transitionImages( command_buffer, GBufferSwapchain::FINAL, frame_info.in_flight_idx );
 
-		m_compositor.composite( command_buffer, *frame_info.camera, frame_info.frame_idx );
+		m_compositor.composite( command_buffer, *frame_info.camera, frame_info.in_flight_idx );
 	}
 
 } // namespace fgl::engine

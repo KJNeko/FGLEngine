@@ -4,7 +4,9 @@
 
 #include "Primitive.hpp"
 
+#include "Model.hpp"
 #include "engine/assets/material/Material.hpp"
+#include "engine/assets/model/ModelVertex.hpp"
 #include "engine/assets/texture/Texture.hpp"
 
 namespace fgl::engine
@@ -32,7 +34,20 @@ namespace fgl::engine
 
 	bool Primitive::ready() const
 	{
-		return m_material->ready() && m_vertex_buffer.ready() && m_index_buffer.ready();
+		return default_material->ready() && m_vertex_buffer.ready() && m_index_buffer.ready();
+	}
+
+	std::shared_ptr< PrimitiveRenderInfoIndex > Primitive::buildRenderInfo()
+	{
+		auto& buffers { getModelBuffers() };
+
+		PrimitiveRenderInfo info {};
+		info.m_first_vert = m_vertex_buffer.getOffsetCount();
+		info.m_first_index = m_index_buffer.getOffsetCount();
+		info.m_num_indicies = m_index_buffer.size();
+
+		auto ptr { std::make_shared< PrimitiveRenderInfoIndex >( buffers.m_primitive_info.acquire( info ) ) };
+		return ptr;
 	}
 
 	Primitive::Primitive(
@@ -44,7 +59,8 @@ namespace fgl::engine
 	  m_index_buffer( std::move( index_buffer ) ),
 	  m_bounding_box( bounding_box ),
 	  m_mode( mode ),
-	  m_material()
+	  default_material(),
+	  m_primitive_info( buildRenderInfo() )
 	{
 		assert( m_bounding_box.getTransform().scale != glm::vec3( 0.0f ) );
 	}
@@ -59,21 +75,25 @@ namespace fgl::engine
 	  m_index_buffer( std::move( index_buffer ) ),
 	  m_bounding_box( bounding_box ),
 	  m_mode( mode ),
-	  m_material( material )
+	  default_material( material ),
+	  m_primitive_info( buildRenderInfo() )
 	{
 		assert( m_bounding_box.getTransform().scale != glm::vec3( 0.0f ) );
 	}
 
 	Primitive Primitive::fromVerts(
-		const std::vector< ModelVertex >&& verts,
+		std::vector< ModelVertex >&& verts,
 		const PrimitiveMode mode,
-		const std::vector< std::uint32_t >&& indicies,
+		std::vector< std::uint32_t >&& indicies,
 		memory::Buffer& vertex_buffer,
 		memory::Buffer& index_buffer )
 	{
 		const auto bounds { generateBoundingFromVerts( verts ) };
-		VertexBufferSuballocation vertex_buffer_suballoc { vertex_buffer, std::move( verts ) };
-		IndexBufferSuballocation index_buffer_suballoc { index_buffer, std::move( indicies ) };
+		VertexBufferSuballocation vertex_buffer_suballoc { vertex_buffer,
+			                                               std::forward< std::vector< ModelVertex > >( verts ) };
+
+		IndexBufferSuballocation index_buffer_suballoc { index_buffer,
+			                                             std::forward< std::vector< std::uint32_t > >( indicies ) };
 
 		return { std::move( vertex_buffer_suballoc ), std::move( index_buffer_suballoc ), bounds, mode };
 	}

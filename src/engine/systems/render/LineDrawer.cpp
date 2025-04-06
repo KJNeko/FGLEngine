@@ -8,7 +8,6 @@
 #include "engine/assets/model/SimpleVertex.hpp"
 #include "engine/camera/Camera.hpp"
 #include "engine/debug/drawers.hpp"
-#include "engine/memory/buffers/vector/HostVector.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 #include "engine/rendering/pipelines/v2/Pipeline.hpp"
 #include "engine/rendering/pipelines/v2/PipelineBuilder.hpp"
@@ -60,6 +59,7 @@ namespace fgl::engine
 
 	void LineDrawer::pass( FrameInfo& info )
 	{
+		/*
 		ZoneScopedN( "LineDrawer::pass" );
 		debug::drawAxisHelper();
 
@@ -79,6 +79,7 @@ namespace fgl::engine
 		command_buffer->draw(
 			static_cast< std::uint32_t >( m_lines.size() * 2 ), static_cast< std::uint32_t >( m_lines.size() ), 0, 0 );
 
+		*/
 		m_lines.clear();
 	}
 

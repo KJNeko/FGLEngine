@@ -6,28 +6,30 @@
 #include <memory>
 
 #include "ComponentIDS.hpp"
-#include "assets/model/ModelRenderHandle.hpp"
-#include "engine/gameobjects/components/interface/GameObjectComponent.hpp"
+#include "TransformComponent.hpp"
+#include "interface/GameObjectComponent.hpp"
 
 namespace fgl::engine
 {
+	class Model;
+	class ModelInstance;
 	class ModelRenderHandle;
-}
+} // namespace fgl::engine
 
 namespace fgl::engine::components
 {
 	struct GameModel;
-	class Model;
 
 	COMPONENT_CLASS( ModelComponent, ModelComponentID )
 	{
-		std::shared_ptr< Model > m_model;
-		ModelRenderHandle m_render_handle;
+		std::shared_ptr< ModelInstance > m_model_instance;
+		TransformComponent m_transform {};
 		// In the future this should also contain a handle to the pipeline that is going to be used for rendering this model.
 
 	  public:
 
-		explicit ModelComponent( std::shared_ptr< Model > && model );
+		ModelComponent() = delete;
+		explicit ModelComponent( const std::shared_ptr< Model >& model );
 
 		void drawImGui() override;
 
@@ -37,9 +39,9 @@ namespace fgl::engine::components
 		virtual ~ModelComponent() override
 		{}
 
-		Model* operator->();
+		// Model* operator->();
 
-		const Model* operator->() const;
+		// const Model* operator->() const;
 	};
 
 	static_assert( is_component< ModelComponent > );

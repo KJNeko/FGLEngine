@@ -12,6 +12,7 @@
 #include "objectloaders/tiny_gltf.h"
 #pragma GCC diagnostic pop
 
+#include "assets/model/ModelVertex.hpp"
 #include "engine/assets/image/ImageView.hpp"
 #include "engine/assets/stores.hpp"
 #include "engine/camera/Camera.hpp"
@@ -400,7 +401,7 @@ namespace fgl::engine
 					if ( !has_texcoord ) return primitive_mesh;
 
 					//primitive_mesh.m_textures = loadTextures( prim, root );
-					primitive_mesh.m_material = loadMaterial( prim, root );
+					primitive_mesh.default_material = loadMaterial( prim, root );
 
 					return primitive_mesh;
 				}
@@ -510,7 +511,7 @@ namespace fgl::engine
 		const auto bounding_box { createModelBoundingBox( finished_primitives ) };
 
 		return std::make_shared<
-			Model >( std::move( finished_primitives ), bounding_box, mesh.name.empty() ? "Unnamed Model" : mesh.name );
+			Model >( std::move( finished_primitives ), mesh.name.empty() ? "Unnamed Model" : mesh.name );
 	}
 
 	std::shared_ptr< Texture > SceneBuilder::loadTexture( const int tex_id, const tinygltf::Model& root ) const
@@ -533,8 +534,7 @@ namespace fgl::engine
 
 		Sampler sampler { sampler_info.minFilter, sampler_info.magFilter, sampler_info.wrapS, sampler_info.wrapT };
 
-		std::shared_ptr< Texture > texture { getTextureStore().load( full_path ) };
-		texture->getImageView().getSampler() = std::move( sampler );
+		std::shared_ptr< Texture > texture { getTextureStore().load( full_path, std::move( sampler ) ) };
 
 		//Prepare the texture into the global system
 		Texture::getDescriptorSet().bindTexture( 0, texture );
@@ -605,7 +605,7 @@ namespace fgl::engine
 
 		const auto transform { loadTransform( node_idx, root ) };
 
-		obj.getTransform() = transform;
+		// obj.getTransform() = transform;
 
 		if ( node.name.empty() )
 			obj.setName( "Unnamed Game Object" );

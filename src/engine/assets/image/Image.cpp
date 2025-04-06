@@ -9,14 +9,14 @@
 namespace fgl::engine
 {
 
-	std::shared_ptr< ImageView > Image::getView()
+	std::shared_ptr< ImageView > Image::getView( Sampler sampler )
 	{
 		if ( !m_view.expired() )
 			return m_view.lock();
 		else
 		{
 			assert( m_handle );
-			auto ptr { std::make_shared< ImageView >( m_handle ) };
+			auto ptr { std::make_shared< ImageView >( m_handle, std::move( sampler ) ) };
 			m_view = ptr;
 			return ptr;
 		}

@@ -63,7 +63,7 @@ int main()
 		editor_camera->setFOV( glm::radians( 90.0f ) );
 
 		// Create a default world to assign to the engine before we load or create a new one.
-		World world {};
+		// World world {};
 
 		constexpr bool playing { false };
 
@@ -74,9 +74,9 @@ int main()
 
 			engine_ctx.tickDeltaTime();
 
-			engine_ctx.setWorld( world );
+			// engine_ctx.setWorld( world );
 
-			if ( playing ) world = engine_ctx.tickSimulation();
+			// if ( playing ) world = engine_ctx.tickSimulation();
 
 			engine_ctx.handleTransfers();
 
@@ -86,7 +86,7 @@ int main()
 			// Here we can decide if we want to tick fully or not.
 
 			// Simulate step
-			engine_ctx.tickSimulation();
+			// engine_ctx.tickSimulation();
 
 			// Update the viewer camera
 

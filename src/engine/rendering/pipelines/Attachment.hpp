@@ -117,7 +117,7 @@ namespace fgl::engine
 						usage | vk::ImageUsageFlagBits::eInputAttachment | extra_flags,
 						vk::ImageLayout::eUndefined,
 						final_layout ) ) };
-				image_views.emplace_back( itter->getView() );
+				image_views.emplace_back( itter->getView(  ) );
 			}
 		}
 
@@ -134,7 +134,7 @@ namespace fgl::engine
 			for ( std::uint32_t i = 0; i < count; ++i )
 			{
 				m_attachment_resources.m_images.emplace_back( image );
-				m_attachment_resources.m_image_views.emplace_back( image->getView() );
+				m_attachment_resources.m_image_views.emplace_back( image->getView(  ) );
 			}
 		}
 

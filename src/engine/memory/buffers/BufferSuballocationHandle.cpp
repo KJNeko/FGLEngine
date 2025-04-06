@@ -22,7 +22,7 @@ namespace fgl::engine::memory
 	  m_offset( offset ),
 	  m_ptr( m_buffer.map( *this ) )
 	{
-		assert( memory_size != 0 && "BufferSuballocation::BufferSuballocation() called with memory_size == 0" );
+		// assert( memory_size != 0 && "BufferSuballocation::BufferSuballocation() called with memory_size == 0" );
 	}
 
 	vk::Buffer BufferSuballocationHandle::getVkBuffer() const

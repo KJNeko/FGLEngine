@@ -46,6 +46,7 @@ namespace fgl::engine::memory
 		std::uint32_t size() const noexcept;
 		std::uint32_t capacity() const noexcept;
 		void resize( std::uint32_t count );
+		void resizeDiscard( std::uint32_t count );
 		// void reserve( std::uint32_t count );
 	};
 

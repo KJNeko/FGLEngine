@@ -16,7 +16,7 @@ namespace fgl::engine
 		auto& command_buffer { setupSystem( info ) };
 
 		//TODO: Implement object culling for shadowmaps
-		if ( draw_commands.empty() ) return;
+		// if ( draw_commands.empty() ) return;
 
 		m_pipeline->bind( command_buffer );
 	}

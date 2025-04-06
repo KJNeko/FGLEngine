@@ -6,39 +6,53 @@
 
 #include <cassert>
 
+#include "EngineContext.hpp"
+#include "ModelInstance.hpp"
 #include "builders/ModelBuilder.hpp"
 #include "builders/SceneBuilder.hpp"
-#include "engine/assets/image/ImageView.hpp"
 
 namespace fgl::engine
 {
+	using namespace fgl::literals::size_literals;
 
-	std::vector< vk::DrawIndexedIndirectCommand > Model::buildParameters( const std::vector< Primitive >& primitives )
+	ModelGPUBuffers& getModelBuffers()
 	{
-		ZoneScoped;
-		std::vector< vk::DrawIndexedIndirectCommand > draw_parameters {};
-		draw_parameters.reserve( primitives.size() );
+		return EngineContext::getInstance().m_model_buffers;
+	}
 
-		//TODO: Perhaps building the parameter list using the model instead of keeping a list already here would be better in order to reduce allocations
+	ModelGPUBuffers::ModelGPUBuffers() :
+	  m_long_buffer(
+		  32_MiB,
+		  vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
+		  vk::MemoryPropertyFlagBits::eDeviceLocal ),
+	  m_short_buffer(
+		  16_MiB,
+		  vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
+		  vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible ),
+	  m_vertex_buffer(
+		  256_MiB,
+		  vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eStorageBuffer
+			  | vk::BufferUsageFlagBits::eTransferDst,
+		  vk::MemoryPropertyFlagBits::eDeviceLocal ),
+	  m_index_buffer(
+		  1_GiB,
+		  vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
+		  vk::MemoryPropertyFlagBits::eDeviceLocal ),
+	  m_primitive_info( m_long_buffer ),
+	  m_primitive_instances( m_short_buffer ),
+	  m_model_instances( m_short_buffer ),
+	  m_generated_instance_info( constructPerFrame< DeviceVector< PerVertexInstanceInfo > >( m_vertex_buffer ) )
+	{
+		m_primitives_desc = PRIMITIVE_SET.create();
+		m_primitives_desc->bindStorageBuffer( 0, m_primitive_info );
+		m_primitives_desc->update();
+		m_primitives_desc->setName( "Primitives" );
 
-		for ( const auto& primitive : primitives )
-		{
-			// Skip drawing this primitive if draw flag is not set
-			if ( !primitive.draw ) continue;
-
-			vk::DrawIndexedIndirectCommand cmd;
-			cmd.indexCount = primitive.m_index_buffer.size();
-			cmd.firstIndex = primitive.m_index_buffer.getOffsetCount();
-
-			cmd.vertexOffset = static_cast< std::int32_t >( primitive.m_vertex_buffer.getOffsetCount() );
-
-			cmd.firstInstance = 0;
-			cmd.instanceCount = 1;
-
-			draw_parameters.emplace_back( cmd );
-		}
-
-		return draw_parameters;
+		m_instances_desc = INSTANCES_SET.create();
+		m_instances_desc->bindStorageBuffer( 0, m_primitive_instances );
+		m_instances_desc->bindStorageBuffer( 1, m_model_instances );
+		m_instances_desc->update();
+		m_instances_desc->setName( "Instances, Primitive + Models" );
 	}
 
 	OrientedBoundingBox< CoordinateSpace::Model > Model::buildBoundingBox( const std::vector< Primitive >& primitives )
@@ -54,11 +68,6 @@ namespace fgl::engine
 		return box;
 	}
 
-	std::shared_ptr< ModelRenderInfo > Model::getRenderHandle() const
-	{
-		return m_render_handle.lock();
-	}
-
 	bool Model::ready() const
 	{
 		//Return true if even a single primitive is ready
@@ -69,74 +78,73 @@ namespace fgl::engine
 		return false;
 	}
 
-	std::vector< vk::DrawIndexedIndirectCommand > Model::getDrawCommand( const std::uint32_t index ) const
-	{
-		ZoneScoped;
-		std::vector< vk::DrawIndexedIndirectCommand > draw_commands {};
-		draw_commands.reserve( m_primitives.size() );
-		for ( const auto& cmd : m_draw_parameters )
-		{
-			auto new_cmd { cmd };
-			new_cmd.firstInstance = index;
-
-			draw_commands.push_back( new_cmd );
-		}
-
-		return draw_commands;
-	}
-
-	Model::Model(
-		ModelBuilder& builder,
-		const OrientedBoundingBox< CoordinateSpace::Model >& bounding_box,
-		const std::string& name ) :
-	  Model( std::move( builder.m_primitives ), bounding_box, name )
+	Model::Model( std::vector< Primitive >&& primitives, const std::string& name ) :
+	  m_name( name ),
+	  m_primitives( std::forward< std::vector< Primitive > >( primitives ) )
 	{}
 
-	Model::Model(
-		std::vector< Primitive >&& primitives,
-		const OrientedBoundingBox< CoordinateSpace::Model >& bounding_box,
-		const std::string& name ) :
-	  m_draw_parameters( buildParameters( primitives ) ),
-	  m_name( name ),
-	  m_bounding_box( bounding_box )
-	{
-		assert( !name.empty() );
-		assert( bounding_box.getTransform().translation.vec() != constants::DEFAULT_VEC3 );
-		m_primitives = std::move( primitives );
-	}
-
-	std::shared_ptr< Model > Model::
-		createModel( const std::filesystem::path& path, memory::Buffer& vertex_buffer, memory::Buffer& index_buffer )
+	std::shared_ptr< ModelInstance > Model::createInstance()
 	{
 		ZoneScoped;
+
+		auto& buffers { getModelBuffers() };
+
+		std::vector< PrimitiveInstanceInfoIndex > primitive_instances {};
+
+		constexpr ModelInstanceInfo model_info {};
+
+		ModelInstanceInfoIndex model_instance { buffers.m_model_instances.acquire( model_info ) };
+
+		for ( std::size_t i = 0; i < m_primitives.size(); i++ )
+		{
+			auto render_info { m_primitives[ i ].renderInstanceInfo() };
+
+			PrimitiveInstanceInfo instance_info {};
+			instance_info.m_primitive_info = render_info->idx();
+			instance_info.m_model_info = model_instance.idx();
+			instance_info.m_material = m_primitives[ i ].default_material->getID();
+
+			primitive_instances.emplace_back( buffers.m_primitive_instances.acquire( instance_info ) );
+		}
+
+		return std::make_shared<
+			ModelInstance >( std::move( primitive_instances ), std::move( model_instance ), this->shared_from_this() );
+	}
+
+	std::shared_ptr< Model > Model::createModel( const std::filesystem::path& path )
+	{
+		ZoneScoped;
+
+		auto& buffers { getModelBuffers() };
+
 		log::debug( "Creating model {}", path );
 
-		ModelBuilder builder { vertex_buffer, index_buffer };
+		ModelBuilder builder { buffers.m_vertex_buffer, buffers.m_index_buffer };
 		builder.loadModel( path );
 
 		//Calculate bounding box
 		OrientedBoundingBox bounding_box { buildBoundingBox( builder.m_primitives ) };
 
-		auto model_ptr { std::make_shared< Model >( builder, bounding_box ) };
+		auto model_ptr { std::make_shared< Model >( std::move( builder.m_primitives ) ) };
 
 		log::debug( "Finished creating model {}", path );
 
 		return model_ptr;
 	}
 
-	std::shared_ptr< Model > Model::createModelFromVerts(
-		std::vector< ModelVertex > verts,
-		std::vector< std::uint32_t > indicies,
-		memory::Buffer& vertex_buffer,
-		memory::Buffer& index_buffer )
+	std::shared_ptr< Model > Model::
+		createModelFromVerts( std::vector< ModelVertex > verts, std::vector< std::uint32_t > indicies )
 	{
 		ZoneScoped;
-		ModelBuilder builder { vertex_buffer, index_buffer };
+
+		auto& buffers { getModelBuffers() };
+
+		ModelBuilder builder { buffers.m_vertex_buffer, buffers.m_index_buffer };
 		builder.loadVerts( std::move( verts ), std::move( indicies ) );
 
 		OrientedBoundingBox bounding_box { buildBoundingBox( builder.m_primitives ) };
 
-		auto model_ptr { std::make_shared< Model >( builder, bounding_box ) };
+		auto model_ptr { std::make_shared< Model >( std::move( builder.m_primitives ) ) };
 
 		return model_ptr;
 	}

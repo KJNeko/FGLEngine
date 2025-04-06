@@ -102,13 +102,19 @@ namespace fgl::engine
 		[[nodiscard]] float extentAspectRatio() const;
 
 		[[nodiscard]] std::pair< vk::Result, PresentIndex > acquireNextImage();
-		[[nodiscard]] vk::Result
-			submitCommandBuffers( const CommandBuffer& buffers, PresentIndex present_index );
+		[[nodiscard]] vk::Result submitCommandBuffers( const CommandBuffer& buffers, PresentIndex present_index );
 
 		void transitionImages( const CommandBuffer& command_buffer, StageID stage_id, FrameIndex frame_index );
 	};
 
 	template < typename T >
 	using PerFrameArray = std::array< T, constants::MAX_FRAMES_IN_FLIGHT >;
+
+	template < typename T, typename... TArgs >
+	PerFrameArray< T > constructPerFrame( TArgs&... args )
+	{
+		//TODO: Figure this out
+		return { { args..., args... } };
+	}
 
 } // namespace fgl::engine

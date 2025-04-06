@@ -35,6 +35,11 @@ namespace fgl::engine
 		m_descriptor_info.imageView = m_image_view;
 	}
 
+	ImageView::ImageView( const std::shared_ptr< ImageHandle >& img, Sampler&& sampler ) : ImageView( img )
+	{
+		m_sampler = std::move( sampler );
+	}
+
 	vk::DescriptorImageInfo ImageView::descriptorInfo( const vk::Sampler sampler, const vk::ImageLayout layout ) const
 	{
 		vk::DescriptorImageInfo info { descriptorInfo( layout ) };

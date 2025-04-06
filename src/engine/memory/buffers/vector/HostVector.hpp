@@ -9,9 +9,6 @@
 namespace fgl::engine
 {
 
-	template < typename T >
-	class DeviceVector;
-
 	/**
 	 * A vector allocated with HOST memory.
 	 * @tparam T

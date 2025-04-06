@@ -92,7 +92,7 @@ namespace fgl::engine
 			remakeSwapchain( m_target_extent );
 		}
 
-		updateInfo( frame_info.frame_idx );
+		updateInfo( frame_info.in_flight_idx );
 		FGL_ASSERT( m_camera_renderer, "Camera renderer should not be nullptr" );
 		m_camera_renderer->pass( frame_info, *m_gbuffer_swapchain );
 		frame_info.camera = nullptr;
@@ -140,8 +140,11 @@ namespace fgl::engine
 
 		log::debug( "Camera swapchain recreated" );
 
-		m_old_composite_swapchain = std::move( m_composite_swapchain );
-		m_old_gbuffer_swapchain = std::move( m_gbuffer_swapchain );
+		m_old_composite_swapchain.push( std::move( m_composite_swapchain ) );
+		m_old_gbuffer_swapchain.push( std::move( m_gbuffer_swapchain ) );
+
+		if ( m_old_composite_swapchain.size() > constants::MAX_FRAMES_IN_FLIGHT ) m_old_composite_swapchain.pop();
+		if ( m_old_gbuffer_swapchain.size() > constants::MAX_FRAMES_IN_FLIGHT ) m_old_gbuffer_swapchain.pop();
 
 		m_composite_swapchain = std::make_unique< CompositeSwapchain >( extent );
 		m_gbuffer_swapchain = std::make_unique< GBufferSwapchain >( extent );

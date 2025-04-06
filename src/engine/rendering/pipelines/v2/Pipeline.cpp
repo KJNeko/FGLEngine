@@ -20,10 +20,12 @@ namespace fgl::engine
 	Pipeline::Pipeline(
 		vk::raii::Pipeline&& pipeline_in,
 		vk::raii::PipelineLayout&& layout,
+		vk::PipelineBindPoint bind_point,
 		std::unique_ptr< PipelineBuilder::BuilderState >&& builder_state ) :
 	  m_pipeline( std::move( pipeline_in ) ),
 	  m_layout( std::move( layout ) ),
-	  m_builder_state( std::forward< std::unique_ptr< PipelineBuilder::BuilderState > >( builder_state ) )
+	  m_builder_state( std::forward< std::unique_ptr< PipelineBuilder::BuilderState > >( builder_state ) ),
+	  m_bind_point( bind_point )
 	{}
 
 	void Pipeline::bind( CommandBuffer& cmd_buffer )
@@ -40,7 +42,7 @@ namespace fgl::engine
 			}
 		}
 
-		cmd_buffer->bindPipeline( vk::PipelineBindPoint::eGraphics, m_pipeline );
+		cmd_buffer->bindPipeline( m_bind_point, m_pipeline );
 	}
 
 	void Pipeline::bindDescriptor(
@@ -51,7 +53,9 @@ namespace fgl::engine
 		const std::vector< vk::DescriptorSet > sets { *set };
 		constexpr std::vector< std::uint32_t > offsets {};
 
-		command_buffer->bindDescriptorSets( vk::PipelineBindPoint::eGraphics, m_layout, descriptor_idx, sets, offsets );
+		FGL_ASSERT( !set.hasUpdates(), "Descriptor set has updates but binding was attempted" );
+
+		command_buffer->bindDescriptorSets( m_bind_point, m_layout, descriptor_idx, sets, offsets );
 	}
 
 	void Pipeline::bindDescriptor( CommandBuffer& comd_buffer, descriptors::DescriptorSet& set )
