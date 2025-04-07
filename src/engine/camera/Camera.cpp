@@ -345,11 +345,18 @@ namespace fgl::engine
 	  m_composite_swapchain( std::make_unique< CompositeSwapchain >( m_target_extent ) ),
 	  m_gbuffer_swapchain( std::make_unique< GBufferSwapchain >( m_target_extent ) ),
 	  m_camera_renderer( renderer ),
-	  m_camera_frame_info( buffer )
+	  m_camera_frame_info( buffer ),
+	  m_camera_info_descriptors( createCameraDescriptors() )
 	{
 		FGL_ASSERT( renderer, "Camera renderer is null" );
 		this->setPerspectiveProjection( m_fov_y, aspectRatio(), constants::NEAR_PLANE, constants::FAR_PLANE );
 		this->setView( WorldCoordinate( constants::CENTER ), QuatRotation( 0.0f, 0.0f, 0.0f ) );
+	}
+
+	std::vector< std::unique_ptr< descriptors::DescriptorSet > > Camera::createCameraDescriptors()
+	{
+		std::vector< std::unique_ptr< descriptors::DescriptorSet > > sets {};
+		sets.reserve( constants::MAX_FRAMES_IN_FLIGHT );
 
 		for ( std::uint8_t i = 0; i < constants::MAX_FRAMES_IN_FLIGHT; ++i )
 		{
@@ -358,8 +365,9 @@ namespace fgl::engine
 			set->update();
 			set->setName( std::format( "Camera {} descriptor set {}", m_camera_idx, i ) );
 
-			m_camera_info_descriptors.emplace_back( std::move( set ) );
+			sets.emplace_back( std::move( set ) );
 		}
+		return sets;
 	}
 
 	void Camera::setExtent( const vk::Extent2D extent )

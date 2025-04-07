@@ -54,12 +54,13 @@ namespace fgl::engine
 
 	Material::Material() : m_id( material_id_counter.getID() )
 	{
-		getDescriptorSet().bindArray(
+		auto& descriptor_set { getDescriptorSet() };
+		descriptor_set.bindArray(
 			0,
 			EngineContext::getInstance().getMaterialManager().getBufferSuballocation(),
 			m_id,
 			sizeof( DeviceMaterialData ) );
-		getDescriptorSet().update();
+		descriptor_set.update();
 	}
 
 	bool Material::ready() const

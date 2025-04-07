@@ -52,6 +52,13 @@ namespace fgl::engine
 			throw std::runtime_error( "wideLines not supported by device" );
 		}
 
+#ifndef NDEBUG
+		if ( available_features.robustBufferAccess != VK_TRUE )
+		{
+			throw std::runtime_error( "robustBufferAccess not supported by device" );
+		}
+#endif
+
 		//Set enabled features
 		vk::PhysicalDeviceFeatures deviceFeatures = {};
 		deviceFeatures.samplerAnisotropy = VK_TRUE;
@@ -59,6 +66,9 @@ namespace fgl::engine
 		deviceFeatures.tessellationShader = VK_TRUE;
 		deviceFeatures.drawIndirectFirstInstance = VK_TRUE;
 		deviceFeatures.wideLines = VK_TRUE;
+#ifndef NDEBUG
+		deviceFeatures.robustBufferAccess = VK_TRUE;
+#endif
 
 		return deviceFeatures;
 	}

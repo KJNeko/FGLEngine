@@ -13,6 +13,14 @@
 namespace fgl::engine::memory
 {
 
+	BufferSuballocation::BufferSuballocation( std::shared_ptr< BufferSuballocationHandle > handle ) :
+	  m_handle( std::move( handle ) ),
+	  m_offset( m_handle->m_offset ),
+	  m_byte_size( m_handle->m_size )
+	{
+		if ( handle.use_count() > 30 ) throw std::runtime_error( "AAAAAAAAA" );
+	}
+
 	BufferSuballocation& BufferSuballocation::operator=( BufferSuballocation&& other ) noexcept
 	{
 		m_handle = std::move( other.m_handle );
@@ -26,14 +34,6 @@ namespace fgl::engine::memory
 		other.m_handle = nullptr;
 
 		return *this;
-	}
-
-	BufferSuballocation::BufferSuballocation( std::shared_ptr< BufferSuballocationHandle > handle ) :
-	  m_handle( std::move( handle ) ),
-	  m_offset( m_handle->m_offset ),
-	  m_byte_size( m_handle->m_size )
-	{
-		if ( handle.use_count() > 30 ) throw std::runtime_error( "AAAAAAAAA" );
 	}
 
 	BufferSuballocation::BufferSuballocation( BufferSuballocation&& other ) noexcept :
@@ -100,12 +100,15 @@ namespace fgl::engine::memory
 		assert( !std::isnan( m_offset ) );
 		assert( !std::isnan( m_byte_size ) );
 
-		return vk::DescriptorBufferInfo( getVkBuffer(), m_offset + byte_offset, m_byte_size );
+		FGL_ASSERT( byte_offset < m_byte_size, "Byte offset was greater then byte size!" );
+		FGL_ASSERT(
+			m_offset + byte_offset < this->getBuffer().size(),
+			"Byte offset + buffer offset was greater then parent buffer size" );
+
+		return { getVkBuffer(), m_offset + byte_offset, m_byte_size };
 	}
 
-	BufferSuballocation::~BufferSuballocation()
-	{
-	}
+	BufferSuballocation::~BufferSuballocation() = default;
 
 	SuballocationView BufferSuballocation::view( const vk::DeviceSize offset, const vk::DeviceSize size ) const
 	{

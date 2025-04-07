@@ -49,7 +49,7 @@ void computeMain( uint3 dispatch_id : SV_DispatchThreadID)
 	// each instance of this represents a unique primitive to be rendered
 	const uint instance_index = dispatch_id.x; // global thread
 
-	if ( instance_index > pc.draw_count ) return;
+	if (pc.draw_count == 0 || instance_index + 1 > pc.draw_count ) return;
 
 	const PrimitiveInstanceInfo instance = primitive_instances[ instance_index ];
 	const PrimitiveRenderInfo primitive = primitives[ instance.render_info_id ];

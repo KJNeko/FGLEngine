@@ -91,7 +91,8 @@ namespace fgl::engine
 		PerFrameSuballocation< HostSingleT< CameraInfo > > m_camera_frame_info;
 
 		// Camera info is expected at binding 0
-		std::vector< std::unique_ptr< descriptors::DescriptorSet > > m_camera_info_descriptors {};
+		std::vector< std::unique_ptr< descriptors::DescriptorSet > > createCameraDescriptors();
+		std::vector< std::unique_ptr< descriptors::DescriptorSet > > m_camera_info_descriptors;
 
 		std::string m_name { "Unnamed Camera" };
 

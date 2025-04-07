@@ -82,19 +82,15 @@ namespace fgl::engine
 				default:
 					throw std::runtime_error( "Failed to translate wrapping filter to vk address mode" );
 				case GL_REPEAT:
-					log::info( "eRepeat" );
 					return vk::SamplerAddressMode::eRepeat;
 				case GL_MIRRORED_REPEAT:
-					log::info( "eMirroredRepeat" );
 					return vk::SamplerAddressMode::eMirroredRepeat;
 #ifdef GL_CLAMP_TO_BORDER
 				case GL_CLAMP_TO_BORDER:
-					log::info( "eClampToBorder" );
 					return vk::SamplerAddressMode::eClampToBorder;
 #endif
 #ifdef GL_CLAMP_TO_EDGE
 				case GL_CLAMP_TO_EDGE:
-					log::info( "eClampToEdge" );
 					return vk::SamplerAddressMode::eClampToEdge;
 #endif
 			}

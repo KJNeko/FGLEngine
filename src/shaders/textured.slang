@@ -14,7 +14,7 @@ struct CoarseVertex {
 }
 
 [ [ vk::binding( 0, 1 ) ] ]
-ParameterBlock< CameraData > camera : CAMERA;
+ConstantBuffer< CameraData > camera : CAMERA;
 
 [shader("vertex")]
 CoarseVertex vertexMain( ModelVertex in_vertex )

@@ -15,7 +15,7 @@ namespace fgl::engine::descriptors
 	  m_set_idx( set_idx ),
 	  m_binding_count( descriptors.size() )
 	{
-		FGL_ASSERT( descriptors.size() > 0, "Must have more then 1 descriptor set" );
+		FGL_ASSERT( !descriptors.empty(), "Must have more then 1 descriptor set" );
 
 		for ( const auto& descriptor_w : descriptors )
 		{

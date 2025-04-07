@@ -33,6 +33,7 @@ namespace fgl::engine::descriptors
 		//TODO: Maybe redo this to not be a monostate variant?
 		std::vector< std::variant< std::monostate, vk::DescriptorImageInfo, vk::DescriptorBufferInfo > > m_infos;
 		std::vector< vk::WriteDescriptorSet > m_descriptor_writes;
+		bool m_initalized { false };
 
 		using Resource = std::variant< std::shared_ptr< ImageView >, std::shared_ptr< memory::BufferSuballocation > >;
 
@@ -48,18 +49,14 @@ namespace fgl::engine::descriptors
 
 	  public:
 
-		[[nodiscard]] bool hasUpdates() const { return !m_descriptor_writes.empty(); }
+		[[nodiscard]] bool hasUpdates() const;
 
 		//! Updates the descriptor set, updates all pending writes created by using bindImage(), bindUniformBuffer(), bindArray(), bindAttachment(), or bindTexture().
 		void update();
 
-		VkDescriptorSet operator*() const
-		{
-			FGL_ASSERT( !hasUpdates(), "Descriptor set has updates but binding was attempted" );
-			return *m_set;
-		}
+		[[nodiscard]] VkDescriptorSet operator*() const;
 
-		[[nodiscard]] VkDescriptorSet getVkDescriptorSet() const { return *m_set; }
+		[[nodiscard]] VkDescriptorSet getVkDescriptorSet() const;
 
 		[[nodiscard]] DescriptorIDX setIDX() const { return m_set_idx; }
 
@@ -69,9 +66,11 @@ namespace fgl::engine::descriptors
 
 		FGL_DELETE_COPY( DescriptorSet );
 
+		FGL_DELETE_MOVE( DescriptorSet );
+
 		//Move
-		DescriptorSet( DescriptorSet&& other ) noexcept;
-		DescriptorSet& operator=( DescriptorSet&& other ) noexcept;
+		// DescriptorSet( DescriptorSet&& other ) noexcept;
+		// DescriptorSet& operator=( DescriptorSet&& other ) noexcept;
 
 		~DescriptorSet();
 

@@ -18,11 +18,11 @@ namespace fgl::engine
 
 	  public:
 
-		PerFrameSuballocation( memory::Buffer& buffer ) : m_buffer( buffer )
+		explicit PerFrameSuballocation( memory::Buffer& buffer ) : m_buffer( buffer )
 		{
-			constexpr auto frames_in_flight { constants::MAX_FRAMES_IN_FLIGHT };
-			m_suballocations.reserve( frames_in_flight );
-			for ( std::uint16_t i = 0; i < frames_in_flight; ++i )
+			m_suballocations.reserve( constants::MAX_FRAMES_IN_FLIGHT );
+
+			for ( std::uint16_t i = 0; i < constants::MAX_FRAMES_IN_FLIGHT; ++i )
 			{
 				static_assert(
 					std::is_default_constructible_v< typename Suballocation::value_type >,

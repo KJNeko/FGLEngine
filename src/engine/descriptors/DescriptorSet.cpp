@@ -26,32 +26,6 @@ namespace fgl::engine::descriptors
 		m_infos.resize( m_binding_count );
 	}
 
-	DescriptorSet::DescriptorSet( DescriptorSet&& other ) noexcept :
-	  m_set_idx( other.m_set_idx ),
-	  m_infos( std::move( other.m_infos ) ),
-	  m_descriptor_writes( std::move( other.m_descriptor_writes ) ),
-	  m_resources( std::move( other.m_resources ) ),
-	  m_set( std::move( other.m_set ) ),
-	  m_binding_count( other.m_binding_count )
-	{
-		other.m_set = VK_NULL_HANDLE;
-		other.m_binding_count = 0;
-	}
-
-	DescriptorSet& DescriptorSet::operator=( DescriptorSet&& other ) noexcept
-	{
-		m_set_idx = other.m_set_idx;
-		m_infos = std::move( other.m_infos );
-		m_descriptor_writes = std::move( other.m_descriptor_writes );
-		m_resources = std::move( other.m_resources );
-		m_set = std::move( other.m_set );
-		other.m_set = VK_NULL_HANDLE;
-		m_binding_count = other.m_binding_count;
-		other.m_binding_count = 0;
-
-		return *this;
-	}
-
 	void DescriptorSet::bindUniformBuffer( const std::uint32_t binding_idx, const memory::BufferSuballocation& buffer )
 	{
 		assert( binding_idx < m_infos.size() && "Binding index out of range" );
@@ -168,7 +142,20 @@ namespace fgl::engine::descriptors
 	void DescriptorSet::update()
 	{
 		Device::getInstance().device().updateDescriptorSets( m_descriptor_writes, {} );
+		m_initalized = true;
 		resetUpdate();
+	}
+
+	VkDescriptorSet DescriptorSet::operator*() const
+	{
+		return getVkDescriptorSet();
+	}
+
+	VkDescriptorSet DescriptorSet::getVkDescriptorSet() const
+	{
+		FGL_ASSERT( !hasUpdates(), "Descriptor set has updates but binding was attempted" );
+		FGL_ASSERT( m_initalized, "Descriptor set has not been initialized" );
+		return *m_set;
 	}
 
 	DescriptorSet::~DescriptorSet()
@@ -181,6 +168,11 @@ namespace fgl::engine::descriptors
 		m_descriptor_writes.clear();
 
 		m_infos.resize( m_binding_count );
+	}
+
+	bool DescriptorSet::hasUpdates() const
+	{
+		return !m_descriptor_writes.empty();
 	}
 
 	void DescriptorSet::
@@ -209,7 +201,7 @@ namespace fgl::engine::descriptors
 		vk::DebugUtilsObjectNameInfoEXT info {};
 		info.objectType = vk::ObjectType::eDescriptorSet;
 		info.pObjectName = str.c_str();
-		info.setObjectHandle( reinterpret_cast< std::uint64_t >( getVkDescriptorSet() ) );
+		info.setObjectHandle( reinterpret_cast< std::uint64_t >( static_cast< VkDescriptorSet >( *m_set ) ) );
 
 		Device::getInstance().setDebugUtilsObjectName( info );
 	}
