@@ -77,7 +77,7 @@ namespace fgl::engine
 
 	struct PerVertexInstanceInfo
 	{
-		glm::mat4x4 m_model_matrix;
+		alignas( 4 * 4 ) glm::mat4x4 m_model_matrix;
 		MaterialID material_id;
 	};
 
@@ -87,7 +87,7 @@ namespace fgl::engine
 	static_assert( offsetof( PerVertexInstanceInfo, material_id ) == 64 );
 	static_assert( sizeof( MaterialID ) == 4 );
 
-	static_assert( sizeof( PerVertexInstanceInfo ) == 64 + 4 );
+	static_assert( sizeof( PerVertexInstanceInfo ) == 64 + ( 4 * 4 ) );
 
 	struct ModelGPUBuffers
 	{

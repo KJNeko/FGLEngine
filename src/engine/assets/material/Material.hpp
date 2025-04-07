@@ -76,50 +76,65 @@ namespace fgl::engine
 
 	using MaterialID = std::uint32_t;
 
-#define PAD( id, size ) std::byte pad_##id[ size ];
-
 	//! Material data to be sent to the device
 	// Alignas to prevent the struct from becoming bigger then needed
 	struct DeviceMaterialData
 	{
-		struct Albedo
+		alignas( 16 ) struct Albedo
 		{
 			TextureID color_texture_id { constants::INVALID_TEXTURE_ID };
-			PAD( 1, 12 );
-			glm::vec4 color_factors {};
+			alignas( 4 * 4 ) glm::vec4 color_factors {};
 		} color;
 
-		struct Metallic
+		alignas( 16 ) struct Metallic
 		{
 			// Padding to shove metallic_texture_id to offset 32
-			TextureID metallic_texture_id { constants::INVALID_TEXTURE_ID };
+			alignas( 16 ) TextureID metallic_texture_id { constants::INVALID_TEXTURE_ID };
 			float metallic_factor { 0.0f };
 			float roughness_factor { 0.0f };
-			PAD( 1, 4 );
 		} metallic;
 
-		struct Normal
+		alignas( 16 ) struct Normal
 		{
 			TextureID normal_texture_id { constants::INVALID_TEXTURE_ID };
 			float normal_tex_scale { 0.0f };
-			PAD( 1, 8 );
 		} normal;
 
-		struct Occlusion
+		alignas( 16 ) struct Occlusion
 		{
 			TextureID occlusion_texture_id { constants::INVALID_TEXTURE_ID };
 			float occlusion_tex_strength { 0.0f };
-			PAD( 1, 8 );
 		} occlusion;
 
-		struct Emissive
+		alignas( 16 ) struct Emissive
 		{
 			TextureID emissive_texture_id { constants::INVALID_TEXTURE_ID };
-			glm::vec3 emissive_factors { 0.0f, 0.0f, 0.0f };
+			alignas( 4 * 4 ) glm::vec3 emissive_factors { 0.0f, 0.0f, 0.0f };
 		} emissive;
 
 		DeviceMaterialData() = default;
 	};
+
+	static_assert( offsetof( DeviceMaterialData, color ) == 0 );
+	static_assert( offsetof( DeviceMaterialData::Albedo, color_texture_id ) == 0 );
+	static_assert( sizeof( DeviceMaterialData::Albedo::color_texture_id ) == 4 );
+	static_assert( offsetof( DeviceMaterialData::Albedo, color_factors ) == 16 );
+	static_assert( sizeof( DeviceMaterialData::Albedo ) == 32 );
+
+	static_assert( offsetof( DeviceMaterialData, metallic ) == 32 );
+	static_assert( offsetof( DeviceMaterialData::Metallic, metallic_texture_id ) == 0 );
+	static_assert( sizeof( DeviceMaterialData::Metallic::metallic_texture_id ) == 4 );
+	static_assert( offsetof( DeviceMaterialData::Metallic, metallic_factor ) == 4 );
+	static_assert( offsetof( DeviceMaterialData::Metallic, roughness_factor ) == 8 );
+	static_assert( sizeof( DeviceMaterialData::Metallic ) == 16 );
+
+	static_assert( offsetof( DeviceMaterialData, emissive ) == 80 );
+	static_assert( offsetof( DeviceMaterialData::Emissive, emissive_texture_id ) == 0 );
+	static_assert( sizeof( DeviceMaterialData::Emissive::emissive_texture_id ) == 4 );
+	static_assert( offsetof( DeviceMaterialData::Emissive, emissive_factors ) == 16 );
+	static_assert( sizeof( DeviceMaterialData::Emissive ) == 32 );
+
+	static_assert( sizeof( DeviceMaterialData ) == 112 );
 
 	/*
 	static_assert( sizeof( DeviceMaterialData ) == 76 );

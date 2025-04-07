@@ -17,10 +17,6 @@ namespace fgl::engine
 		{
 			if ( m_free_indexes.empty() )
 			{
-				log::warn(
-					"IndexedVector had to resize due to limited space. Size: {} Capacity: {}",
-					this->size(),
-					this->capacity() );
 				this->resize( this->size() + 1 );
 				m_free_indexes.push( this->size() - 1 );
 			}
@@ -95,10 +91,6 @@ namespace fgl::engine
 		{
 			if ( m_free_indexes.empty() )
 			{
-				log::warn(
-					"IndexedVector had to resize due to limited space. Size: {} Capacity: {}",
-					this->size(),
-					this->capacity() );
 				this->resize( this->size() + 1 );
 				m_free_indexes.push( this->size() - 1 );
 			}

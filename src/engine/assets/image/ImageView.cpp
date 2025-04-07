@@ -26,24 +26,27 @@ namespace fgl::engine
 
 	ImageView::ImageView( const std::shared_ptr< ImageHandle >& img ) :
 	  m_resource( img ),
-	  m_descriptor_info(),
 	  m_image_view( createImageView( img ) ),
 	  m_sampler(),
 	  m_name( "Unnamed ImageView" )
 	{
-		m_descriptor_info.imageLayout = img->m_final_layout;
-		m_descriptor_info.imageView = m_image_view;
+		// m_descriptor_info.imageLayout = img->m_final_layout;
+		// m_descriptor_info.imageView = m_image_view;
 	}
 
-	ImageView::ImageView( const std::shared_ptr< ImageHandle >& img, Sampler&& sampler ) : ImageView( img )
-	{
-		m_sampler = std::move( sampler );
-	}
+	ImageView::ImageView( const std::shared_ptr< ImageHandle >& img, Sampler&& sampler ) :
+	  m_resource( img ),
+	  m_image_view( createImageView( img ) ),
+	  m_sampler( std::forward< Sampler >( sampler ) ),
+	  m_name( "Unnamed ImageView" )
+	{}
 
 	vk::DescriptorImageInfo ImageView::descriptorInfo( const vk::Sampler sampler, const vk::ImageLayout layout ) const
 	{
-		vk::DescriptorImageInfo info { descriptorInfo( layout ) };
+		vk::DescriptorImageInfo info {};
 
+		info.imageLayout = layout;
+		info.imageView = m_image_view;
 		info.sampler = sampler;
 
 		return info;
@@ -51,11 +54,7 @@ namespace fgl::engine
 
 	vk::DescriptorImageInfo ImageView::descriptorInfo( const vk::ImageLayout layout ) const
 	{
-		vk::DescriptorImageInfo info {};
-		info.imageLayout = layout;
-		info.imageView = m_image_view;
-
-		return info;
+		return descriptorInfo( *m_sampler, layout );
 	}
 
 	ImageView::~ImageView()

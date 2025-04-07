@@ -11,15 +11,12 @@ namespace fgl::engine
 
 	std::shared_ptr< ImageView > Image::getView( Sampler sampler )
 	{
-		if ( !m_view.expired() )
-			return m_view.lock();
-		else
-		{
-			assert( m_handle );
-			auto ptr { std::make_shared< ImageView >( m_handle, std::move( sampler ) ) };
-			m_view = ptr;
-			return ptr;
-		}
+		if ( !m_view.expired() ) return m_view.lock();
+
+		assert( m_handle );
+		auto ptr { std::make_shared< ImageView >( m_handle, std::move( sampler ) ) };
+		m_view = ptr;
+		return ptr;
 	}
 
 	constexpr vk::AccessFlags getAccessFlags( const vk::ImageLayout layout )
@@ -29,7 +26,7 @@ namespace fgl::engine
 			default:
 				FGL_UNREACHABLE();
 			case vk::ImageLayout::eUndefined:
-				return vk::AccessFlags( 0 );
+				return vk::AccessFlagBits::eNone;
 			case vk::ImageLayout::eGeneral:
 				break;
 			case vk::ImageLayout::eColorAttachmentOptimal:
@@ -56,8 +53,7 @@ namespace fgl::engine
 			case vk::ImageLayout::eDepthReadOnlyOptimal:
 				[[fallthrough]];
 			case vk::ImageLayout::eDepthAttachmentOptimal:
-				return vk::AccessFlagBits::eDepthStencilAttachmentRead
-				     | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+				return vk::AccessFlagBits::eDepthStencilAttachmentWrite;
 			case vk::ImageLayout::eStencilReadOnlyOptimal:
 				break;
 			case vk::ImageLayout::eReadOnlyOptimal:

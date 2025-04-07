@@ -100,7 +100,8 @@ namespace fgl::engine
 
 		for ( const auto& image : m_buffer.m_target.m_attachment_resources.m_images )
 		{
-			m_gbuffer_target.emplace_back( std::make_unique< Texture >( image ) );
+			Sampler default_sampler {};
+			m_gbuffer_target.emplace_back( std::make_unique< Texture >( image, std::move( default_sampler ) ) );
 		}
 	}
 

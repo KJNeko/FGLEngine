@@ -33,7 +33,9 @@ namespace fgl::engine::shadows
 	{
 		PerFrameArray< std::shared_ptr< Texture > > array {};
 
-		for ( std::size_t i = 0; i < array.size(); ++i ) array[ i ] = std::make_shared< Texture >( m_image[ i ] );
+		Sampler default_sampler {};
+		for ( std::size_t i = 0; i < array.size(); ++i )
+			array[ i ] = std::make_shared< Texture >( m_image[ i ], std::move( default_sampler ) );
 
 		return array;
 	}
@@ -47,11 +49,6 @@ namespace fgl::engine::shadows
 		const Matrix< MatrixType::CameraToScreen > identity { 1.0f };
 
 		const Matrix< MatrixType::WorldToScreen > matrix { camera_matrix * identity };
-
-
-
-
-
 	}
 
 	ShadowMap::ShadowMap( const vk::Extent2D extent ) :

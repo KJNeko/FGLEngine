@@ -16,14 +16,14 @@ namespace fgl::engine
 	{
 		std::shared_ptr< ImageHandle > m_resource;
 
-		vk::DescriptorImageInfo m_descriptor_info;
-
 		vk::raii::ImageView m_image_view;
 
 		Sampler m_sampler;
 		std::string m_name;
 
 		[[nodiscard]] static vk::raii::ImageView createImageView( const std::shared_ptr< ImageHandle >& img );
+
+		[[nodiscard]] vk::DescriptorImageInfo descriptorInfo( vk::Sampler sampler, vk::ImageLayout layout ) const;
 
 	  public:
 
@@ -52,7 +52,6 @@ namespace fgl::engine
 		// void setSampler( Sampler&& sampler ) { m_sampler = std::forward< Sampler >( sampler ); }
 		[[nodiscard]] const Sampler& getSampler() const { return m_sampler; };
 
-		[[nodiscard]] vk::DescriptorImageInfo descriptorInfo( vk::Sampler sampler, vk::ImageLayout layout ) const;
 		[[nodiscard]] vk::DescriptorImageInfo descriptorInfo( vk::ImageLayout layout ) const;
 
 		~ImageView();

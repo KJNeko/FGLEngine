@@ -2,7 +2,6 @@
 // Created by kj16609 on 3/17/25.
 //
 #pragma once
-#include <glm/mat4x4.hpp>
 
 #include <memory>
 
@@ -13,19 +12,7 @@ namespace fgl::engine
 {
 	class Model;
 
-	struct ModelGPUInstance
-	{
-		//! Index of the model
-		std::uint32_t m_model_index;
-		glm::mat4x4 m_transform;
-	};
-
 	using InstanceIndex = std::uint32_t;
-
-	struct ModelMatrixInfo
-	{
-		glm::mat4 model_matrix;
-	};
 
 	class ModelInstance
 	{

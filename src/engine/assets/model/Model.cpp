@@ -91,7 +91,12 @@ namespace fgl::engine
 
 		std::vector< PrimitiveInstanceInfoIndex > primitive_instances {};
 
-		constexpr ModelInstanceInfo model_info {};
+		WorldTransform transform {};
+		transform.translation = Coordinate< CoordinateSpace::World >( glm::vec3( 0.0, 0.0, 0.0 ) );
+		transform.scale = glm::vec3( 0.007 );
+		transform.rotation = { glm::quat( 1.0, 0.0, 0.0, 0.0 ) };
+
+		const ModelInstanceInfo model_info { transform.mat4() };
 
 		ModelInstanceInfoIndex model_instance { buffers.m_model_instances.acquire( model_info ) };
 

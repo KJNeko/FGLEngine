@@ -104,7 +104,7 @@ namespace fgl::engine
 		[[nodiscard]] std::pair< vk::Result, PresentIndex > acquireNextImage();
 		[[nodiscard]] vk::Result submitCommandBuffers( const CommandBuffer& buffers, PresentIndex present_index );
 
-		void transitionImages( const CommandBuffer& command_buffer, StageID stage_id, FrameIndex frame_index );
+		void transitionImages( const CommandBuffer& command_buffer, StageID stage_id, FrameIndex frame_index ) const;
 	};
 
 	template < typename T >

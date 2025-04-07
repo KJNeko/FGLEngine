@@ -38,6 +38,8 @@ namespace fgl::engine
 		builder.setAttributeDescriptions( ModelVertex::getAttributeDescriptions() );
 		builder.setBindingDescriptions( ModelVertex::getBindingDescriptions() );
 
+		builder.addDepthAttachment();
+
 		m_textured_pipeline = builder.create();
 		m_textured_pipeline->setDebugName( "Textured entity pipeline" );
 	}

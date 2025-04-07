@@ -3,6 +3,7 @@
 //
 #include <cstdlib>
 
+#include "assets/model/builders/SceneBuilder.hpp"
 #include "debug/profiling/counters.hpp"
 #include "engine/EngineContext.hpp"
 #include "engine/camera/CameraManager.hpp"
@@ -52,7 +53,7 @@ int main()
 
 				profiling::resetCounters();
 			} );
-		engine_ctx.hookEarlyFrame( [ & ]( [[maybe_unused]] FrameInfo& info ) { editor_ctx.draw( info ); } );
+		engine_ctx.hookLateFrame( [ & ]( [[maybe_unused]] FrameInfo& info ) { editor_ctx.draw( info ); } );
 		engine_ctx.hookLateFrame( [ & ]( FrameInfo& info ) { editor_ctx.endDraw( info ); } );
 
 		// Now we need to create the camera for the editor.
@@ -66,6 +67,32 @@ int main()
 		// World world {};
 
 		constexpr bool playing { false };
+
+		{
+			auto& buffers { getModelBuffers() };
+			SceneBuilder builder { buffers.m_vertex_buffer, buffers.m_index_buffer };
+
+			constexpr std::string_view sponza_path {
+				"/home/kj16609/Desktop/Projects/cxx/Mecha/src/assets/khronos-sponza/Sponza.gltf"
+			};
+
+			builder.loadScene( sponza_path );
+
+			std::vector< GameObject > objs { builder.getGameObjects() };
+
+			for ( auto& obj : objs )
+			{
+				if ( obj.hasComponent< components::ModelComponent >() )
+				{
+					auto model_components { obj.getComponents< components::ModelComponent >() };
+
+					for ( auto& component : model_components )
+					{}
+				}
+
+				engine_ctx.game_objects.emplace_back( std::move( obj ) );
+			}
+		}
 
 		//! Will be true until the window says it wants to close.
 		while ( engine_ctx.good() )

@@ -85,7 +85,8 @@ namespace fgl::engine
 		command_buffer->pipelineBarrier(
 			vk::PipelineStageFlagBits::eComputeShader, // Source: Compute shader
 			vk::PipelineStageFlagBits::eDrawIndirect | // Destination: Indirect drawing
-				vk::PipelineStageFlagBits::eVertexInput, // ... and vertex input
+				vk::PipelineStageFlagBits::eVertexInput
+				| vk::PipelineStageFlagBits::eFragmentShader, // ... and vertex input
 			{}, // Dependency flags
 			{ memory_barrier }, // Memory barrier for synchronization
 			{}, // No buffer barrier

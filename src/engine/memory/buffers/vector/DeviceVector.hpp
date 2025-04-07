@@ -7,6 +7,7 @@
 #include "BufferVector.hpp"
 #include "concepts.hpp"
 #include "engine/assets/transfer/TransferManager.hpp"
+#include "engine/debug/logging/logging.hpp"
 
 namespace fgl::engine::memory
 {
@@ -42,6 +43,9 @@ namespace fgl::engine
 		  DeviceVector( buffer, static_cast< std::uint32_t >( data.size() ) )
 		{
 			memory::TransferManager::getInstance().copyToVector< T, DeviceVector< T > >( data, *this );
+
+			log::debug(
+				"Allocated device vector of size: {}, With stride: {} at offset {}", size(), stride(), m_offset );
 		}
 
 		// void resize( const std::size_t new_size ) { BufferVector::resize( new_size ); }

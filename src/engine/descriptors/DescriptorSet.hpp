@@ -75,11 +75,7 @@ namespace fgl::engine::descriptors
 
 		~DescriptorSet();
 
-		void bindImage(
-			std::uint32_t binding_idx,
-			const ImageView& view,
-			vk::ImageLayout layout,
-			const vk::raii::Sampler& sampler = VK_NULL_HANDLE );
+		void bindImage( std::uint32_t binding_idx, const ImageView& view, vk::ImageLayout layout );
 
 		void bindUniformBuffer( std::uint32_t binding_idx, const memory::BufferSuballocation& buffer );
 		void bindStorageBuffer( std::uint32_t binding_idx, const memory::BufferSuballocation& buffer );
@@ -89,11 +85,7 @@ namespace fgl::engine::descriptors
 			std::size_t array_idx,
 			std::size_t item_size );
 
-		void bindAttachment(
-			std::uint32_t binding_idx,
-			const ImageView& view,
-			vk::ImageLayout layout,
-			const vk::raii::Sampler& sampler = VK_NULL_HANDLE );
+		void bindAttachment( std::uint32_t binding_idx, const ImageView& view, vk::ImageLayout layout );
 
 		void bindTexture( std::uint32_t binding_idx, const std::shared_ptr< Texture >& tex_ptr );
 

@@ -215,9 +215,9 @@ namespace fgl::engine
 		// auto& command_buffer { getCurrentCommandbuffer() };
 
 		// Get a primary command buffer
-		const auto primary_cmd {
-			Device::getInstance().getCmdBufferPool().getCommandBuffer( CommandBufferHandle::Primary )
-		};
+		auto primary_cmd { Device::getInstance().getCmdBufferPool().getCommandBuffer( CommandBufferHandle::Primary ) };
+
+		primary_cmd.setName( "Primary command buffer" );
 
 		vk::CommandBufferBeginInfo begin_info {};
 		begin_info.pNext = VK_NULL_HANDLE;
@@ -225,13 +225,23 @@ namespace fgl::engine
 		primary_cmd->begin( begin_info );
 
 		buffers.transfer_cb->end();
+		buffers.transfer_cb.setName( "Transfer Commands" );
 		buffers.render_cb->end();
+		buffers.render_cb.setName( "Render Commands" );
 		buffers.composition_cb->end();
+		buffers.composition_cb.setName( "Composition Commands" );
 		buffers.imgui_cb->end();
+		buffers.imgui_cb.setName( "ImGui Commands" );
 
 		// run all secondary command buffers
 		primary_cmd->executeCommands(
-			{ *buffers.transfer_cb, *buffers.render_cb, *buffers.composition_cb, *buffers.imgui_cb } );
+			// { *buffers.transfer_cb, *buffers.render_cb, *buffers.composition_cb, *buffers.imgui_cb } );
+			{ *buffers.transfer_cb, *buffers.render_cb, *buffers.composition_cb } );
+
+		primary_cmd->pipelineBarrier(
+			vk::PipelineStageFlagBits::eAllCommands, vk::PipelineStageFlagBits::eAllCommands, {}, {}, {}, {} );
+
+		primary_cmd->executeCommands( { *buffers.imgui_cb } );
 
 		primary_cmd->end();
 

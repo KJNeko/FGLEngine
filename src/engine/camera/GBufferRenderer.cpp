@@ -4,7 +4,6 @@
 
 #include "GBufferRenderer.hpp"
 
-#include "Camera.hpp"
 #include "GBufferSwapchain.hpp"
 #include "engine/rendering/renderpass/RenderPass.hpp"
 

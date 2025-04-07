@@ -116,7 +116,8 @@ namespace fgl::engine
 		  format )
 	{}
 
-	Texture::Texture( std::vector< std::byte >&& data, const vk::Extent2D extent, Sampler&&, const vk::Format format ) :
+	Texture::Texture(
+		std::vector< std::byte >&& data, const vk::Extent2D extent, Sampler&& sampler, const vk::Format format ) :
 	  m_texture_id( texture_id_pool.getID() ),
 	  m_image(
 		  std::make_shared< Image >(
@@ -125,7 +126,7 @@ namespace fgl::engine
 			  vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
 			  vk::ImageLayout::eUndefined,
 			  vk::ImageLayout::eShaderReadOnlyOptimal ) ),
-	  m_image_view( m_image->getView() ),
+	  m_image_view( m_image->getView( std::forward< Sampler >( sampler ) ) ),
 	  m_extent( extent ),
 	  m_name( "Default Texture Name" )
 	{
@@ -210,15 +211,6 @@ namespace fgl::engine
 		assert( m_imgui_set != VK_NULL_HANDLE );
 		return m_imgui_set;
 	}
-
-	Texture::Texture( const std::shared_ptr< Image >& image, Sampler sampler ) :
-	  m_texture_id( texture_id_pool.getID() ),
-	  m_image( image ),
-	  m_image_view( image->getView( std::move( sampler ) ) ),
-	  //TODO: Figure out how to get extents from images.
-	  m_extent( image->getExtent() ),
-	  m_name( "Default Texture Name" )
-	{}
 
 	Texture::Texture( const std::shared_ptr< Image >& image, Sampler&& sampler ) :
 	  m_texture_id( texture_id_pool.getID() ),

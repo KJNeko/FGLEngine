@@ -93,7 +93,6 @@ namespace fgl::engine
 		Texture() = delete;
 
 		~Texture();
-		Texture( const std::shared_ptr< Image >& image, Sampler sampler = Sampler() );
 		Texture( const std::shared_ptr< Image >& image, Sampler&& sampler );
 
 		Image& getImageRef();

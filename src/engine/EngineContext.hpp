@@ -70,9 +70,9 @@ namespace fgl::engine
 		// Memory pool for matrix info and draw parameters
 		memory::Buffer m_draw_parameter_pool;
 
-		std::vector< GameObject > game_objects {};
-
 	  public:
+
+		std::vector< GameObject > game_objects {};
 
 		ModelGPUBuffers m_model_buffers {};
 

@@ -37,7 +37,7 @@ namespace fgl::engine
 
 		void bindDescriptor(
 			CommandBuffer&, descriptors::DescriptorIDX descriptor_idx, descriptors::DescriptorSet& set );
-		void bindDescriptor( CommandBuffer& comd_buffer, descriptors::DescriptorSet& set );
+		void bindDescriptor( CommandBuffer& cmd_buffer, descriptors::DescriptorSet& set );
 
 		void setDebugName( const char* str );
 

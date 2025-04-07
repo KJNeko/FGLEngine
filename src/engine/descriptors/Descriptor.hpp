@@ -21,12 +21,27 @@ namespace fgl::engine::descriptors
 
 		consteval Descriptor() = delete;
 
+	  private:
+
+		[[nodiscard]] constexpr vk::DescriptorSetLayoutBinding generateLayoutBinding() const
+		{
+			vk::DescriptorSetLayoutBinding layout_binding;
+			layout_binding.binding = m_index;
+			layout_binding.descriptorType = m_type;
+			layout_binding.descriptorCount = m_count;
+			layout_binding.stageFlags = m_stage_flags;
+			layout_binding.pImmutableSamplers = nullptr;
+			return layout_binding;
+		}
+
+	  public:
+
 		constexpr Descriptor(
 			const std::uint16_t binding_idx,
 			const vk::DescriptorType type,
 			const vk::ShaderStageFlags stage_flags,
 			const std::uint16_t count = 1,
-			const vk::DescriptorBindingFlags binding_flags = static_cast< vk::DescriptorBindingFlags >( 0 ) ) :
+			const vk::DescriptorBindingFlags binding_flags = vk::DescriptorBindingFlags {} ) :
 		  m_index( binding_idx ),
 		  m_type( type ),
 		  m_stage_flags( stage_flags ),
@@ -35,18 +50,9 @@ namespace fgl::engine::descriptors
 		  m_layout_binding( generateLayoutBinding() )
 		{}
 
-		constexpr vk::DescriptorSetLayoutBinding generateLayoutBinding()
-		{
-			vk::DescriptorSetLayoutBinding layout_binding;
-			layout_binding.binding = m_index;
-			layout_binding.descriptorType = m_type;
-			layout_binding.descriptorCount = m_count;
-			layout_binding.stageFlags = m_stage_flags;
-			layout_binding.pImmutableSamplers = VK_NULL_HANDLE;
-			return layout_binding;
-		}
-
 		vk::DescriptorSetLayoutBinding m_layout_binding;
+
+		virtual ~Descriptor() = default;
 	};
 
 	struct ImageDescriptor : Descriptor
@@ -71,7 +77,7 @@ namespace fgl::engine::descriptors
 	{
 		StorageDescriptor() = delete;
 
-		StorageDescriptor( std::uint16_t idx, vk::ShaderStageFlags stage_flags ) :
+		constexpr StorageDescriptor( std::uint16_t idx, vk::ShaderStageFlags stage_flags ) :
 		  Descriptor( idx, vk::DescriptorType::eStorageBuffer, stage_flags )
 		{}
 	};
@@ -80,7 +86,7 @@ namespace fgl::engine::descriptors
 	{
 		UniformDescriptor() = delete;
 
-		UniformDescriptor( const std::uint16_t idx, vk::ShaderStageFlags stage_flags ) :
+		constexpr UniformDescriptor( const std::uint16_t idx, vk::ShaderStageFlags stage_flags ) :
 		  Descriptor( idx, vk::DescriptorType::eUniformBuffer, stage_flags )
 		{}
 	};

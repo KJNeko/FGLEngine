@@ -345,7 +345,7 @@ namespace fgl::engine
 	  m_composite_swapchain( std::make_unique< CompositeSwapchain >( m_target_extent ) ),
 	  m_gbuffer_swapchain( std::make_unique< GBufferSwapchain >( m_target_extent ) ),
 	  m_camera_renderer( renderer ),
-	  m_camera_frame_info( buffer, constants::MAX_FRAMES_IN_FLIGHT )
+	  m_camera_frame_info( buffer )
 	{
 		FGL_ASSERT( renderer, "Camera renderer is null" );
 		this->setPerspectiveProjection( m_fov_y, aspectRatio(), constants::NEAR_PLANE, constants::FAR_PLANE );

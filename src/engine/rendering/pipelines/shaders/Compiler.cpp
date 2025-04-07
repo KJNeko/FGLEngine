@@ -107,9 +107,11 @@ namespace fgl::engine
 			{ .name = CompilerOptionName::Optimization,
 			  .value = { .kind = CompilerOptionValueKind::Int,
 			             .intValue0 = static_cast< int32_t >( SLANG_OPTIMIZATION_LEVEL_NONE ) } },
+			             // .intValue0 = static_cast< int32_t >( SLANG_OPTIMIZATION_LEVEL_HIGH ) } },
 			{ .name = CompilerOptionName::DebugInformation,
 			  .value = { .kind = CompilerOptionValueKind::Int,
 			             .intValue0 = static_cast< int32_t >( SLANG_DEBUG_INFO_LEVEL_MAXIMAL ) } },
+			             // .intValue0 = static_cast< int32_t >( SLANG_DEBUG_INFO_LEVEL_MINIMAL ) } },
 			{ .name = CompilerOptionName::EmitSpirvDirectly,
 			  .value = { .kind = CompilerOptionValueKind::Int, .intValue0 = static_cast< int32_t >( true ) } },
 		} };

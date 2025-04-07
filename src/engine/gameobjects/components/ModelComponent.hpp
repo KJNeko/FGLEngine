@@ -7,6 +7,7 @@
 
 #include "ComponentIDS.hpp"
 #include "TransformComponent.hpp"
+#include "assets/model/ModelInstance.hpp"
 #include "interface/GameObjectComponent.hpp"
 
 namespace fgl::engine
@@ -38,6 +39,15 @@ namespace fgl::engine::components
 
 		virtual ~ModelComponent() override
 		{}
+
+		TransformComponent getTransform() const
+		{
+			return m_transform;
+		}
+		void updateTransform( TransformComponent & transform )
+		{
+			m_transform = transform;
+		}
 
 		// Model* operator->();
 

@@ -30,6 +30,7 @@ namespace fgl::engine
 		builder.setFragmentShader( Shader::loadFragment( "shaders/gui-compose.slang" ) );
 
 		builder.addColorAttachment().setFormat( pickPresentFormat() ).finish();
+		builder.addDepthAttachment();
 
 		m_pipeline = builder.create();
 		m_pipeline->setDebugName( "Gui Pipeline" );

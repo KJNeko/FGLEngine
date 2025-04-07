@@ -65,7 +65,7 @@ namespace fgl::engine::descriptors
 		write.dstArrayElement = 0;
 		write.descriptorCount = 1;
 		write.descriptorType = vk::DescriptorType::eUniformBuffer;
-		write.pBufferInfo = &( std::get< vk::DescriptorBufferInfo >( m_infos.data()[ binding_idx ] ) );
+		write.pBufferInfo = &( std::get< vk::DescriptorBufferInfo >( m_infos[ binding_idx ] ) );
 		write.pImageInfo = VK_NULL_HANDLE;
 		write.pTexelBufferView = VK_NULL_HANDLE;
 
@@ -118,16 +118,13 @@ namespace fgl::engine::descriptors
 		m_descriptor_writes.push_back( write );
 	}
 
-	void DescriptorSet::bindImage(
-		const std::uint32_t binding_idx,
-		const ImageView& view,
-		const vk::ImageLayout layout,
-		const vk::raii::Sampler& sampler )
+	void DescriptorSet::
+		bindImage( const std::uint32_t binding_idx, const ImageView& view, const vk::ImageLayout layout )
 	{
 		assert( binding_idx < m_infos.size() && "Binding index out of range" );
 
 		//Store info
-		m_infos[ binding_idx ] = view.descriptorInfo( sampler, layout );
+		m_infos[ binding_idx ] = view.descriptorInfo( layout );
 
 		vk::WriteDescriptorSet write {};
 		write.dstSet = m_set;
@@ -155,8 +152,7 @@ namespace fgl::engine::descriptors
 
 		Texture& tex { *tex_ptr };
 
-		m_infos[ binding_idx ] = tex.getImageView().descriptorInfo(
-			tex.getImageView().getSampler().getVkSampler(), vk::ImageLayout::eShaderReadOnlyOptimal );
+		m_infos[ binding_idx ] = tex.getImageView().descriptorInfo( vk::ImageLayout::eShaderReadOnlyOptimal );
 
 		vk::WriteDescriptorSet write {};
 		write.dstSet = m_set;
@@ -187,16 +183,13 @@ namespace fgl::engine::descriptors
 		m_infos.resize( m_binding_count );
 	}
 
-	void DescriptorSet::bindAttachment(
-		const std::uint32_t binding_idx,
-		const ImageView& view,
-		const vk::ImageLayout layout,
-		const vk::raii::Sampler& sampler )
+	void DescriptorSet::
+		bindAttachment( const std::uint32_t binding_idx, const ImageView& view, const vk::ImageLayout layout )
 	{
 		assert( binding_idx < m_infos.size() && "Binding index out of range" );
 
 		//Store info
-		m_infos[ binding_idx ] = view.descriptorInfo( sampler, layout );
+		m_infos[ binding_idx ] = view.descriptorInfo( layout );
 
 		vk::WriteDescriptorSet write {};
 		write.dstSet = m_set;

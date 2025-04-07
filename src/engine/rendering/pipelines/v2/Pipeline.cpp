@@ -39,6 +39,7 @@ namespace fgl::engine
 			catch ( std::runtime_error& e )
 			{
 				log::warn( "Failed to recompile pipeline! Shader error!" );
+				m_pipeline = VK_NULL_HANDLE;
 			}
 		}
 
@@ -58,9 +59,9 @@ namespace fgl::engine
 		command_buffer->bindDescriptorSets( m_bind_point, m_layout, descriptor_idx, sets, offsets );
 	}
 
-	void Pipeline::bindDescriptor( CommandBuffer& comd_buffer, descriptors::DescriptorSet& set )
+	void Pipeline::bindDescriptor( CommandBuffer& cmd_buffer, descriptors::DescriptorSet& set )
 	{
-		bindDescriptor( comd_buffer, set.setIDX(), set );
+		bindDescriptor( cmd_buffer, set.setIDX(), set );
 	}
 
 	void Pipeline::setDebugName( const char* str )

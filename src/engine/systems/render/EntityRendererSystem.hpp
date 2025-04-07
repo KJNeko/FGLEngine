@@ -6,9 +6,6 @@
 
 #include <memory>
 
-#include "assets/model/ModelInstance.hpp"
-#include "engine/assets/model/Model.hpp"
-#include "engine/memory/buffers/vector/HostVector.hpp"
 #include "engine/rendering/PresentSwapChain.hpp"
 
 namespace fgl::engine
@@ -32,24 +29,11 @@ namespace fgl::engine
 		std::unique_ptr< Pipeline > m_textured_pipeline;
 		// std::unique_ptr< ComputePipeline > m_cull_pipeline {};
 
-		using DrawParameterBufferSuballocation = HostVector< vk::DrawIndexedIndirectCommand >;
-
-		using ModelMatrixInfoBufferSuballocation = HostVector< ModelMatrixInfo >;
-
-		// Simple parameter buffers
-		PerFrameArray< std::unique_ptr< DrawParameterBufferSuballocation > > m_draw_simple_parameter_buffers {};
-		PerFrameArray< std::unique_ptr< ModelMatrixInfoBufferSuballocation > > m_simple_model_matrix_info_buffers {};
-
-		// Textured parameter buffers
-		PerFrameArray< std::unique_ptr< DrawParameterBufferSuballocation > > m_draw_textured_parameter_buffers {};
-		PerFrameArray< std::unique_ptr< ModelMatrixInfoBufferSuballocation > > m_textured_model_matrix_info_buffers {};
-
 		CommandBuffer& setupSystem( const FrameInfo& );
 
 	  public:
 
 		void pass( FrameInfo& info );
-		void texturelessPass( const FrameInfo& info );
 		void texturedPass( const FrameInfo& info );
 
 		EntityRendererSystem();

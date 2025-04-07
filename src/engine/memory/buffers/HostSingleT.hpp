@@ -30,6 +30,7 @@ namespace fgl::engine
 
 		HostSingleT& operator=( T& t )
 		{
+			FGL_ASSERT( this->ptr(), "Invalid host pointer for HostSingleT!" );
 			*static_cast< T* >( this->ptr() ) = t;
 
 			flush();

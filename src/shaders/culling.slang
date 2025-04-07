@@ -20,7 +20,7 @@ StructuredBuffer< PrimitiveRenderInfo > primitives : PRIMITIVES;
 [[vk::binding(0,1)]]
 StructuredBuffer< PrimitiveInstanceInfo > primitive_instances : PRIMITIVE_INSTANCES;
 
-[ [ vk::binding( 1, 1 ) ] ]
+[[vk::binding(1,1)]]
 StructuredBuffer< ModelInstanceInfo > model_instances : MODEL_INSTANCES;
 
 // out
@@ -28,8 +28,8 @@ StructuredBuffer< ModelInstanceInfo > model_instances : MODEL_INSTANCES;
 RWStructuredBuffer< vk::DrawIndexedIndirectCommand > commands : COMMANDS;
 
 // vertex info generated from compute shader. This information is used in the rendering process
-[ [ vk::binding( 1, 2 ) ] ]
-RWStructuredBuffer< InstanceRenderInfo, ScalarDataLayout > out_instances : OUT_INSTANCES;
+[[vk::binding(1,2)]]
+RWStructuredBuffer< InstanceRenderInfo > out_instances : OUT_INSTANCES;
 
 //TODO: shader command constants
 struct PushConstants

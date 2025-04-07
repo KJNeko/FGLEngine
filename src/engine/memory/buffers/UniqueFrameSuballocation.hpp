@@ -18,8 +18,9 @@ namespace fgl::engine
 
 	  public:
 
-		PerFrameSuballocation( memory::Buffer& buffer, const std::uint32_t frames_in_flight ) : m_buffer( buffer )
+		PerFrameSuballocation( memory::Buffer& buffer ) : m_buffer( buffer )
 		{
+			constexpr auto frames_in_flight { constants::MAX_FRAMES_IN_FLIGHT };
 			m_suballocations.reserve( frames_in_flight );
 			for ( std::uint16_t i = 0; i < frames_in_flight; ++i )
 			{
@@ -38,11 +39,6 @@ namespace fgl::engine
 			assert( m_suballocations[ index ] );
 
 			return *m_suballocations[ index ];
-		}
-
-		void bindForFrame( vk::raii::CommandBuffer& cmd_buffer, std::uint16_t frame_idx )
-		{
-			m_suballocations[ frame_idx ].bind( cmd_buffer );
 		}
 	};
 

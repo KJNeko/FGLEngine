@@ -35,7 +35,7 @@ namespace fgl::engine
 		init();
 
 		m_render_attachments.m_color.linkImages( m_swap_chain_images );
-		m_render_attachments.m_color.setName( "PresetnSwapChain::color" );
+		m_render_attachments.m_color.setName( "PresentSwapChain::color" );
 
 		m_render_attachments.m_depth.createResources( imageCount(), getSwapChainExtent() );
 		m_render_attachments.m_depth.setName( "PresentSwapChain::Depth" );
@@ -178,6 +178,7 @@ namespace fgl::engine
 
 	void PresentSwapChain::
 		transitionImages( const CommandBuffer& command_buffer, const StageID stage_id, const FrameIndex frame_index )
+			const
 	{
 		switch ( stage_id )
 		{
@@ -196,7 +197,7 @@ namespace fgl::engine
 					};
 
 					command_buffer->pipelineBarrier(
-						vk::PipelineStageFlagBits::eTopOfPipe,
+						vk::PipelineStageFlagBits::eBottomOfPipe,
 						vk::PipelineStageFlagBits::eColorAttachmentOutput
 							| vk::PipelineStageFlagBits::eEarlyFragmentTests
 							| vk::PipelineStageFlagBits::eLateFragmentTests,

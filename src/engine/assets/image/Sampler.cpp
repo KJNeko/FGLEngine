@@ -6,6 +6,7 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "engine/debug/logging/logging.hpp"
 #include "engine/rendering/devices/Device.hpp"
 
 namespace fgl::engine
@@ -30,6 +31,13 @@ namespace fgl::engine
 		info.addressModeV = sampler_wrap_v;
 		info.addressModeW = sampler_wrap_w;
 
+		if ( info.addressModeU == vk::SamplerAddressMode::eClampToBorder
+		     || info.addressModeV == vk::SamplerAddressMode::eClampToBorder
+		     || info.addressModeW == vk::SamplerAddressMode::eClampToBorder )
+		{
+			info.borderColor = vk::BorderColor::eFloatOpaqueWhite;
+		}
+
 		info.minLod = -1000;
 		info.maxLod = 1000;
 
@@ -45,12 +53,12 @@ namespace fgl::engine
 		const vk::SamplerAddressMode sampler_wrap_u,
 		const vk::SamplerAddressMode sampler_wrap_v,
 		const vk::SamplerAddressMode sampler_wrap_w ) :
-	  m_sampler( createSampler( mag_filter, min_filter, mipmap_mode, sampler_wrap_u, sampler_wrap_v, sampler_wrap_w ) )
+	  m_sampler( createSampler( min_filter, mag_filter, mipmap_mode, sampler_wrap_u, sampler_wrap_v, sampler_wrap_w ) )
 	{}
 
 	namespace gl
 	{
-		vk::Filter filterToVk( int value )
+		vk::Filter filterToVk( const int value )
 		{
 			switch ( value )
 			{
@@ -74,13 +82,19 @@ namespace fgl::engine
 				default:
 					throw std::runtime_error( "Failed to translate wrapping filter to vk address mode" );
 				case GL_REPEAT:
+					log::info( "eRepeat" );
 					return vk::SamplerAddressMode::eRepeat;
+				case GL_MIRRORED_REPEAT:
+					log::info( "eMirroredRepeat" );
+					return vk::SamplerAddressMode::eMirroredRepeat;
 #ifdef GL_CLAMP_TO_BORDER
 				case GL_CLAMP_TO_BORDER:
+					log::info( "eClampToBorder" );
 					return vk::SamplerAddressMode::eClampToBorder;
 #endif
 #ifdef GL_CLAMP_TO_EDGE
 				case GL_CLAMP_TO_EDGE:
+					log::info( "eClampToEdge" );
 					return vk::SamplerAddressMode::eClampToEdge;
 #endif
 			}

@@ -9,7 +9,7 @@ namespace fgl::engine
 
 	struct ModelInstanceInfo
 	{
-		glm::mat4 m_matrix { constants::MAT4_IDENTITY };
+		glm::mat4 m_matrix { glm::mat4( 0.007 ) };
 	};
 
 	using ModelInstanceInfoIndex = IndexedVector< ModelInstanceInfo >::Index;
