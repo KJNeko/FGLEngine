@@ -30,7 +30,7 @@ namespace fgl::engine
 
 	namespace memory
 	{
-		class Buffer;
+		class BufferHandle;
 	}
 
 } // namespace fgl::engine
@@ -50,8 +50,8 @@ namespace fgl::engine
 	{
 		//! Root path. Set by 'load' functions
 		std::filesystem::path m_root {};
-		memory::Buffer& m_vertex_buffer;
-		memory::Buffer& m_index_buffer;
+		memory::Buffer m_vertex_buffer;
+		memory::Buffer m_index_buffer;
 
 		std::vector< GameObject > game_objects {};
 
@@ -92,7 +92,7 @@ namespace fgl::engine
 
 		SceneBuilder() = delete;
 
-		SceneBuilder( memory::Buffer& vertex_buffer, memory::Buffer& index_buffer );
+		SceneBuilder( const memory::Buffer& vertex_buffer, const memory::Buffer& index_buffer );
 
 		void loadScene( const std::filesystem::path& path );
 	};

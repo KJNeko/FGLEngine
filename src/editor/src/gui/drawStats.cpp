@@ -6,7 +6,8 @@
 #include "engine/debug/timing/FlameGraph.hpp"
 #include "engine/flags.hpp"
 #include "engine/math/literals/size.hpp"
-#include "engine/memory/buffers/Buffer.hpp"
+#include "engine/memory/buffers/BufferHandle.hpp"
+#include "memory/buffers/BufferHandle.hpp"
 #include "safe_include.hpp"
 
 namespace fgl::engine::gui
@@ -35,8 +36,11 @@ namespace fgl::engine::gui
 		auto& [ gpu_allocated, gpu_used, gpu_largest_free ] = info.m_gpu;
 		auto& [ host_allocated, host_used, host_largest_free ] = info.m_host;
 
-		for ( const auto* buffer : memory::getActiveBuffers() )
+		/*
+		for ( const std::weak_ptr< memory::BufferHandle > buffer_weak : memory::getActiveBuffers() )
 		{
+			const auto buffer { buffer_weak.lock() };
+
 			// The buffer is still active.
 			if ( buffer->m_memory_properties & vk::MemoryPropertyFlagBits::eDeviceLocal )
 			{
@@ -53,6 +57,7 @@ namespace fgl::engine::gui
 			else
 				throw std::runtime_error( "Unknown memory property flag choice. Could not determine host vs device" );
 		}
+		*/
 
 		return info;
 	}
@@ -88,8 +93,10 @@ namespace fgl::engine::gui
 
 		if ( ImGui::CollapsingHeader( "Buffers" ) )
 		{
-			for ( const auto* buffer : memory::getActiveBuffers() )
+			/*
+			for ( const std::weak_ptr< memory::BufferHandle > buffer_weak : memory::getActiveBuffers() )
 			{
+				const auto buffer { buffer_weak.lock() };
 				ImGui::Text( "Name: %s", buffer->m_debug_name.c_str() );
 
 				const double used_percent { static_cast< float >( buffer->used() )
@@ -104,6 +111,7 @@ namespace fgl::engine::gui
 				ImGui::Text( "Largest block: %s", toString( buffer->largestBlock() ).c_str() );
 				ImGui::Separator();
 			}
+			*/
 		}
 	}
 

@@ -8,27 +8,24 @@
 #include <vector>
 
 #include "engine/primitives/Transform.hpp"
+#include "memory/buffers/BufferHandle.hpp"
 
 namespace fgl::engine
 {
 	struct ModelVertex;
 	struct Primitive;
 
-	namespace memory
-	{
-		class Buffer;
-	}
-
 	struct ModelBuilder
 	{
-		memory::Buffer& m_vertex_buffer;
-		memory::Buffer& m_index_buffer;
+		memory::Buffer m_vertex_buffer;
+		memory::Buffer m_index_buffer;
 
 		std::vector< Primitive > m_primitives {};
 
 		ModelBuilder() = delete;
 
-		ModelBuilder( memory::Buffer& parent_vertex_buffer, memory::Buffer& parent_index_buffer ) :
+		ModelBuilder(
+			const memory::Buffer& parent_vertex_buffer, const memory::Buffer& parent_index_buffer ) :
 		  m_vertex_buffer( parent_vertex_buffer ),
 		  m_index_buffer( parent_index_buffer )
 		{}

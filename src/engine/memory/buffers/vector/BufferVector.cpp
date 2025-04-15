@@ -5,7 +5,8 @@
 #include "BufferVector.hpp"
 
 #include "engine/assets/transfer/TransferManager.hpp"
-#include "engine/memory/buffers/Buffer.hpp"
+#include "engine/memory/buffers/BufferHandle.hpp"
+#include "memory/buffers/BufferHandle.hpp"
 
 namespace fgl::engine::memory
 {
@@ -13,10 +14,10 @@ namespace fgl::engine::memory
 	constexpr std::uint32_t min_capacity { 1024 };
 
 	[[nodiscard]] BufferVector::BufferVector( Buffer& buffer, std::uint32_t count, std::uint32_t stride ) :
-	  BufferSuballocation( buffer.allocate( std::max( count, min_capacity ) * stride, stride ) ),
+	  BufferSuballocation( buffer->allocate( std::max( count, min_capacity ) * stride, stride ) ),
 	  m_count( count ),
-	  m_stride( stride ),
-	  m_capacity( std::max( count, min_capacity ) )
+	  m_capacity( std::max( count, min_capacity ) ),
+	  m_stride( stride )
 	{
 		FGL_ASSERT( m_stride > 0, "Stride was not greater then zero" );
 		FGL_ASSERT(

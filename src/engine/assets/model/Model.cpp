@@ -30,7 +30,7 @@ namespace fgl::engine
 		  vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible ),
 	  m_vertex_buffer(
-		  256_MiB,
+		  2_MiB,
 		  vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eStorageBuffer
 			  | vk::BufferUsageFlagBits::eTransferDst,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal ),

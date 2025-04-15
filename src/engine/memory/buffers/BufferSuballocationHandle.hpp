@@ -6,8 +6,7 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include <memory>
-
+#include "BufferHandle.hpp"
 #include "engine/debug/Track.hpp"
 
 namespace vk::raii
@@ -17,11 +16,11 @@ namespace vk::raii
 
 namespace fgl::engine::memory
 {
-	class Buffer;
+	class BufferHandle;
 
-	struct BufferSuballocationHandle
+	struct BufferSuballocationHandle : public std::enable_shared_from_this< BufferSuballocationHandle >
 	{
-		Buffer& m_buffer;
+		Buffer m_parent_buffer;
 
 		debug::Track< "GPU", "BufferSuballocationHandle" > m_track {};
 
@@ -31,27 +30,28 @@ namespace fgl::engine::memory
 		//! Offset within buffer
 		vk::DeviceSize m_offset;
 
+		//! Alignment used when allocating
+		vk::DeviceSize m_alignment;
+
 		void* m_ptr { nullptr };
 
 		bool m_staged { false };
 
-		BufferSuballocationHandle() = delete;
+		BufferSuballocationHandle(
+			const Buffer& p_buffer, vk::DeviceSize offset, vk::DeviceSize memory_size, vk::DeviceSize alignment );
 
-		BufferSuballocationHandle( Buffer& p_buffer, vk::DeviceSize offset, vk::DeviceSize memory_size );
+		FGL_DELETE_DEFAULT_CTOR( BufferSuballocationHandle );
+		FGL_DELETE_MOVE( BufferSuballocationHandle );
+		FGL_DELETE_COPY( BufferSuballocationHandle );
+
 		~BufferSuballocationHandle();
-
-		BufferSuballocationHandle( const BufferSuballocationHandle& ) = delete;
-		BufferSuballocationHandle& operator=( const BufferSuballocationHandle& ) = delete;
-
-		BufferSuballocationHandle( BufferSuballocationHandle&& ) = delete;
-		BufferSuballocationHandle& operator=( BufferSuballocationHandle&& ) = delete;
 
 		[[nodiscard]] vk::Buffer getBuffer() const;
 		[[nodiscard]] vk::Buffer getVkBuffer() const;
 
 		[[nodiscard]] vk::BufferCopy copyRegion( const BufferSuballocationHandle& target, std::size_t offset ) const;
 
-		vk::DeviceSize getOffset() const { return m_offset; }
+		[[nodiscard]] vk::DeviceSize getOffset() const { return m_offset; }
 
 		void copyTo(
 			const vk::raii::CommandBuffer& cmd_buffer,

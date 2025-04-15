@@ -35,7 +35,7 @@ namespace fgl::engine::memory
 		//TODO: Ring Buffer
 
 		//! Buffer used for any raw -> buffer transfers
-		std::unique_ptr< Buffer > m_staging_buffer {};
+		Buffer m_staging_buffer;
 
 		//! Queue of data needing to be transfered and submitted.
 		std::queue< TransferData > m_queue {};
@@ -59,6 +59,9 @@ namespace fgl::engine::memory
 
 		vk::raii::Fence m_completion_fence;
 
+		//! True if transfers would be performed before the start of the next frame
+		bool m_allow_transfers { true };
+
 		void recordCommands( vk::raii::CommandBuffer& command_buffer );
 
 		void submitBuffer( vk::raii::CommandBuffer& command_buffer );
@@ -77,7 +80,7 @@ namespace fgl::engine::memory
 
 	  public:
 
-		TransferManager( Device& device, std::uint64_t buffer_size );
+		TransferManager( Device& device, vk::DeviceSize buffer_size );
 
 		FGL_DELETE_ALL_RO5( TransferManager );
 
@@ -96,6 +99,22 @@ namespace fgl::engine::memory
 
 		//! Resizes the staging buffer.
 		void resizeBuffer( std::uint64_t size );
+
+		void copySuballocationRegion(
+			const std::shared_ptr< BufferSuballocationHandle >& src,
+			const std::shared_ptr< BufferSuballocationHandle >& dst,
+			const std::size_t offset = 0 )
+		{
+			FGL_ASSERT( src->m_size == dst->m_size, "Source and destination suballocations must be the same size" );
+
+			TransferData transfer_data {
+				src,
+				dst,
+				offset,
+			};
+
+			m_queue.emplace( std::move( transfer_data ) );
+		}
 
 		//! Queues a buffer to be transfered
 		template < typename DeviceVectorT >
@@ -140,7 +159,7 @@ namespace fgl::engine::memory
 
 		void copyToVector( BufferVector& source, BufferVector& target, std::size_t target_offset );
 
-		void copyToImage( std::vector< std::byte >&& data, Image& image );
+		void copyToImage( std::vector< std::byte >&& data, const Image& image );
 
 		//! Forces the queue to be submitted now before the buffer is filled.
 		void submitNow();

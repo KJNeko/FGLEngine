@@ -10,7 +10,6 @@
 #include <glm/vec3.hpp>
 #pragma GCC diagnostic pop
 
-#include "../rotation/QuatRotation.hpp"
 #include "engine/primitives/CoordinateSpace.hpp"
 
 namespace fgl::engine
@@ -52,15 +51,13 @@ namespace fgl::engine
 		NormalVector( const NormalVector& other ) = default;
 		NormalVector& operator=( const NormalVector& other ) = default;
 
-		const glm::vec3& vec() const { return static_cast< const glm::vec3& >( *this ); }
+		[[nodiscard]] const glm::vec3& vec() const { return static_cast< const glm::vec3& >( *this ); }
 
 		glm::vec3& vec() { return static_cast< glm::vec3& >( *this ); }
 
-		Vector operator*( const float scalar ) const;
+		Vector operator*( float scalar ) const;
 
 		NormalVector operator-() const { return NormalVector( -static_cast< glm::vec3 >( *this ) ); }
-
-		explicit operator glm::vec3() const { return static_cast< glm::vec3 >( *this ); }
 	};
 
 } // namespace fgl::engine

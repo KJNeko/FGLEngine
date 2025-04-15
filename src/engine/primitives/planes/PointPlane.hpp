@@ -19,7 +19,7 @@ namespace fgl::engine
 	 * @tparam CType
 	 */
 	template < CoordinateSpace CType >
-	class FGL_PACKED SimplePlane
+	class SimplePlane
 	{
 		NormalVector m_vector;
 		float m_distance;

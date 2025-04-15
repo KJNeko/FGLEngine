@@ -8,7 +8,7 @@
 #include "engine/assets/image/ImageHandle.hpp"
 #include "engine/assets/texture/Texture.hpp"
 #include "engine/math/literals/size.hpp"
-#include "engine/memory/buffers/Buffer.hpp"
+#include "engine/memory/buffers/BufferHandle.hpp"
 #include "engine/memory/buffers/BufferSuballocation.hpp"
 #include "engine/memory/buffers/vector/HostVector.hpp"
 
@@ -19,12 +19,12 @@ namespace fgl::engine::memory
 		ZoneScoped;
 		//Keep inserting new commands until we fill up the staging buffer
 
-		if ( m_queue.size() > 0 ) log::info( "[TransferManager]: Queue size: {}", m_queue.size() );
+		if ( !m_queue.empty() ) log::info( "[TransferManager]: Queue size: {}", m_queue.size() );
 
 		std::size_t counter { 0 };
 		constexpr std::size_t counter_max { 256 };
 
-		while ( m_queue.size() > 0 )
+		while ( !m_queue.empty() )
 		{
 			++counter;
 			if ( counter > counter_max ) break;
@@ -34,7 +34,7 @@ namespace fgl::engine::memory
 
 			if ( data.stage(
 					 command_buffer,
-					 *m_staging_buffer,
+					 m_staging_buffer,
 					 m_copy_regions,
 					 m_transfer_queue_index,
 					 m_graphics_queue_index ) )
@@ -44,7 +44,7 @@ namespace fgl::engine::memory
 			else
 			{
 				// We were unable to stage for a reason
-				log::info( "Unable to stage object. Breaking out of loop" );
+				log::debug( "Unable to stage object. Breaking out of loop, Objects will be staged next pass" );
 				m_queue.push( data );
 				break;
 			}
@@ -92,10 +92,7 @@ namespace fgl::engine::memory
 
 	void TransferManager::resizeBuffer( const std::uint64_t size )
 	{
-		m_staging_buffer = std::make_unique< Buffer >(
-			size,
-			vk::BufferUsageFlagBits::eTransferSrc,
-			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent );
+		m_staging_buffer->resize( size );
 	}
 
 	void TransferManager::submitBuffer( vk::raii::CommandBuffer& command_buffer )
@@ -258,6 +255,7 @@ namespace fgl::engine::memory
 
 		m_processing.clear();
 		m_copy_regions.clear();
+		m_allow_transfers = true;
 	}
 
 	TransferManager& TransferManager::getInstance()
@@ -273,7 +271,7 @@ namespace fgl::engine::memory
 		m_queue.emplace( std::move( transfer_data ) );
 	}
 
-	void TransferManager::copyToImage( std::vector< std::byte >&& data, Image& image )
+	void TransferManager::copyToImage( std::vector< std::byte >&& data, const Image& image )
 	{
 		assert( data.size() > 0 );
 		TransferData transfer_data { std::forward< std::vector< std::byte > >( data ), image.m_handle };
@@ -283,12 +281,11 @@ namespace fgl::engine::memory
 		m_queue.emplace( std::move( transfer_data ) );
 	}
 
-	TransferManager::TransferManager( Device& device, std::uint64_t buffer_size ) :
+	TransferManager::TransferManager( Device& device, const vk::DeviceSize buffer_size ) :
 	  m_staging_buffer(
-		  std::make_unique< Buffer >(
-			  buffer_size,
-			  vk::BufferUsageFlagBits::eTransferSrc,
-			  vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent ) ),
+		  buffer_size,
+		  vk::BufferUsageFlagBits::eTransferSrc,
+		  vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent ),
 	  m_transfer_queue_index( device.phyDevice()
 	                              .queueInfo()
 	                              .getIndex( vk::QueueFlagBits::eTransfer, vk::QueueFlagBits::eGraphics ) ),
@@ -307,6 +304,8 @@ namespace fgl::engine::memory
 	void TransferManager::submitNow()
 	{
 		ZoneScoped;
+
+		m_allow_transfers = false;
 
 		auto& transfer_buffer { m_transfer_buffers[ 0 ] };
 		transfer_buffer.reset();

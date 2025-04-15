@@ -10,7 +10,7 @@
 
 namespace fgl::engine::memory
 {
-	class Buffer;
+	class BufferHandle;
 	class SuballocationView;
 
 	struct BufferSuballocationHandle;
@@ -30,7 +30,7 @@ namespace fgl::engine::memory
 
 		void flush( vk::DeviceSize beg, vk::DeviceSize end ) const;
 
-		explicit BufferSuballocation( Buffer& buffer, std::size_t t_size, std::uint32_t t_align );
+		explicit BufferSuballocation( const Buffer& buffer, std::size_t t_size, std::uint32_t t_align );
 
 	  public:
 
@@ -39,7 +39,7 @@ namespace fgl::engine::memory
 		BufferSuballocation() = delete;
 
 		BufferSuballocation( std::shared_ptr< BufferSuballocationHandle > handle );
-		BufferSuballocation( Buffer& buffer, vk::DeviceSize size );
+		BufferSuballocation( const Buffer& buffer, vk::DeviceSize size );
 
 		FGL_DELETE_COPY( BufferSuballocation );
 

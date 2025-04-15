@@ -14,6 +14,7 @@
 #include "engine/debug/timing/FlameGraph.hpp"
 #include "engine/rendering/pipelines/v2/Pipeline.hpp"
 #include "engine/rendering/pipelines/v2/PipelineBuilder.hpp"
+#include "memory/buffers/BufferHandle.hpp"
 
 namespace fgl::engine
 {
@@ -90,13 +91,13 @@ namespace fgl::engine
 		auto& model_buffers { getModelBuffers() };
 
 		const std::vector< vk::Buffer > vert_buffers {
-			model_buffers.m_vertex_buffer.getVkBuffer(),
+			model_buffers.m_vertex_buffer->getVkBuffer(),
 			model_buffers.m_generated_instance_info[ info.in_flight_idx ].getVkBuffer()
 		};
 
 		command_buffer->bindVertexBuffers(
 			0, vert_buffers, { 0, model_buffers.m_generated_instance_info[ info.in_flight_idx ].getOffset() } );
-		command_buffer->bindIndexBuffer( model_buffers.m_index_buffer.getVkBuffer(), 0, vk::IndexType::eUint32 );
+		command_buffer->bindIndexBuffer( model_buffers.m_index_buffer->getVkBuffer(), 0, vk::IndexType::eUint32 );
 
 		command_buffer->drawIndexedIndirect(
 			info.m_commands.getVkBuffer(),

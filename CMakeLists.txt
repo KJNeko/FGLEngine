@@ -1,7 +1,8 @@
 # /CMakeLists.txt
-
 cmake_minimum_required(VERSION 3.25.0)
-project(TitorGameEngine LANGUAGES CXX C)
+
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_program(CCACHE_FOUND ccache)
 if (CCACHE_FOUND)
@@ -10,10 +11,9 @@ else ()
 	message("ccache not found. Not using it")
 endif ()
 
-add_subdirectory(fgl_cmake_modules)
+project(TitorGameEngine LANGUAGES CXX C)
 
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_subdirectory(fgl_cmake_modules)
 
 PreSetup()
 

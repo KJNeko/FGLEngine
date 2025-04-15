@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <cstdint>
+#include <vulkan/vulkan_raii.hpp>
 
-#include "engine/memory/buffers/Buffer.hpp"
+#include <cstdint>
 
 namespace fgl::engine::descriptors
 {

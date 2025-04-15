@@ -28,16 +28,23 @@ namespace fgl::engine::debug
 	std::vector< TrackInfo > getTracks( std::string_view group, std::string_view name );
 	std::vector< TrackInfo > getAllTracks();
 
+	constexpr TrackUID INVALID_TRACK_ID { std::numeric_limits< TrackUID >::max() };
+
 	template < TString Group, TString Name >
 	class Track
 	{
-		TrackUID UID;
+		TrackUID UID { INVALID_TRACK_ID };
 
 	  public:
 
 		explicit Track( std::size_t size = 0, std::stacktrace trace = std::stacktrace::current() ) :
 		  UID( registerTrack( Group, Name, size, trace ) )
 		{}
+
+		Track( Track&& other ) = default;
+		Track( const Track& other ) = default;
+		Track& operator=( Track&& other ) = default;
+		Track& operator=( const Track& other ) = default;
 
 		~Track() { deregisterTrack( UID ); }
 	};

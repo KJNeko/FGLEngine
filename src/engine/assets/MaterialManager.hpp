@@ -3,7 +3,7 @@
 //
 #pragma once
 
-#include "engine/memory/buffers/Buffer.hpp"
+#include "engine/memory/buffers/BufferHandle.hpp"
 #include "material/Material.hpp"
 #include "memory/buffers/vector/DeviceVector.hpp"
 

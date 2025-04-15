@@ -10,7 +10,7 @@ namespace fgl::engine
 {
 	namespace memory
 	{
-		class Buffer;
+		struct Buffer;
 	}
 
 	//! Single element allocation of T
@@ -26,7 +26,7 @@ namespace fgl::engine
 		HostSingleT( HostSingleT&& ) = delete;
 		HostSingleT& operator=( const HostSingleT& ) = delete;
 
-		HostSingleT( memory::Buffer& buffer ) : memory::BufferSuballocation( buffer, sizeof( T ), alignof( T ) ) {}
+		HostSingleT( const memory::Buffer& buffer ) : memory::BufferSuballocation( buffer, sizeof( T ), alignof( T ) ) {}
 
 		HostSingleT& operator=( T& t )
 		{

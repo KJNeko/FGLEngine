@@ -14,7 +14,9 @@
 #include <memory>
 #include <stacktrace>
 #include <unordered_map>
+#include <utility>
 
+#include "FGL_DEFINES.hpp"
 #include "engine/debug/Track.hpp"
 #include "vma/vma_impl.hpp"
 
@@ -39,7 +41,7 @@ namespace fgl::engine::memory
 
 	//TODO: Ensure this class can't be directly accessed from within Buffer unless we are trying
 	// to access it in a debug manner (IE the drawStats menu)
-	class Buffer
+	class BufferHandle : public std::enable_shared_from_this< BufferHandle >
 	{
 		vk::Buffer m_buffer { VK_NULL_HANDLE };
 		VmaAllocation m_allocation {};
@@ -52,26 +54,42 @@ namespace fgl::engine::memory
 		vk::BufferUsageFlags m_usage;
 		vk::MemoryPropertyFlags m_memory_properties;
 
+		std::vector< std::weak_ptr< BufferSuballocationHandle > > m_active_suballocations {};
+		std::unordered_map< vk::DeviceSize, std::stacktrace > m_allocation_traces {};
+
+		//! @brief List of all active suballocations
+		//! <offset, size>
+		using AllocationSize = vk::DeviceSize;
+
+		//! @brief list of any free blocks
+		//! @note All blocks are amalgamated to the largest they can expand to.
+		//! <offset, size>
+		std::vector< std::pair< vk::DeviceSize, vk::DeviceSize > > m_free_blocks {};
+
 	  public:
 
 		std::string m_debug_name { "Debug name" };
 
 	  private:
 
-		void alloc( vk::DeviceSize memory_size );
-		void dealloc() const;
+		static std::tuple< vk::Buffer, VmaAllocationInfo, VmaAllocation > allocBuffer(
+			vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags property_flags );
+		static void deallocBuffer( vk::Buffer&, VmaAllocation& );
 
-		Buffer() = delete;
-		Buffer( const Buffer& other ) = delete;
-		Buffer& operator=( const Buffer& other ) = delete;
-		Buffer( Buffer&& other ) = delete;
-		Buffer& operator=( Buffer&& other ) = delete;
+		BufferHandle() = delete;
+		BufferHandle( const BufferHandle& other ) = delete;
+		BufferHandle& operator=( const BufferHandle& other ) = delete;
+		BufferHandle( BufferHandle&& other ) = delete;
+		BufferHandle& operator=( BufferHandle&& other ) = delete;
+
+		void swap( BufferHandle& other ) noexcept;
 
 	  public:
 
-		Buffer( vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties );
+		BufferHandle(
+			vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties );
 
-		~Buffer();
+		~BufferHandle();
 
 		auto address() const { return m_alloc_info.deviceMemory; }
 
@@ -80,27 +98,6 @@ namespace fgl::engine::memory
 		vk::DeviceSize largestBlock() const;
 
 		vk::DeviceSize used() const;
-
-	  private:
-
-		void* map( const BufferSuballocationHandle& handle ) const;
-
-		//! Returns the required alignment for this buffer.
-		vk::DeviceSize alignment() const;
-
-		//! @brief List of all active suballocations
-		//! <offset, size>
-		using AllocationSize = vk::DeviceSize;
-
-		std::map< vk::DeviceSize, AllocationSize > m_allocations {};
-		std::unordered_map< vk::DeviceSize, std::stacktrace > m_allocation_traces {};
-
-		//! @brief list of any free blocks
-		//! @note All blocks are amalgamated to the largest they can expand to.
-		//! <offset, size>
-		std::vector< std::pair< vk::DeviceSize, vk::DeviceSize > > m_free_blocks {};
-
-		decltype( m_free_blocks )::iterator findAvailableBlock( vk::DeviceSize memory_size, std::uint32_t t_alignment );
 
 	  public:
 
@@ -120,12 +117,12 @@ namespace fgl::engine::memory
 
 		friend gui::AllocationList gui::getTotalAllocated();
 
-	  public:
-
 		bool isMappable() const { return m_alloc_info.pMappedData != nullptr; }
 
+		void resize( vk::DeviceSize new_size );
 		//! Returns a allocation block from this buffer. Block will be aligned with nonUniformBufferOffsetAlignment
 		//! and nonCoherentAtomSize if required (is_uniform_buffer and is_host_visible respectively)
+
 		/**
 		 * @param desired_memory_size Size of each N
 		 * @param alignment The alignment to use.
@@ -150,7 +147,27 @@ namespace fgl::engine::memory
 		void mergeFreeBlocks();
 
 		void setDebugName( const std::string& str );
+
+	  private:
+
+		void* map( const BufferSuballocationHandle& handle ) const;
+
+		//! Returns the required alignment for this buffer.
+		vk::DeviceSize alignment() const;
+
+		decltype( m_free_blocks )::iterator findAvailableBlock( vk::DeviceSize memory_size, std::uint32_t t_alignment );
 	};
 
-	std::vector< Buffer* > getActiveBuffers();
+	struct Buffer final : public std::shared_ptr< BufferHandle >
+	{
+		Buffer( vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties ) :
+		  std::shared_ptr< BufferHandle >( std::make_shared< BufferHandle >( memory_size, usage, memory_properties ) )
+		{}
+
+		Buffer( const std::shared_ptr< BufferHandle >& buffer ) : std::shared_ptr< BufferHandle >( buffer ) {}
+
+		~Buffer() = default;
+	};
+
+	std::vector< std::weak_ptr< Buffer > > getActiveBuffers();
 } // namespace fgl::engine::memory

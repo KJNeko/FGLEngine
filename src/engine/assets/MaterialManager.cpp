@@ -6,6 +6,7 @@
 #include "engine/debug/logging/logging.hpp"
 #include "engine/math/literals/size.hpp"
 #include "material/Material.hpp"
+#include "memory/buffers/BufferHandle.hpp"
 
 namespace fgl::engine
 {
@@ -24,7 +25,7 @@ namespace fgl::engine
 		  vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible ),
 	  m_material_data( m_material_data_pool, MAX_MATERIAL_COUNT )
 	{
-		m_material_data_pool.setDebugName( "Material data pool" );
+		m_material_data_pool->setDebugName( "Material data pool" );
 	}
 
 	MaterialManager::~MaterialManager()

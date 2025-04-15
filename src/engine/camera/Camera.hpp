@@ -186,7 +186,7 @@ namespace fgl::engine
 		void updateInfo( FrameIndex frame_index );
 		descriptors::DescriptorSet& getDescriptor( FrameIndex index );
 
-		void setFOV( const float fov_y );
+		void setFOV( float fov_y );
 
 		//! Performs the render pass for this camera
 		void pass( FrameInfo& frame_info );

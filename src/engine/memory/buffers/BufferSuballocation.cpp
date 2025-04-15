@@ -4,7 +4,6 @@
 
 #include "BufferSuballocation.hpp"
 
-#include "Buffer.hpp"
 #include "BufferSuballocationHandle.hpp"
 #include "SuballocationView.hpp"
 #include "align.hpp"
@@ -62,7 +61,7 @@ namespace fgl::engine::memory
 		assert( end <= this->m_byte_size );
 
 		vk::MappedMemoryRange range {};
-		range.memory = m_handle->m_buffer.getMemory();
+		range.memory = m_handle->m_parent_buffer->getMemory();
 		range.offset = m_offset + beg;
 
 		const vk::DeviceSize min_atom_size { Device::getInstance().m_properties.limits.nonCoherentAtomSize };
@@ -85,14 +84,14 @@ namespace fgl::engine::memory
 	{
 		assert( m_handle != nullptr );
 
-		return m_handle->m_buffer;
+		return m_handle->m_parent_buffer;
 	}
 
 	vk::Buffer BufferSuballocation::getVkBuffer() const
 	{
 		assert( m_handle != nullptr );
 
-		return m_handle->m_buffer.getVkBuffer();
+		return m_handle->m_parent_buffer->getVkBuffer();
 	}
 
 	vk::DescriptorBufferInfo BufferSuballocation::descriptorInfo( const std::size_t byte_offset ) const
@@ -102,7 +101,7 @@ namespace fgl::engine::memory
 
 		FGL_ASSERT( byte_offset < m_byte_size, "Byte offset was greater then byte size!" );
 		FGL_ASSERT(
-			m_offset + byte_offset < this->getBuffer().size(),
+			m_offset + byte_offset < this->getBuffer()->size(),
 			"Byte offset + buffer offset was greater then parent buffer size" );
 
 		return { getVkBuffer(), m_offset + byte_offset, m_byte_size };
@@ -118,12 +117,12 @@ namespace fgl::engine::memory
 		return { m_handle, offset, size };
 	}
 
-	BufferSuballocation::BufferSuballocation( Buffer& buffer, const vk::DeviceSize size ) :
-	  BufferSuballocation( buffer.allocate( size ) )
+	BufferSuballocation::BufferSuballocation( const Buffer& buffer, const vk::DeviceSize size ) :
+	  BufferSuballocation( buffer->allocate( size ) )
 	{}
 
-	BufferSuballocation::BufferSuballocation( Buffer& buffer, const std::size_t t_size, const std::uint32_t t_align ) :
-	  BufferSuballocation( buffer.allocate( t_size, t_align ) )
+	BufferSuballocation::BufferSuballocation( const Buffer& buffer, const std::size_t t_size, const std::uint32_t t_align ) :
+	  BufferSuballocation( buffer->allocate( t_size, t_align ) )
 	{}
 
 } // namespace fgl::engine::memory

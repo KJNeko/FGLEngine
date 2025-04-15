@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "Camera.hpp"
-#include "engine/memory/buffers/Buffer.hpp"
+#include "engine/memory/buffers/BufferHandle.hpp"
 
 namespace fgl::engine
 {

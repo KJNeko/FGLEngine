@@ -2,27 +2,39 @@
 // Created by kj16609 on 12/30/23.
 //
 
-#include "Buffer.hpp"
+#include "BufferHandle.hpp"
 
 #include <iostream>
+#include <tuple>
 
 #include "BufferSuballocationHandle.hpp"
 #include "align.hpp"
+#include "assets/transfer/TransferManager.hpp"
 #include "engine/debug/logging/logging.hpp"
+#include "engine/memory/buffers/BufferHandle.hpp"
 #include "engine/memory/buffers/exceptions.hpp"
 #include "engine/rendering/devices/Device.hpp"
+#include "memory/DefferedCleanup.hpp"
 
 namespace fgl::engine::memory
 {
 
-	inline static std::vector< Buffer* > active_buffers {};
-
-	std::vector< Buffer* > getActiveBuffers()
+	void BufferHandle::swap( BufferHandle& other ) noexcept
 	{
-		return active_buffers;
+		std::swap( m_buffer, other.m_buffer );
+		std::swap( m_allocation, other.m_allocation );
+		std::swap( m_alloc_info, other.m_alloc_info );
+		std::swap( m_memory_size, other.m_memory_size );
+		std::swap( m_usage, other.m_usage );
+		std::swap( m_memory_properties, other.m_memory_properties );
+		std::swap( m_track, other.m_track );
+		std::swap( m_debug_name, other.m_debug_name );
+		std::swap( m_active_suballocations, other.m_active_suballocations );
+		std::swap( m_allocation_traces, other.m_allocation_traces );
+		std::swap( m_free_blocks, other.m_free_blocks );
 	}
 
-	Buffer::Buffer(
+	BufferHandle::BufferHandle(
 		vk::DeviceSize memory_size,
 		const vk::BufferUsageFlags usage,
 		const vk::MemoryPropertyFlags memory_properties ) :
@@ -30,19 +42,27 @@ namespace fgl::engine::memory
 	  m_usage( usage ),
 	  m_memory_properties( memory_properties )
 	{
-		alloc( memory_size );
-		active_buffers.emplace_back( this );
+		auto [ buffer, vma_alloc_info, vma_allocation ] = allocBuffer( memory_size, m_usage, m_memory_properties );
+
+		m_buffer = buffer;
+		m_alloc_info = vma_alloc_info;
+		m_allocation = vma_allocation;
+
 		m_free_blocks.emplace_back( 0, memory_size );
 	}
 
-	Buffer::~Buffer()
+	BufferHandle::~BufferHandle()
 	{
-		if ( !m_allocations.empty() )
+		if ( !m_active_suballocations.empty() )
 		{
-			log::critical( "Buffer allocations not empty. {} allocations left", m_allocations.size() );
+			log::critical( "Buffer allocations not empty. {} allocations left", m_active_suballocations.size() );
 
-			for ( const auto& [ offset, size ] : m_allocations )
+			for ( const auto& suballocation : m_active_suballocations )
 			{
+				if ( suballocation.expired() ) continue;
+				auto suballoc_ptr { suballocation.lock() };
+				const auto offset { suballoc_ptr->m_offset };
+				const auto size { suballoc_ptr->m_size };
 				log::info( "Stacktrace: Offset at {} with a size of {}", offset, size );
 
 				const auto itter = this->m_allocation_traces.find( offset );
@@ -56,71 +76,78 @@ namespace fgl::engine::memory
 
 			log::critical( "Buffer allocations were not empty!" );
 			// Call will always terminate
-			// throw std::runtime_error( "Buffer allocations not empty" );
+			throw std::runtime_error( "Buffer allocations not empty" );
 		}
 
-		dealloc();
-
-		if ( const auto itter = std::ranges::find( active_buffers, this ); itter != active_buffers.end() )
-			active_buffers.erase( itter );
+		deallocBuffer( m_buffer, m_allocation );
 	}
 
-	void* Buffer::map( const BufferSuballocationHandle& handle ) const
+	void* BufferHandle::map( const BufferSuballocationHandle& handle ) const
 	{
 		if ( m_alloc_info.pMappedData == nullptr ) return nullptr;
 
 		return static_cast< std::byte* >( m_alloc_info.pMappedData ) + handle.m_offset;
 	}
 
-	void Buffer::dealloc() const
+	void BufferHandle::deallocBuffer( vk::Buffer& buffer, VmaAllocation& allocation )
 	{
-		vmaDestroyBuffer( Device::getInstance().allocator(), m_buffer, m_allocation );
+		vmaDestroyBuffer( Device::getInstance().allocator(), buffer, allocation );
 	}
 
-	void Buffer::alloc( const vk::DeviceSize memory_size )
+	std::tuple< vk::Buffer, VmaAllocationInfo, VmaAllocation > BufferHandle::allocBuffer(
+		const vk::DeviceSize memory_size, vk::BufferUsageFlags usage, const vk::MemoryPropertyFlags property_flags )
 	{
-		assert( !m_debug_name.empty() );
+		// Used for resizing.
+		//TODO: Make this only available if resize is desired. Otherwise do not have it.
+		usage |= vk::BufferUsageFlagBits::eTransferDst;
+		usage |= vk::BufferUsageFlagBits::eTransferSrc;
+
 		assert( memory_size > 0 );
-		m_memory_size = memory_size;
 		vk::BufferCreateInfo buffer_info {};
 		buffer_info.pNext = VK_NULL_HANDLE;
 		buffer_info.flags = {};
-		buffer_info.size = m_memory_size;
-		buffer_info.usage = m_usage;
+		buffer_info.size = memory_size;
+		buffer_info.usage = usage;
 		buffer_info.sharingMode = vk::SharingMode::eExclusive;
 		buffer_info.queueFamilyIndexCount = 0;
 		buffer_info.pQueueFamilyIndices = VK_NULL_HANDLE;
 
-		VmaAllocationCreateInfo alloc_info {};
+		VmaAllocationCreateInfo create_info {};
 
-		alloc_info.usage = VMA_MEMORY_USAGE_AUTO;
+		create_info.usage = VMA_MEMORY_USAGE_AUTO;
 
-		if ( m_memory_properties & vk::MemoryPropertyFlagBits::eHostVisible )
-			alloc_info.flags |= VMA_ALLOCATION_CREATE_MAPPED_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+		if ( property_flags & vk::MemoryPropertyFlagBits::eHostVisible )
+			create_info.flags |= VMA_ALLOCATION_CREATE_MAPPED_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
 
-		if ( m_usage & vk::BufferUsageFlagBits::eTransferSrc )
+		if ( usage & vk::BufferUsageFlagBits::eTransferSrc )
 		{
 			//Remove VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM BIT if we are transfer src
-			alloc_info.flags &= ~VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+			create_info.flags &= ~VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
 
-			alloc_info.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+			create_info.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
 		}
+
+		VmaAllocationInfo alloc_info {};
+		VmaAllocation allocation {};
 
 		const VkBufferCreateInfo& vk_buffer_info = buffer_info;
 		VkBuffer buffer { VK_NULL_HANDLE };
 		if ( vmaCreateBuffer(
-				 Device::getInstance().allocator(), &vk_buffer_info, &alloc_info, &buffer, &m_allocation, nullptr )
+				 Device::getInstance().allocator(), &vk_buffer_info, &create_info, &buffer, &allocation, nullptr )
 		     != VK_SUCCESS )
 		{
 			throw BufferException( "Unable to allocate memory in VMA" );
 		}
 
-		m_buffer = buffer;
+		vmaGetAllocationInfo( Device::getInstance().allocator(), allocation, &alloc_info );
 
-		vmaGetAllocationInfo( Device::getInstance().allocator(), m_allocation, &m_alloc_info );
+		return std::make_tuple<
+			vk::Buffer,
+			VmaAllocationInfo,
+			VmaAllocation >( std::move( buffer ), std::move( alloc_info ), std::move( allocation ) );
 	}
 
-	vk::DeviceSize Buffer::alignment() const
+	vk::DeviceSize BufferHandle::alignment() const
 	{
 		vk::DeviceSize size { 1 };
 
@@ -142,7 +169,7 @@ namespace fgl::engine::memory
 		return size;
 	}
 
-	decltype( Buffer::m_free_blocks )::iterator Buffer::
+	decltype( BufferHandle::m_free_blocks )::iterator BufferHandle::
 		findAvailableBlock( vk::DeviceSize memory_size, std::uint32_t t_alignment )
 	{
 		//Find a free space.
@@ -160,7 +187,63 @@ namespace fgl::engine::memory
 			} );
 	}
 
-	std::shared_ptr< BufferSuballocationHandle > Buffer::
+	void BufferHandle::resize( const vk::DeviceSize new_size )
+	{
+		log::warn( "Resizing buffer from {} to {}", size(), new_size );
+
+		std::shared_ptr< BufferHandle > new_handle { new BufferHandle( new_size, m_usage, m_memory_properties ) };
+
+		//Now we need to re-create all the current live allocations and transfer/replace them using the new buffer
+		std::vector<
+			std::pair< std::shared_ptr< BufferSuballocationHandle >, std::shared_ptr< BufferSuballocationHandle > > >
+			allocations {};
+
+		allocations.reserve( m_active_suballocations.size() );
+
+		for ( auto& suballocation_weak : m_active_suballocations )
+		{
+			if ( suballocation_weak.expired() ) continue;
+			try
+			{
+				auto suballocation { suballocation_weak.lock() };
+
+				auto new_suballocation { new_handle->allocate( suballocation->m_size, suballocation->m_alignment ) };
+				allocations.emplace_back( std::make_pair( suballocation, new_suballocation ) );
+			}
+			catch ( std::bad_weak_ptr& e )
+			{
+				// noop
+				void();
+			}
+		}
+
+		std::swap( m_buffer, new_handle->m_buffer );
+		std::swap( m_alloc_info, new_handle->m_alloc_info );
+		std::swap( m_allocation, new_handle->m_allocation );
+		std::swap( m_free_blocks, new_handle->m_free_blocks );
+		std::swap( m_active_suballocations, new_handle->m_active_suballocations );
+		std::swap( m_allocation_traces, new_handle->m_allocation_traces );
+
+		// This transforms any memory::Buffer to be the `new_handle` we allocated above.
+		const auto old_handle { new_handle };
+		FGL_ASSERT( old_handle.get() != this, "Old handle should not be the current buffer anymore!" );
+		new_handle = this->shared_from_this();
+
+		for ( auto& [ old_allocation, new_allocation ] : allocations )
+		{
+			old_allocation->m_parent_buffer = old_handle;
+			new_allocation->m_parent_buffer = new_handle;
+		}
+
+		//Now we need to transfer the data from the old buffer to the new buffer
+		for ( const auto& allocation : allocations )
+		{
+			const auto& [ old_suballocation, new_suballocation ] = allocation;
+			TransferManager::getInstance().copySuballocationRegion( old_suballocation, new_suballocation );
+		}
+	}
+
+	std::shared_ptr< BufferSuballocationHandle > BufferHandle::
 		allocate( vk::DeviceSize desired_memory_size, const std::uint32_t t_alignment )
 	{
 		ZoneScoped;
@@ -173,8 +256,14 @@ namespace fgl::engine::memory
 
 		if ( !canAllocate( desired_memory_size, t_alignment ) )
 		{
-			//TODO: Write more detailed error message
-			throw BufferOOM();
+			// Resize to x1.5 the size, or the size plus the desired size x1.5, Whichever is bigger
+			const auto optimal_size { std::
+				                          max( static_cast< vk::DeviceSize >( this->size() * 2 ),
+				                               this->size()
+				                                   + static_cast< vk::DeviceSize >( desired_memory_size * 2 ) ) };
+			this->resize( optimal_size );
+
+			FGL_ASSERT( optimal_size == this->size(), "Optimal size not met!" );
 		}
 
 		auto itter { findAvailableBlock( desired_memory_size, t_alignment ) };
@@ -209,9 +298,8 @@ namespace fgl::engine::memory
 			selected_block_size -= leftover_start_size;
 		}
 
-		//Add the suballocation
-		m_allocations.insert_or_assign( selected_block_offset, desired_memory_size );
-
+		// Add the suballocation
+		// m_allocations.insert_or_assign( selected_block_offset, desired_memory_size );
 		m_allocation_traces.insert_or_assign( selected_block_offset, std::stacktrace::current() );
 
 		assert( selected_block_size >= desired_memory_size );
@@ -226,26 +314,18 @@ namespace fgl::engine::memory
 				.emplace_back( selected_block_offset + desired_memory_size, selected_block_size - desired_memory_size );
 		}
 
-#ifndef NDEBUG
-		//Check that we haven't lost any memory
-		std::size_t sum { 0 };
-		for ( const auto& [ _, free_size ] : this->m_free_blocks )
-		{
-			sum += free_size;
-		}
+		std::ranges::
+			remove_if( m_active_suballocations, []( auto& suballocation ) -> bool { return suballocation.expired(); } );
 
-		for ( const auto& [ _, allocated_size ] : this->m_allocations )
-		{
-			sum += allocated_size;
-		}
+		auto suballocation_handle { std::make_shared< BufferSuballocationHandle >(
+			Buffer( this->shared_from_this() ), selected_block_offset, desired_memory_size, t_alignment ) };
 
-		assert( sum == this->size() );
-#endif
+		m_active_suballocations.push_back( suballocation_handle );
 
-		return std::make_shared< BufferSuballocationHandle >( *this, selected_block_offset, desired_memory_size );
+		return suballocation_handle;
 	}
 
-	bool Buffer::canAllocate( const vk::DeviceSize memory_size, const std::uint32_t alignment )
+	bool BufferHandle::canAllocate( const vk::DeviceSize memory_size, const std::uint32_t alignment )
 	{
 		// TODO: This check can be optimized by itterating through and virtually combining blocks that would be combined.
 		// If the combined block is large enough then we should consider it being capable of allocation.
@@ -256,11 +336,11 @@ namespace fgl::engine::memory
 			mergeFreeBlocks();
 			return findAvailableBlock( memory_size, alignment ) != m_free_blocks.end();
 		}
-		else
-			return true;
+
+		return true;
 	}
 
-	void Buffer::mergeFreeBlocks()
+	void BufferHandle::mergeFreeBlocks()
 	{
 		ZoneScoped;
 		//Can't combine blocks if there is only 1
@@ -304,7 +384,7 @@ namespace fgl::engine::memory
 		}
 	}
 
-	void Buffer::setDebugName( const std::string& str )
+	void BufferHandle::setDebugName( const std::string& str )
 	{
 		vk::DebugUtilsObjectNameInfoEXT info {};
 		info.objectType = vk::ObjectType::eBuffer;
@@ -316,17 +396,9 @@ namespace fgl::engine::memory
 		Device::getInstance().setDebugUtilsObjectName( info );
 	}
 
-	void Buffer::free( BufferSuballocationHandle& info )
+	void BufferHandle::free( BufferSuballocationHandle& info )
 	{
 		ZoneScoped;
-
-		//Find the suballocation
-		auto itter = m_allocations.find( info.m_offset );
-
-		if ( itter == m_allocations.end() ) throw std::runtime_error( "Failed to find suballocation" );
-
-		//Remove the suballocation
-		m_allocations.erase( itter );
 
 		if ( info.m_offset >= this->size() ) throw std::runtime_error( "Offset was outside of bounds of buffer" );
 		if ( info.m_offset + info.m_size > this->size() )
@@ -351,9 +423,10 @@ namespace fgl::engine::memory
 			sum += free_blocks.second;
 		}
 
-		for ( const auto& allocated : this->m_allocations )
+		for ( auto& suballocation : m_active_suballocations )
 		{
-			sum += allocated.second;
+			if ( suballocation.expired() ) continue;
+			sum += suballocation.lock()->m_size;
 		}
 
 		if ( sum != this->size() )
@@ -362,21 +435,19 @@ namespace fgl::engine::memory
 #endif
 	}
 
-	vk::DeviceSize Buffer::used() const
+	vk::DeviceSize BufferHandle::used() const
 	{
 		vk::DeviceSize total_size { 0 };
 
-		if ( m_allocations.size() == 0 ) return total_size;
-
-		for ( const auto& [ offset, size ] : m_allocations )
+		for ( auto& suballocation : m_active_suballocations )
 		{
-			total_size += size;
+			total_size += suballocation.lock()->m_size;
 		}
 
 		return total_size;
 	}
 
-	vk::DeviceSize Buffer::largestBlock() const
+	vk::DeviceSize BufferHandle::largestBlock() const
 	{
 		vk::DeviceSize largest { 0 };
 

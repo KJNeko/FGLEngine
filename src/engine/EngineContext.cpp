@@ -20,6 +20,7 @@
 #include "engine/flags.hpp"
 #include "engine/math/Average.hpp"
 #include "engine/math/literals/size.hpp"
+#include "memory/buffers/BufferHandle.hpp"
 
 namespace fgl::engine
 {
@@ -52,7 +53,7 @@ namespace fgl::engine
 	EngineContext::EngineContext() :
 	  m_ubo_buffer_pool( 1_MiB, vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eHostVisible ),
 	  m_draw_parameter_pool(
-		  128_MiB,
+		  4_MiB,
 		  vk::BufferUsageFlagBits::eIndirectBuffer | vk::BufferUsageFlagBits::eStorageBuffer,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible ),
 	  m_gpu_draw_commands(
@@ -68,7 +69,7 @@ namespace fgl::engine
 
 		// memory::TransferManager::createInstance( device, 128_MiB );
 
-		m_draw_parameter_pool.setDebugName( "Draw parameter pool" );
+		m_draw_parameter_pool->setDebugName( "Draw parameter pool" );
 	}
 
 	static Average< float, 60 * 15 > rolling_ms_average;
@@ -159,9 +160,6 @@ namespace fgl::engine
 
 			TracyVkCollect( frame_info.tracy_ctx, **command_buffers.transfer_cb );
 
-			//TODO: Setup semaphores to make this pass not always required.
-			m_transfer_manager.recordOwnershipTransferDst( command_buffers.transfer_cb );
-
 			for ( const auto& hook : m_early_render_hooks ) hook( frame_info );
 			//TODO: Add some way of 'activating' cameras. We don't need to render cameras that aren't active.
 			renderCameras( frame_info );
@@ -175,9 +173,13 @@ namespace fgl::engine
 
 			m_renderer.endSwapchainRendererPass( command_buffers.imgui_cb );
 
+			m_transfer_manager.recordOwnershipTransferDst( command_buffers.transfer_cb );
+
 			m_renderer.endFrame( command_buffers );
 
+			//TODO: Setup semaphores to make this pass not always required.
 			m_transfer_manager.dump();
+
 			m_device.getCmdBufferPool().advanceInFlight();
 
 			{

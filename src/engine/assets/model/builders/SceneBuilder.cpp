@@ -13,7 +13,6 @@
 #pragma GCC diagnostic pop
 
 #include "assets/model/ModelVertex.hpp"
-#include "engine/assets/image/ImageView.hpp"
 #include "engine/assets/stores.hpp"
 #include "engine/camera/Camera.hpp"
 #include "engine/debug/logging/logging.hpp"
@@ -23,7 +22,7 @@
 namespace fgl::engine
 {
 
-	SceneBuilder::SceneBuilder( memory::Buffer& vertex_buffer, memory::Buffer& index_buffer ) :
+	SceneBuilder::SceneBuilder( const memory::Buffer& vertex_buffer, const memory::Buffer& index_buffer ) :
 	  m_vertex_buffer( vertex_buffer ),
 	  m_index_buffer( index_buffer )
 	{}

@@ -11,7 +11,7 @@
 
 namespace fgl::engine::memory
 {
-	class Buffer;
+	struct Buffer;
 }
 
 namespace fgl::engine
@@ -31,6 +31,7 @@ namespace fgl::engine
 			// assert( count != 0 && "BufferSuballocationVector::BufferSuballocationVector() called with count == 0" );
 		}
 
+		FGL_DELETE_DEFAULT_CTOR( DeviceVector );
 		FGL_DELETE_COPY( DeviceVector );
 		FGL_DEFAULT_MOVE( DeviceVector );
 
@@ -43,9 +44,6 @@ namespace fgl::engine
 		  DeviceVector( buffer, static_cast< std::uint32_t >( data.size() ) )
 		{
 			memory::TransferManager::getInstance().copyToVector< T, DeviceVector< T > >( data, *this );
-
-			log::debug(
-				"Allocated device vector of size: {}, With stride: {} at offset {}", size(), stride(), m_offset );
 		}
 
 		// void resize( const std::size_t new_size ) { BufferVector::resize( new_size ); }

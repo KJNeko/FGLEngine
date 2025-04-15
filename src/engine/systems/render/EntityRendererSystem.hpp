@@ -15,7 +15,7 @@ namespace fgl::engine
 
 	namespace memory
 	{
-		class Buffer;
+		class BufferHandle;
 	}
 
 	struct FrameInfo;

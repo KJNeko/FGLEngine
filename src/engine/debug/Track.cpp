@@ -35,7 +35,8 @@ namespace fgl::engine::debug
 
 	void deregisterTrack( const std::size_t UID )
 	{
-		assert( track_info.erase( UID ) > 0 && "Unable to find UID" );
+		track_info.erase( UID );
+		// assert( track_info.erase( UID ) > 0 && "Unable to find UID" );
 	}
 
 	std::vector< TrackInfo > getTracks( const std::string_view group, const std::string_view name )

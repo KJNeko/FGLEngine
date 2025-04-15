@@ -6,8 +6,7 @@
 
 #include "engine/assets/image/ImageHandle.hpp"
 #include "engine/debug/logging/logging.hpp"
-#include "engine/math/literals/size.hpp"
-#include "engine/memory/buffers/Buffer.hpp"
+#include "engine/memory/buffers/BufferHandle.hpp"
 #include "engine/memory/buffers/exceptions.hpp"
 #include "engine/memory/buffers/vector/HostVector.hpp"
 #include "engine/utils.hpp"
@@ -107,8 +106,8 @@ namespace fgl::engine::memory
 	bool TransferData::performRawImageStage(
 		vk::raii::CommandBuffer& buffer,
 		Buffer& staging_buffer,
-		std::uint32_t transfer_idx,
-		std::uint32_t graphics_idx )
+		const std::uint32_t transfer_idx,
+		const std::uint32_t graphics_idx )
 	{
 		if ( !convertRawToBuffer( staging_buffer ) ) return false;
 		return performImageStage( buffer, transfer_idx, graphics_idx );
@@ -147,10 +146,10 @@ namespace fgl::engine::memory
 	{
 		// Prepare the staging buffer first.
 		assert( std::holds_alternative< RawData >( m_source ) );
-		assert( std::get< RawData >( m_source ).size() > 0 );
+		assert( !std::get< RawData >( m_source ).empty() );
 
 		// Check if we are capable of allocating into the staging buffer
-		if ( !staging_buffer.canAllocate( std::get< RawData >( m_source ).size(), 1 ) ) return false;
+		if ( !staging_buffer->canAllocate( std::get< RawData >( m_source ).size(), 1 ) ) return false;
 
 		HostVector< std::byte > vector { staging_buffer, std::get< RawData >( m_source ) };
 

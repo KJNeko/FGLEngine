@@ -13,12 +13,11 @@ namespace fgl::engine
 	template < memory::is_suballocation Suballocation >
 	class PerFrameSuballocation
 	{
-		memory::Buffer& m_buffer;
 		std::vector< std::unique_ptr< Suballocation > > m_suballocations {};
 
 	  public:
 
-		explicit PerFrameSuballocation( memory::Buffer& buffer ) : m_buffer( buffer )
+		explicit PerFrameSuballocation( memory::Buffer& buffer )
 		{
 			m_suballocations.reserve( constants::MAX_FRAMES_IN_FLIGHT );
 
@@ -31,9 +30,9 @@ namespace fgl::engine
 			}
 		}
 
-		void setMaxFramesInFlight( std::uint16_t max ) { m_suballocations.resize( max ); }
+		// void setMaxFramesInFlight( std::uint16_t max ) { m_suballocations.resize( max ); }
 
-		Suballocation& operator[]( std::uint16_t index )
+		Suballocation& operator[]( std::size_t index )
 		{
 			assert( m_suballocations.size() >= index );
 			assert( m_suballocations[ index ] );

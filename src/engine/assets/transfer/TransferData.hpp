@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "engine/memory/buffers/BufferHandle.hpp"
+
 namespace vk
 {
 	namespace raii
@@ -27,7 +29,7 @@ namespace fgl::engine
 	namespace memory
 	{
 		struct BufferSuballocationHandle;
-		class Buffer;
+		class BufferHandle;
 	} // namespace memory
 } // namespace fgl::engine
 
@@ -87,8 +89,8 @@ namespace fgl::engine::memory
 		bool performRawImageStage(
 			vk::raii::CommandBuffer& buffer,
 			Buffer& staging_buffer,
-			std::uint32_t graphics_idx,
-			std::uint32_t transfer_idx );
+			std::uint32_t transfer_idx,
+			std::uint32_t graphics_idx );
 
 		bool performBufferStage( CopyRegionMap& copy_regions );
 
@@ -126,12 +128,12 @@ namespace fgl::engine::memory
 		TransferData(
 			const std::shared_ptr< BufferSuballocationHandle >& source,
 			const std::shared_ptr< BufferSuballocationHandle >& target,
-			const std::size_t offset );
+			std::size_t offset );
 
 		TransferData(
 			std::vector< std::byte >&& source,
 			const std::shared_ptr< BufferSuballocationHandle >& target,
-			const std::size_t offset );
+			std::size_t offset );
 
 		//IMAGE_FROM_X
 		TransferData(

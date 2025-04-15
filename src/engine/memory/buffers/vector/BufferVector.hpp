@@ -8,8 +8,6 @@
 
 namespace fgl::engine::memory
 {
-	class Buffer;
-
 	//! Number of spares to allocate when resizing beyond the current capacity + current spare
 	constexpr std::uint32_t SPARE_ALLOCATION_COUNT { 16 };
 
