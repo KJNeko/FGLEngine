@@ -19,7 +19,7 @@ namespace fgl::engine
 	GameObject& GameObject::operator=( GameObject&& other ) noexcept
 	{
 		m_id = other.m_id;
-		object_flags = other.object_flags;
+		m_object_flags = other.m_object_flags;
 		m_components = std::move( other.m_components );
 		m_name = std::move( other.m_name );
 
@@ -30,7 +30,7 @@ namespace fgl::engine
 
 	GameObject::GameObject( GameObject&& other ) noexcept :
 	  m_id( other.m_id ),
-	  object_flags( other.object_flags ),
+	  m_object_flags( other.m_object_flags ),
 	  m_components( std::move( other.m_components ) ),
 	  m_name( other.m_name )
 	{

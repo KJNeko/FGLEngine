@@ -36,16 +36,17 @@ namespace fgl::engine
 namespace fgl::engine::memory
 {
 	//! <Source, Target>
-	using CopyRegionKey = std::pair< vk::Buffer, vk::Buffer >;
+	using CopyRegionKey = std::pair< std::shared_ptr< BufferHandle >, std::shared_ptr< BufferHandle > >;
 
 	struct BufferHasher
 	{
-		std::size_t operator()( const vk::Buffer& buffer ) const;
+		std::size_t operator()( const std::shared_ptr< BufferHandle >& buffer ) const;
 	};
 
 	struct CopyRegionKeyHasher
 	{
-		std::size_t operator()( const std::pair< vk::Buffer, vk::Buffer >& pair ) const;
+		std::size_t operator()( const std::pair< std::shared_ptr< BufferHandle >, std::shared_ptr< BufferHandle > >&
+		                            pair ) const;
 	};
 
 	using CopyRegionMap = std::unordered_map< CopyRegionKey, std::vector< vk::BufferCopy >, CopyRegionKeyHasher >;
@@ -54,20 +55,20 @@ namespace fgl::engine::memory
 	class TransferData
 	{
 		//! Type of transfer this data represents
-		enum TransferType
+		enum class TransferType
 		{
 			IMAGE_FROM_RAW,
-			IMAGE_FROM_BUFFER,
-			BUFFER_FROM_BUFFER,
-			BUFFER_FROM_RAW
+			IMAGE_FROM_SUBALLOCATION,
+			SUBALLOCATION_FROM_SUBALLOCATION,
+			SUBALLOCATION_FROM_RAW,
 		} m_type;
 
 		using RawData = std::vector< std::byte >;
-		using TransferBufferHandle = std::shared_ptr< BufferSuballocationHandle >;
+		using TransferSuballocationHandle = std::shared_ptr< BufferSuballocationHandle >;
 		using TransferImageHandle = std::shared_ptr< ImageHandle >;
 
-		using SourceData = std::variant< RawData, TransferBufferHandle, TransferImageHandle >;
-		using TargetData = std::variant< TransferBufferHandle, TransferImageHandle >;
+		using SourceData = std::variant< RawData, TransferImageHandle, TransferSuballocationHandle >;
+		using TargetData = std::variant< TransferImageHandle, TransferSuballocationHandle >;
 
 		//! Source data. Data type depends on m_type
 		SourceData m_source;
@@ -75,7 +76,8 @@ namespace fgl::engine::memory
 		//! Target data. Data type depends on m_type
 		TargetData m_target;
 
-		std::size_t m_target_offset;
+		vk::DeviceSize m_target_offset;
+		vk::DeviceSize m_source_offset;
 
 		//! Performs copy of raw data to the staging buffer
 		bool convertRawToBuffer( Buffer& staging_buffer );
@@ -92,12 +94,16 @@ namespace fgl::engine::memory
 			std::uint32_t transfer_idx,
 			std::uint32_t graphics_idx );
 
-		bool performBufferStage( CopyRegionMap& copy_regions );
+		bool performSuballocationStage( CopyRegionMap& copy_regions );
 
-		//! Same as @ref performBufferStage Performs extra step of copying data to a staging buffer
+		[[nodiscard]] bool targetIsHostVisible() const;
+		[[nodiscard]] bool sourceIsHostVisible() const;
+		[[nodiscard]] bool targetNeedsFlush() const;
+
+		//! Same as @ref performBufferStage Performs extra step of copying data to a staging buffer. If the target is host visible, Then this function will do nothing and return true.
 		/** @note After calling this function m_type will be `BUFFER_FROM_BUFFER`
 		 */
-		bool performRawBufferStage( Buffer& staging_buffer, CopyRegionMap& copy_regions );
+		bool performRawSuballocationStage( Buffer& staging_buffer, CopyRegionMap& copy_regions );
 
 		friend class TransferManager;
 
@@ -124,16 +130,21 @@ namespace fgl::engine::memory
 		//! Marks the target as staged/ready
 		void markGood();
 
-		//BUFFER_FROM_X
+		void cleanupSource();
+
+		//SUBALLOCATION_FROM_SUBALLOCATION
 		TransferData(
 			const std::shared_ptr< BufferSuballocationHandle >& source,
 			const std::shared_ptr< BufferSuballocationHandle >& target,
-			std::size_t offset );
+			vk::DeviceSize target_offset = 0,
+			vk::DeviceSize source_offset = 0 );
 
+		// SUBALLOCATION_FROM_RAW
 		TransferData(
 			std::vector< std::byte >&& source,
 			const std::shared_ptr< BufferSuballocationHandle >& target,
-			std::size_t offset );
+			vk::DeviceSize target_offset = 0,
+			vk::DeviceSize source_offset = 0 );
 
 		//IMAGE_FROM_X
 		TransferData(

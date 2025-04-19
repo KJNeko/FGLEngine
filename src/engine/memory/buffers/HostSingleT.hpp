@@ -38,7 +38,7 @@ namespace fgl::engine
 			return *this;
 		}
 
-		void flush() { BufferSuballocation::flush( 0, this->m_byte_size ); }
+		void flush() const { BufferSuballocation::flush(); }
 	};
 
 } // namespace fgl::engine

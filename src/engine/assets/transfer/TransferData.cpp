@@ -10,16 +10,18 @@
 #include "engine/memory/buffers/exceptions.hpp"
 #include "engine/memory/buffers/vector/HostVector.hpp"
 #include "engine/utils.hpp"
+#include "memory/DefferedCleanup.hpp"
 
 namespace fgl::engine::memory
 {
 
-	std::size_t BufferHasher::operator()( const vk::Buffer& buffer ) const
+	std::size_t BufferHasher::operator()( const std::shared_ptr< BufferHandle >& buffer ) const
 	{
-		return reinterpret_cast< std::size_t >( static_cast< VkBuffer >( buffer ) );
+		return reinterpret_cast< std::size_t >( static_cast< VkBuffer >( buffer->getVkBuffer() ) );
 	}
 
-	std::size_t CopyRegionKeyHasher::operator()( const std::pair< vk::Buffer, vk::Buffer >& pair ) const
+	std::size_t CopyRegionKeyHasher::
+		operator()( const std::pair< std::shared_ptr< BufferHandle >, std::shared_ptr< BufferHandle > >& pair ) const
 	{
 		const std::size_t hash_a { BufferHasher {}( std::get< 0 >( pair ) ) };
 		const std::size_t hash_b { BufferHasher {}( std::get< 1 >( pair ) ) };
@@ -32,7 +34,10 @@ namespace fgl::engine::memory
 	bool TransferData::
 		performImageStage( vk::raii::CommandBuffer& cmd_buffer, std::uint32_t transfer_idx, std::uint32_t graphics_idx )
 	{
-		auto& source_buffer { std::get< TransferBufferHandle >( m_source ) };
+		FGL_ASSERT( std::holds_alternative< TransferSuballocationHandle >( m_source ), "Source not a suballocation!" );
+		FGL_ASSERT( std::holds_alternative< TransferImageHandle >( m_target ), "Target not an image!" );
+
+		auto& source_buffer { std::get< TransferSuballocationHandle >( m_source ) };
 		auto& dest_image { std::get< TransferImageHandle >( m_target ) };
 
 		vk::ImageSubresourceRange range;
@@ -113,14 +118,17 @@ namespace fgl::engine::memory
 		return performImageStage( buffer, transfer_idx, graphics_idx );
 	}
 
-	bool TransferData::performBufferStage( CopyRegionMap& copy_regions )
+	bool TransferData::performSuballocationStage( CopyRegionMap& copy_regions )
 	{
 		ZoneScoped;
-		auto& source { std::get< TransferBufferHandle >( m_source ) };
-		auto& target { std::get< TransferBufferHandle >( m_target ) };
-		const CopyRegionKey key { std::make_pair( source->getBuffer(), target->getBuffer() ) };
+		FGL_ASSERT( std::holds_alternative< TransferSuballocationHandle >( m_source ), "Source not suballocation!" );
+		FGL_ASSERT( std::holds_alternative< TransferSuballocationHandle >( m_target ), "Target not suballocation!" );
+		const auto& source { std::get< TransferSuballocationHandle >( m_source ) };
+		const auto& target { std::get< TransferSuballocationHandle >( m_target ) };
 
-		const auto copy_info { source->copyRegion( *target, m_target_offset ) };
+		const CopyRegionKey key { std::make_pair( source->m_parent_buffer, target->m_parent_buffer ) };
+
+		const auto copy_info { source->copyRegion( *target, m_target_offset, m_source_offset ) };
 
 		if ( auto itter = copy_regions.find( key ); itter != copy_regions.end() )
 		{
@@ -136,10 +144,54 @@ namespace fgl::engine::memory
 		return true;
 	}
 
-	bool TransferData::performRawBufferStage( Buffer& staging_buffer, CopyRegionMap& copy_regions )
+	bool TransferData::targetIsHostVisible() const
 	{
+		return std::holds_alternative< TransferSuballocationHandle >( m_target )
+		    && std::get< TransferSuballocationHandle >( m_target )->m_parent_buffer->isHostVisible();
+	}
+
+	bool TransferData::sourceIsHostVisible() const
+	{
+		return std::holds_alternative< TransferSuballocationHandle >( m_source )
+		    && std::get< TransferSuballocationHandle >( m_source )->m_parent_buffer->isHostVisible();
+	}
+
+	bool TransferData::targetNeedsFlush() const
+	{
+		return targetIsHostVisible()
+		    && std::get< TransferSuballocationHandle >( m_target )->m_parent_buffer->needsFlush();
+	}
+
+	bool TransferData::performRawSuballocationStage( Buffer& staging_buffer, CopyRegionMap& copy_regions )
+	{
+		if ( targetIsHostVisible() )
+		{
+			// Since the target is visible to the host, We can instead just copy directly to the buffer.
+			FGL_ASSERT(
+				std::holds_alternative< TransferSuballocationHandle >( m_target ),
+				"Target was expected to be a suballocation!" );
+			const auto& target { std::get< TransferSuballocationHandle >( m_target ) };
+			FGL_ASSERT( std::holds_alternative< RawData >( m_source ), "Source was expected to be raw data!" );
+
+			FGL_ASSERT(
+				m_source_offset <= std::get< RawData >( m_source ).size(),
+				"Source offset was out of bounds of source!" );
+
+			FGL_ASSERT( target->m_ptr != nullptr, "Target buffer was not mapped!" );
+
+			std::memcpy(
+				static_cast< std::byte* >( target->m_ptr ) + m_target_offset,
+				std::get< RawData >( m_source ).data() + m_source_offset,
+				target->m_size );
+
+			// if it's not coherent then we must flush it manually.
+			//TODO: Move this to be done while we record the command buffer so we can batch them together easily.
+			if ( targetNeedsFlush() ) target->flush();
+
+			return true;
+		}
 		if ( !convertRawToBuffer( staging_buffer ) ) return false;
-		return performBufferStage( copy_regions );
+		return performSuballocationStage( copy_regions );
 	}
 
 	bool TransferData::convertRawToBuffer( Buffer& staging_buffer )
@@ -162,22 +214,22 @@ namespace fgl::engine::memory
 		vk::raii::CommandBuffer& buffer,
 		Buffer& staging_buffer,
 		CopyRegionMap& copy_regions,
-		std::uint32_t transfer_idx,
-		std::uint32_t graphics_idx )
+		const std::uint32_t transfer_idx,
+		const std::uint32_t graphics_idx )
 	{
 		ZoneScoped;
 		switch ( m_type )
 		{
 			default:
 				throw std::runtime_error( "Invalid transfer type" );
-			case IMAGE_FROM_RAW:
+			case TransferType::IMAGE_FROM_RAW:
 				return performRawImageStage( buffer, staging_buffer, transfer_idx, graphics_idx );
-			case IMAGE_FROM_BUFFER:
+			case TransferType::IMAGE_FROM_SUBALLOCATION:
 				return performImageStage( buffer, transfer_idx, graphics_idx );
-			case BUFFER_FROM_RAW:
-				return performRawBufferStage( staging_buffer, copy_regions );
-			case BUFFER_FROM_BUFFER:
-				return performBufferStage( copy_regions );
+			case TransferType::SUBALLOCATION_FROM_SUBALLOCATION:
+				return performSuballocationStage( copy_regions );
+			case TransferType::SUBALLOCATION_FROM_RAW:
+				return performRawSuballocationStage( staging_buffer, copy_regions );
 		}
 
 		FGL_UNREACHABLE();
@@ -187,15 +239,17 @@ namespace fgl::engine::memory
 	{
 		switch ( m_type )
 		{
-			case BUFFER_FROM_RAW:
+			default:
+			case TransferType::IMAGE_FROM_RAW:
 				[[fallthrough]];
-			case BUFFER_FROM_BUFFER:
-				std::get< TransferBufferHandle >( m_target )->setReady( false );
-				break;
-			case IMAGE_FROM_RAW:
-				[[fallthrough]];
-			case IMAGE_FROM_BUFFER:
+			case TransferType::IMAGE_FROM_SUBALLOCATION:
 				std::get< TransferImageHandle >( m_target )->setReady( false );
+				return;
+			case TransferType::SUBALLOCATION_FROM_RAW:
+				[[fallthrough]];
+			case TransferType::SUBALLOCATION_FROM_SUBALLOCATION:
+				std::get< TransferSuballocationHandle >( m_target )->setReady( false );
+				return;
 		}
 	}
 
@@ -203,15 +257,38 @@ namespace fgl::engine::memory
 	{
 		switch ( m_type )
 		{
-			case BUFFER_FROM_RAW:
+			default:
+				throw std::runtime_error( "Invalid transfer type" );
+			case TransferType::IMAGE_FROM_RAW:
 				[[fallthrough]];
-			case BUFFER_FROM_BUFFER:
-				std::get< TransferBufferHandle >( m_target )->setReady( true );
-				break;
-			case IMAGE_FROM_RAW:
-				[[fallthrough]];
-			case IMAGE_FROM_BUFFER:
+			case TransferType::IMAGE_FROM_SUBALLOCATION:
 				std::get< TransferImageHandle >( m_target )->setReady( true );
+				return;
+			case TransferType::SUBALLOCATION_FROM_RAW:
+				[[fallthrough]];
+			case TransferType::SUBALLOCATION_FROM_SUBALLOCATION:
+				std::get< TransferSuballocationHandle >( m_target )->setReady( true );
+				return;
+		}
+	}
+
+	void TransferData::cleanupSource()
+	{
+		switch ( m_type )
+		{
+			default:
+				throw std::runtime_error( "Invalid transfer type" );
+			case TransferType::IMAGE_FROM_RAW:
+				[[fallthrough]];
+			case TransferType::SUBALLOCATION_FROM_RAW:
+				return;
+			case TransferType::IMAGE_FROM_SUBALLOCATION:
+				[[fallthrough]];
+			case TransferType::SUBALLOCATION_FROM_SUBALLOCATION:
+				if ( std::holds_alternative< TransferSuballocationHandle >( m_source ) )
+					deferredDelete< std::shared_ptr<
+						BufferSuballocationHandle > >( std::get< TransferSuballocationHandle >( m_source ) );
+				break;
 		}
 	}
 
@@ -221,11 +298,13 @@ namespace fgl::engine::memory
 	TransferData::TransferData(
 		const std::shared_ptr< BufferSuballocationHandle >& source,
 		const std::shared_ptr< BufferSuballocationHandle >& target,
-		const std::size_t offset ) :
-	  m_type( BUFFER_FROM_BUFFER ),
+		const vk::DeviceSize target_offset,
+		const vk::DeviceSize source_offset ) :
+	  m_type( TransferType::SUBALLOCATION_FROM_SUBALLOCATION ),
 	  m_source( source ),
 	  m_target( target ),
-	  m_target_offset( offset )
+	  m_target_offset( target_offset ),
+	  m_source_offset( source_offset )
 	{
 		markBad();
 	}
@@ -234,11 +313,13 @@ namespace fgl::engine::memory
 	TransferData::TransferData(
 		std::vector< std::byte >&& source,
 		const std::shared_ptr< BufferSuballocationHandle >& target,
-		const std::size_t offset ) :
-	  m_type( BUFFER_FROM_RAW ),
+		const vk::DeviceSize target_offset,
+		const vk::DeviceSize source_offset ) :
+	  m_type( TransferType::SUBALLOCATION_FROM_RAW ),
 	  m_source( std::forward< std::vector< std::byte > >( source ) ),
 	  m_target( target ),
-	  m_target_offset( offset )
+	  m_target_offset( target_offset ),
+	  m_source_offset( source_offset )
 	{
 		markBad();
 	}
@@ -246,22 +327,24 @@ namespace fgl::engine::memory
 	//! IMAGE_FROM_BUFFER
 	TransferData::TransferData(
 		const std::shared_ptr< BufferSuballocationHandle >& source, const std::shared_ptr< ImageHandle >& target ) :
-	  m_type( IMAGE_FROM_BUFFER ),
+	  m_type( TransferType::IMAGE_FROM_SUBALLOCATION ),
 	  m_source( source ),
 	  m_target( target ),
-	  m_target_offset( 0 )
+	  m_target_offset( 0 ),
+	  m_source_offset( 0 )
 	{
 		markBad();
 	}
 
 	//! IMAGE_FROM_RAW
 	TransferData::TransferData( std::vector< std::byte >&& source, const std::shared_ptr< ImageHandle >& target ) :
-	  m_type( IMAGE_FROM_RAW ),
+	  m_type( TransferType::IMAGE_FROM_RAW ),
 	  m_source( std::forward< std::vector< std::byte > >( source ) ),
 	  m_target( target ),
-	  m_target_offset( 0 )
+	  m_target_offset( 0 ),
+	  m_source_offset( 0 )
 	{
-		assert( std::get< RawData >( m_source ).size() > 0 );
+		assert( !std::get< RawData >( m_source ).empty() );
 		markBad();
 	}
 

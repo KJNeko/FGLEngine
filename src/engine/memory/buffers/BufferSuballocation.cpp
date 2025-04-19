@@ -13,9 +13,7 @@ namespace fgl::engine::memory
 {
 
 	BufferSuballocation::BufferSuballocation( std::shared_ptr< BufferSuballocationHandle > handle ) :
-	  m_handle( std::move( handle ) ),
-	  m_offset( m_handle->m_offset ),
-	  m_byte_size( m_handle->m_size )
+	  m_handle( std::move( handle ) )
 	{
 		if ( handle.use_count() > 30 ) throw std::runtime_error( "AAAAAAAAA" );
 	}
@@ -24,25 +22,14 @@ namespace fgl::engine::memory
 	{
 		m_handle = std::move( other.m_handle );
 
-		m_offset = m_handle->m_offset;
-		m_byte_size = m_handle->m_size;
-
-		other.m_offset = 0;
-		other.m_byte_size = 0;
-
 		other.m_handle = nullptr;
 
 		return *this;
 	}
 
 	BufferSuballocation::BufferSuballocation( BufferSuballocation&& other ) noexcept :
-	  m_handle( std::move( other.m_handle ) ),
-	  m_offset( m_handle->m_offset ),
-	  m_byte_size( m_handle->m_size )
+	  m_handle( std::move( other.m_handle ) )
 	{
-		other.m_offset = 0;
-		other.m_byte_size = 0;
-
 		other.m_handle = nullptr;
 	}
 
@@ -53,31 +40,9 @@ namespace fgl::engine::memory
 		return m_handle->m_ptr;
 	}
 
-	void BufferSuballocation::flush( const vk::DeviceSize beg, const vk::DeviceSize end ) const
+	void BufferSuballocation::flush() const
 	{
-		assert( beg < end );
-		assert( m_handle != nullptr );
-		assert( m_handle->m_ptr != nullptr && "BufferSuballocationT::flush() called before map()" );
-		assert( end <= this->m_byte_size );
-
-		vk::MappedMemoryRange range {};
-		range.memory = m_handle->m_parent_buffer->getMemory();
-		range.offset = m_offset + beg;
-
-		const vk::DeviceSize min_atom_size { Device::getInstance().m_properties.limits.nonCoherentAtomSize };
-		const vk::DeviceSize size { end - beg };
-
-		assert( size > 0 );
-
-		range.size = align( size, min_atom_size );
-
-		assert( range.size > 0 );
-
-		if ( range.size > m_byte_size ) range.size = VK_WHOLE_SIZE;
-
-		const std::vector< vk::MappedMemoryRange > ranges { range };
-
-		Device::getInstance()->flushMappedMemoryRanges( ranges );
+		m_handle->flush();
 	}
 
 	Buffer& BufferSuballocation::getBuffer() const
@@ -96,15 +61,15 @@ namespace fgl::engine::memory
 
 	vk::DescriptorBufferInfo BufferSuballocation::descriptorInfo( const std::size_t byte_offset ) const
 	{
-		assert( !std::isnan( m_offset ) );
-		assert( !std::isnan( m_byte_size ) );
+		assert( !std::isnan( getOffset() ) );
+		assert( !std::isnan( bytesize() ) );
 
-		FGL_ASSERT( byte_offset < m_byte_size, "Byte offset was greater then byte size!" );
+		FGL_ASSERT( byte_offset < bytesize(), "Byte offset was greater then byte size!" );
 		FGL_ASSERT(
-			m_offset + byte_offset < this->getBuffer()->size(),
+			getOffset() + byte_offset < this->getBuffer()->size(),
 			"Byte offset + buffer offset was greater then parent buffer size" );
 
-		return { getVkBuffer(), m_offset + byte_offset, m_byte_size };
+		return { getVkBuffer(), getOffset() + byte_offset, bytesize() };
 	}
 
 	BufferSuballocation::~BufferSuballocation() = default;
@@ -112,7 +77,7 @@ namespace fgl::engine::memory
 	SuballocationView BufferSuballocation::view( const vk::DeviceSize offset, const vk::DeviceSize size ) const
 	{
 		assert( m_handle != nullptr );
-		assert( offset + size <= m_byte_size && "BufferSuballocation::view() called with offset + size > m_size" );
+		assert( offset + size <= bytesize() && "BufferSuballocation::view() called with offset + size > m_size" );
 
 		return { m_handle, offset, size };
 	}
@@ -121,7 +86,8 @@ namespace fgl::engine::memory
 	  BufferSuballocation( buffer->allocate( size ) )
 	{}
 
-	BufferSuballocation::BufferSuballocation( const Buffer& buffer, const std::size_t t_size, const std::uint32_t t_align ) :
+	BufferSuballocation::
+		BufferSuballocation( const Buffer& buffer, const std::size_t t_size, const std::uint32_t t_align ) :
 	  BufferSuballocation( buffer->allocate( t_size, t_align ) )
 	{}
 

@@ -20,6 +20,7 @@
 #include "engine/flags.hpp"
 #include "engine/math/Average.hpp"
 #include "engine/math/literals/size.hpp"
+#include "globals.hpp"
 #include "memory/buffers/BufferHandle.hpp"
 
 namespace fgl::engine
@@ -130,6 +131,9 @@ namespace fgl::engine
 			const auto timer = debug::timing::push( "Render Frame" );
 			const FrameIndex in_flight_idx { m_renderer.getFrameIndex() };
 			const PresentIndex present_idx { m_renderer.getPresentIndex() };
+
+			global::setCurrentFrameIndex( in_flight_idx );
+			m_deffered_cleanup.cleanIdx( in_flight_idx );
 
 			auto& command_buffers { command_buffers_o.value() };
 

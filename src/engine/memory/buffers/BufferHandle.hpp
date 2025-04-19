@@ -4,8 +4,11 @@
 
 #pragma once
 
-#include <tracy/Tracy.hpp>
+// clang-format off
 #include <vulkan/vulkan.hpp>
+#include <tracy/TracyVulkan.hpp>
+#include <tracy/Tracy.hpp>
+// clang-format on
 
 #include <cassert>
 #include <cmath>
@@ -16,7 +19,6 @@
 #include <unordered_map>
 #include <utility>
 
-#include "FGL_DEFINES.hpp"
 #include "engine/debug/Track.hpp"
 #include "vma/vma_impl.hpp"
 
@@ -69,12 +71,13 @@ namespace fgl::engine::memory
 	  public:
 
 		std::string m_debug_name { "Debug name" };
+		std::string m_pool_name { std::format( "GPU {} Suballocation", m_debug_name ) };
 
 	  private:
 
 		static std::tuple< vk::Buffer, VmaAllocationInfo, VmaAllocation > allocBuffer(
 			vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags property_flags );
-		static void deallocBuffer( vk::Buffer&, VmaAllocation& );
+		void deallocBuffer( const vk::Buffer&, VmaAllocation& );
 
 		BufferHandle() = delete;
 		BufferHandle( const BufferHandle& other ) = delete;
@@ -98,6 +101,10 @@ namespace fgl::engine::memory
 		vk::DeviceSize largestBlock() const;
 
 		vk::DeviceSize used() const;
+
+		bool isHostVisible() const;
+
+		bool needsFlush() const;
 
 	  public:
 

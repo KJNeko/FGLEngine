@@ -12,6 +12,7 @@
 #include "engine/assets/transfer/TransferManager.hpp"
 #include "engine/math/literals/size.hpp"
 #include "engine/rendering/Renderer.hpp"
+#include "memory/DefferedCleanup.hpp"
 #include "scene/World.hpp"
 #include "systems/composition/GuiSystem.hpp"
 
@@ -87,10 +88,12 @@ namespace fgl::engine
 
 		CameraManager m_camera_manager {};
 
-		memory::TransferManager m_transfer_manager { m_device, 32_MiB };
+		memory::TransferManager m_transfer_manager { m_device, 1_GiB };
 
 		std::chrono::time_point< Clock > m_last_tick { Clock::now() };
 		DeltaTime m_delta_time;
+
+		memory::DefferedCleanup m_deffered_cleanup;
 
 		// World m_world;
 
@@ -116,8 +119,6 @@ namespace fgl::engine
 		void hookDestruction( const std::function< void() >& func ) { m_destruction_hooks.emplace_back( func ); }
 
 		void setWorld( const World& world );
-
-	  public:
 
 		EngineContext();
 		~EngineContext();

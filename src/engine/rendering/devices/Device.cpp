@@ -317,10 +317,10 @@ namespace fgl::engine
 
 		vk::raii::CommandBuffer command_buffer { std::move( command_buffers[ 0 ] ) };
 
-		vk::CommandBufferBeginInfo beginInfo {};
-		beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+		// vk::CommandBufferBeginInfo beginInfo {};
+		// beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
 
-		command_buffer.begin( beginInfo );
+		// command_buffer.begin( beginInfo );
 
 		return command_buffer;
 	}
@@ -328,7 +328,7 @@ namespace fgl::engine
 	void Device::endSingleTimeCommands( vk::raii::CommandBuffer& commandBuffer )
 	{
 		ZoneScoped;
-		commandBuffer.end();
+		// commandBuffer.end();
 
 		vk::SubmitInfo submitInfo {};
 		submitInfo.commandBufferCount = 1;

@@ -4,9 +4,8 @@
 
 #pragma once
 
-#include <vulkan/vulkan.hpp>
-
 #include "BufferHandle.hpp"
+#include "FGL_DEFINES.hpp"
 #include "engine/debug/Track.hpp"
 
 namespace vk::raii
@@ -41,22 +40,40 @@ namespace fgl::engine::memory
 			const Buffer& p_buffer, vk::DeviceSize offset, vk::DeviceSize memory_size, vk::DeviceSize alignment );
 
 		FGL_DELETE_DEFAULT_CTOR( BufferSuballocationHandle );
-		FGL_DELETE_MOVE( BufferSuballocationHandle );
-		FGL_DELETE_COPY( BufferSuballocationHandle );
+		FGL_DELETE_MOVE( BufferSuballocationHandle )
+		FGL_DELETE_COPY_ASSIGN( BufferSuballocationHandle );
+
+	  private:
+
+		BufferSuballocationHandle( const BufferSuballocationHandle& other ) noexcept;
+
+	  public:
 
 		~BufferSuballocationHandle();
 
 		[[nodiscard]] vk::Buffer getBuffer() const;
 		[[nodiscard]] vk::Buffer getVkBuffer() const;
+		void flush() const;
 
-		[[nodiscard]] vk::BufferCopy copyRegion( const BufferSuballocationHandle& target, std::size_t offset ) const;
+		/**
+		 * @brief
+		 * @param target
+		 * @param target_offset Target offset into the suballocated range
+		 * @param source_offset Source offset into the suballocated range
+		 * @return
+		 */
+		[[nodiscard]] vk::BufferCopy copyRegion(
+			const BufferSuballocationHandle& target, vk::DeviceSize target_offset, vk::DeviceSize source_offset ) const;
 
 		[[nodiscard]] vk::DeviceSize getOffset() const { return m_offset; }
 
 		void copyTo(
 			const vk::raii::CommandBuffer& cmd_buffer,
-			const BufferSuballocationHandle& other,
-			std::size_t offset ) const;
+			const BufferSuballocationHandle& target,
+			std::size_t target_offset ) const;
+
+		std::shared_ptr< BufferSuballocationHandle >
+			reallocInTarget( const std::shared_ptr< BufferHandle >& new_buffer );
 
 		bool ready() const { return m_staged; }
 

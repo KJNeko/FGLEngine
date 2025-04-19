@@ -44,7 +44,7 @@ namespace fgl::engine
 	  private:
 
 		GameObjectID m_id { INVALID_ID };
-		GameObjectFlagType object_flags { GameObjectFlagMask::MaskDefault };
+		GameObjectFlagType m_object_flags { GameObjectFlagMask::MaskDefault };
 
 		std::vector< GameObjectComponentPtr > m_components {};
 
@@ -53,7 +53,7 @@ namespace fgl::engine
 
 		std::string m_name {};
 
-		explicit GameObject( GameObjectID obj_id ) : m_id( obj_id ) {}
+		explicit GameObject( const GameObjectID obj_id ) : m_id( obj_id ) {}
 
 		FGL_DELETE_DEFAULT_CTOR( GameObject );
 		FGL_DELETE_COPY( GameObject );
@@ -70,6 +70,15 @@ namespace fgl::engine
 		void addComponent( std::unique_ptr< T >&& ptr )
 		{
 			m_components.emplace_back( ptr.release() );
+		}
+
+		template < typename T >
+			requires is_component< T >
+		void createComponent( auto&&... args )
+		{
+			T* component { new T( args... ) };
+
+			m_components.emplace_back( component );
 		}
 
 		template < typename T >
@@ -109,6 +118,7 @@ namespace fgl::engine
 
 			for ( ComponentEngineInterface* comp : m_components )
 			{
+				FGL_ASSERT( comp, "Component is null!" );
 				if ( comp->id() == T::ID ) temp.emplace_back( static_cast< T* >( comp ) );
 			}
 
@@ -120,11 +130,11 @@ namespace fgl::engine
 		const std::vector< GameObjectComponentPtr >& getComponents() const { return m_components; }
 
 		//Flags
-		GameObjectFlagType flags() const { return object_flags; }
+		GameObjectFlagType flags() const { return m_object_flags; }
 
-		void addFlag( GameObjectFlagType flag ) { object_flags |= flag; }
+		void addFlag( GameObjectFlagType flag ) { m_object_flags |= flag; }
 
-		void removeFlag( GameObjectFlagType flag ) { object_flags &= ( ~flag ); }
+		void removeFlag( GameObjectFlagType flag ) { m_object_flags &= ( ~flag ); }
 
 		//Misc
 		static GameObject createGameObject();

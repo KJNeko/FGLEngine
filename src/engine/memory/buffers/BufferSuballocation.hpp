@@ -25,10 +25,7 @@ namespace fgl::engine::memory
 
 	  protected:
 
-		vk::DeviceSize m_offset;
-		vk::DeviceSize m_byte_size;
-
-		void flush( vk::DeviceSize beg, vk::DeviceSize end ) const;
+		void flush() const;
 
 		explicit BufferSuballocation( const Buffer& buffer, std::size_t t_size, std::uint32_t t_align );
 
@@ -58,13 +55,13 @@ namespace fgl::engine::memory
 		void* ptr() const;
 
 		//! Returns the total byte size of the allocation
-		vk::DeviceSize bytesize() const noexcept { return m_byte_size; }
+		vk::DeviceSize bytesize() const noexcept { return m_handle->m_size; }
 
 		Buffer& getBuffer() const;
 
 		vk::Buffer getVkBuffer() const;
 
-		vk::DeviceSize getOffset() const noexcept { return m_offset; }
+		vk::DeviceSize getOffset() const noexcept { return m_handle->m_offset; }
 
 		vk::DescriptorBufferInfo descriptorInfo( std::size_t byte_offset = 0 ) const;
 

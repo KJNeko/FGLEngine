@@ -102,29 +102,21 @@ namespace fgl::engine::memory
 
 		void copySuballocationRegion(
 			const std::shared_ptr< BufferSuballocationHandle >& src,
-			const std::shared_ptr< BufferSuballocationHandle >& dst,
-			const std::size_t offset = 0 )
-		{
-			FGL_ASSERT( src->m_size == dst->m_size, "Source and destination suballocations must be the same size" );
-
-			TransferData transfer_data {
-				src,
-				dst,
-				offset,
-			};
-
-			m_queue.emplace( std::move( transfer_data ) );
-		}
+			const std::shared_ptr< BufferSuballocationHandle >& dst );
 
 		//! Queues a buffer to be transfered
 		template < typename DeviceVectorT >
 			requires is_device_vector< DeviceVectorT >
-		void copyToVector( std::vector< std::byte >&& data, DeviceVectorT& device_vector, std::size_t byte_offset = 0 )
+		void copyToVector(
+			std::vector< std::byte >&& data,
+			DeviceVectorT& device_vector,
+			const vk::DeviceSize target_offset = 0,
+			const vk::DeviceSize source_offset = 0 )
 		{
-			assert( data.size() > 0 );
-			TransferData transfer_data { std::forward< std::vector< std::byte > >( data ),
-				                         device_vector.m_handle,
-				                         byte_offset };
+			assert( !data.empty() );
+			TransferData transfer_data {
+				std::forward< std::vector< std::byte > >( data ), device_vector.m_handle, target_offset, source_offset
+			};
 
 			m_queue.emplace( std::move( transfer_data ) );
 		}
@@ -148,7 +140,6 @@ namespace fgl::engine::memory
 			requires is_device_vector< DeviceVectorT > && std::same_as< T, typename DeviceVectorT::Type >
 		void copyToVector( const std::vector< T >& data, DeviceVectorT& device_vector )
 		{
-			assert( data.size() > 0 );
 			std::vector< std::byte > punned_data {};
 			punned_data.resize( sizeof( T ) * data.size() );
 

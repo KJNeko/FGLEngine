@@ -22,7 +22,7 @@ namespace fgl::engine::memory
 		if ( !m_queue.empty() ) log::info( "[TransferManager]: Queue size: {}", m_queue.size() );
 
 		std::size_t counter { 0 };
-		constexpr std::size_t counter_max { 256 };
+		constexpr std::size_t counter_max { 1024 };
 
 		while ( !m_queue.empty() )
 		{
@@ -54,10 +54,12 @@ namespace fgl::engine::memory
 
 		const std::vector< vk::BufferMemoryBarrier > from_memory_barriers { createFromGraphicsBarriers() };
 
-		vk::DebugUtilsLabelEXT debug_label {};
-		debug_label.pLabelName = "Transfer";
+		{
+			vk::DebugUtilsLabelEXT debug_label {};
+			debug_label.pLabelName = "Transfer";
 
-		command_buffer.beginDebugUtilsLabelEXT( debug_label );
+			command_buffer.beginDebugUtilsLabelEXT( debug_label );
+		}
 
 		// Acquire the buffer from the queue family
 		command_buffer.pipelineBarrier(
@@ -73,7 +75,12 @@ namespace fgl::engine::memory
 		{
 			const auto& [ source, target ] = key;
 
-			command_buffer.copyBuffer( source, target, regions );
+			vk::DebugUtilsLabelEXT debug_label {};
+			const std::string str { std::format( "Copy: {} -> {}", source->m_debug_name, target->m_debug_name ) };
+			debug_label.pLabelName = str.c_str();
+			command_buffer.beginDebugUtilsLabelEXT( debug_label );
+			command_buffer.copyBuffer( source->getVkBuffer(), target->getVkBuffer(), regions );
+			command_buffer.endDebugUtilsLabelEXT();
 		}
 
 		const std::vector< vk::BufferMemoryBarrier > to_buffer_memory_barriers { createFromTransferBarriers() };
@@ -81,7 +88,8 @@ namespace fgl::engine::memory
 		// Release the buffer regions back to the graphics queue
 		command_buffer.pipelineBarrier(
 			vk::PipelineStageFlagBits::eTransfer,
-			vk::PipelineStageFlagBits::eVertexInput | vk::PipelineStageFlagBits::eVertexShader,
+			vk::PipelineStageFlagBits::eVertexInput | vk::PipelineStageFlagBits::eVertexShader
+				| vk::PipelineStageFlagBits::eComputeShader,
 			vk::DependencyFlags(),
 			{},
 			to_buffer_memory_barriers,
@@ -93,6 +101,17 @@ namespace fgl::engine::memory
 	void TransferManager::resizeBuffer( const std::uint64_t size )
 	{
 		m_staging_buffer->resize( size );
+	}
+
+	void TransferManager::copySuballocationRegion(
+		const std::shared_ptr< BufferSuballocationHandle >& src,
+		const std::shared_ptr< BufferSuballocationHandle >& dst )
+	{
+		FGL_ASSERT( src->m_size == dst->m_size, "Source and destination suballocations must be the same size" );
+
+		TransferData transfer_data { src, dst };
+
+		m_queue.emplace( std::move( transfer_data ) );
 	}
 
 	void TransferManager::submitBuffer( vk::raii::CommandBuffer& command_buffer )
@@ -118,16 +137,17 @@ namespace fgl::engine::memory
 
 	std::vector< vk::BufferMemoryBarrier > TransferManager::createFromGraphicsBarriers()
 	{
+		ZoneScoped;
 		std::vector< vk::BufferMemoryBarrier > barriers {};
 
 		for ( auto& [ key, regions ] : m_copy_regions )
 		{
-			auto& [ source, target ] = key;
+			const auto& [ source, target ] = key;
 
 			for ( const auto& region : regions )
 			{
 				vk::BufferMemoryBarrier barrier {};
-				barrier.buffer = target;
+				barrier.buffer = target->getVkBuffer();
 				barrier.offset = region.dstOffset;
 				barrier.size = region.size;
 				barrier.srcAccessMask = vk::AccessFlagBits::eNone;
@@ -144,6 +164,7 @@ namespace fgl::engine::memory
 
 	std::vector< vk::BufferMemoryBarrier > TransferManager::createToTransferBarriers()
 	{
+		ZoneScoped;
 		std::vector< vk::BufferMemoryBarrier > barriers {};
 
 		for ( auto& [ key, regions ] : m_copy_regions )
@@ -153,7 +174,7 @@ namespace fgl::engine::memory
 			for ( const auto& region : regions )
 			{
 				vk::BufferMemoryBarrier barrier {};
-				barrier.buffer = target;
+				barrier.buffer = target->getVkBuffer();
 				barrier.offset = region.dstOffset;
 				barrier.size = region.size;
 				barrier.srcAccessMask = vk::AccessFlagBits::eNone;
@@ -170,6 +191,7 @@ namespace fgl::engine::memory
 
 	std::vector< vk::BufferMemoryBarrier > TransferManager::createFromTransferBarriers()
 	{
+		ZoneScoped;
 		std::vector< vk::BufferMemoryBarrier > barriers {};
 
 		for ( auto& [ key, regions ] : m_copy_regions )
@@ -179,11 +201,12 @@ namespace fgl::engine::memory
 			for ( const auto& region : regions )
 			{
 				vk::BufferMemoryBarrier barrier {};
-				barrier.buffer = target;
+				barrier.buffer = target->getVkBuffer();
 				barrier.offset = region.dstOffset;
 				barrier.size = region.size;
 				barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-				barrier.dstAccessMask = vk::AccessFlagBits::eVertexAttributeRead | vk::AccessFlagBits::eIndexRead;
+				barrier.dstAccessMask = vk::AccessFlagBits::eVertexAttributeRead | vk::AccessFlagBits::eIndexRead
+				                      | vk::AccessFlagBits::eShaderRead;
 				barrier.srcQueueFamilyIndex = m_transfer_queue_index;
 				barrier.dstQueueFamilyIndex = m_graphics_queue_index;
 
@@ -196,6 +219,7 @@ namespace fgl::engine::memory
 
 	std::vector< vk::BufferMemoryBarrier > TransferManager::createToGraphicsBarriers()
 	{
+		ZoneScoped;
 		std::vector< vk::BufferMemoryBarrier > barriers {};
 
 		for ( const auto& [ key, regions ] : m_copy_regions )
@@ -205,7 +229,7 @@ namespace fgl::engine::memory
 			{
 				vk::BufferMemoryBarrier barrier {};
 
-				barrier.buffer = dst;
+				barrier.buffer = dst->getVkBuffer();
 				barrier.offset = region.dstOffset;
 				barrier.size = region.size;
 				barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite,
@@ -238,7 +262,8 @@ namespace fgl::engine::memory
 
 		command_buffer->pipelineBarrier(
 			vk::PipelineStageFlagBits::eTransfer,
-			vk::PipelineStageFlagBits::eVertexInput | vk::PipelineStageFlagBits::eVertexShader,
+			vk::PipelineStageFlagBits::eVertexInput | vk::PipelineStageFlagBits::eVertexShader
+				| vk::PipelineStageFlagBits::eComputeShader,
 			{},
 			{},
 			barriers,
@@ -273,7 +298,7 @@ namespace fgl::engine::memory
 
 	void TransferManager::copyToImage( std::vector< std::byte >&& data, const Image& image )
 	{
-		assert( data.size() > 0 );
+		assert( !data.empty() );
 		TransferData transfer_data { std::forward< std::vector< std::byte > >( data ), image.m_handle };
 
 		assert( std::get< TransferData::RawData >( transfer_data.m_source ).size() > 0 );
@@ -318,11 +343,12 @@ namespace fgl::engine::memory
 
 		submitBuffer( transfer_buffer );
 
-		if ( m_processing.size() > 0 ) log::debug( "Submitted {} objects to be transfered", m_processing.size() );
+		if ( !m_processing.empty() ) log::debug( "Submitted {} objects to be transfered", m_processing.size() );
 
 		for ( auto& processed : m_processing )
 		{
 			processed.markGood();
+			processed.cleanupSource();
 		}
 
 		//Drop the data

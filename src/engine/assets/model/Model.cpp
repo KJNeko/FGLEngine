@@ -22,15 +22,15 @@ namespace fgl::engine
 
 	ModelGPUBuffers::ModelGPUBuffers() :
 	  m_long_buffer(
-		  32_MiB,
+		  1_GiB,
 		  vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal ),
 	  m_short_buffer(
-		  16_MiB,
+		  128_MiB,
 		  vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible ),
 	  m_vertex_buffer(
-		  2_MiB,
+		  2_GiB,
 		  vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eStorageBuffer
 			  | vk::BufferUsageFlagBits::eTransferDst,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal ),
@@ -39,20 +39,25 @@ namespace fgl::engine
 		  vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal ),
 	  m_primitive_info( m_long_buffer ),
-	  m_primitive_instances( m_short_buffer ),
+	  m_primitive_instances( m_long_buffer ),
 	  m_model_instances( m_short_buffer ),
 	  m_generated_instance_info( constructPerFrame< DeviceVector< PerVertexInstanceInfo > >( m_vertex_buffer ) )
 	{
+		m_long_buffer->setDebugName( "Long buffer" );
+		m_short_buffer->setDebugName( "Short buffer" );
+		m_vertex_buffer->setDebugName( "Vertex buffer" );
+		m_index_buffer->setDebugName( "Index buffer" );
+
 		m_primitives_desc = PRIMITIVE_SET.create();
 		m_primitives_desc->bindStorageBuffer( 0, m_primitive_info );
 		m_primitives_desc->update();
-		m_primitives_desc->setName( "Primitives" );
+		m_primitives_desc->setName( "Descriptor: Primitives" );
 
 		m_instances_desc = INSTANCES_SET.create();
 		m_instances_desc->bindStorageBuffer( 0, m_primitive_instances );
 		m_instances_desc->bindStorageBuffer( 1, m_model_instances );
 		m_instances_desc->update();
-		m_instances_desc->setName( "Instances, Primitive + Models" );
+		m_instances_desc->setName( "Descriptor: Instances, Primitive + Models" );
 	}
 
 	OrientedBoundingBox< CoordinateSpace::Model > Model::buildBoundingBox( const std::vector< Primitive >& primitives )
@@ -100,14 +105,14 @@ namespace fgl::engine
 
 		ModelInstanceInfoIndex model_instance { buffers.m_model_instances.acquire( model_info ) };
 
-		for ( std::size_t i = 0; i < m_primitives.size(); i++ )
+		for ( auto& m_primitive : m_primitives )
 		{
-			auto render_info { m_primitives[ i ].renderInstanceInfo() };
+			auto render_info { m_primitive.renderInstanceInfo() };
 
 			PrimitiveInstanceInfo instance_info {};
 			instance_info.m_primitive_info = render_info->idx();
 			instance_info.m_model_info = model_instance.idx();
-			instance_info.m_material = m_primitives[ i ].default_material->getID();
+			instance_info.m_material = m_primitive.default_material->getID();
 
 			primitive_instances.emplace_back( buffers.m_primitive_instances.acquire( instance_info ) );
 		}

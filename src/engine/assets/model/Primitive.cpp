@@ -59,7 +59,6 @@ namespace fgl::engine
 	  m_index_buffer( std::move( index_buffer ) ),
 	  m_bounding_box( bounding_box ),
 	  m_mode( mode ),
-	  default_material(),
 	  m_primitive_info( buildRenderInfo() )
 	{
 		assert( m_bounding_box.getTransform().scale != glm::vec3( 0.0f ) );

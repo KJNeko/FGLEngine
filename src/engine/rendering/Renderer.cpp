@@ -126,7 +126,16 @@ namespace fgl::engine
 
 		//TODO: Restore tracy functionality, It's wanting a command buffer.
 		//TODO: Figure out if the command buffer it wants is just for setup or needs to be ran occasionally
-		// m_tracy_ctx = createContext( m_phy_device, Device::getInstance(), m_command_buffer[ 0 ] );
+
+		auto command_buffer { Device::getInstance().beginSingleTimeCommands() };
+
+		m_tracy_ctx = createContext( m_phy_device, Device::getInstance(), command_buffer );
+
+		// command_buffer.end();
+
+		// Device::getInstance().endSingleTimeCommands( command_buffer );
+
+		// Submit
 
 		/*
 		m_tracy_ctx = TracyVkContextCalibrated(

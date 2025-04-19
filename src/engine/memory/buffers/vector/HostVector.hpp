@@ -63,7 +63,7 @@ namespace fgl::engine
 			assert( count > 0 && "Count must be larger then 0" );
 			assert( count <= m_count );
 
-			BufferSuballocation::flush( start_idx * this->m_stride, end_idx * this->m_stride );
+			BufferSuballocation::flush();
 		}
 
 		HostVector& operator=( const std::vector< T >& vec )

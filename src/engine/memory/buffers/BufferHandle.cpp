@@ -4,6 +4,8 @@
 
 #include "BufferHandle.hpp"
 
+#include <vulkan/vulkan.hpp>
+
 #include <iostream>
 #include <tuple>
 
@@ -11,10 +13,8 @@
 #include "align.hpp"
 #include "assets/transfer/TransferManager.hpp"
 #include "engine/debug/logging/logging.hpp"
-#include "engine/memory/buffers/BufferHandle.hpp"
 #include "engine/memory/buffers/exceptions.hpp"
 #include "engine/rendering/devices/Device.hpp"
-#include "memory/DefferedCleanup.hpp"
 
 namespace fgl::engine::memory
 {
@@ -49,35 +49,45 @@ namespace fgl::engine::memory
 		m_allocation = vma_allocation;
 
 		m_free_blocks.emplace_back( 0, memory_size );
+
+		TracyAllocN( m_buffer, m_memory_size, "GPU" );
 	}
 
 	BufferHandle::~BufferHandle()
 	{
-		if ( !m_active_suballocations.empty() )
+		for ( auto& suballocation_weak : m_active_suballocations )
 		{
-			log::critical( "Buffer allocations not empty. {} allocations left", m_active_suballocations.size() );
-
-			for ( const auto& suballocation : m_active_suballocations )
+			if ( !suballocation_weak.expired() )
 			{
-				if ( suballocation.expired() ) continue;
-				auto suballoc_ptr { suballocation.lock() };
-				const auto offset { suballoc_ptr->m_offset };
-				const auto size { suballoc_ptr->m_size };
-				log::info( "Stacktrace: Offset at {} with a size of {}", offset, size );
+				log::critical( "Buffer had unexpired allocations left over" );
 
-				const auto itter = this->m_allocation_traces.find( offset );
+				for ( const auto& suballocation : m_active_suballocations )
+				{
+					if ( suballocation.expired() ) continue;
+					const auto suballoc_ptr { suballocation.lock() };
+					FGL_ASSERT(
+						suballoc_ptr->m_parent_buffer.get() == this,
+						"Somehow we have a active suballocation that did not belong to us?" );
+					const auto offset { suballoc_ptr->m_offset };
+					const auto size { suballoc_ptr->m_size };
+					log::info( "Stacktrace: Offset at {} with a size of {}", offset, size );
 
-				if ( itter == this->m_allocation_traces.end() ) continue;
+					const auto itter = this->m_allocation_traces.find( offset );
 
-				std::stacktrace trace { itter->second };
+					if ( itter == this->m_allocation_traces.end() ) continue;
 
-				std::cout << trace << std::endl;
+					std::stacktrace trace { itter->second };
+
+					std::cout << trace << std::endl;
+				}
+
+				log::critical( "Buffer allocations were not empty!" );
+				// Call will always terminate
+				throw std::runtime_error( "Buffer allocations not empty" );
 			}
-
-			log::critical( "Buffer allocations were not empty!" );
-			// Call will always terminate
-			throw std::runtime_error( "Buffer allocations not empty" );
 		}
+
+		TracyFreeN( m_buffer, "GPU" );
 
 		deallocBuffer( m_buffer, m_allocation );
 	}
@@ -89,8 +99,9 @@ namespace fgl::engine::memory
 		return static_cast< std::byte* >( m_alloc_info.pMappedData ) + handle.m_offset;
 	}
 
-	void BufferHandle::deallocBuffer( vk::Buffer& buffer, VmaAllocation& allocation )
+	auto BufferHandle::deallocBuffer( const vk::Buffer& buffer, VmaAllocation& allocation ) -> void
 	{
+		log::debug( "Destroying buffer of size {}", m_memory_size );
 		vmaDestroyBuffer( Device::getInstance().allocator(), buffer, allocation );
 	}
 
@@ -141,10 +152,14 @@ namespace fgl::engine::memory
 
 		vmaGetAllocationInfo( Device::getInstance().allocator(), allocation, &alloc_info );
 
+		log::debug( "Created buffer with size {}", alloc_info.size );
+
+		static_assert( std::is_trivially_copyable_v< decltype( buffer ) > );
+
 		return std::make_tuple<
 			vk::Buffer,
 			VmaAllocationInfo,
-			VmaAllocation >( std::move( buffer ), std::move( alloc_info ), std::move( allocation ) );
+			VmaAllocation >( buffer, std::move( alloc_info ), std::move( allocation ) );
 	}
 
 	vk::DeviceSize BufferHandle::alignment() const
@@ -189,6 +204,7 @@ namespace fgl::engine::memory
 
 	void BufferHandle::resize( const vk::DeviceSize new_size )
 	{
+		ZoneScoped;
 		log::warn( "Resizing buffer from {} to {}", size(), new_size );
 
 		std::shared_ptr< BufferHandle > new_handle { new BufferHandle( new_size, m_usage, m_memory_properties ) };
@@ -200,15 +216,26 @@ namespace fgl::engine::memory
 
 		allocations.reserve( m_active_suballocations.size() );
 
+		// replicate the allocations by size and alignment in the new handle.
 		for ( auto& suballocation_weak : m_active_suballocations )
 		{
 			if ( suballocation_weak.expired() ) continue;
 			try
 			{
-				auto suballocation { suballocation_weak.lock() };
+				auto old_allocation { suballocation_weak.lock() };
+				auto new_allocation { old_allocation->reallocInTarget( new_handle ) };
 
-				auto new_suballocation { new_handle->allocate( suballocation->m_size, suballocation->m_alignment ) };
-				allocations.emplace_back( std::make_pair( suballocation, new_suballocation ) );
+				std::swap( old_allocation->m_alignment, new_allocation->m_alignment );
+				std::swap( old_allocation->m_offset, new_allocation->m_offset );
+				std::swap( old_allocation->m_size, new_allocation->m_size );
+				// std::swap( old_allocation->m_parent_buffer, new_allocation->m_parent_buffer );
+				std::swap( old_allocation->m_ptr, new_allocation->m_ptr );
+				std::swap( old_allocation->m_staged, new_allocation->m_staged );
+
+				FGL_ASSERT( old_allocation->m_parent_buffer.get() == this, "Wtf is this retarded shit?" );
+
+				// the new allocation is now holding the data of the old allocaiton, Thus it goes on the left
+				allocations.emplace_back( new_allocation, old_allocation );
 			}
 			catch ( std::bad_weak_ptr& e )
 			{
@@ -217,29 +244,25 @@ namespace fgl::engine::memory
 			}
 		}
 
-		std::swap( m_buffer, new_handle->m_buffer );
-		std::swap( m_alloc_info, new_handle->m_alloc_info );
-		std::swap( m_allocation, new_handle->m_allocation );
-		std::swap( m_free_blocks, new_handle->m_free_blocks );
-		std::swap( m_active_suballocations, new_handle->m_active_suballocations );
-		std::swap( m_allocation_traces, new_handle->m_allocation_traces );
+		auto old_handle { this->shared_from_this() };
 
-		// This transforms any memory::Buffer to be the `new_handle` we allocated above.
-		const auto old_handle { new_handle };
-		FGL_ASSERT( old_handle.get() != this, "Old handle should not be the current buffer anymore!" );
-		new_handle = this->shared_from_this();
+		// swap the internal data.
+		std::swap( old_handle->m_buffer, new_handle->m_buffer );
+		std::swap( old_handle->m_alloc_info, new_handle->m_alloc_info );
+		std::swap( old_handle->m_allocation, new_handle->m_allocation );
+		std::swap( old_handle->m_free_blocks, new_handle->m_free_blocks );
+		// std::swap( old_handle->m_active_suballocations, new_handle->m_active_suballocations );
+		// std::swap( old_handle->m_allocation_traces, new_handle->m_allocation_traces );
 
-		for ( auto& [ old_allocation, new_allocation ] : allocations )
+		for ( auto& [ old_alloc, new_alloc ] : allocations )
 		{
-			old_allocation->m_parent_buffer = old_handle;
-			new_allocation->m_parent_buffer = new_handle;
-		}
+			FGL_ASSERT( new_alloc->m_parent_buffer.get() == this, "???" );
 
-		//Now we need to transfer the data from the old buffer to the new buffer
-		for ( const auto& allocation : allocations )
-		{
-			const auto& [ old_suballocation, new_suballocation ] = allocation;
-			TransferManager::getInstance().copySuballocationRegion( old_suballocation, new_suballocation );
+			FGL_ASSERT(
+				new_alloc->m_parent_buffer.get() != old_alloc->m_parent_buffer.get(),
+				"New and Old allocation have the same parent buffer." );
+
+			TransferManager::getInstance().copySuballocationRegion( old_alloc, new_alloc );
 		}
 	}
 
@@ -327,6 +350,7 @@ namespace fgl::engine::memory
 
 	bool BufferHandle::canAllocate( const vk::DeviceSize memory_size, const std::uint32_t alignment )
 	{
+		ZoneScoped;
 		// TODO: This check can be optimized by itterating through and virtually combining blocks that would be combined.
 		// If the combined block is large enough then we should consider it being capable of allocation.
 		// We don't need to care if a block later in the chain is large enough since the allocation would first
@@ -392,6 +416,7 @@ namespace fgl::engine::memory
 		info.objectHandle = reinterpret_cast< std::uint64_t >( static_cast< VkBuffer >( this->m_buffer ) );
 
 		m_debug_name = str;
+		m_pool_name = std::format( "GPU {} Suballocation", m_debug_name );
 
 		Device::getInstance().setDebugUtilsObjectName( info );
 	}
@@ -439,12 +464,25 @@ namespace fgl::engine::memory
 	{
 		vk::DeviceSize total_size { 0 };
 
-		for ( auto& suballocation : m_active_suballocations )
+		for ( const auto& suballocation : m_active_suballocations )
 		{
 			total_size += suballocation.lock()->m_size;
 		}
 
 		return total_size;
+	}
+
+	bool BufferHandle::isHostVisible() const
+	{
+		const bool is_host_visible { m_memory_properties & vk::MemoryPropertyFlagBits::eHostVisible };
+		return is_host_visible;
+	}
+
+	bool BufferHandle::needsFlush() const
+	{
+		// If the memory is not host coherent, We must flush the buffer.
+		const bool is_host_coherent { m_memory_properties & vk::MemoryPropertyFlagBits::eHostCoherent };
+		return !is_host_coherent;
 	}
 
 	vk::DeviceSize BufferHandle::largestBlock() const

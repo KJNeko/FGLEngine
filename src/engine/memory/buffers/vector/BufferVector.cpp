@@ -6,7 +6,6 @@
 
 #include "engine/assets/transfer/TransferManager.hpp"
 #include "engine/memory/buffers/BufferHandle.hpp"
-#include "memory/buffers/BufferHandle.hpp"
 
 namespace fgl::engine::memory
 {
@@ -21,12 +20,12 @@ namespace fgl::engine::memory
 	{
 		FGL_ASSERT( m_stride > 0, "Stride was not greater then zero" );
 		FGL_ASSERT(
-			m_offset % m_stride == 0,
+			getOffset() % m_stride == 0,
 			std::format(
 				"{} % {} != 0 (Was {}). The offset should be aligned with the stride",
-				m_offset,
+				getOffset(),
 				m_stride,
-				m_offset % m_stride ) );
+				getOffset() % m_stride ) );
 	}
 
 	//! Returns the offset count from the start of the buffer to the first element
@@ -36,9 +35,10 @@ namespace fgl::engine::memory
 		assert( !std::isnan( m_stride ) );
 		assert( m_capacity * m_stride == this->bytesize() );
 		FGL_ASSERT(
-			m_offset % m_stride == 0, std::format( "{} % {} != 0 (Was {})", m_offset, m_stride, m_offset % m_stride ) );
+			getOffset() % m_stride == 0,
+			std::format( "{} % {} != 0 (Was {})", getOffset(), m_stride, getOffset() % m_stride ) );
 
-		return static_cast< std::uint32_t >( this->m_offset / m_stride );
+		return static_cast< std::uint32_t >( this->getOffset() / m_stride );
 	}
 
 	[[nodiscard]] std::uint32_t BufferVector::stride() const noexcept

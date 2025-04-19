@@ -35,6 +35,11 @@ namespace fgl::engine
 		  m_primitive_instances( std::move( primative_instances ) )
 		{}
 
+		~ModelInstance()
+		{
+			//TODO: Return m_model_instance back.
+		}
+
 		//! Returns the current update state and sets it to false if it was true.
 		bool acquireNeedsUpdate()
 		{

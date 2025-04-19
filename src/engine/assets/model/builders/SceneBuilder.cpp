@@ -91,81 +91,68 @@ namespace fgl::engine
 		// Size of the type we are extracting into
 		constexpr auto T_SIZE { sizeof( T ) };
 
-		// If the type size is smaller then we need. Then we need to throw an error
+		// If the type size is smaller than we need. Then we need to throw an error
 		if ( T_SIZE != byte_count )
 		{
 			// If the type is scalar type we can still safely use it without any major worries
-			if ( accessor.type == TINYGLTF_TYPE_SCALAR && T_SIZE >= byte_count )
-			{
-				// If the type is a smaller scalar then we want can still copy the data.
-				// log::warn( "Attempting to copy data of size {} into type of size {}", byte_count, T_SIZE );
-
-				if constexpr ( std::is_scalar_v< T > )
-				{
-					switch ( byte_count )
-					{
-						default:
-							throw std::runtime_error( "Unknown size" );
-						case 1:
-							for ( std::size_t i = 0; i < accessor.count; ++i )
-							{
-								std::uint8_t tmp {};
-								std::memcpy(
-									&tmp,
-									buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset
-										+ ( i * byte_count ),
-									byte_count );
-								data.emplace_back( static_cast< T >( tmp ) );
-							}
-							return data;
-						case 2:
-							for ( std::size_t i = 0; i < accessor.count; ++i )
-							{
-								std::uint16_t tmp {};
-								std::memcpy(
-									&tmp,
-									buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset
-										+ ( i * byte_count ),
-									byte_count );
-								data.emplace_back( static_cast< T >( tmp ) );
-							}
-							return data;
-						case 4:
-							for ( std::size_t i = 0; i < accessor.count; ++i )
-							{
-								std::uint32_t tmp {};
-								std::memcpy(
-									&tmp,
-									buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset
-										+ ( i * byte_count ),
-									byte_count );
-								data.emplace_back( static_cast< T >( tmp ) );
-							}
-							return data;
-						case 8:
-							for ( std::size_t i = 0; i < accessor.count; ++i )
-							{
-								std::uint64_t tmp {};
-								std::memcpy(
-									&tmp,
-									buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset
-										+ ( i * byte_count ),
-									byte_count );
-								data.emplace_back( static_cast< T >( tmp ) );
-							}
-							return data;
-					}
-				}
-				else
-				{
-					throw std::runtime_error(
-						std::format( "Tried extracting data of size {} into type of size {}", byte_count, T_SIZE ) );
-				}
-			}
-			else
-			{
+			if ( !( accessor.type == TINYGLTF_TYPE_SCALAR && T_SIZE >= byte_count ) )
 				throw std::runtime_error(
 					std::format( "Tried extracting data of size {} into type of size {}", byte_count, T_SIZE ) );
+
+			// If the type is a smaller scalar then we want can still copy the data.
+			// log::warn( "Attempting to copy data of size {} into type of size {}", byte_count, T_SIZE );
+			// static_assert( std::is_scalar_v< T >, "Type must be a scalar type" );
+			if constexpr ( !std::is_scalar_v< T > )
+				throw std::runtime_error( "Tried extracting scalar value into non-scalar type" );
+
+			switch ( byte_count )
+			{
+				default:
+					throw std::runtime_error( "Unknown size" );
+				case 1:
+					for ( std::size_t i = 0; i < accessor.count; ++i )
+					{
+						std::uint8_t tmp {};
+						std::memcpy(
+							&tmp,
+							buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset + ( i * byte_count ),
+							byte_count );
+						data.emplace_back( static_cast< T >( tmp ) );
+					}
+					return data;
+				case 2:
+					for ( std::size_t i = 0; i < accessor.count; ++i )
+					{
+						std::uint16_t tmp {};
+						std::memcpy(
+							&tmp,
+							buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset + ( i * byte_count ),
+							byte_count );
+						data.emplace_back( static_cast< T >( tmp ) );
+					}
+					return data;
+				case 4:
+					for ( std::size_t i = 0; i < accessor.count; ++i )
+					{
+						std::uint32_t tmp {};
+						std::memcpy(
+							&tmp,
+							buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset + ( i * byte_count ),
+							byte_count );
+						data.emplace_back( static_cast< T >( tmp ) );
+					}
+					return data;
+				case 8:
+					for ( std::size_t i = 0; i < accessor.count; ++i )
+					{
+						std::uint64_t tmp {};
+						std::memcpy(
+							&tmp,
+							buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset + ( i * byte_count ),
+							byte_count );
+						data.emplace_back( static_cast< T >( tmp ) );
+					}
+					return data;
 			}
 		}
 
@@ -189,19 +176,19 @@ namespace fgl::engine
 		{
 			return extractData< std::uint32_t >( model, indicies_accessor );
 		}
-		else
-		{
-			//TODO: Figure out any time we can use a smaller indicies value instead of a 32 bit number all the time
-			std::vector< std::uint32_t > indicies {};
 
-			const auto tmp { extractData< std::uint32_t >( model, indicies_accessor ) };
+		// TODO: Vulkan supports the ability to use smaller indicies for models that hae a limited number of indicies used, This will then get 'cast' to the larger type with an offset set during rendering.
+		// We should be able to compress down a lot of things to be as small as possible using the smallest indicies type we can.
+		// TODO: Figure out any time we can use a smaller indicies value instead of a 32 bit number all the time
+		std::vector< std::uint32_t > indicies {};
 
-			indicies.reserve( tmp.size() );
+		const auto tmp { extractData< std::uint32_t >( model, indicies_accessor ) };
 
-			for ( const auto val : tmp ) indicies.emplace_back( val );
+		indicies.reserve( tmp.size() );
 
-			return indicies;
-		}
+		for ( const auto val : tmp ) indicies.emplace_back( val );
+
+		return indicies;
 	}
 
 	const tinygltf::Accessor& SceneBuilder::getAccessorForAttribute(
@@ -235,10 +222,8 @@ namespace fgl::engine
 		{
 			const auto& itter { materials.values.find( name ) };
 
-			if ( itter == materials.values.end() )
-				return std::nullopt;
-			else
-				return { itter->second };
+			if ( itter == materials.values.end() ) return std::nullopt;
+			return { itter->second };
 		};
 
 		std::string str {};
@@ -496,6 +481,9 @@ namespace fgl::engine
 	std::shared_ptr< Model > SceneBuilder::loadModel( const int mesh_idx, const tinygltf::Model& root )
 	{
 		ZoneScoped;
+
+		if ( mesh_idx == -1 ) return { nullptr };
+
 		const auto mesh { root.meshes[ mesh_idx ] };
 		const auto& primitives { mesh.primitives };
 
@@ -546,6 +534,9 @@ namespace fgl::engine
 		loadMaterial( const tinygltf::Primitive& prim, const tinygltf::Model& root )
 	{
 		const auto& material_id { prim.material };
+
+		if ( material_id == -1 ) return { nullptr };
+
 		const auto& gltf_material { root.materials[ material_id ] };
 
 		auto material { Material::createMaterial() };
@@ -553,7 +544,8 @@ namespace fgl::engine
 		{
 			const auto& metallic_roughness { gltf_material.pbrMetallicRoughness };
 			const auto& pbr_tex_id { metallic_roughness.baseColorTexture.index };
-			material->properties.pbr.color_tex = loadTexture( pbr_tex_id, root );
+
+			if ( pbr_tex_id != -1 ) material->properties.pbr.color_tex = loadTexture( pbr_tex_id, root );
 
 			material->properties.pbr.color_factors = { metallic_roughness.baseColorFactor[ 0 ],
 				                                       metallic_roughness.baseColorFactor[ 1 ],
@@ -590,21 +582,21 @@ namespace fgl::engine
 
 		GameObject obj { GameObject::createGameObject() };
 
-		std::shared_ptr< Model > model { loadModel( mesh_idx, root ) };
+		// this object contains a model
+		if ( mesh_idx != -1 )
+		{
+			std::shared_ptr< Model > model { loadModel( mesh_idx, root ) };
+			FGL_ASSERT( model, "Model pointer was null!" );
+			// auto component { std::make_unique< components::ModelComponent >( std::move( model ) ) };
 
-		assert( model );
+			obj.createComponent< components::ModelComponent >( std::move( model ) );
 
-		std::unique_ptr< components::ModelComponent > component {
-			std::make_unique< components::ModelComponent >( std::move( model ) )
-		};
-
-		obj.addComponent( std::move( component ) );
-
-		obj.addFlag( IsVisible | IsEntity );
+			obj.addFlag( IsVisible | IsEntity );
+		}
 
 		const auto transform { loadTransform( node_idx, root ) };
 
-		// obj.getTransform() = transform;
+		obj.createComponent< components::TransformComponent >( transform );
 
 		if ( node.name.empty() )
 			obj.setName( "Unnamed Game Object" );
@@ -637,6 +629,7 @@ namespace fgl::engine
 
 		if ( path.extension() == ".gltf" )
 		{
+			ZoneScopedN( "LoadASCIIFromFile" );
 			//Must use the ASCII loader
 			if ( !loader.LoadASCIIFromFile( &gltf_model, &err, &warn, path ) )
 			{
@@ -648,6 +641,7 @@ namespace fgl::engine
 		}
 		else
 		{
+			ZoneScopedN( "LoadBinaryFromFile" );
 			if ( !loader.LoadBinaryFromFile( &gltf_model, &err, &warn, path ) )
 			{
 				log::info( "Failed to scene at {}", path );
