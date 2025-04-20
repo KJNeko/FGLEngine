@@ -56,16 +56,31 @@ namespace fgl::engine
 		return false;
 	}
 
+	float scoreDevice( const vk::raii::PhysicalDevice& device )
+	{
+		constexpr float api_discrete_factor { 100.0f };
+		constexpr float api_major_factor { 1.0f };
+		constexpr float api_minor_factor { 1.0f };
+
+		const auto props { device.getProperties() };
+
+		float score { 1.0f };
+		score += static_cast< float >( props.apiVersion );
+		if ( props.deviceType == vk::PhysicalDeviceType::eDiscreteGpu ) score *= api_discrete_factor;
+
+		return score;
+	}
+
 	void rankDevices( std::vector< vk::raii::PhysicalDevice >& vector )
 	{
 		std::ranges::sort(
 			vector,
 			[]( const vk::raii::PhysicalDevice& a, const vk::raii::PhysicalDevice& b )
 			{
-				const auto a_props { a.getProperties() };
-				const auto b_props { b.getProperties() };
+				const auto a_score { scoreDevice( a ) };
+				const auto b_score { scoreDevice( b ) };
 
-				return a_props.apiVersion > b_props.apiVersion;
+				return a_score > b_score;
 			} );
 	}
 
