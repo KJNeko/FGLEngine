@@ -99,9 +99,9 @@ namespace fgl::engine::memory
 		return static_cast< std::byte* >( m_alloc_info.pMappedData ) + handle.m_offset;
 	}
 
-	auto BufferHandle::deallocBuffer( const vk::Buffer& buffer, VmaAllocation& allocation ) -> void
+	auto BufferHandle::deallocBuffer( const vk::Buffer& buffer, const VmaAllocation& allocation ) -> void
 	{
-		log::debug( "Destroying buffer of size {}", m_memory_size );
+		log::debug( "Destroying buffer {} of size {}", m_debug_name, m_memory_size );
 		vmaDestroyBuffer( Device::getInstance().allocator(), buffer, allocation );
 	}
 
@@ -202,6 +202,16 @@ namespace fgl::engine::memory
 			} );
 	}
 
+	void BufferHandle::rebindDescriptors()
+	{
+		for ( auto& weak_allocation : m_active_suballocations )
+		{
+			if ( weak_allocation.expired() ) continue;
+			auto allocation { weak_allocation.lock() };
+			allocation->rebindDescriptor();
+		}
+	}
+
 	void BufferHandle::resize( const vk::DeviceSize new_size )
 	{
 		ZoneScoped;
@@ -264,6 +274,8 @@ namespace fgl::engine::memory
 
 			TransferManager::getInstance().copySuballocationRegion( old_alloc, new_alloc );
 		}
+
+		rebindDescriptors();
 	}
 
 	std::shared_ptr< BufferSuballocationHandle > BufferHandle::

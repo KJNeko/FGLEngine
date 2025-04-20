@@ -44,6 +44,8 @@ namespace fgl::engine::descriptors
 		write.pTexelBufferView = VK_NULL_HANDLE;
 
 		m_descriptor_writes.push_back( write );
+
+		buffer.setRebindInfoUniform( this->shared_from_this(), binding_idx );
 	}
 
 	void DescriptorSet::bindStorageBuffer( const std::uint32_t binding_idx, const memory::BufferSuballocation& buffer )
@@ -64,6 +66,8 @@ namespace fgl::engine::descriptors
 		write.pTexelBufferView = VK_NULL_HANDLE;
 
 		m_descriptor_writes.push_back( write );
+
+		buffer.setRebindInfoStorage( this->shared_from_this(), binding_idx );
 	}
 
 	void DescriptorSet::bindArray(
@@ -90,6 +94,8 @@ namespace fgl::engine::descriptors
 		write.pTexelBufferView = VK_NULL_HANDLE;
 
 		m_descriptor_writes.push_back( write );
+
+		buffer.setRebindInfoArray( binding_idx, this->shared_from_this(), array_idx, item_size );
 	}
 
 	void DescriptorSet::
@@ -206,9 +212,9 @@ namespace fgl::engine::descriptors
 		Device::getInstance().setDebugUtilsObjectName( info );
 	}
 
-	inline static std::vector< std::pair< std::uint_fast8_t, std::unique_ptr< DescriptorSet > > > QUEUE {};
+	inline static std::vector< std::pair< std::uint_fast8_t, descriptors::DescriptorSetPtr > > QUEUE {};
 
-	void queueDescriptorDeletion( std::unique_ptr< DescriptorSet > set )
+	void queueDescriptorDeletion( descriptors::DescriptorSetPtr set )
 	{
 		QUEUE.emplace_back( 0, std::move( set ) );
 	}

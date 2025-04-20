@@ -72,6 +72,35 @@ namespace fgl::engine::memory
 		return { getVkBuffer(), getOffset() + byte_offset, bytesize() };
 	}
 
+	void BufferSuballocation::setRebindInfoStorage(
+		const std::shared_ptr< descriptors::DescriptorSet >& descriptor, const std::uint32_t binding_idx ) const
+	{
+		m_handle->m_descriptor_rebind_info.m_descriptor = descriptor;
+		m_handle->m_descriptor_rebind_info.m_type = BufferSuballocationHandle::Storage;
+		m_handle->m_descriptor_rebind_info.storage_bind_info.m_binding_idx = binding_idx;
+	}
+
+	void BufferSuballocation::setRebindInfoUniform(
+		const std::shared_ptr< descriptors::DescriptorSet >& descriptor, const std::uint32_t binding_idx ) const
+	{
+		m_handle->m_descriptor_rebind_info.m_descriptor = descriptor;
+		m_handle->m_descriptor_rebind_info.m_type = BufferSuballocationHandle::Uniform;
+		m_handle->m_descriptor_rebind_info.uniform_bind_info.m_binding_idx = binding_idx;
+	}
+
+	void BufferSuballocation::setRebindInfoArray(
+		const std::uint32_t binding_idx,
+		const std::shared_ptr< descriptors::DescriptorSet >& descriptor,
+		const std::size_t array_idx,
+		const std::size_t item_size ) const
+	{
+		m_handle->m_descriptor_rebind_info.m_descriptor = descriptor;
+		m_handle->m_descriptor_rebind_info.m_type = BufferSuballocationHandle::Array;
+		m_handle->m_descriptor_rebind_info.array_bind_info.m_array_idx = array_idx;
+		m_handle->m_descriptor_rebind_info.array_bind_info.m_item_size = item_size;
+		m_handle->m_descriptor_rebind_info.array_bind_info.m_binding_idx = binding_idx;
+	}
+
 	BufferSuballocation::~BufferSuballocation() = default;
 
 	SuballocationView BufferSuballocation::view( const vk::DeviceSize offset, const vk::DeviceSize size ) const

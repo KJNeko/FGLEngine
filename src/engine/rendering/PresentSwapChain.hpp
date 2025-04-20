@@ -44,7 +44,7 @@ namespace fgl::engine
 			DepthAttachment< 1 > m_depth;
 		} m_render_attachments { m_swap_chain_format, m_swap_chain_depth_format };
 
-		std::vector< std::unique_ptr< descriptors::DescriptorSet > > m_input_descriptors {};
+		std::vector< descriptors::DescriptorSetPtr > m_input_descriptors {};
 
 		std::vector< vk::ClearValue > m_clear_values;
 
@@ -58,7 +58,7 @@ namespace fgl::engine
 		void init();
 		[[nodiscard]] vk::raii::SwapchainKHR createSwapChain();
 		[[nodiscard]] std::vector< std::shared_ptr< Image > > createSwapchainImages();
-		[[nodiscard]] std::vector< std::unique_ptr< descriptors::DescriptorSet > > createInputDescriptors();
+		[[nodiscard]] std::vector< descriptors::DescriptorSetPtr > createInputDescriptors();
 		void createSyncObjects();
 
 		// Helper functions

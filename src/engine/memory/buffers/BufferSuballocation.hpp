@@ -67,6 +67,18 @@ namespace fgl::engine::memory
 
 		const std::shared_ptr< BufferSuballocationHandle >& getHandle() { return m_handle; }
 
+		void setRebindInfoStorage(
+			const std::shared_ptr< descriptors::DescriptorSet >& descriptor, std::uint32_t binding_idx ) const;
+
+		void setRebindInfoUniform(
+			const std::shared_ptr< descriptors::DescriptorSet >& descriptor, std::uint32_t binding_idx ) const;
+
+		void setRebindInfoArray(
+			std::uint32_t binding_idx,
+			const std::shared_ptr< descriptors::DescriptorSet >& descriptor,
+			std::size_t array_idx,
+			std::size_t item_size ) const;
+
 		~BufferSuballocation();
 	};
 

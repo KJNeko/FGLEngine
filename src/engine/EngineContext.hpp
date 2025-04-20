@@ -82,13 +82,13 @@ namespace fgl::engine
 		PerFrameArray< DeviceVector< vk::DrawIndexedIndirectCommand > > m_gpu_draw_commands;
 		//TODO: Outright remove this. Or the one in model buffers.
 		PerFrameArray< DeviceVector< PerVertexInstanceInfo > >& m_per_vertex_infos;
-		PerFrameArray< std::unique_ptr< descriptors::DescriptorSet > > m_gpu_draw_cmds_desc;
+		PerFrameArray< descriptors::DescriptorSetPtr > m_gpu_draw_cmds_desc;
 
 		MaterialManager m_material_manager {};
 
 		CameraManager m_camera_manager {};
 
-		memory::TransferManager m_transfer_manager { m_device, 1_GiB };
+		memory::TransferManager m_transfer_manager { m_device, 256_MiB };
 
 		std::chrono::time_point< Clock > m_last_tick { Clock::now() };
 		DeltaTime m_delta_time;

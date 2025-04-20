@@ -5,6 +5,7 @@
 #include "BufferSuballocationHandle.hpp"
 
 #include "align.hpp"
+#include "descriptors/DescriptorSet.hpp"
 #include "rendering/CommandBuffers.hpp"
 #include "rendering/devices/Device.hpp"
 
@@ -24,7 +25,8 @@ namespace fgl::engine::memory
 	  m_size( memory_size ),
 	  m_offset( offset ),
 	  m_alignment( alignment ),
-	  m_ptr( m_parent_buffer->map( *this ) )
+	  m_ptr( m_parent_buffer->map( *this ) ),
+	  m_descriptor_rebind_info()
 	{
 		const std::byte* ptr { reinterpret_cast< std::byte* >( &m_parent_buffer->m_buffer ) };
 		TracyAllocN( ptr + m_offset, m_size, m_parent_buffer->m_pool_name.c_str() );
@@ -60,13 +62,45 @@ namespace fgl::engine::memory
 		Device::getInstance()->flushMappedMemoryRanges( ranges );
 	}
 
+	void BufferSuballocationHandle::rebindDescriptor()
+	{
+		if ( m_descriptor_rebind_info.m_descriptor.expired() ) return;
+
+		const auto descriptor { m_descriptor_rebind_info.m_descriptor.lock() };
+		BufferSuballocation suballocation { this->shared_from_this() };
+
+		switch ( m_descriptor_rebind_info.m_type )
+		{
+			case BufferSuballocationHandle::Uniform:
+				descriptor
+					->bindUniformBuffer( m_descriptor_rebind_info.uniform_bind_info.m_binding_idx, suballocation );
+				break;
+			case BufferSuballocationHandle::Storage:
+				descriptor
+					->bindStorageBuffer( m_descriptor_rebind_info.storage_bind_info.m_binding_idx, suballocation );
+				break;
+			case BufferSuballocationHandle::Array:
+				descriptor->bindArray(
+					m_descriptor_rebind_info.array_bind_info.m_binding_idx,
+					suballocation,
+					m_descriptor_rebind_info.array_bind_info.m_array_idx,
+					m_descriptor_rebind_info.array_bind_info.m_item_size );
+				break;
+			default:
+				throw std::runtime_error( "Unknown descriptor type!" );
+		}
+
+		descriptor->update();
+	}
+
 	BufferSuballocationHandle::BufferSuballocationHandle( const BufferSuballocationHandle& other ) noexcept :
 	  m_parent_buffer( other.m_parent_buffer ),
 	  m_size( other.m_size ),
 	  m_offset( other.m_offset ),
 	  m_alignment( other.m_alignment ),
 	  m_ptr( other.m_ptr ),
-	  m_staged( other.m_staged )
+	  m_staged( other.m_staged ),
+	  m_descriptor_rebind_info()
 	{}
 
 	BufferSuballocationHandle::~BufferSuballocationHandle()

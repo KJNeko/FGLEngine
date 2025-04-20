@@ -77,7 +77,7 @@ namespace fgl::engine::memory
 
 		static std::tuple< vk::Buffer, VmaAllocationInfo, VmaAllocation > allocBuffer(
 			vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags property_flags );
-		void deallocBuffer( const vk::Buffer&, VmaAllocation& );
+		void deallocBuffer( const vk::Buffer&, const VmaAllocation& );
 
 		BufferHandle() = delete;
 		BufferHandle( const BufferHandle& other ) = delete;
@@ -126,6 +126,7 @@ namespace fgl::engine::memory
 
 		bool isMappable() const { return m_alloc_info.pMappedData != nullptr; }
 
+		void rebindDescriptors();
 		void resize( vk::DeviceSize new_size );
 		//! Returns a allocation block from this buffer. Block will be aligned with nonUniformBufferOffsetAlignment
 		//! and nonCoherentAtomSize if required (is_uniform_buffer and is_host_visible respectively)

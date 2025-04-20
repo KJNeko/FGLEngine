@@ -27,7 +27,7 @@ namespace fgl::engine::descriptors
 
 	using DescriptorIDX = std::uint32_t;
 
-	class DescriptorSet
+	class DescriptorSet : public std::enable_shared_from_this< DescriptorSet >
 	{
 		DescriptorIDX m_set_idx;
 		//TODO: Maybe redo this to not be a monostate variant?
@@ -91,9 +91,11 @@ namespace fgl::engine::descriptors
 		void setName( const std::string& str ) const;
 	};
 
+	using DescriptorSetPtr = std::shared_ptr< DescriptorSet >;
+
 	//! Queues a descriptor to be deleted.
 	//
-	void queueDescriptorDeletion( std::unique_ptr< DescriptorSet > set );
+	void queueDescriptorDeletion( descriptors::DescriptorSetPtr set );
 	void deleteQueuedDescriptors();
 
 } // namespace fgl::engine::descriptors

@@ -8,6 +8,11 @@
 #include "FGL_DEFINES.hpp"
 #include "engine/debug/Track.hpp"
 
+namespace fgl::engine::descriptors
+{
+	class DescriptorSet;
+}
+
 namespace vk::raii
 {
 	class CommandBuffer;
@@ -36,6 +41,42 @@ namespace fgl::engine::memory
 
 		bool m_staged { false };
 
+		struct DescriptorInfo
+		{
+			std::weak_ptr< descriptors::DescriptorSet > m_descriptor {};
+
+			enum class Type : std::uint8_t
+			{
+				Uniform,
+				Storage,
+				Array
+			};
+
+			Type m_type;
+
+			union
+			{
+				struct
+				{
+					std::uint32_t m_binding_idx;
+				} uniform_bind_info;
+
+				struct
+				{
+					std::uint32_t m_binding_idx;
+				} storage_bind_info;
+
+				struct
+				{
+					std::size_t m_array_idx;
+					std::size_t m_item_size;
+					std::uint32_t m_binding_idx;
+				} array_bind_info;
+			};
+		} m_descriptor_rebind_info;
+
+		using enum DescriptorInfo::Type;
+
 		BufferSuballocationHandle(
 			const Buffer& p_buffer, vk::DeviceSize offset, vk::DeviceSize memory_size, vk::DeviceSize alignment );
 
@@ -54,6 +95,8 @@ namespace fgl::engine::memory
 		[[nodiscard]] vk::Buffer getBuffer() const;
 		[[nodiscard]] vk::Buffer getVkBuffer() const;
 		void flush() const;
+
+		void rebindDescriptor();
 
 		/**
 		 * @brief

@@ -28,11 +28,11 @@ namespace fgl::engine
 	constexpr float MAX_DELTA_TIME { 0.5 };
 	inline static EngineContext* instance { nullptr };
 
-	PerFrameArray< std::unique_ptr< descriptors::DescriptorSet > > createDrawCommandsDescriptors(
+	PerFrameArray< descriptors::DescriptorSetPtr > createDrawCommandsDescriptors(
 		PerFrameArray< DeviceVector< vk::DrawIndexedIndirectCommand > >& gpu_draw_commands,
 		PerFrameArray< DeviceVector< PerVertexInstanceInfo > >& per_vertex_info )
 	{
-		PerFrameArray< std::unique_ptr< descriptors::DescriptorSet > > descriptors {};
+		PerFrameArray< descriptors::DescriptorSetPtr > descriptors {};
 
 		for ( std::uint16_t i = 0; i < gpu_draw_commands.size(); ++i )
 		{

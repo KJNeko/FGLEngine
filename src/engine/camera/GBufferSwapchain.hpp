@@ -40,9 +40,9 @@ namespace fgl::engine
 
 		vk::Extent2D m_extent;
 
-		std::vector< std::unique_ptr< descriptors::DescriptorSet > > m_gbuffer_descriptor_set {};
+		std::vector< descriptors::DescriptorSetPtr > m_gbuffer_descriptor_set {};
 
-		std::vector< std::unique_ptr< descriptors::DescriptorSet > > createGBufferDescriptors();
+		std::vector< descriptors::DescriptorSetPtr > createGBufferDescriptors();
 
 	  public:
 

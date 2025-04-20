@@ -9,9 +9,9 @@
 namespace fgl::engine
 {
 
-	std::vector< std::unique_ptr< descriptors::DescriptorSet > > GBufferSwapchain::createGBufferDescriptors()
+	std::vector< descriptors::DescriptorSetPtr > GBufferSwapchain::createGBufferDescriptors()
 	{
-		std::vector< std::unique_ptr< descriptors::DescriptorSet > > data {};
+		std::vector< descriptors::DescriptorSetPtr > data {};
 		data.resize( constants::MAX_FRAMES_IN_FLIGHT );
 
 		for ( PresentIndex i = 0; i < constants::MAX_FRAMES_IN_FLIGHT; ++i )

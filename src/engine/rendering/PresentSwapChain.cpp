@@ -71,9 +71,9 @@ namespace fgl::engine
 		m_old_swap_chain.reset();
 	}
 
-	std::vector< std::unique_ptr< descriptors::DescriptorSet > > PresentSwapChain::createInputDescriptors()
+	std::vector< descriptors::DescriptorSetPtr > PresentSwapChain::createInputDescriptors()
 	{
-		std::vector< std::unique_ptr< descriptors::DescriptorSet > > data {};
+		std::vector< descriptors::DescriptorSetPtr > data {};
 		data.resize( imageCount() );
 
 		for ( PresentIndex i = 0; i < imageCount(); ++i )

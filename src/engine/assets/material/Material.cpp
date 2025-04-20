@@ -111,7 +111,7 @@ namespace fgl::engine
 
 	descriptors::DescriptorSet& Material::getDescriptorSet()
 	{
-		static std::unique_ptr< descriptors::DescriptorSet > set { nullptr };
+		static descriptors::DescriptorSetPtr set { nullptr };
 
 		if ( set ) [[likely]]
 			return *set;

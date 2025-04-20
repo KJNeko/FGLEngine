@@ -22,26 +22,26 @@ namespace fgl::engine
 
 	ModelGPUBuffers::ModelGPUBuffers() :
 	  m_long_buffer(
-		  1_GiB,
+		  1_MiB,
 		  vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal ),
 	  m_short_buffer(
-		  128_MiB,
+		  1_MiB,
 		  vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible ),
 	  m_vertex_buffer(
-		  2_GiB,
+		  1_MiB,
 		  vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eStorageBuffer
 			  | vk::BufferUsageFlagBits::eTransferDst,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal ),
 	  m_index_buffer(
-		  1_GiB,
+		  1_MiB,
 		  vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal ),
+	  m_generated_instance_info( constructPerFrame< DeviceVector< PerVertexInstanceInfo > >( m_vertex_buffer ) ),
 	  m_primitive_info( m_long_buffer ),
 	  m_primitive_instances( m_long_buffer ),
-	  m_model_instances( m_short_buffer ),
-	  m_generated_instance_info( constructPerFrame< DeviceVector< PerVertexInstanceInfo > >( m_vertex_buffer ) )
+	  m_model_instances( m_short_buffer )
 	{
 		m_long_buffer->setDebugName( "Long buffer" );
 		m_short_buffer->setDebugName( "Short buffer" );

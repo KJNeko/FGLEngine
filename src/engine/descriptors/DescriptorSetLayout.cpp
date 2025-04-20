@@ -38,10 +38,10 @@ namespace fgl::engine::descriptors
 	  m_binding_count( std::numeric_limits< std::size_t >::min() )
 	{}
 
-	std::unique_ptr< DescriptorSet > DescriptorSetLayout::create()
+	DescriptorSetPtr DescriptorSetLayout::create()
 	{
 		if ( !m_layout.has_value() ) m_layout = createLayout();
-		return std::make_unique< DescriptorSet >( *m_layout, m_set_idx, m_binding_count );
+		return std::make_shared< DescriptorSet >( *m_layout, m_set_idx, m_binding_count );
 	}
 
 	vk::raii::DescriptorSetLayout DescriptorSetLayout::createLayout() const

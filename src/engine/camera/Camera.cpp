@@ -353,9 +353,9 @@ namespace fgl::engine
 		this->setView( WorldCoordinate( constants::CENTER ), QuatRotation( 0.0f, 0.0f, 0.0f ) );
 	}
 
-	std::vector< std::unique_ptr< descriptors::DescriptorSet > > Camera::createCameraDescriptors()
+	std::vector< descriptors::DescriptorSetPtr > Camera::createCameraDescriptors()
 	{
-		std::vector< std::unique_ptr< descriptors::DescriptorSet > > sets {};
+		std::vector< descriptors::DescriptorSetPtr > sets {};
 		sets.reserve( constants::MAX_FRAMES_IN_FLIGHT );
 
 		for ( std::uint8_t i = 0; i < constants::MAX_FRAMES_IN_FLIGHT; ++i )

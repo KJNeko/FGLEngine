@@ -6,7 +6,7 @@
 
 namespace fgl::engine::global
 {
-	inline static FrameIndex CURRENT_FRAME_INDEX { static_cast< FrameIndex >( -1 ) };
+	inline static FrameIndex CURRENT_FRAME_INDEX { 0 };
 
 	FrameIndex getCurrentFrameIndex()
 	{
