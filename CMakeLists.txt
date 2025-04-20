@@ -11,6 +11,8 @@ else ()
 	message("ccache not found. Not using it")
 endif ()
 
+option(FGL_ENABLE_PROFILING OFF)
+
 project(TitorGameEngine LANGUAGES CXX C)
 
 add_subdirectory(fgl_cmake_modules)
