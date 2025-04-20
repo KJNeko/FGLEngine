@@ -4,6 +4,8 @@
 
 #include "PhysicalDevice.hpp"
 
+#include <algorithm>
+
 #include "engine/debug/logging/logging.hpp"
 #include "engine/rendering/Instance.hpp"
 #include "engine/rendering/Surface.hpp"
@@ -54,9 +56,25 @@ namespace fgl::engine
 		return false;
 	}
 
+	void rankDevices( std::vector< vk::raii::PhysicalDevice >& vector )
+	{
+		std::ranges::sort(
+			vector,
+			[]( const vk::raii::PhysicalDevice& a, const vk::raii::PhysicalDevice& b )
+			{
+				const auto a_props { a.getProperties() };
+				const auto b_props { b.getProperties() };
+
+				return a_props.apiVersion > b_props.apiVersion;
+			} );
+	}
+
 	vk::raii::PhysicalDevice PhysicalDevice::pickPhysicalDevice( Instance& instance, Surface& surface )
 	{
 		std::vector< vk::raii::PhysicalDevice > devices { instance.handle().enumeratePhysicalDevices() };
+
+		log::debug( "Can select {} devices", devices.size() );
+		rankDevices( devices );
 
 		for ( auto& device : devices )
 		{
@@ -69,6 +87,7 @@ namespace fgl::engine
 
 				return selected_device;
 			}
+			log::debug( "Skipping devices as it is not supported" );
 		}
 
 		throw std::runtime_error( "Failed to find a valid device" );
