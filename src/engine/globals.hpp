@@ -10,5 +10,6 @@ namespace fgl::engine::global
 	void setCurrentFrameIndex( FrameIndex index );
 
 	FrameIndex getCurrentFrameIndex();
+	void indexNextFrame();
 
 } // namespace fgl::engine::global

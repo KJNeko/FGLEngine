@@ -4,6 +4,8 @@
 
 #include "TransferManager.hpp"
 
+#include <list>
+
 #include "engine/assets/image/Image.hpp"
 #include "engine/assets/image/ImageHandle.hpp"
 #include "engine/assets/texture/Texture.hpp"
@@ -14,7 +16,7 @@
 
 namespace fgl::engine::memory
 {
-	void TransferManager::recordCommands( vk::raii::CommandBuffer& command_buffer )
+	void TransferManager::recordCommands( CommandBuffer& command_buffer )
 	{
 		ZoneScoped;
 		//Keep inserting new commands until we fill up the staging buffer
@@ -22,15 +24,17 @@ namespace fgl::engine::memory
 		if ( !m_queue.empty() ) log::info( "[TransferManager]: Queue size: {}", m_queue.size() );
 
 		std::size_t counter { 0 };
-		constexpr std::size_t counter_max { 1024 };
 
-		while ( !m_queue.empty() )
+		while ( !m_queue.empty() && counter < constants::TRANSFER_LIMIT )
 		{
-			++counter;
-			if ( counter > counter_max ) break;
-
 			TransferData data { std::move( m_queue.front() ) };
 			m_queue.pop();
+
+			if ( !data.isReady() )
+			{
+				continue;
+				m_queue.push( std::move( data ) );
+			}
 
 			if ( data.stage(
 					 command_buffer,
@@ -40,6 +44,7 @@ namespace fgl::engine::memory
 					 m_graphics_queue_index ) )
 			{
 				m_processing.emplace_back( std::move( data ) );
+				++counter;
 			}
 			else
 			{
@@ -58,11 +63,11 @@ namespace fgl::engine::memory
 			vk::DebugUtilsLabelEXT debug_label {};
 			debug_label.pLabelName = "Transfer";
 
-			command_buffer.beginDebugUtilsLabelEXT( debug_label );
+			command_buffer->beginDebugUtilsLabelEXT( debug_label );
 		}
 
 		// Acquire the buffer from the queue family
-		command_buffer.pipelineBarrier(
+		command_buffer->pipelineBarrier(
 			vk::PipelineStageFlagBits::eBottomOfPipe,
 			vk::PipelineStageFlagBits::eTransfer,
 			vk::DependencyFlags(),
@@ -70,23 +75,78 @@ namespace fgl::engine::memory
 			from_memory_barriers,
 			{} );
 
+		std::list< std::shared_ptr< BufferHandle > > copy_order {};
+		using Key = decltype( m_copy_regions )::key_type;
+		using Regions = decltype( m_copy_regions )::mapped_type;
+
+		std::vector< std::pair< Key, Regions > > sorted_regions {};
+
+		for ( const auto& [ key, regions ] : m_copy_regions )
+		{
+			const auto& [ source, target ] = key;
+
+			// The copy order depends on the source. In this case the source m_old_buffer should be targeted first if it has any copies associated with it
+			auto old_weak { source->m_old_handle };
+
+			while ( !old_weak.expired() )
+			{
+				copy_order.insert( copy_order.end(), old_weak.lock() );
+			}
+
+			copy_order.insert( copy_order.end(), source );
+			sorted_regions.emplace_back( key, regions );
+		}
+
+		std::ranges::sort(
+			sorted_regions,
+			[ &copy_order ]( const auto& left, const auto& right ) -> bool
+			{
+				const auto left_itter { std::ranges::find( copy_order, left.first.first ) };
+				const auto right_itter { std::ranges::find( copy_order, right.first.first ) };
+
+				return std::distance( left_itter, copy_order.begin() )
+			         < std::distance( right_itter, copy_order.begin() );
+			} );
+
 		//Record all the buffer copies
-		for ( auto& [ key, regions ] : m_copy_regions )
+		for ( auto& [ key, regions ] : sorted_regions )
 		{
 			const auto& [ source, target ] = key;
 
 			vk::DebugUtilsLabelEXT debug_label {};
 			const std::string str { std::format( "Copy: {} -> {}", source->m_debug_name, target->m_debug_name ) };
 			debug_label.pLabelName = str.c_str();
-			command_buffer.beginDebugUtilsLabelEXT( debug_label );
-			command_buffer.copyBuffer( source->getVkBuffer(), target->getVkBuffer(), regions );
-			command_buffer.endDebugUtilsLabelEXT();
+			command_buffer->beginDebugUtilsLabelEXT( debug_label );
+
+			std::vector< vk::BufferMemoryBarrier > barriers {};
+
+			for ( const auto& region : regions )
+			{
+				vk::BufferMemoryBarrier barrier {};
+				barrier.buffer = source->getVkBuffer();
+				barrier.offset = region.srcOffset;
+				barrier.size = region.size;
+				barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+				barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead | vk::AccessFlagBits::eTransferWrite;
+				barriers.emplace_back( barrier );
+			}
+
+			command_buffer->pipelineBarrier(
+				vk::PipelineStageFlagBits::eTransfer,
+				vk::PipelineStageFlagBits::eTransfer,
+				vk::DependencyFlags(),
+				{},
+				barriers,
+				{} );
+
+			command_buffer->copyBuffer( source->getVkBuffer(), target->getVkBuffer(), regions );
+			command_buffer->endDebugUtilsLabelEXT();
 		}
 
 		const std::vector< vk::BufferMemoryBarrier > to_buffer_memory_barriers { createFromTransferBarriers() };
 
 		// Release the buffer regions back to the graphics queue
-		command_buffer.pipelineBarrier(
+		command_buffer->pipelineBarrier(
 			vk::PipelineStageFlagBits::eTransfer,
 			vk::PipelineStageFlagBits::eVertexInput | vk::PipelineStageFlagBits::eVertexShader
 				| vk::PipelineStageFlagBits::eComputeShader,
@@ -95,7 +155,7 @@ namespace fgl::engine::memory
 			to_buffer_memory_barriers,
 			{} );
 
-		command_buffer.endDebugUtilsLabelEXT();
+		command_buffer->endDebugUtilsLabelEXT();
 	}
 
 	void TransferManager::resizeBuffer( const std::uint64_t size )
@@ -108,13 +168,15 @@ namespace fgl::engine::memory
 		const std::shared_ptr< BufferSuballocationHandle >& dst )
 	{
 		FGL_ASSERT( src->m_size == dst->m_size, "Source and destination suballocations must be the same size" );
+		FGL_ASSERT( src->m_parent_buffer->m_debug_name != "Debug name", "Buffers should likely be properly named!" );
+		FGL_ASSERT( dst->m_parent_buffer->m_debug_name != "Debug name", "Buffers should likely be properly named!" );
 
 		TransferData transfer_data { src, dst };
 
 		m_queue.emplace( std::move( transfer_data ) );
 	}
 
-	void TransferManager::submitBuffer( vk::raii::CommandBuffer& command_buffer )
+	void TransferManager::submitBuffer( CommandBuffer& command_buffer )
 	{
 		ZoneScoped;
 
@@ -122,7 +184,7 @@ namespace fgl::engine::memory
 
 		Device::getInstance()->resetFences( fences );
 
-		command_buffer.end();
+		command_buffer->end();
 
 		vk::SubmitInfo info {};
 
@@ -317,11 +379,13 @@ namespace fgl::engine::memory
 	  m_graphics_queue_index( device.phyDevice().queueInfo().getIndex( vk::QueueFlagBits::eGraphics ) ),
 	  m_transfer_queue( device->getQueue( m_transfer_queue_index, 0 ) ),
 	  m_transfer_semaphore( device->createSemaphore( {} ) ),
-	  m_cmd_buffer_allocinfo( Device::getInstance().getCommandPool(), vk::CommandBufferLevel::ePrimary, 1 ),
-	  m_transfer_buffers( Device::getInstance().device().allocateCommandBuffers( m_cmd_buffer_allocinfo ) ),
+	  m_transfer_buffers(
+		  Device::getInstance().getCmdBufferPool().getCommandBuffers( 1, CommandBufferHandle::Primary ) ),
 	  m_completion_fence( device->createFence( {} ) )
 	{
 		log::info( "Transfer manager created with size {}", literals::size_literals::toString( buffer_size ) );
+
+		m_staging_buffer->setDebugName( "Transfer buffer" );
 
 		GLOBAL_TRANSFER_MANAGER = this;
 	}
@@ -333,11 +397,11 @@ namespace fgl::engine::memory
 		m_allow_transfers = false;
 
 		auto& transfer_buffer { m_transfer_buffers[ 0 ] };
-		transfer_buffer.reset();
+		transfer_buffer->reset();
 
-		vk::CommandBufferBeginInfo info {};
+		constexpr vk::CommandBufferBeginInfo info {};
 
-		transfer_buffer.begin( info );
+		transfer_buffer->begin( info );
 
 		recordCommands( transfer_buffer );
 

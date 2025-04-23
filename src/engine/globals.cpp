@@ -4,6 +4,8 @@
 
 #include "globals.hpp"
 
+#include "constants.hpp"
+
 namespace fgl::engine::global
 {
 	inline static FrameIndex CURRENT_FRAME_INDEX { 0 };
@@ -11,6 +13,11 @@ namespace fgl::engine::global
 	FrameIndex getCurrentFrameIndex()
 	{
 		return CURRENT_FRAME_INDEX;
+	}
+
+	void indexNextFrame()
+	{
+		CURRENT_FRAME_INDEX = ( CURRENT_FRAME_INDEX + 1 ) % constants::MAX_FRAMES_IN_FLIGHT;
 	}
 
 	void setCurrentFrameIndex( const FrameIndex index )

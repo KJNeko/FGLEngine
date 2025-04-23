@@ -5,6 +5,7 @@
 #include "Image.hpp"
 
 #include "ImageView.hpp"
+#include "rendering/ResourceWatcher.hpp"
 
 namespace fgl::engine
 {
@@ -191,6 +192,8 @@ namespace fgl::engine
 		const vk::ImageSubresourceRange subresource { aspect, 0, 1, 0, 1 };
 
 		const vk::ImageMemoryBarrier barrier { transitionTo( old_layout, new_layout, subresource ) };
+
+		watcher::registerUse( this->shared_from_this() );
 
 		return barrier;
 	}

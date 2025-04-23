@@ -68,6 +68,9 @@ int main()
 
 		constexpr bool playing { false };
 
+		constexpr bool preload { true };
+
+		if ( preload )
 		{
 			auto& buffers { getModelBuffers() };
 			SceneBuilder builder { buffers.m_vertex_buffer, buffers.m_index_buffer };

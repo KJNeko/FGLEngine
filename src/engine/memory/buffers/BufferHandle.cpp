@@ -7,6 +7,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include <iostream>
+#include <list>
 #include <tuple>
 
 #include "BufferSuballocationHandle.hpp"
@@ -32,6 +33,22 @@ namespace fgl::engine::memory
 		std::swap( m_active_suballocations, other.m_active_suballocations );
 		std::swap( m_allocation_traces, other.m_allocation_traces );
 		std::swap( m_free_blocks, other.m_free_blocks );
+	}
+
+	inline static std::list< std::weak_ptr< BufferHandle > > ACTIVE_BUFFER_LIST {};
+
+	std::vector< std::shared_ptr< BufferHandle > > getActiveBuffers()
+	{
+		std::vector< std::shared_ptr< BufferHandle > > active_buffers {};
+		active_buffers.reserve( ACTIVE_BUFFER_LIST.size() );
+
+		for ( auto& buffer : ACTIVE_BUFFER_LIST )
+		{
+			if ( buffer.expired() ) continue;
+			active_buffers.emplace_back( buffer.lock() );
+		}
+
+		return active_buffers;
 	}
 
 	BufferHandle::BufferHandle(
@@ -197,10 +214,23 @@ namespace fgl::engine::memory
 				const auto new_offset = align( offset, alignment(), t_alignment );
 				const auto after_size { size - ( new_offset - offset ) };
 
-				// If the size of the block after alignment is greater than or equal to the size of the memory we want to allocate using it.
+				// If the size of the block after alignment is greater than or equal to the size of the memory, we want to allocate using it.
 				return after_size >= memory_size;
 			} );
 	}
+
+	Buffer::
+		Buffer( vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties ) :
+	  std::shared_ptr< BufferHandle >( std::make_shared< BufferHandle >( memory_size, usage, memory_properties ) )
+	{
+		ACTIVE_BUFFER_LIST.push_back( *this );
+	}
+
+	Buffer::Buffer( const std::shared_ptr< BufferHandle >& buffer ) : std::shared_ptr< BufferHandle >( buffer )
+	{}
+
+	Buffer::~Buffer()
+	{}
 
 	void BufferHandle::rebindDescriptors()
 	{
@@ -217,7 +247,11 @@ namespace fgl::engine::memory
 		ZoneScoped;
 		log::warn( "Resizing buffer from {} to {}", size(), new_size );
 
-		std::shared_ptr< BufferHandle > new_handle { new BufferHandle( new_size, m_usage, m_memory_properties ) };
+		const std::shared_ptr< BufferHandle > new_handle { new BufferHandle( new_size, m_usage, m_memory_properties ) };
+		const auto buffer_name { m_debug_name.substr( 0, m_debug_name.find( ':' ) ) };
+
+		this->setDebugName( std::format( "{}:{}", buffer_name, m_resize_counter ) );
+		new_handle->setDebugName( std::format( "{}:{}", buffer_name, ++m_resize_counter ) );
 
 		//Now we need to re-create all the current live allocations and transfer/replace them using the new buffer
 		std::vector<
@@ -230,50 +264,35 @@ namespace fgl::engine::memory
 		for ( auto& suballocation_weak : m_active_suballocations )
 		{
 			if ( suballocation_weak.expired() ) continue;
-			try
-			{
-				auto old_allocation { suballocation_weak.lock() };
-				auto new_allocation { old_allocation->reallocInTarget( new_handle ) };
+			auto old_allocation { suballocation_weak.lock() };
+			auto new_allocation { old_allocation->reallocInTarget( new_handle ) };
 
-				std::swap( old_allocation->m_alignment, new_allocation->m_alignment );
-				std::swap( old_allocation->m_offset, new_allocation->m_offset );
-				std::swap( old_allocation->m_size, new_allocation->m_size );
-				// std::swap( old_allocation->m_parent_buffer, new_allocation->m_parent_buffer );
-				std::swap( old_allocation->m_ptr, new_allocation->m_ptr );
-				std::swap( old_allocation->m_staged, new_allocation->m_staged );
+			std::swap( old_allocation->m_alignment, new_allocation->m_alignment );
+			std::swap( old_allocation->m_offset, new_allocation->m_offset );
+			std::swap( old_allocation->m_size, new_allocation->m_size );
+			// std::swap( old_allocation->m_parent_buffer, new_allocation->m_parent_buffer );
+			std::swap( old_allocation->m_ptr, new_allocation->m_ptr );
+			std::swap( old_allocation->m_staged, new_allocation->m_staged );
 
-				FGL_ASSERT( old_allocation->m_parent_buffer.get() == this, "Wtf is this retarded shit?" );
-
-				// the new allocation is now holding the data of the old allocaiton, Thus it goes on the left
-				allocations.emplace_back( new_allocation, old_allocation );
-			}
-			catch ( std::bad_weak_ptr& e )
-			{
-				// noop
-				void();
-			}
+			// the new allocation is now holding the data of the old allocaiton, Thus it goes on the left
+			allocations.emplace_back( new_allocation, old_allocation );
 		}
 
-		auto old_handle { this->shared_from_this() };
+		const auto old_handle { this->shared_from_this() };
 
 		// swap the internal data.
 		std::swap( old_handle->m_buffer, new_handle->m_buffer );
 		std::swap( old_handle->m_alloc_info, new_handle->m_alloc_info );
 		std::swap( old_handle->m_allocation, new_handle->m_allocation );
 		std::swap( old_handle->m_free_blocks, new_handle->m_free_blocks );
-		// std::swap( old_handle->m_active_suballocations, new_handle->m_active_suballocations );
-		// std::swap( old_handle->m_allocation_traces, new_handle->m_allocation_traces );
+		std::swap( old_handle->m_debug_name, new_handle->m_debug_name );
 
 		for ( auto& [ old_alloc, new_alloc ] : allocations )
 		{
-			FGL_ASSERT( new_alloc->m_parent_buffer.get() == this, "???" );
-
-			FGL_ASSERT(
-				new_alloc->m_parent_buffer.get() != old_alloc->m_parent_buffer.get(),
-				"New and Old allocation have the same parent buffer." );
-
 			TransferManager::getInstance().copySuballocationRegion( old_alloc, new_alloc );
 		}
+
+		m_old_handle = new_handle;
 
 		rebindDescriptors();
 	}
@@ -285,20 +304,26 @@ namespace fgl::engine::memory
 		//Calculate alignment from alignment, ubo_alignment, and atom_size_alignment
 		desired_memory_size = align( desired_memory_size, alignment() );
 
-		assert( desired_memory_size <= this->size() );
-
 		//findAvailableBlock( memory_size, t_alignment );
 
 		if ( !canAllocate( desired_memory_size, t_alignment ) )
 		{
 			// Resize to x1.5 the size, or the size plus the desired size x1.5, Whichever is bigger
-			const auto optimal_size { std::
-				                          max( static_cast< vk::DeviceSize >( this->size() * 2 ),
-				                               this->size()
-				                                   + static_cast< vk::DeviceSize >( desired_memory_size * 2 ) ) };
+			const auto optimal_size { std::max( this->size() * 2, this->size() + desired_memory_size * 2 ) };
 			this->resize( optimal_size );
 
-			FGL_ASSERT( optimal_size == this->size(), "Optimal size not met!" );
+			if ( optimal_size != this->size() )
+			{
+				log::warn(
+					"Buffer resizing did not result in the optimal size. Expected {} got {}",
+					optimal_size,
+					this->size() );
+			}
+
+			FGL_ASSERT(
+				optimal_size <= this->size(),
+				std::format(
+					"Buffer resizing resulted in buffer to small! Expected {} got {}", optimal_size, this->size() ) );
 		}
 
 		auto itter { findAvailableBlock( desired_memory_size, t_alignment ) };
@@ -478,6 +503,7 @@ namespace fgl::engine::memory
 
 		for ( const auto& suballocation : m_active_suballocations )
 		{
+			if ( suballocation.expired() ) continue;
 			total_size += suballocation.lock()->m_size;
 		}
 

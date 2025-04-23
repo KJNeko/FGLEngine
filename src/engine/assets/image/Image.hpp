@@ -22,7 +22,7 @@ namespace fgl::engine
 	class ImageView;
 	class ImageHandle;
 
-	class Image
+	class Image : public std::enable_shared_from_this< Image >
 	{
 		std::shared_ptr< ImageHandle > m_handle;
 		std::weak_ptr< ImageView > m_view {};
@@ -60,7 +60,7 @@ namespace fgl::engine
 
 		[[nodiscard]] const vk::Extent2D& getExtent() const { return m_extent; }
 
-		[[nodiscard]] std::shared_ptr< ImageView > getView( Sampler sampler = {});
+		[[nodiscard]] std::shared_ptr< ImageView > getView( Sampler sampler = {} );
 
 		[[nodiscard]] vk::ImageMemoryBarrier transitionTo(
 			vk::ImageLayout old_layout, vk::ImageLayout new_layout, const vk::ImageSubresourceRange& range ) const;

@@ -22,6 +22,7 @@
 #include "engine/math/literals/size.hpp"
 #include "globals.hpp"
 #include "memory/buffers/BufferHandle.hpp"
+#include "rendering/ResourceWatcher.hpp"
 
 namespace fgl::engine
 {
@@ -91,6 +92,11 @@ namespace fgl::engine
 
 		// Convert from ms to s
 		m_delta_time = time_diff.count();
+
+		// Set the global frame index to the next frame.
+		global::indexNextFrame();
+		// clear resources used in the last run of this frame
+		watcher::clearCurrent();
 	}
 
 	/*
@@ -132,8 +138,7 @@ namespace fgl::engine
 			const FrameIndex in_flight_idx { m_renderer.getFrameIndex() };
 			const PresentIndex present_idx { m_renderer.getPresentIndex() };
 
-			global::setCurrentFrameIndex( in_flight_idx );
-			m_deffered_cleanup.cleanIdx( in_flight_idx );
+			// global::setCurrentFrameIndex( in_flight_idx );
 
 			auto& command_buffers { command_buffers_o.value() };
 
@@ -195,9 +200,6 @@ namespace fgl::engine
 
 			FrameMark;
 		}
-
-		//Trash handling
-		descriptors::deleteQueuedDescriptors();
 	}
 
 	void EngineContext::finishFrame()
@@ -234,8 +236,6 @@ namespace fgl::engine
 
 		// Destroy all objects
 		// m_game_objects_root.clear();
-
-		descriptors::deleteQueuedDescriptors();
 
 		log::info( "Performing {} destruction hooks", m_destruction_hooks.size() );
 

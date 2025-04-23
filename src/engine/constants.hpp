@@ -53,4 +53,7 @@ namespace fgl::engine::constants
 
 	constexpr glm::vec3 DEFAULT_SCALE { 1.0f };
 
+	//! Number of items the transfer buffer should attempt to transfer at once
+	constexpr std::size_t TRANSFER_LIMIT { 128 };
+
 } // namespace fgl::engine::constants

@@ -93,9 +93,4 @@ namespace fgl::engine::descriptors
 
 	using DescriptorSetPtr = std::shared_ptr< DescriptorSet >;
 
-	//! Queues a descriptor to be deleted.
-	//
-	void queueDescriptorDeletion( descriptors::DescriptorSetPtr set );
-	void deleteQueuedDescriptors();
-
 } // namespace fgl::engine::descriptors

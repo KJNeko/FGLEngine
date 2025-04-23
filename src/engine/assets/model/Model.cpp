@@ -22,20 +22,20 @@ namespace fgl::engine
 
 	ModelGPUBuffers::ModelGPUBuffers() :
 	  m_long_buffer(
-		  1_MiB,
+		  1_KiB,
 		  vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal ),
 	  m_short_buffer(
-		  1_MiB,
+		  1_KiB,
 		  vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible ),
 	  m_vertex_buffer(
-		  1_MiB,
+		  1_KiB,
 		  vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eStorageBuffer
 			  | vk::BufferUsageFlagBits::eTransferDst,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal ),
 	  m_index_buffer(
-		  1_MiB,
+		  1_KiB,
 		  vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal ),
 	  m_generated_instance_info( constructPerFrame< DeviceVector< PerVertexInstanceInfo > >( m_vertex_buffer ) ),

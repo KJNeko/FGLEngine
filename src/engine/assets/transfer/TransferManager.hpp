@@ -55,16 +55,16 @@ namespace fgl::engine::memory
 
 		vk::CommandBufferAllocateInfo m_cmd_buffer_allocinfo;
 
-		std::vector< vk::raii::CommandBuffer > m_transfer_buffers;
+		std::vector< CommandBuffer > m_transfer_buffers;
 
 		vk::raii::Fence m_completion_fence;
 
 		//! True if transfers would be performed before the start of the next frame
 		bool m_allow_transfers { true };
 
-		void recordCommands( vk::raii::CommandBuffer& command_buffer );
+		void recordCommands( CommandBuffer& command_buffer );
 
-		void submitBuffer( vk::raii::CommandBuffer& command_buffer );
+		void submitBuffer( CommandBuffer& command_buffer );
 
 		//! Creates barriers that releases ownership from the graphics family to the transfer queue.
 		std::vector< vk::BufferMemoryBarrier > createFromGraphicsBarriers();

@@ -6,14 +6,11 @@
 
 // clang-format off
 #include <vulkan/vulkan.hpp>
-#include <tracy/TracyVulkan.hpp>
 #include <tracy/Tracy.hpp>
 // clang-format on
 
 #include <cassert>
 #include <cmath>
-#include <cstdint>
-#include <map>
 #include <memory>
 #include <stacktrace>
 #include <unordered_map>
@@ -58,6 +55,7 @@ namespace fgl::engine::memory
 
 		std::vector< std::weak_ptr< BufferSuballocationHandle > > m_active_suballocations {};
 		std::unordered_map< vk::DeviceSize, std::stacktrace > m_allocation_traces {};
+		int m_resize_counter { 0 };
 
 		//! @brief List of all active suballocations
 		//! <offset, size>
@@ -70,6 +68,7 @@ namespace fgl::engine::memory
 
 	  public:
 
+		std::weak_ptr< BufferHandle > m_old_handle {};
 		std::string m_debug_name { "Debug name" };
 		std::string m_pool_name { std::format( "GPU {} Suballocation", m_debug_name ) };
 
@@ -168,14 +167,12 @@ namespace fgl::engine::memory
 
 	struct Buffer final : public std::shared_ptr< BufferHandle >
 	{
-		Buffer( vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties ) :
-		  std::shared_ptr< BufferHandle >( std::make_shared< BufferHandle >( memory_size, usage, memory_properties ) )
-		{}
+		Buffer( vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties );
 
-		Buffer( const std::shared_ptr< BufferHandle >& buffer ) : std::shared_ptr< BufferHandle >( buffer ) {}
+		Buffer( const std::shared_ptr< BufferHandle >& buffer );
 
-		~Buffer() = default;
+		~Buffer();
 	};
 
-	std::vector< std::weak_ptr< Buffer > > getActiveBuffers();
+	std::vector< std::shared_ptr< BufferHandle > > getActiveBuffers();
 } // namespace fgl::engine::memory

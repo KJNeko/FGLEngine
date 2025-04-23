@@ -82,6 +82,8 @@ namespace fgl::engine
 
 		// compute shader
 
+		if ( info.game_objects.empty() ) return;
+
 		m_textured_pipeline->bind( command_buffer );
 
 		m_textured_pipeline->bindDescriptor( command_buffer, info.getCameraDescriptor() );

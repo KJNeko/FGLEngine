@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "engine/memory/buffers/BufferHandle.hpp"
+#include "rendering/CommandBufferPool.hpp"
 
 namespace vk
 {
@@ -82,19 +83,21 @@ namespace fgl::engine::memory
 		//! Performs copy of raw data to the staging buffer
 		bool convertRawToBuffer( Buffer& staging_buffer );
 
-		bool performImageStage(
-			vk::raii::CommandBuffer& cmd_buffer, std::uint32_t transfer_idx, std::uint32_t graphics_idx );
+		bool performImageStage( CommandBuffer& cmd_buffer, std::uint32_t transfer_idx, std::uint32_t graphics_idx );
 
 		//! Same as @ref performImageStage Performs extra step of copying data to a staging buffer
 		/** @note After calling this function m_type will be `IMAGE_FROM_BUFFER`
 		 */
 		bool performRawImageStage(
-			vk::raii::CommandBuffer& buffer,
-			Buffer& staging_buffer,
-			std::uint32_t transfer_idx,
-			std::uint32_t graphics_idx );
+			CommandBuffer& buffer, Buffer& staging_buffer, std::uint32_t transfer_idx, std::uint32_t graphics_idx );
 
 		bool performSuballocationStage( CopyRegionMap& copy_regions );
+
+		//! Barrier that ensures that the source is properly written to before it's read to the target
+		vk::BufferMemoryBarrier readSourceBarrier();
+
+		//! Barrier that ensures the target is written to before allowing reads
+		vk::BufferMemoryBarrier readTargetBarrier();
 
 		[[nodiscard]] bool targetIsHostVisible() const;
 		[[nodiscard]] bool sourceIsHostVisible() const;
@@ -103,7 +106,8 @@ namespace fgl::engine::memory
 		//! Same as @ref performBufferStage Performs extra step of copying data to a staging buffer. If the target is host visible, Then this function will do nothing and return true.
 		/** @note After calling this function m_type will be `BUFFER_FROM_BUFFER`
 		 */
-		bool performRawSuballocationStage( Buffer& staging_buffer, CopyRegionMap& copy_regions );
+		bool performRawSuballocationStage(
+			CommandBuffer& cmd_buffer, Buffer& staging_buffer, CopyRegionMap& copy_regions );
 
 		friend class TransferManager;
 
@@ -118,11 +122,13 @@ namespace fgl::engine::memory
 		TransferData& operator=( TransferData&& ) = default;
 
 		bool stage(
-			vk::raii::CommandBuffer& buffer,
+			CommandBuffer& buffer,
 			Buffer& staging_buffer,
 			CopyRegionMap& copy_regions,
 			std::uint32_t transfer_idx,
 			std::uint32_t graphics_idx );
+
+		bool isReady() const;
 
 		//! Marks the target as not staged/not ready
 		void markBad();

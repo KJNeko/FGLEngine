@@ -8,6 +8,7 @@
 #include "engine/debug/logging/logging.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/flags.hpp"
+#include "rendering/ResourceWatcher.hpp"
 
 namespace fgl::engine
 {
@@ -57,6 +58,8 @@ namespace fgl::engine
 		FGL_ASSERT( !set.hasUpdates(), "Descriptor set has updates but binding was attempted" );
 
 		command_buffer->bindDescriptorSets( m_bind_point, m_layout, descriptor_idx, sets, offsets );
+
+		watcher::registerUse( set.shared_from_this() );
 	}
 
 	void Pipeline::bindDescriptor( CommandBuffer& cmd_buffer, descriptors::DescriptorSet& set )

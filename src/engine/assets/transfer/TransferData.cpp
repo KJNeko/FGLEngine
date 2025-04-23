@@ -32,7 +32,7 @@ namespace fgl::engine::memory
 	}
 
 	bool TransferData::
-		performImageStage( vk::raii::CommandBuffer& cmd_buffer, std::uint32_t transfer_idx, std::uint32_t graphics_idx )
+		performImageStage( CommandBuffer& cmd_buffer, std::uint32_t transfer_idx, std::uint32_t graphics_idx )
 	{
 		FGL_ASSERT( std::holds_alternative< TransferSuballocationHandle >( m_source ), "Source not a suballocation!" );
 		FGL_ASSERT( std::holds_alternative< TransferImageHandle >( m_target ), "Target not an image!" );
@@ -57,7 +57,7 @@ namespace fgl::engine::memory
 
 		const std::vector< vk::ImageMemoryBarrier > barriers_to { barrier };
 
-		cmd_buffer.pipelineBarrier(
+		cmd_buffer->pipelineBarrier(
 			vk::PipelineStageFlagBits::eTopOfPipe,
 			vk::PipelineStageFlagBits::eTransfer,
 			vk::DependencyFlags(),
@@ -80,7 +80,7 @@ namespace fgl::engine::memory
 
 		std::vector< vk::BufferImageCopy > regions { region };
 
-		cmd_buffer.copyBufferToImage(
+		cmd_buffer->copyBufferToImage(
 			source_buffer->getVkBuffer(), dest_image->getVkImage(), vk::ImageLayout::eTransferDstOptimal, regions );
 
 		//Transfer back to eGeneral
@@ -97,7 +97,7 @@ namespace fgl::engine::memory
 
 		const std::vector< vk::ImageMemoryBarrier > barriers_from { barrier_from };
 
-		cmd_buffer.pipelineBarrier(
+		cmd_buffer->pipelineBarrier(
 			vk::PipelineStageFlagBits::eTransfer,
 			vk::PipelineStageFlagBits::eFragmentShader,
 			vk::DependencyFlags(),
@@ -109,7 +109,7 @@ namespace fgl::engine::memory
 	}
 
 	bool TransferData::performRawImageStage(
-		vk::raii::CommandBuffer& buffer,
+		CommandBuffer& buffer,
 		Buffer& staging_buffer,
 		const std::uint32_t transfer_idx,
 		const std::uint32_t graphics_idx )
@@ -128,6 +128,25 @@ namespace fgl::engine::memory
 
 		const CopyRegionKey key { std::make_pair( source->m_parent_buffer, target->m_parent_buffer ) };
 
+		/*
+		// attempt to see if the buffer that is our parent is already added to this region list, If so, then we should process that first.
+		if ( const auto itter = std::ranges::find_if(
+				 copy_regions,
+				 []( const auto& itter ) -> bool
+				 {
+					 const auto& [ key, regions ] = itter;
+					 const std::pair< std::shared_ptr< BufferHandle >, std::shared_ptr< BufferHandle > >& key_i = key;
+					 const auto& [ source, target ] = key_i;
+
+					 // if the source has an old handle, that means we've not finished copying everything to it. So we must instead wait for those to be completed before trying to copy from it
+					 return source->m_old_handle.expired();
+				 } );
+		     itter != copy_regions.end() )
+		{
+			return false;
+		}
+		*/
+
 		const auto copy_info { source->copyRegion( *target, m_target_offset, m_source_offset ) };
 
 		if ( auto itter = copy_regions.find( key ); itter != copy_regions.end() )
@@ -142,6 +161,22 @@ namespace fgl::engine::memory
 		}
 
 		return true;
+	}
+
+	vk::BufferMemoryBarrier TransferData::readSourceBarrier()
+	{
+		ZoneScoped;
+
+		FGL_ASSERT( std::holds_alternative< TransferSuballocationHandle >( m_source ), "Source not a suballocation!" );
+
+		vk::BufferMemoryBarrier barrier {};
+		barrier.buffer = std::get< TransferSuballocationHandle >( m_source )->getVkBuffer();
+		barrier.offset = std::get< TransferSuballocationHandle >( m_source )->m_offset;
+		barrier.size = std::get< TransferSuballocationHandle >( m_source )->m_size;
+		barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+		barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
+
+		return barrier;
 	}
 
 	bool TransferData::targetIsHostVisible() const
@@ -162,7 +197,8 @@ namespace fgl::engine::memory
 		    && std::get< TransferSuballocationHandle >( m_target )->m_parent_buffer->needsFlush();
 	}
 
-	bool TransferData::performRawSuballocationStage( Buffer& staging_buffer, CopyRegionMap& copy_regions )
+	bool TransferData::
+		performRawSuballocationStage( CommandBuffer& cmd_buffer, Buffer& staging_buffer, CopyRegionMap& copy_regions )
 	{
 		if ( targetIsHostVisible() )
 		{
@@ -211,7 +247,7 @@ namespace fgl::engine::memory
 	}
 
 	bool TransferData::stage(
-		vk::raii::CommandBuffer& buffer,
+		CommandBuffer& buffer,
 		Buffer& staging_buffer,
 		CopyRegionMap& copy_regions,
 		const std::uint32_t transfer_idx,
@@ -229,10 +265,26 @@ namespace fgl::engine::memory
 			case TransferType::SUBALLOCATION_FROM_SUBALLOCATION:
 				return performSuballocationStage( copy_regions );
 			case TransferType::SUBALLOCATION_FROM_RAW:
-				return performRawSuballocationStage( staging_buffer, copy_regions );
+				return performRawSuballocationStage( buffer, staging_buffer, copy_regions );
 		}
 
 		FGL_UNREACHABLE();
+	}
+
+	bool TransferData::isReady() const
+	{
+		switch ( m_type )
+		{
+			default:
+			case TransferType::IMAGE_FROM_RAW:
+				return true;
+			case TransferType::IMAGE_FROM_SUBALLOCATION:
+				[[fallthrough]];
+			case TransferType::SUBALLOCATION_FROM_SUBALLOCATION:
+				return std::get< TransferSuballocationHandle >( m_source )->ready();
+			case TransferType::SUBALLOCATION_FROM_RAW:
+				return true;
+		}
 	}
 
 	void TransferData::markBad()

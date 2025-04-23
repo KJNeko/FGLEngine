@@ -212,26 +212,4 @@ namespace fgl::engine::descriptors
 		Device::getInstance().setDebugUtilsObjectName( info );
 	}
 
-	inline static std::vector< std::pair< std::uint_fast8_t, descriptors::DescriptorSetPtr > > QUEUE {};
-
-	void queueDescriptorDeletion( descriptors::DescriptorSetPtr set )
-	{
-		QUEUE.emplace_back( 0, std::move( set ) );
-	}
-
-	void deleteQueuedDescriptors()
-	{
-		for ( auto itter = QUEUE.begin(); itter != QUEUE.end(); itter = itter++ )
-		{
-			auto& [ counter, set ] = *itter;
-			// Prevent deleting a descriptor until we are sure it's been here long enough
-			if ( counter > constants::MAX_FRAMES_IN_FLIGHT + 1 )
-			{
-				itter = QUEUE.erase( itter );
-			}
-			else
-				++counter;
-		}
-	}
-
 } // namespace fgl::engine::descriptors

@@ -179,11 +179,6 @@ namespace fgl::engine
 	}
 
 	GBufferSwapchain::~GBufferSwapchain()
-	{
-		for ( auto& descriptor : m_gbuffer_descriptor_set )
-		{
-			descriptors::queueDescriptorDeletion( std::move( descriptor ) );
-		}
-	}
+	{}
 
 } // namespace fgl::engine
