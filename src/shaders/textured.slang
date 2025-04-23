@@ -72,6 +72,8 @@ GBufferFragment fragmentMain( CoarseVertex vertex )
 		vec4 color = texture( tex[ material.color.texture_id ], vertex.tex_coord );
 		vec4 factors = material.color.factors;
 		frag.color = color * factors;
+		if ( color.a == 0.0f )
+			discard;
     }
 	else
 	{
