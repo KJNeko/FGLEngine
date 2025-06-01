@@ -173,7 +173,7 @@ namespace fgl::engine::memory
 
 		TransferData transfer_data { src, dst };
 
-		m_queue.emplace( std::move( transfer_data ) );
+		m_queue.emplace_back( std::move( transfer_data ) );
 	}
 
 	void TransferManager::submitBuffer( CommandBuffer& command_buffer )
@@ -355,7 +355,7 @@ namespace fgl::engine::memory
 	{
 		TransferData transfer_data { source.getHandle(), target.getHandle(), target_offset };
 
-		m_queue.emplace( std::move( transfer_data ) );
+		m_queue.emplace_back( std::move( transfer_data ) );
 	}
 
 	void TransferManager::copyToImage( std::vector< std::byte >&& data, const Image& image )
@@ -365,7 +365,7 @@ namespace fgl::engine::memory
 
 		assert( std::get< TransferData::RawData >( transfer_data.m_source ).size() > 0 );
 
-		m_queue.emplace( std::move( transfer_data ) );
+		m_queue.emplace_back( std::move( transfer_data ) );
 	}
 
 	TransferManager::TransferManager( Device& device, const vk::DeviceSize buffer_size ) :

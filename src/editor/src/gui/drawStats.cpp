@@ -57,6 +57,24 @@ namespace fgl::engine::gui
 		return info;
 	}
 
+	void drawBufferInfo( const memory::BufferHandle& buffer )
+	{
+		ZoneScoped;
+
+		using namespace literals::size_literals;
+
+		const double used_percent { static_cast< float >( buffer.used() ) / static_cast< float >( buffer.size() )
+			                        * 100.0f };
+
+		ImGui::Text(
+			"Allocated: %s/%s (%2.1f%%)",
+			toString( buffer.used() ).c_str(),
+			toString( buffer.size() ).c_str(),
+			static_cast< double >( used_percent ) );
+
+		ImGui::Text( "Largest free block: %s", toString( buffer.largestBlock() ).c_str() );
+	}
+
 	void drawMemoryStats()
 	{
 		const auto [ gpu, host ] = getTotalAllocated();
@@ -92,6 +110,8 @@ namespace fgl::engine::gui
 			{
 				ImGui::Text( "Name: %s", buffer->m_debug_name.c_str() );
 
+				drawBufferInfo( *buffer.get() );
+
 				const double used_percent { static_cast< float >( buffer->used() )
 					                        / static_cast< float >( buffer->size() ) * 100.0f };
 
@@ -125,6 +145,11 @@ namespace fgl::engine::gui
 		if ( ImGui::CollapsingHeader( "Timings" ) )
 		{
 			debug::timing::render();
+		}
+
+		if ( ImGui::CollapsingHeader( "Transfer Manager", ImGuiTreeNodeFlags_DefaultOpen ) )
+		{
+			drawTransferManager();
 		}
 
 		if ( ImGui::Button( "Reload shaders" ) )

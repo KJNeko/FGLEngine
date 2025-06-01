@@ -6,6 +6,10 @@
 
 namespace fgl::engine
 {
+	namespace memory
+	{
+		class BufferHandle;
+	}
 	class GameObject;
 	class Device;
 	class Renderer;
@@ -27,9 +31,15 @@ namespace fgl::engine::gui
 
 	void drawEntityInfo( FrameInfo& );
 
+	void drawBufferInfo( const memory::BufferHandle& buffer );
+
 	void drawObject( GameObject& game_object );
 	void drawComponentsList( GameObject& game_object );
 	void drawSelectedComponent();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wredundant-decls"
+	void drawTransferManager();
+#pragma GCC diagnostic pop
 
 	void drawCameraOutputs( FrameInfo& info );
 

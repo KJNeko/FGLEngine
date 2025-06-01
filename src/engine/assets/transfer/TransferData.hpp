@@ -32,6 +32,12 @@ namespace fgl::engine
 		struct BufferSuballocationHandle;
 		class BufferHandle;
 	} // namespace memory
+
+	namespace gui
+	{
+		void drawTransferManager();
+	}
+
 } // namespace fgl::engine
 
 namespace fgl::engine::memory
@@ -137,6 +143,16 @@ namespace fgl::engine::memory
 		void markGood();
 
 		void cleanupSource();
+
+		TransferType type() { return m_type; };
+
+		SourceData& source() { return m_source; }
+
+		TargetData& target() { return m_target; }
+
+		vk::DeviceSize targetOffset() const { return m_target_offset; }
+
+		vk::DeviceSize sourceOffset() const { return m_source_offset; }
 
 		//SUBALLOCATION_FROM_SUBALLOCATION
 		TransferData(

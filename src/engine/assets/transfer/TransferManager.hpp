@@ -38,7 +38,7 @@ namespace fgl::engine::memory
 		Buffer m_staging_buffer;
 
 		//! Queue of data needing to be transfered and submitted.
-		std::queue< TransferData > m_queue {};
+		std::deque< TransferData > m_queue {};
 
 		//! Data actively in flight (Submitted to the DEVICE transfer queue)
 		std::vector< TransferData > m_processing {};
@@ -61,6 +61,8 @@ namespace fgl::engine::memory
 
 		//! True if transfers would be performed before the start of the next frame
 		bool m_allow_transfers { true };
+
+		friend void ::fgl::engine::gui::drawTransferManager();
 
 		void recordCommands( CommandBuffer& command_buffer );
 
@@ -118,7 +120,7 @@ namespace fgl::engine::memory
 				std::forward< std::vector< std::byte > >( data ), device_vector.m_handle, target_offset, source_offset
 			};
 
-			m_queue.emplace( std::move( transfer_data ) );
+			m_queue.emplace_back( std::move( transfer_data ) );
 		}
 
 		template < typename T, typename DeviceVectorT >
