@@ -76,6 +76,7 @@ int main()
 			SceneBuilder builder { buffers.m_vertex_buffer, buffers.m_index_buffer };
 
 			constexpr std::string_view sponza_path {
+				// "/home/kj16609/Desktop/Projects/cxx/Mecha/src/assets/PBRSphere.gltf"
 				"/home/kj16609/Desktop/Projects/cxx/Mecha/src/assets/khronos-sponza/Sponza.gltf"
 			};
 
