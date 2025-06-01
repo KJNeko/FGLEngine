@@ -89,4 +89,14 @@ namespace fgl::engine
 		return m_resource->ready();
 	}
 
+	vk::DescriptorImageInfo ImageView::getDescriptorInfo( const vk::ImageLayout layout )
+	{
+		vk::DescriptorImageInfo info {};
+		info.imageLayout = layout;
+		info.imageView = *m_image_view;
+		info.sampler = *m_sampler;
+
+		return info;
+	}
+
 } // namespace fgl::engine

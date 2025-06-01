@@ -18,7 +18,7 @@ namespace fgl::engine
 
 	  public:
 
-		FGL_DELETE_COPY( Sampler )
+		FGL_DELETE_COPY( Sampler );
 
 		Sampler() :
 		  Sampler(

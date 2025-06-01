@@ -52,7 +52,8 @@ namespace fgl::engine::descriptors
 	{
 		assert( !s_pool && "Descriptor pool already initialized" );
 
-		s_pool = std::unique_ptr< DescriptorPool >( new DescriptorPool( 1000 ) );
+		//TODO: We finally need to make this dynamic.
+		s_pool = std::unique_ptr< DescriptorPool >( new DescriptorPool( 1024 * 8 ) );
 		return *s_pool;
 	}
 

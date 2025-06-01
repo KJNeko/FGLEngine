@@ -29,7 +29,7 @@ namespace fgl::engine
 
 		template < typename T >
 			requires std::is_constructible_v< ResourceWatcher::ResourceVariant, T& >
-		FGL_FORCE_INLINE void registerUse( T&& t )
+		FGL_FORCE_INLINE inline void registerUse( T&& t )
 		{
 			auto* const ref { get() };
 			std::lock_guard guard { ref->m_mutex };

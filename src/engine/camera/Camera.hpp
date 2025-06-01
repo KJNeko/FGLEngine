@@ -12,7 +12,6 @@
 #include <glm/gtx/string_cast.hpp>
 #pragma GCC diagnostic pop
 
-#include "../primitives/rotation/QuatRotation.hpp"
 #include "CompositeSwapchain.hpp"
 #include "GBufferSwapchain.hpp"
 #include "debug/Track.hpp"

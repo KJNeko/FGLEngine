@@ -8,7 +8,6 @@
 #include "engine/EngineContext.hpp"
 #include "engine/camera/CameraManager.hpp"
 #include "engine/debug/timing/FlameGraph.hpp"
-#include "engine/gameobjects/components/CameraComponent.hpp"
 #include "gui/EditorGuiContext.hpp"
 
 int main()

@@ -90,7 +90,7 @@ namespace fgl::engine
 
 		descriptors::DescriptorSet& m_primitives_desc;
 		descriptors::DescriptorSet& m_instances_desc;
-		descriptors::DescriptorSet& m_command_buffer_desc;
+		descriptors::DescriptorSetPtr m_command_buffer_desc;
 		// out for rendering process
 
 		//! Populated commands buffer by the culling pass

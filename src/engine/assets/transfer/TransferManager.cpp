@@ -12,7 +12,7 @@
 #include "engine/math/literals/size.hpp"
 #include "engine/memory/buffers/BufferHandle.hpp"
 #include "engine/memory/buffers/BufferSuballocation.hpp"
-#include "engine/memory/buffers/vector/HostVector.hpp"
+#include "memory/DefferedCleanup.hpp"
 
 namespace fgl::engine::memory
 {
@@ -75,7 +75,7 @@ namespace fgl::engine::memory
 			from_memory_barriers,
 			{} );
 
-		std::list< std::shared_ptr< BufferHandle > > copy_order {};
+		std::list< FrozenBufferHandlePtr > copy_order {};
 		using Key = decltype( m_copy_regions )::key_type;
 		using Regions = decltype( m_copy_regions )::mapped_type;
 
@@ -86,11 +86,14 @@ namespace fgl::engine::memory
 			const auto& [ source, target ] = key;
 
 			// The copy order depends on the source. In this case the source m_old_buffer should be targeted first if it has any copies associated with it
-			auto old_weak { source->m_old_handle };
-
-			while ( !old_weak.expired() )
+			if ( source->m_old_handle.has_value() )
 			{
-				copy_order.insert( copy_order.end(), old_weak.lock() );
+				auto old_weak { *( source->m_old_handle ) };
+
+				if ( !old_weak.expired() )
+				{
+					copy_order.insert( copy_order.end(), old_weak.lock() );
+				}
 			}
 
 			copy_order.insert( copy_order.end(), source );
@@ -101,8 +104,16 @@ namespace fgl::engine::memory
 			sorted_regions,
 			[ &copy_order ]( const auto& left, const auto& right ) -> bool
 			{
-				const auto left_itter { std::ranges::find( copy_order, left.first.first ) };
-				const auto right_itter { std::ranges::find( copy_order, right.first.first ) };
+				const auto& [ left_buffers, left_value ] = left;
+				// FrozenSharedPtr<BufferHandle>
+				const auto& [ left_source, left_target ] = left_buffers;
+
+				const auto& [ right_buffers, right_value ] = right;
+				// FrozenSharedPtr<BufferHandle>
+				const auto& [ right_source, right_target ] = right_buffers;
+
+				const auto left_itter { std::ranges::find( copy_order, left_source ) };
+				const auto right_itter { std::ranges::find( copy_order, right_source ) };
 
 				return std::distance( left_itter, copy_order.begin() )
 			         < std::distance( right_itter, copy_order.begin() );
@@ -160,12 +171,13 @@ namespace fgl::engine::memory
 
 	void TransferManager::resizeBuffer( const std::uint64_t size )
 	{
-		m_staging_buffer->resize( size );
+		FGL_TODO();
+		//How does this not break? Buffer should be forced to be a swappable?????
+		m_staging_buffer->createResized( size );
 	}
 
-	void TransferManager::copySuballocationRegion(
-		const std::shared_ptr< BufferSuballocationHandle >& src,
-		const std::shared_ptr< BufferSuballocationHandle >& dst )
+	void TransferManager::
+		copySuballocationRegion( const FrozenBufferSuballocation& source, FrozenBufferSuballocation& target )
 	{
 		FGL_ASSERT( src->m_size == dst->m_size, "Source and destination suballocations must be the same size" );
 		FGL_ASSERT( src->m_parent_buffer->m_debug_name != "Debug name", "Buffers should likely be properly named!" );
@@ -351,9 +363,19 @@ namespace fgl::engine::memory
 		return *GLOBAL_TRANSFER_MANAGER;
 	}
 
-	void TransferManager::copyToVector( BufferVector& source, BufferVector& target, const std::size_t target_offset )
+	void TransferManager::
+		copyToVector( const BufferVector& source, const BufferVector& target, const std::size_t target_offset )
 	{
-		TransferData transfer_data { source.getHandle(), target.getHandle(), target_offset };
+		TransferData transfer_data { source.freeze(), target.freeze(), target_offset };
+
+		/*
+		log::debug(
+			"Copying {} bytes at target offset {} from {} to {}",
+			source.bytesize(),
+			target_offset,
+			source->m_parent_buffer->m_debug_name,
+			target->m_parent_buffer->m_debug_name );
+		//*/
 
 		m_queue.emplace_back( std::move( transfer_data ) );
 	}

@@ -61,7 +61,7 @@ namespace fgl::engine
 
 		m_cull_compute->bindDescriptor( command_buffer, info.m_primitives_desc ); // primitive set
 		m_cull_compute->bindDescriptor( command_buffer, info.m_instances_desc ); // instances
-		m_cull_compute->bindDescriptor( command_buffer, info.m_command_buffer_desc ); // commands output
+		m_cull_compute->bindDescriptor( command_buffer, *info.m_command_buffer_desc ); // commands output
 
 		CullPushConstants push_constants {};
 		push_constants.draw_count = info.m_commands.size();

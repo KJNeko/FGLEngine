@@ -18,9 +18,9 @@ namespace fgl::engine
 	concept is_attachment = requires( T a ) {
 		{ a.desc() } -> std::same_as< vk::AttachmentDescription& >;
 		{ a.m_index } -> std::same_as< const std::uint32_t& >;
-		{ a.attachImageView( std::declval< std::uint16_t >(), std::declval< std::shared_ptr< ImageView > >() ) };
-		{ a.linkImage( std::declval< std::uint16_t >(), std::declval< std::shared_ptr< Image >& >() ) };
-		{ a.getView( std::declval< std::uint8_t >() ) } -> std::same_as< ImageView& >;
+		{ a.attachImageView( std::declval< std::uint16_t >(), std::declval< ImageViewPtr >() ) };
+		{ a.linkImage( std::declval< std::uint16_t >(), std::declval< ImagePtr& >() ) };
+		{ a.getView( std::declval< std::uint8_t >() ) } -> std::same_as< ImageViewPtr >;
 		{ a.m_clear_value } -> std::same_as< vk::ClearValue& >;
 	};
 

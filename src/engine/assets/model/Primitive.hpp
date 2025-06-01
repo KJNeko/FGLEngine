@@ -85,7 +85,7 @@ namespace fgl::engine
 		std::string m_name { "Unnamed Primitive" };
 
 		//! Returns true if the primitive is ready to be rendered (must have all textures, vertex buffer, and index buffer ready)
-		bool ready() const;
+		[[nodiscard]] bool ready() const;
 
 		std::shared_ptr< PrimitiveRenderInfoIndex > buildRenderInfo();
 
@@ -106,7 +106,10 @@ namespace fgl::engine
 		Primitive( const Primitive& other ) = delete;
 		Primitive( Primitive&& other ) = default;
 
-		std::shared_ptr< PrimitiveRenderInfoIndex > renderInstanceInfo() const { return m_primitive_info; }
+		[[nodiscard]] std::shared_ptr< PrimitiveRenderInfoIndex > renderInstanceInfo() const
+		{
+			return m_primitive_info;
+		}
 
 		static Primitive fromVerts(
 			std::vector< ModelVertex >&& verts,
@@ -115,7 +118,7 @@ namespace fgl::engine
 			memory::Buffer& vertex_buffer,
 			memory::Buffer& index_buffer );
 
-		OrientedBoundingBox< CoordinateSpace::Model > getBoundingBox() const;
+		[[nodiscard]] OrientedBoundingBox< CoordinateSpace::Model > getBoundingBox() const;
 	};
 
 } // namespace fgl::engine

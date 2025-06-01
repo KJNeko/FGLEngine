@@ -168,7 +168,7 @@ namespace fgl::engine
 		return *m_image;
 	}
 
-	vk::DescriptorImageInfo Texture::getDescriptor() const
+	vk::DescriptorImageInfo Texture::getDescriptorInfo() const
 	{
 		return m_image_view->descriptorInfo( vk::ImageLayout::eGeneral );
 	}

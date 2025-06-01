@@ -44,6 +44,9 @@ namespace fgl::engine
 			DepthAttachment< 1 > m_depth;
 		} m_render_attachments { m_swap_chain_format, m_swap_chain_depth_format };
 
+		static_assert( is_attachment< ColoredPresentAttachment< 0 > >, "Not attachment" );
+		static_assert( is_attachment< DepthAttachment< 1 > >, "Not attachment" );
+
 		std::vector< descriptors::DescriptorSetPtr > m_input_descriptors {};
 
 		std::vector< vk::ClearValue > m_clear_values;

@@ -20,11 +20,6 @@ namespace fgl::engine
 	class Sampler;
 	class Image;
 
-	namespace memory
-	{
-		class BufferSuballocation;
-	}
-
 	class ImageView;
 
 	namespace descriptors
@@ -110,7 +105,7 @@ namespace fgl::engine
 
 		const std::string& getName() const { return m_name; }
 
-		[[nodiscard]] vk::DescriptorImageInfo getDescriptor() const;
+		[[nodiscard]] vk::DescriptorImageInfo getDescriptorInfo() const;
 		[[nodiscard]] vk::DescriptorSet& getImGuiDescriptorSet();
 
 		[[nodiscard]] vk::Extent2D getExtent() const;
@@ -125,5 +120,7 @@ namespace fgl::engine
 		static descriptors::DescriptorSetLayout& getDescriptorLayout();
 		static descriptors::DescriptorSet& getDescriptorSet();
 	};
+
+	using TexturePtr = std::shared_ptr< Texture >;
 
 } // namespace fgl::engine

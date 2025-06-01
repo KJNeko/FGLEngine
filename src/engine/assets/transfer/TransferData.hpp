@@ -43,17 +43,16 @@ namespace fgl::engine
 namespace fgl::engine::memory
 {
 	//! <Source, Target>
-	using CopyRegionKey = std::pair< std::shared_ptr< BufferHandle >, std::shared_ptr< BufferHandle > >;
+	using CopyRegionKey = std::pair< FrozenBufferHandlePtr, FrozenBufferHandlePtr >;
 
 	struct BufferHasher
 	{
-		std::size_t operator()( const std::shared_ptr< BufferHandle >& buffer ) const;
+		std::size_t operator()( const FrozenBufferHandlePtr& buffer ) const;
 	};
 
 	struct CopyRegionKeyHasher
 	{
-		std::size_t operator()( const std::pair< std::shared_ptr< BufferHandle >, std::shared_ptr< BufferHandle > >&
-		                            pair ) const;
+		std::size_t operator()( const std::pair< FrozenBufferHandlePtr, FrozenBufferHandlePtr >& pair ) const;
 	};
 
 	using CopyRegionMap = std::unordered_map< CopyRegionKey, std::vector< vk::BufferCopy >, CopyRegionKeyHasher >;
@@ -71,7 +70,8 @@ namespace fgl::engine::memory
 		} m_type;
 
 		using RawData = std::vector< std::byte >;
-		using TransferSuballocationHandle = std::shared_ptr< BufferSuballocationHandle >;
+		using TransferSuballocationHandle = FrozenBufferSuballocation;
+		// std::shared_ptr< BufferSuballocationHandle >;
 		using TransferImageHandle = std::shared_ptr< ImageHandle >;
 
 		using SourceData = std::variant< RawData, TransferImageHandle, TransferSuballocationHandle >;
@@ -156,21 +156,20 @@ namespace fgl::engine::memory
 
 		//SUBALLOCATION_FROM_SUBALLOCATION
 		TransferData(
-			const std::shared_ptr< BufferSuballocationHandle >& source,
-			const std::shared_ptr< BufferSuballocationHandle >& target,
+			const TransferSuballocationHandle& source,
+			const TransferSuballocationHandle& target,
 			vk::DeviceSize target_offset = 0,
 			vk::DeviceSize source_offset = 0 );
 
 		// SUBALLOCATION_FROM_RAW
 		TransferData(
 			std::vector< std::byte >&& source,
-			const std::shared_ptr< BufferSuballocationHandle >& target,
+			const TransferSuballocationHandle& target,
 			vk::DeviceSize target_offset = 0,
 			vk::DeviceSize source_offset = 0 );
 
 		//IMAGE_FROM_X
-		TransferData(
-			const std::shared_ptr< BufferSuballocationHandle >& source, const std::shared_ptr< ImageHandle >& target );
+		TransferData( const TransferSuballocationHandle& source, const std::shared_ptr< ImageHandle >& target );
 
 		TransferData( std::vector< std::byte >&& source, const std::shared_ptr< ImageHandle >& target );
 	};

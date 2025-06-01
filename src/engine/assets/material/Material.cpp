@@ -52,15 +52,28 @@ namespace fgl::engine
 		return data;
 	}
 
-	Material::Material() : m_id( material_id_counter.getID() )
+	inline static auto material_descriptor_set {
+		descriptors::DescriptorSetLayout::create( MATERIAL_SET_ID, material_descriptor )
+	};
+	inline static std::weak_ptr< MaterialDescriptorRevolver > MATERIAL_DESC_REVOLVER {};
+
+	std::shared_ptr< MaterialDescriptorRevolver > getDescriptorRevolver()
 	{
-		auto& descriptor_set { getDescriptorSet() };
-		descriptor_set.bindArray(
+		if ( MATERIAL_DESC_REVOLVER.expired() )
+		{
+			return descriptors::DescriptorRevolver::create( material_descriptor_set );
+		}
+		return MATERIAL_DESC_REVOLVER.lock();
+	}
+
+	Material::Material() : m_id( material_id_counter.getID() ), m_descriptor_revolver( getDescriptorRevolver() )
+	{
+		m_descriptor_revolver->bindArray(
+			global::getCurrentFrameIndex(),
 			0,
 			EngineContext::getInstance().getMaterialManager().getBufferSuballocation(),
 			m_id,
 			sizeof( DeviceMaterialData ) );
-		descriptor_set.update();
 	}
 
 	bool Material::ready() const
@@ -101,8 +114,6 @@ namespace fgl::engine
 	{
 		return m_id;
 	}
-
-	inline static descriptors::DescriptorSetLayout material_descriptor_set { MATERIAL_SET_ID, material_descriptor };
 
 	descriptors::DescriptorSetLayout& Material::getDescriptorLayout()
 	{

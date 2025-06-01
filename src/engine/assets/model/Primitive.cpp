@@ -8,6 +8,7 @@
 #include "engine/assets/material/Material.hpp"
 #include "engine/assets/model/ModelVertex.hpp"
 #include "engine/assets/texture/Texture.hpp"
+#include "memory/buffers/BufferSuballocationHandle.hpp"
 
 namespace fgl::engine
 {
@@ -34,7 +35,7 @@ namespace fgl::engine
 
 	bool Primitive::ready() const
 	{
-		return default_material->ready() && m_vertex_buffer.ready() && m_index_buffer.ready();
+		return default_material->ready() && m_vertex_buffer->ready() && m_index_buffer->ready();
 	}
 
 	std::shared_ptr< PrimitiveRenderInfoIndex > Primitive::buildRenderInfo()

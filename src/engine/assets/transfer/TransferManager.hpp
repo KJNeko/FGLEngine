@@ -21,8 +21,6 @@ namespace fgl::engine
 		class BufferVector;
 
 		struct BufferSuballocationHandle;
-
-		class BufferSuballocation;
 	} // namespace memory
 } // namespace fgl::engine
 
@@ -102,9 +100,7 @@ namespace fgl::engine::memory
 		//! Resizes the staging buffer.
 		void resizeBuffer( std::uint64_t size );
 
-		void copySuballocationRegion(
-			const std::shared_ptr< BufferSuballocationHandle >& src,
-			const std::shared_ptr< BufferSuballocationHandle >& dst );
+		void copySuballocationRegion( const FrozenBufferSuballocation& source, FrozenBufferSuballocation& target );
 
 		//! Queues a buffer to be transfered
 		template < typename DeviceVectorT >
@@ -117,7 +113,7 @@ namespace fgl::engine::memory
 		{
 			assert( !data.empty() );
 			TransferData transfer_data {
-				std::forward< std::vector< std::byte > >( data ), device_vector.m_handle, target_offset, source_offset
+				std::forward< std::vector< std::byte > >( data ), device_vector.freeze(), target_offset, source_offset
 			};
 
 			m_queue.emplace_back( std::move( transfer_data ) );
@@ -150,7 +146,7 @@ namespace fgl::engine::memory
 			copyToVector( std::move( punned_data ), device_vector, 0 );
 		}
 
-		void copyToVector( BufferVector& source, BufferVector& target, std::size_t target_offset );
+		void copyToVector( const BufferVector& source, const BufferVector& target, std::size_t target_offset = 0 );
 
 		void copyToImage( std::vector< std::byte >&& data, const Image& image );
 

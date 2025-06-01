@@ -94,16 +94,16 @@ namespace fgl::engine
 
 		const std::vector< vk::Buffer > vert_buffers {
 			model_buffers.m_vertex_buffer->getVkBuffer(),
-			model_buffers.m_generated_instance_info[ info.in_flight_idx ].getVkBuffer()
+			model_buffers.m_generated_instance_info[ info.in_flight_idx ]->getVkBuffer()
 		};
 
 		command_buffer->bindVertexBuffers(
-			0, vert_buffers, { 0, model_buffers.m_generated_instance_info[ info.in_flight_idx ].getOffset() } );
+			0, vert_buffers, { 0, model_buffers.m_generated_instance_info[ info.in_flight_idx ]->getOffset() } );
 		command_buffer->bindIndexBuffer( model_buffers.m_index_buffer->getVkBuffer(), 0, vk::IndexType::eUint32 );
 
 		command_buffer->drawIndexedIndirect(
-			info.m_commands.getVkBuffer(),
-			info.m_commands.getOffset(),
+			info.m_commands->getVkBuffer(),
+			info.m_commands->getOffset(),
 			info.m_commands.size(),
 			info.m_commands.stride() );
 	};

@@ -361,7 +361,7 @@ namespace fgl::engine
 		for ( std::uint8_t i = 0; i < constants::MAX_FRAMES_IN_FLIGHT; ++i )
 		{
 			auto set { camera_descriptor_set.create() };
-			set->bindUniformBuffer( 0, m_camera_frame_info[ i ] );
+			set->bindBuffer( 0, m_camera_frame_info[ i ] );
 			set->update();
 			set->setName( std::format( "Camera {} descriptor set {}", m_camera_idx, i ) );
 

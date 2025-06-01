@@ -14,6 +14,7 @@
 #include "glm/vec4.hpp"
 #pragma GCC diagnostic pop
 
+#include "descriptors/DescriptorRevolver.hpp"
 #include "engine/constants.hpp"
 #include "engine/descriptors/Descriptor.hpp"
 #include "engine/memory/buffers/vector/DeviceVector.hpp"
@@ -145,6 +146,8 @@ namespace fgl::engine
 	static_assert( offsetof( DeviceMaterialData, emissive_factors ) == 64 );
 	*/
 
+	using MaterialDescriptorRevolver = descriptors::DescriptorRevolver;
+
 	class Material
 	{
 		MaterialID m_id;
@@ -152,6 +155,8 @@ namespace fgl::engine
 		debug::Track< "GPU", "Material" > m_track {};
 
 		Material();
+
+		std::shared_ptr< MaterialDescriptorRevolver > m_descriptor_revolver;
 
 	  public:
 

@@ -30,6 +30,7 @@ namespace fgl::engine::gui
 
 	AllocationList getTotalAllocated()
 	{
+		ZoneScoped;
 		AllocationList info {};
 
 		auto& [ gpu_allocated, gpu_used, gpu_largest_free ] = info.m_gpu;
@@ -77,6 +78,7 @@ namespace fgl::engine::gui
 
 	void drawMemoryStats()
 	{
+		ZoneScoped;
 		const auto [ gpu, host ] = getTotalAllocated();
 		const auto& [ gpu_allocated, gpu_used, gpu_largest_block ] = gpu;
 		const auto& [ host_allocated, host_used, host_largest_block ] = host;
@@ -106,22 +108,12 @@ namespace fgl::engine::gui
 
 		if ( ImGui::CollapsingHeader( "Buffers" ) )
 		{
-			for ( const std::shared_ptr< memory::BufferHandle > buffer : memory::getActiveBuffers() )
+			for ( const auto& buffer : memory::getActiveBuffers() )
 			{
 				ImGui::Text( "Name: %s", buffer->m_debug_name.c_str() );
 
 				drawBufferInfo( *buffer.get() );
 
-				const double used_percent { static_cast< float >( buffer->used() )
-					                        / static_cast< float >( buffer->size() ) * 100.0f };
-
-				ImGui::Text(
-					"Allocated: %s/%s (%2.1f%%)",
-					toString( buffer->used() ).c_str(),
-					toString( buffer->size() ).c_str(),
-					static_cast< double >( used_percent ) );
-
-				ImGui::Text( "Largest block: %s", toString( buffer->largestBlock() ).c_str() );
 				ImGui::Separator();
 			}
 		}
@@ -129,6 +121,7 @@ namespace fgl::engine::gui
 
 	void drawStats( [[maybe_unused]] const FrameInfo& info )
 	{
+		ZoneScoped;
 		ImGui::Begin( "Stats" );
 
 		ImGui::Text( "FPS: %0.1f", static_cast< double >( ImGui::GetIO().Framerate ) );

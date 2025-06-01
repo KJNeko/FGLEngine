@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <variant>
+
 #include "Scale.hpp"
 #include "engine/FGL_DEFINES.hpp"
 #include "engine/debug/logging/logging.hpp"

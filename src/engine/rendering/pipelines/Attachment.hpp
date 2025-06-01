@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "assets/image/ImageView.hpp"
 #include "engine/assets/image/Image.hpp"
 #include "engine/concepts/is_attachment.hpp"
 #include "engine/rendering/types.hpp"
@@ -20,8 +21,8 @@ namespace fgl::engine
 
 	struct AttachmentResources
 	{
-		std::vector< std::shared_ptr< Image > > m_images {};
-		std::vector< std::shared_ptr< ImageView > > m_image_views {};
+		std::vector< ImagePtr > m_images {};
+		std::vector< ImageViewPtr > m_image_views {};
 	};
 
 	template <
@@ -117,7 +118,7 @@ namespace fgl::engine
 						usage | vk::ImageUsageFlagBits::eInputAttachment | extra_flags,
 						vk::ImageLayout::eUndefined,
 						final_layout ) ) };
-				image_views.emplace_back( itter->getView(  ) );
+				image_views.emplace_back( itter->getView() );
 			}
 		}
 
@@ -134,14 +135,14 @@ namespace fgl::engine
 			for ( std::uint32_t i = 0; i < count; ++i )
 			{
 				m_attachment_resources.m_images.emplace_back( image );
-				m_attachment_resources.m_image_views.emplace_back( image->getView(  ) );
+				m_attachment_resources.m_image_views.emplace_back( image->getView() );
 			}
 		}
 
-		ImageView& getView( const FrameIndex frame_idx ) const
+		ImageViewPtr getView( const FrameIndex frame_idx ) const
 		{
 			assert( frame_idx < m_attachment_resources.m_image_views.size() );
-			return *m_attachment_resources.m_image_views[ frame_idx ];
+			return m_attachment_resources.m_image_views[ frame_idx ];
 		}
 
 		Image& getImage( const FrameIndex frame_idx ) const
@@ -155,7 +156,7 @@ namespace fgl::engine
 			vk::RenderingAttachmentInfo info {};
 
 			info.setClearValue( m_clear_value );
-			info.imageView = getView( frame_index ).getVkView();
+			info.imageView = getView( frame_index )->getVkView();
 			info.loadOp = load_op;
 			info.storeOp = store_op;
 			info.imageLayout = layout;

@@ -60,6 +60,7 @@ namespace Catch
 		}
 	};
 
+	/*
 	template <>
 	struct StringMaker< fgl::engine::EulerRotation >
 	{
@@ -68,6 +69,7 @@ namespace Catch
 			return StringMaker< glm::vec3 >::convert( glm::vec3( rot.x, rot.y, rot.z ) );
 		}
 	};
+	*/
 
 	template < fgl::engine::MatrixType MType >
 	struct StringMaker< fgl::engine::Matrix< MType > >

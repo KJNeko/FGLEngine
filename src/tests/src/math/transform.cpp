@@ -8,11 +8,9 @@
 
 TEST_CASE( "Transform", "[transform]" )
 {
-	using namespace fgl::engine::v2;
 
 	SECTION( "Default" )
 	{
-		TransformComponent transform {};
 
 
 

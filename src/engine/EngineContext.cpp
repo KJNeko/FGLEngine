@@ -29,40 +29,41 @@ namespace fgl::engine
 	constexpr float MAX_DELTA_TIME { 0.5 };
 	inline static EngineContext* instance { nullptr };
 
-	PerFrameArray< descriptors::DescriptorSetPtr > createDrawCommandsDescriptors(
+	std::shared_ptr< descriptors::DescriptorRevolver > createDrawCommandsDescriptors(
 		PerFrameArray< DeviceVector< vk::DrawIndexedIndirectCommand > >& gpu_draw_commands,
 		PerFrameArray< DeviceVector< PerVertexInstanceInfo > >& per_vertex_info )
 	{
-		PerFrameArray< descriptors::DescriptorSetPtr > descriptors {};
+		auto revolver { descriptors::DescriptorRevolver::create( COMMANDS_SET ) };
 
-		for ( std::uint16_t i = 0; i < gpu_draw_commands.size(); ++i )
+		for ( FrameIndex i = 0; i < constants::MAX_FRAMES_IN_FLIGHT; ++i )
 		{
 			auto& command_buffer { gpu_draw_commands[ i ] };
 			auto& per_vertex_buffer { per_vertex_info[ i ] };
-			auto descriptor { COMMANDS_SET.create() };
+			auto descriptor { ( *revolver )[ i ] };
 
-			descriptor->bindStorageBuffer( 0, command_buffer );
-			descriptor->bindStorageBuffer( 1, per_vertex_buffer );
+			descriptor->bindBuffer( 0, command_buffer );
+			descriptor->bindBuffer( 1, per_vertex_buffer );
 			descriptor->update();
 			descriptor->setName( "Command Buffer + Vertex Buffer" );
-
-			descriptors[ i ] = std::move( descriptor );
 		}
 
-		return descriptors;
+		return revolver;
 	}
 
 	EngineContext::EngineContext() :
-	  m_ubo_buffer_pool( 1_MiB, vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eHostVisible ),
+	  m_ubo_buffer_pool(
+		  1_MiB, vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eHostVisible, "UBO Buffer Pool" ),
 	  m_draw_parameter_pool(
 		  4_MiB,
 		  vk::BufferUsageFlagBits::eIndirectBuffer | vk::BufferUsageFlagBits::eStorageBuffer,
-		  vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible ),
+		  vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible,
+		  "Draw Parameter Pool" ),
 	  m_gpu_draw_commands(
 		  constructPerFrame< DeviceVector< vk::DrawIndexedIndirectCommand > >( m_draw_parameter_pool ) ),
 	  m_per_vertex_infos( m_model_buffers.m_generated_instance_info ),
-	  m_gpu_draw_cmds_desc( createDrawCommandsDescriptors( m_gpu_draw_commands, m_per_vertex_infos ) ),
-	  m_delta_time( 0.0 )
+	  m_gpu_draw_cmds_desc_revolver( createDrawCommandsDescriptors( m_gpu_draw_commands, m_per_vertex_infos ) ),
+	  m_delta_time( 0.0 ),
+	  m_deffered_cleanup()
 	{
 		ZoneScoped;
 		using namespace fgl::literals::size_literals;
@@ -157,7 +158,7 @@ namespace fgl::engine
 				                   m_renderer.getCurrentTracyCTX(),
 				                   *m_model_buffers.m_primitives_desc,
 				                   *m_model_buffers.m_instances_desc,
-				                   *m_gpu_draw_cmds_desc[ in_flight_idx ],
+				                   ( *m_gpu_draw_cmds_desc_revolver )[ in_flight_idx ],
 				                   m_gpu_draw_commands[ in_flight_idx ],
 				                   game_objects,
 				                   this->m_renderer.getSwapChain() };

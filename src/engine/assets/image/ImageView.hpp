@@ -29,6 +29,7 @@ namespace fgl::engine
 
 		//! Returns true if the resource has been staged
 		bool ready() const;
+		vk::DescriptorImageInfo getDescriptorInfo( vk::ImageLayout layout );
 
 		ImageView() = delete;
 
@@ -58,5 +59,7 @@ namespace fgl::engine
 
 		void setName( const std::string& str );
 	};
+
+	using ImageViewPtr = std::shared_ptr< ImageView >;
 
 } // namespace fgl::engine

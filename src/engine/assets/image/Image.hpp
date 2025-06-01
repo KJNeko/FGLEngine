@@ -79,4 +79,6 @@ namespace fgl::engine
 		}
 	};
 
+	using ImagePtr = std::shared_ptr< Image >;
+
 } // namespace fgl::engine

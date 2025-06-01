@@ -9,13 +9,13 @@ namespace fgl::engine::memory
 
 	template < typename T >
 	concept is_suballocation = requires( const T t ) {
-		{ t.getVkBuffer() } -> std::same_as< vk::Buffer >;
-		{ t.getOffset() } -> std::same_as< vk::DeviceSize >;
+		{ t->getVkBuffer() } -> std::same_as< vk::Buffer >;
+		{ t->getOffset() } -> std::same_as< vk::DeviceSize >;
 		/*
 		{
 			t.size()
 		} -> std::same_as< vk::DeviceSize >;
 		*/
-		{ t.descriptorInfo() } -> std::same_as< vk::DescriptorBufferInfo >;
+		{ t->getDescriptorInfo() } -> std::same_as< vk::DescriptorBufferInfo >;
 	};
 } // namespace fgl::engine::memory

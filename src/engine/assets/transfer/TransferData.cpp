@@ -15,13 +15,13 @@
 namespace fgl::engine::memory
 {
 
-	std::size_t BufferHasher::operator()( const std::shared_ptr< BufferHandle >& buffer ) const
+	std::size_t BufferHasher::operator()( const FrozenBufferHandlePtr& buffer ) const
 	{
 		return reinterpret_cast< std::size_t >( static_cast< VkBuffer >( buffer->getVkBuffer() ) );
 	}
 
-	std::size_t CopyRegionKeyHasher::
-		operator()( const std::pair< std::shared_ptr< BufferHandle >, std::shared_ptr< BufferHandle > >& pair ) const
+	std::size_t CopyRegionKeyHasher::operator()( const std::pair< FrozenBufferHandlePtr, FrozenBufferHandlePtr >& pair )
+		const
 	{
 		const std::size_t hash_a { BufferHasher {}( std::get< 0 >( pair ) ) };
 		const std::size_t hash_b { BufferHasher {}( std::get< 1 >( pair ) ) };
@@ -29,6 +29,15 @@ namespace fgl::engine::memory
 		std::size_t seed { 0 };
 		hashCombine( seed, hash_a, hash_b );
 		return seed;
+	}
+
+	using BufferPair = std::pair< FrozenBufferHandlePtr, FrozenBufferHandlePtr >;
+
+	bool operator==( const BufferPair& left, const BufferPair& right )
+	{
+		const auto left_hash { CopyRegionKeyHasher {}( left ) };
+		const auto right_hash { CopyRegionKeyHasher {}( right ) };
+		return left_hash == right_hash;
 	}
 
 	bool TransferData::
@@ -338,8 +347,7 @@ namespace fgl::engine::memory
 				[[fallthrough]];
 			case TransferType::SUBALLOCATION_FROM_SUBALLOCATION:
 				if ( std::holds_alternative< TransferSuballocationHandle >( m_source ) )
-					deferredDelete< std::shared_ptr<
-						BufferSuballocationHandle > >( std::get< TransferSuballocationHandle >( m_source ) );
+					deferredDelete( std::get< TransferSuballocationHandle >( m_source ) );
 				break;
 		}
 	}
@@ -348,8 +356,8 @@ namespace fgl::engine::memory
 
 	//! BUFFER_FROM_BUFFER
 	TransferData::TransferData(
-		const std::shared_ptr< BufferSuballocationHandle >& source,
-		const std::shared_ptr< BufferSuballocationHandle >& target,
+		const TransferSuballocationHandle& source,
+		const TransferSuballocationHandle& target,
 		const vk::DeviceSize target_offset,
 		const vk::DeviceSize source_offset ) :
 	  m_type( TransferType::SUBALLOCATION_FROM_SUBALLOCATION ),
@@ -364,7 +372,7 @@ namespace fgl::engine::memory
 	//! BUFFER_FROM_RAW
 	TransferData::TransferData(
 		std::vector< std::byte >&& source,
-		const std::shared_ptr< BufferSuballocationHandle >& target,
+		const TransferSuballocationHandle& target,
 		const vk::DeviceSize target_offset,
 		const vk::DeviceSize source_offset ) :
 	  m_type( TransferType::SUBALLOCATION_FROM_RAW ),
@@ -377,8 +385,8 @@ namespace fgl::engine::memory
 	}
 
 	//! IMAGE_FROM_BUFFER
-	TransferData::TransferData(
-		const std::shared_ptr< BufferSuballocationHandle >& source, const std::shared_ptr< ImageHandle >& target ) :
+	TransferData::
+		TransferData( const TransferSuballocationHandle& source, const std::shared_ptr< ImageHandle >& target ) :
 	  m_type( TransferType::IMAGE_FROM_SUBALLOCATION ),
 	  m_source( source ),
 	  m_target( target ),
