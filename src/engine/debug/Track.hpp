@@ -10,6 +10,7 @@
 #pragma GCC diagnostic pop
 #include <vector>
 
+#include "FrameTracker.hpp"
 #include "utility/TString.hpp"
 
 namespace fgl::engine::debug
@@ -41,6 +42,8 @@ namespace fgl::engine::debug
 		TrackUID UID { INVALID_TRACK_ID };
 
 	  public:
+
+		std::shared_ptr< FrameTrackerMark > m_frame_counter { FrameTrackerMark::create() };
 
 		explicit Track( std::size_t size = 0, std::stacktrace trace = std::stacktrace::current() ) :
 		  UID( registerTrack( Group, Name, size, trace ) )

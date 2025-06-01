@@ -197,6 +197,7 @@ namespace fgl::engine
 			}
 
 			flags::resetFlags();
+			FrameTrackerMark::incrementAll();
 
 			FrameMark;
 		}
