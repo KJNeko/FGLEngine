@@ -332,7 +332,7 @@ namespace fgl::engine
 		                                                  vk::DescriptorType::eUniformBuffer,
 		                                                  vk::ShaderStageFlagBits::eAllGraphics };
 
-	inline static descriptors::DescriptorSetLayout camera_descriptor_set { 1, camera_descriptor };
+	inline static auto camera_descriptor_set { descriptors::DescriptorSetLayout::create( 1, camera_descriptor ) };
 
 	descriptors::DescriptorSetLayout& Camera::getDescriptorLayout()
 	{

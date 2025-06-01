@@ -4,5 +4,5 @@
 
 #pragma once
 
-inline static constexpr char* DRAG_TYPE_FILE_MODEL_INFO { "_MODEL_FILE_INFO" };
-inline static constexpr char* DRAG_TYPE_FILE_TEXTURE_INFO { "_TEXTURE_FILE_INFO" };
+inline static constexpr std::string_view DRAG_TYPE_FILE_MODEL_INFO { "_MODEL_FILE_INFO" };
+inline static constexpr std::string_view DRAG_TYPE_FILE_TEXTURE_INFO { "_TEXTURE_FILE_INFO" };

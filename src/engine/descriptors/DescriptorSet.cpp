@@ -160,7 +160,6 @@ namespace fgl::engine::descriptors
 	VkDescriptorSet DescriptorSet::getVkDescriptorSet() const
 	{
 		FGL_ASSERT( !hasUpdates(), "Descriptor set has updates but binding was attempted" );
-		FGL_ASSERT( m_initalized, "Descriptor set has not been initialized" );
 		return *m_set;
 	}
 

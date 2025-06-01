@@ -39,6 +39,82 @@ namespace fgl::engine
 	}
 
 	template < typename T >
+	std::vector< T > sizecastedExtract(
+		const tinygltf::Accessor& accessor,
+		const std::vector< tinygltf::BufferView >::value_type& buffer_view,
+		const std::vector< tinygltf::Buffer >::value_type& buffer,
+		std::vector< T > data,
+		std::uint16_t byte_count,
+		const size_t T_SIZE )
+	{
+		// If the type is scalar type we can still safely use it without any major worries
+		if ( accessor.type != TINYGLTF_TYPE_SCALAR || T_SIZE < byte_count )
+			throw std::runtime_error(
+				std::format( "Tried extracting data of size {} into type of size {}", byte_count, T_SIZE ) );
+
+		// If the type is a smaller scalar then we want can still copy the data.
+		// log::warn( "Attempting to copy data of size {} into type of size {}", byte_count, T_SIZE );
+		// static_assert( std::is_scalar_v< T >, "Type must be a scalar type" );
+		if constexpr ( !std::is_scalar_v< T > )
+			throw std::runtime_error( "Tried extracting scalar value into non-scalar type" );
+
+		constexpr std::size_t one_byte { 1 };
+		constexpr std::size_t two_bytes { 2 };
+		constexpr std::size_t four_bytes { 4 };
+		constexpr std::size_t eight_bytes { 8 };
+
+		switch ( byte_count )
+		{
+			default:
+				throw std::runtime_error( "Unknown size" );
+			case one_byte:
+				for ( std::size_t i = 0; i < accessor.count; ++i )
+				{
+					std::uint8_t tmp {};
+					std::memcpy(
+						&tmp,
+						buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset + ( i * byte_count ),
+						byte_count );
+					data.emplace_back( static_cast< T >( tmp ) );
+				}
+				return data;
+			case two_bytes:
+				for ( std::size_t i = 0; i < accessor.count; ++i )
+				{
+					std::uint16_t tmp {};
+					std::memcpy(
+						&tmp,
+						buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset + ( i * byte_count ),
+						byte_count );
+					data.emplace_back( static_cast< T >( tmp ) );
+				}
+				return data;
+			case four_bytes:
+				for ( std::size_t i = 0; i < accessor.count; ++i )
+				{
+					std::uint32_t tmp {};
+					std::memcpy(
+						&tmp,
+						buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset + ( i * byte_count ),
+						byte_count );
+					data.emplace_back( static_cast< T >( tmp ) );
+				}
+				return data;
+			case eight_bytes:
+				for ( std::size_t i = 0; i < accessor.count; ++i )
+				{
+					std::uint64_t tmp {};
+					std::memcpy(
+						&tmp,
+						buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset + ( i * byte_count ),
+						byte_count );
+					data.emplace_back( static_cast< T >( tmp ) );
+				}
+				return data;
+		}
+	}
+
+	template < typename T >
 	std::vector< T > extractData( const tinygltf::Model& model, const tinygltf::Accessor& accessor )
 	{
 		ZoneScoped;
@@ -91,68 +167,11 @@ namespace fgl::engine
 		// Size of the type we are extracting into
 		constexpr auto T_SIZE { sizeof( T ) };
 
-		// If the type size is smaller than we need. Then we need to throw an error
-		if ( T_SIZE != byte_count )
+		if constexpr ( std::is_scalar_v< T > )
 		{
-			// If the type is scalar type we can still safely use it without any major worries
-			if ( !( accessor.type == TINYGLTF_TYPE_SCALAR && T_SIZE >= byte_count ) )
-				throw std::runtime_error(
-					std::format( "Tried extracting data of size {} into type of size {}", byte_count, T_SIZE ) );
-
-			// If the type is a smaller scalar then we want can still copy the data.
-			// log::warn( "Attempting to copy data of size {} into type of size {}", byte_count, T_SIZE );
-			// static_assert( std::is_scalar_v< T >, "Type must be a scalar type" );
-			if constexpr ( !std::is_scalar_v< T > )
-				throw std::runtime_error( "Tried extracting scalar value into non-scalar type" );
-
-			switch ( byte_count )
+			if ( T_SIZE != byte_count )
 			{
-				default:
-					throw std::runtime_error( "Unknown size" );
-				case 1:
-					for ( std::size_t i = 0; i < accessor.count; ++i )
-					{
-						std::uint8_t tmp {};
-						std::memcpy(
-							&tmp,
-							buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset + ( i * byte_count ),
-							byte_count );
-						data.emplace_back( static_cast< T >( tmp ) );
-					}
-					return data;
-				case 2:
-					for ( std::size_t i = 0; i < accessor.count; ++i )
-					{
-						std::uint16_t tmp {};
-						std::memcpy(
-							&tmp,
-							buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset + ( i * byte_count ),
-							byte_count );
-						data.emplace_back( static_cast< T >( tmp ) );
-					}
-					return data;
-				case 4:
-					for ( std::size_t i = 0; i < accessor.count; ++i )
-					{
-						std::uint32_t tmp {};
-						std::memcpy(
-							&tmp,
-							buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset + ( i * byte_count ),
-							byte_count );
-						data.emplace_back( static_cast< T >( tmp ) );
-					}
-					return data;
-				case 8:
-					for ( std::size_t i = 0; i < accessor.count; ++i )
-					{
-						std::uint64_t tmp {};
-						std::memcpy(
-							&tmp,
-							buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset + ( i * byte_count ),
-							byte_count );
-						data.emplace_back( static_cast< T >( tmp ) );
-					}
-					return data;
+				return sizecastedExtract< T >( accessor, buffer_view, buffer, data, byte_count, T_SIZE );
 			}
 		}
 
@@ -554,15 +573,15 @@ namespace fgl::engine
 
 			material->properties.pbr.metallic_roughness_tex =
 				loadTexture( metallic_roughness.metallicRoughnessTexture.index, root );
-			material->properties.pbr.metallic_factor = metallic_roughness.metallicFactor;
-			material->properties.pbr.roughness_factor = metallic_roughness.roughnessFactor;
+			material->properties.pbr.metallic_factor = static_cast< float >( metallic_roughness.metallicFactor );
+			material->properties.pbr.roughness_factor = static_cast< float >( metallic_roughness.roughnessFactor );
 		}
 
 		material->properties.normal.texture = loadTexture( gltf_material.normalTexture.index, root );
-		material->properties.normal.scale = gltf_material.normalTexture.scale;
+		material->properties.normal.scale = static_cast< float >( gltf_material.normalTexture.scale );
 
 		material->properties.occlusion.texture = loadTexture( gltf_material.occlusionTexture.index, root );
-		material->properties.occlusion.strength = gltf_material.occlusionTexture.strength;
+		material->properties.occlusion.strength = static_cast< float >( gltf_material.occlusionTexture.strength );
 
 		material->properties.emissive.texture = loadTexture( gltf_material.emissiveTexture.index, root );
 		material->properties.emissive.factors = convertToVec3( gltf_material.emissiveFactor );
@@ -578,7 +597,7 @@ namespace fgl::engine
 		const tinygltf::Node& node { root.nodes[ node_idx ] };
 
 		const int mesh_idx { node.mesh };
-		const int skin_idx { node.skin };
+		[[maybe_unused]] const int skin_idx { node.skin };
 
 		GameObject obj { GameObject::createGameObject() };
 

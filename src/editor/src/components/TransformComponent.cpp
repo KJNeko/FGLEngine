@@ -8,7 +8,12 @@
 
 namespace fgl::engine::components
 {
-	TransformComponent::TransformComponent( const WorldTransform& transform ) : m_transform( transform )
+	TransformComponent::TransformComponent() : m_transform(), m_model_instance_info_index()
+	{}
+
+	TransformComponent::TransformComponent( const WorldTransform& transform ) :
+	  m_transform( transform ),
+	  m_model_instance_info_index()
 	{}
 
 	void TransformComponent::drawImGui()

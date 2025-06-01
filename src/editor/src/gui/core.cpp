@@ -97,7 +97,7 @@ namespace fgl::engine::gui
 
 	static GameObject* selected_object { nullptr };
 
-	void itterateGameObjectNode( FrameInfo& info, OctTreeNode& node )
+	void itterateGameObjectNode( [[maybe_unused]] FrameInfo& info, [[maybe_unused]] OctTreeNode& node )
 	{
 		/*
 		if ( node.isLeaf() )
@@ -147,7 +147,7 @@ namespace fgl::engine::gui
 		*/
 	}
 
-	void drawEntityGUI( FrameInfo& info )
+	void drawEntityGUI( [[maybe_unused]] FrameInfo& info )
 	{
 		ZoneScoped;
 		ImGui::Begin( OBJECT_TREE_VIEW_NAME );

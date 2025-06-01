@@ -40,10 +40,11 @@ namespace fgl::engine::shadows
 		return array;
 	}
 
-	void ShadowMap::renderForCamera( const Camera& camera )
+	void ShadowMap::renderForCamera( [[maybe_unused]] const Camera& camera )
 	{
 		// model -> world -> camera (identity) -> screen (shadow)
 		// since the camera in this case is the shadow map we just need to convert the screen space to world space. So we can just use an identity matrix
+		//TODO: Render shadow map from camera
 
 		const Matrix< MatrixType::WorldToCamera > camera_matrix { m_transform.mat() };
 		const Matrix< MatrixType::CameraToScreen > identity { 1.0f };

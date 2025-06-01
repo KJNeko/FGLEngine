@@ -14,7 +14,7 @@ namespace fgl::engine
 		std::vector< descriptors::DescriptorSetPtr > data {};
 		data.resize( constants::MAX_FRAMES_IN_FLIGHT );
 
-		for ( PresentIndex i = 0; i < constants::MAX_FRAMES_IN_FLIGHT; ++i )
+		for ( FrameIndex i = 0; i < constants::MAX_FRAMES_IN_FLIGHT; ++i )
 		{
 			//auto set { std::make_unique< descriptors::DescriptorSet >( GBufferDescriptorSet::createLayout() ) };
 			auto set { gbuffer_set.create() };

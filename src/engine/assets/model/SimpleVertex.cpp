@@ -14,7 +14,12 @@ namespace fgl::engine
 	std::vector< vk::VertexInputBindingDescription > SimpleVertex::getBindingDescriptions()
 	{
 		// {buffer_idx, stride, rate}
-		return { { 0, sizeof( SimpleVertex ), vk::VertexInputRate::eVertex } };
+		constexpr auto stride = sizeof( SimpleVertex );
+		std::vector< vk::VertexInputBindingDescription > binding_descriptions {
+			{ 0, stride, vk::VertexInputRate::eVertex }
+		};
+
+		return binding_descriptions;
 	}
 
 	std::vector< vk::VertexInputAttributeDescription > SimpleVertex::getAttributeDescriptions()

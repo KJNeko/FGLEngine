@@ -41,7 +41,9 @@ namespace fgl::engine
 	  m_generated_instance_info( constructPerFrame< DeviceVector< PerVertexInstanceInfo > >( m_vertex_buffer ) ),
 	  m_primitive_info( m_long_buffer ),
 	  m_primitive_instances( m_long_buffer ),
-	  m_model_instances( m_short_buffer )
+	  m_model_instances( m_short_buffer ),
+	  m_primitives_desc( PRIMITIVE_SET.create() ),
+	  m_instances_desc( INSTANCES_SET.create() )
 	{
 		m_long_buffer->setDebugName( "Long buffer" );
 		m_short_buffer->setDebugName( "Short buffer" );
@@ -88,6 +90,9 @@ namespace fgl::engine
 	  m_primitives( std::forward< std::vector< Primitive > >( primitives ) )
 	{}
 
+	Model::~Model()
+	{}
+
 	std::shared_ptr< ModelInstance > Model::createInstance()
 	{
 		ZoneScoped;
@@ -98,7 +103,7 @@ namespace fgl::engine
 
 		WorldTransform transform {};
 		transform.translation = Coordinate< CoordinateSpace::World >( glm::vec3( 0.0, 0.0, 0.0 ) );
-		transform.scale = glm::vec3( 0.007 );
+		transform.scale = glm::vec3( 0.007f );
 		transform.rotation = { glm::quat( 1.0, 0.0, 0.0, 0.0 ) };
 
 		const ModelInstanceInfo model_info { transform.mat4() };

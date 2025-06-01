@@ -15,8 +15,12 @@ namespace fgl::engine::gui
 		constexpr float max { 180.0f };
 		constexpr float wrap { 360.0f };
 
+// ignoring -Wanalyzer-too-complex here because of recursion
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wanalyzer-too-complex"
 		if ( value >= max ) return clampEuler( value - wrap );
 		if ( value <= -max ) return clampEuler( value + wrap );
+#pragma GCC diagnostic pop
 
 		return value;
 	}

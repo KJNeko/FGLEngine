@@ -59,7 +59,8 @@ namespace fgl::engine
 	  m_index_buffer( std::move( index_buffer ) ),
 	  m_bounding_box( bounding_box ),
 	  m_mode( mode ),
-	  m_primitive_info( buildRenderInfo() )
+	  m_primitive_info( buildRenderInfo() ),
+	  default_material()
 	{
 		assert( m_bounding_box.getTransform().scale != glm::vec3( 0.0f ) );
 	}
@@ -74,8 +75,8 @@ namespace fgl::engine
 	  m_index_buffer( std::move( index_buffer ) ),
 	  m_bounding_box( bounding_box ),
 	  m_mode( mode ),
-	  default_material( material ),
-	  m_primitive_info( buildRenderInfo() )
+	  m_primitive_info( buildRenderInfo() ),
+	  default_material( material )
 	{
 		assert( m_bounding_box.getTransform().scale != glm::vec3( 0.0f ) );
 	}

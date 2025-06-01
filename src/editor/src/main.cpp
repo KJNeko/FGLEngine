@@ -66,7 +66,7 @@ int main()
 		// Create a default world to assign to the engine before we load or create a new one.
 		// World world {};
 
-		constexpr bool playing { false };
+		[[maybe_unused]] constexpr bool playing { false };
 
 		constexpr bool preload { true };
 
@@ -89,7 +89,7 @@ int main()
 				{
 					auto model_components { obj.getComponents< components::ModelComponent >() };
 
-					for ( auto& component : model_components )
+					for ( [[maybe_unused]] auto& component : model_components )
 					{}
 				}
 

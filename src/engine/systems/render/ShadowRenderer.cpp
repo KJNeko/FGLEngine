@@ -7,8 +7,10 @@
 
 namespace fgl::engine
 {
-	CommandBuffer& ShadowRenderer::setupSystem( const FrameInfo& info )
-	{}
+	CommandBuffer& ShadowRenderer::setupSystem( [[maybe_unused]] const FrameInfo& info )
+	{
+		FGL_TODO();
+	}
 
 	void ShadowRenderer::pass( FrameInfo& info )
 	{

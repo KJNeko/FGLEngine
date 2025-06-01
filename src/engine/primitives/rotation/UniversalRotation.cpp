@@ -9,49 +9,49 @@ namespace fgl::engine
 	void UniversalRotation::addX( const float value )
 	{
 		if ( isQuat() ) [[likely]]
-			q_rotation.addX( value );
+			m_quat_rot.addX( value );
 		else [[unlikely]]
-			e_rotation.x += value;
+			m_euler_rot.x += value;
 	}
 
 	void UniversalRotation::addY( const float value )
 	{
 		if ( isQuat() ) [[likely]]
-			q_rotation.addY( value );
+			m_quat_rot.addY( value );
 		else [[unlikely]]
-			e_rotation.y += value;
+			m_euler_rot.y += value;
 	}
 
 	void UniversalRotation::addZ( const float value )
 	{
 		if ( isQuat() ) [[likely]]
-			q_rotation.addZ( value );
+			m_quat_rot.addZ( value );
 		else [[unlikely]]
-			e_rotation.z += value;
+			m_euler_rot.z += value;
 	}
 
 	void UniversalRotation::addXWorld( const float value )
 	{
 		if ( isQuat() ) [[likely]]
-			q_rotation.addXWorld( value );
+			m_quat_rot.addXWorld( value );
 		else [[unlikely]]
-			e_rotation.x += value;
+			m_euler_rot.x += value;
 	}
 
 	void UniversalRotation::addYWorld( const float value )
 	{
 		if ( isQuat() ) [[likely]]
-			q_rotation.addYWorld( value );
+			m_quat_rot.addYWorld( value );
 		else [[unlikely]]
-			e_rotation.y += value;
+			m_euler_rot.y += value;
 	}
 
 	void UniversalRotation::addZWorld( const float value )
 	{
 		if ( isQuat() ) [[likely]]
-			q_rotation.addZWorld( value );
+			m_quat_rot.addZWorld( value );
 		else [[unlikely]]
-			e_rotation.z += value;
+			m_euler_rot.z += value;
 	}
 
 } // namespace fgl::engine

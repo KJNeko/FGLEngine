@@ -20,7 +20,8 @@ namespace fgl::engine::gui
 	{
 		if ( ImGui::BeginDragDropTarget() )
 		{
-			if ( const ImGuiPayload* payload = ImGui::AcceptDragDropPayload( DRAG_TYPE_FILE_MODEL_INFO ); payload )
+			if ( const ImGuiPayload* payload = ImGui::AcceptDragDropPayload( DRAG_TYPE_FILE_MODEL_INFO.data() );
+			     payload )
 			{
 				if ( payload->IsDelivery() )
 				{
@@ -100,8 +101,12 @@ namespace fgl::engine::gui
 			height_size = static_cast< float >( max_extent.width ) / ratio;
 		}
 
-		assert( width_size <= max_extent.width );
-		assert( height_size <= max_extent.height );
+		FGL_ASSERT(
+			static_cast< std::uint32_t >( width_size ) <= max_extent.width,
+			"Width size is too large for the max extent" );
+		FGL_ASSERT(
+			static_cast< std::uint32_t >( height_size ) <= max_extent.height,
+			"Height size is too large for the max extent" );
 
 		return { static_cast< std::uint32_t >( width_size ), static_cast< std::uint32_t >( height_size ) };
 	}

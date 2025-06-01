@@ -59,8 +59,8 @@ namespace fgl::engine
 	float scoreDevice( const vk::raii::PhysicalDevice& device )
 	{
 		constexpr float api_discrete_factor { 100.0f };
-		constexpr float api_major_factor { 1.0f };
-		constexpr float api_minor_factor { 1.0f };
+		[[maybe_unused]] constexpr float api_major_factor { 1.0f };
+		[[maybe_unused]] constexpr float api_minor_factor { 1.0f };
 
 		const auto props { device.getProperties() };
 
@@ -75,7 +75,7 @@ namespace fgl::engine
 	{
 		std::ranges::sort(
 			vector,
-			[]( const vk::raii::PhysicalDevice& a, const vk::raii::PhysicalDevice& b )
+			[]( const vk::raii::PhysicalDevice& a, const vk::raii::PhysicalDevice& b ) noexcept -> bool
 			{
 				const auto a_score { scoreDevice( a ) };
 				const auto b_score { scoreDevice( b ) };

@@ -63,13 +63,12 @@ namespace fgl::engine
 	constexpr descriptors::AttachmentDescriptor emissive_descriptor { 4, FRAG_STAGE };
 
 	//TODO: Move this from being static, It being here prevents safe cleanup
-	inline static descriptors::DescriptorSetLayout gbuffer_set {
-		0, color_descriptor, position_descriptor, normal_descriptor, metallic_descriptor, emissive_descriptor
-	};
+	inline static auto gbuffer_set { descriptors::DescriptorSetLayout::create(
+		0, color_descriptor, position_descriptor, normal_descriptor, metallic_descriptor, emissive_descriptor ) };
 
 	constexpr descriptors::AttachmentDescriptor input_descriptor { 0, vk::ShaderStageFlagBits::eFragment };
 
-	inline static descriptors::DescriptorSetLayout gui_descriptor_set { 0, input_descriptor };
+	inline static auto gui_descriptor_set { descriptors::DescriptorSetLayout::create( 0, input_descriptor ) };
 
 	class OctTreeNode;
 

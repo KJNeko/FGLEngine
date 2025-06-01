@@ -35,7 +35,7 @@ namespace fgl::engine::gui
 		auto& [ gpu_allocated, gpu_used, gpu_largest_free ] = info.m_gpu;
 		auto& [ host_allocated, host_used, host_largest_free ] = info.m_host;
 
-		for ( const std::shared_ptr< memory::BufferHandle > buffer : memory::getActiveBuffers() )
+		for ( const auto& buffer : memory::getActiveBuffers() )
 		{
 			// The buffer is still active.
 			if ( buffer->m_memory_properties & vk::MemoryPropertyFlagBits::eDeviceLocal )
@@ -107,7 +107,7 @@ namespace fgl::engine::gui
 		}
 	}
 
-	void drawStats( const FrameInfo& info )
+	void drawStats( [[maybe_unused]] const FrameInfo& info )
 	{
 		ImGui::Begin( "Stats" );
 

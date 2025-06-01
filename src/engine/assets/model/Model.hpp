@@ -48,7 +48,7 @@ namespace fgl::engine
 		                                                       vk::DescriptorType::eStorageBuffer,
 		                                                       vk::ShaderStageFlagBits::eCompute };
 
-	inline static descriptors::DescriptorSetLayout PRIMITIVE_SET { 0, RENDER_INFO_DESCRIPTOR };
+	inline static auto PRIMITIVE_SET { descriptors::DescriptorSetLayout::create( 0, RENDER_INFO_DESCRIPTOR ) };
 
 	// Contains the information for each primitive (material ID, ect)
 	constexpr descriptors::Descriptor PRIMITIVE_INSTANCE_DESCRIPTOR { 0,
@@ -60,9 +60,9 @@ namespace fgl::engine
 		                                                          vk::DescriptorType::eStorageBuffer,
 		                                                          vk::ShaderStageFlagBits::eCompute };
 
-	inline static descriptors::DescriptorSetLayout INSTANCES_SET { 1,
-		                                                           PRIMITIVE_INSTANCE_DESCRIPTOR,
-		                                                           MODEL_INSTANCE_DESCRIPTOR };
+	inline static auto INSTANCES_SET {
+		descriptors::DescriptorSetLayout::create( 1, PRIMITIVE_INSTANCE_DESCRIPTOR, MODEL_INSTANCE_DESCRIPTOR )
+	};
 
 	constexpr descriptors::Descriptor COMMANDS_DESCRIPTOR { 0,
 		                                                    vk::DescriptorType::eStorageBuffer,
@@ -73,7 +73,9 @@ namespace fgl::engine
 		                                                     vk::DescriptorType::eStorageBuffer,
 		                                                     vk::ShaderStageFlagBits::eCompute };
 
-	inline static descriptors::DescriptorSetLayout COMMANDS_SET { 2, COMMANDS_DESCRIPTOR, VERTEX_INSTANCE_INFO };
+	inline static auto COMMANDS_SET {
+		descriptors::DescriptorSetLayout::create( 2, COMMANDS_DESCRIPTOR, VERTEX_INSTANCE_INFO )
+	};
 
 	struct PerVertexInstanceInfo
 	{
@@ -115,7 +117,7 @@ namespace fgl::engine
 		ModelGPUBuffers();
 	};
 
-	class Model final : public AssetInterface< Model >, public std::enable_shared_from_this< Model >
+	class Model : public AssetInterface< Model >, public std::enable_shared_from_this< Model >
 	{
 		// Fills the GPU indexed vector with the parameters required for rendering
 		static OrientedBoundingBox< CoordinateSpace::Model >
@@ -129,7 +131,7 @@ namespace fgl::engine
 
 		Model( std::vector< Primitive >&& primitives, const std::string& name = {} );
 
-		~Model() = default;
+		virtual ~Model();
 
 		[[nodiscard]] bool ready() const;
 

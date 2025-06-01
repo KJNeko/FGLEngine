@@ -237,7 +237,9 @@ namespace fgl::engine
 		m_image_view->setName( str + " ImageView" );
 	}
 
-	inline static descriptors::DescriptorSetLayout texture_descriptor_set { TEXTURE_SET_ID, texture_descriptor };
+	inline static auto texture_descriptor_set {
+		descriptors::DescriptorSetLayout::create( TEXTURE_SET_ID, texture_descriptor )
+	};
 
 	descriptors::DescriptorSetLayout& Texture::getDescriptorLayout()
 	{

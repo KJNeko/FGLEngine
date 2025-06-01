@@ -16,7 +16,6 @@
 
 #include "engine/constants.hpp"
 #include "engine/descriptors/Descriptor.hpp"
-#include "engine/descriptors/DescriptorSetLayout.hpp"
 #include "engine/memory/buffers/vector/DeviceVector.hpp"
 
 namespace fgl::engine
@@ -84,7 +83,7 @@ namespace fgl::engine
 		{
 			TextureID color_texture_id { constants::INVALID_TEXTURE_ID };
 			alignas( 4 * 4 ) glm::vec4 color_factors {};
-		} color;
+		} color {};
 
 		alignas( 16 ) struct Metallic
 		{
@@ -92,25 +91,25 @@ namespace fgl::engine
 			alignas( 16 ) TextureID metallic_texture_id { constants::INVALID_TEXTURE_ID };
 			float metallic_factor { 0.0f };
 			float roughness_factor { 0.0f };
-		} metallic;
+		} metallic {};
 
 		alignas( 16 ) struct Normal
 		{
 			TextureID normal_texture_id { constants::INVALID_TEXTURE_ID };
 			float normal_tex_scale { 0.0f };
-		} normal;
+		} normal {};
 
 		alignas( 16 ) struct Occlusion
 		{
 			TextureID occlusion_texture_id { constants::INVALID_TEXTURE_ID };
 			float occlusion_tex_strength { 0.0f };
-		} occlusion;
+		} occlusion {};
 
 		alignas( 16 ) struct Emissive
 		{
 			TextureID emissive_texture_id { constants::INVALID_TEXTURE_ID };
 			alignas( 4 * 4 ) glm::vec3 emissive_factors { 0.0f, 0.0f, 0.0f };
-		} emissive;
+		} emissive {};
 
 		DeviceMaterialData() = default;
 	};

@@ -4,6 +4,10 @@
 
 #pragma once
 
+#ifndef FGL_STRICT_WARNINGS
+#define FGL_STRICT_WARNINGS 0
+#endif
+
 #define FGL_DELETE_DEFAULT_CTOR( ClassName ) ClassName() = delete;
 #define FGL_DELETE_COPY_ASSIGN( ClassName ) ClassName& operator=( const ClassName& ) = delete;
 #define FGL_DELETE_COPY_CTOR( ClassName ) ClassName( const ClassName& ) = delete;
@@ -52,30 +56,48 @@
 //! Warns if the structure field is not alligned with a set number of bytes
 #define FGL_STRICT_ALIGNMENT( bytesize ) [[gnu::warn_if_not_aligned( bytesize )]]
 
-#ifndef NDEBUG
+#ifdef __cpp_lib_debugging
+#if __cpp_lib_debugging >= 202311L
+#define FGL_BREAKPOINT std::breakpoint();
+#else
+#define FGL_BREAKPOINT std::abort();
+#endif
+#else
+#define FGL_BREAKPOINT std::abort();
+#endif
+
+/*
+#ifdef __cpp_lib_stacktrace
+#if __cpp_lib_stacktrace >= 202011L
+#define FGL_STACKTRACE() std::cout << std::stacktrace::current() << std::endl;
+#else
+#define FGL_STACKTRACE()
+#endif
+#else
+#define FGL_STACKTRACE()
+#endif
+*/
+
+#ifdef NDEBUG
+#define FGL_UNREACHABLE() std::unreachable();
+#else
+#define FGL_UNREACHABLE()                                                                                              \
+	FGL_BREAKPOINT;                                                                                                    \
+	std::terminate();
+#endif
+
 #include <format>
+#include <iostream>
 #include <stdexcept>
-#pragma GCC diagnostic push
-// Placed here to prevent strict warnings from preventing compilation, This is intentional.
-#pragma GCC diagnostic ignored "-Wterminate"
+
 #define FGL_ASSERT( test, msg )                                                                                        \
 	if ( !( test ) )                                                                                                   \
-		throw std::runtime_error( std::format( "{}:{}:{}: {}", __FILE__, __LINE__, __PRETTY_FUNCTION__, msg ) );
-#pragma GCC diagnostic pop
-#else
-#define FGL_ASSERT( test, msg )
-#endif
+	{                                                                                                                  \
+		std::cerr << ( msg ) << std::endl;                                                                             \
+		std::abort();                                                                                                  \
+	}
 
 #define FGL_UNIMPLEMENTED() FGL_ASSERT( false, "unimplemented" );
-
-#ifndef NDEBUG
-#include <utility>
-#define FGL_UNREACHABLE()                                                                                              \
-	FGL_ASSERT( false, "Should have been unreachable!" );                                                              \
-	std::unreachable()
-#else
-#define FGL_UNREACHABLE() std::unreachable()
-#endif
 
 #define FGL_NOTNAN( value ) FGL_ASSERT( !std::isnan( value ), "Value is NaN!" )
 #define FGL_NOTNANVEC3( vec3 )                                                                                         \

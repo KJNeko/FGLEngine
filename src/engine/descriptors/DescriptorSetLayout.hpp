@@ -28,8 +28,7 @@ namespace fgl::engine::descriptors
 
 		std::size_t m_binding_count;
 
-		DescriptorSetLayout(
-			DescriptorIDX set_idx, const std::vector< std::reference_wrapper< const Descriptor > >& descriptors );
+		DescriptorSetLayout( DescriptorIDX set_idx, const std::vector< const Descriptor* >& descriptors );
 
 		DescriptorSetLayout();
 
@@ -40,10 +39,18 @@ namespace fgl::engine::descriptors
 
 		friend class ::fgl::engine::PipelineBuilder;
 
+// -fanalyzer thinks we leak memory here. We don't. Disable -Wanalyzer-malloc-leak
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wanalyzer-malloc-leak"
+
 		template < typename... Args >
-		explicit DescriptorSetLayout( const DescriptorIDX set_idx, const Args&... descriptors ) :
-		  DescriptorSetLayout( set_idx, std::vector< std::reference_wrapper< const Descriptor > > { descriptors... } )
-		{}
+		static DescriptorSetLayout create( const DescriptorIDX set_idx, const Args&... descriptors )
+		{
+			const std::vector< const Descriptor* > descriptors_ref { ( &descriptors )... };
+			return { set_idx, descriptors_ref };
+		}
+
+#pragma GCC diagnostic pop
 
 		[[nodiscard]] std::size_t count() const { return m_bindings.size(); }
 

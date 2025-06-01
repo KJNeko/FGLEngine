@@ -46,7 +46,11 @@ namespace fgl::engine
 			vk::ImageLayout inital_layout,
 			vk::ImageLayout final_layout );
 
-		Image( const Image& other ) : m_handle( other.m_handle ), m_extent( other.m_extent ) {}
+		Image( const Image& other ) :
+		  std::enable_shared_from_this< Image >( other ),
+		  m_handle( other.m_handle ),
+		  m_extent( other.m_extent )
+		{}
 
 		[[nodiscard]] Image& operator=( const Image& other );
 

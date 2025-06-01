@@ -17,7 +17,8 @@ namespace fgl::engine::global
 
 	void indexNextFrame()
 	{
-		CURRENT_FRAME_INDEX = ( CURRENT_FRAME_INDEX + 1 ) % constants::MAX_FRAMES_IN_FLIGHT;
+		CURRENT_FRAME_INDEX = static_cast<
+			FrameIndex >( ( CURRENT_FRAME_INDEX + static_cast< FrameIndex >( 1 ) ) % constants::MAX_FRAMES_IN_FLIGHT );
 	}
 
 	void setCurrentFrameIndex( const FrameIndex index )

@@ -266,7 +266,7 @@ namespace fgl::engine
 			throw std::runtime_error( "Failed to submit commmand buffer" );
 
 		is_frame_started = false;
-		current_frame_idx = static_cast< std::uint16_t >( ( current_frame_idx + 1 ) % constants::MAX_FRAMES_IN_FLIGHT );
+		current_frame_idx = static_cast< FrameIndex >( ( current_frame_idx + 1 ) % constants::MAX_FRAMES_IN_FLIGHT );
 	}
 
 	void Renderer::setViewport( const CommandBuffer& buffer )
@@ -297,7 +297,7 @@ namespace fgl::engine
 	{
 		assert( is_frame_started && "Cannot call beginSwapChainRenderPass if frame is not in progress" );
 
-		vk::RenderingInfo info { m_swapchain->getRenderingInfo( current_present_index ) };
+		vk::RenderingInfo info { m_swapchain->getRenderingInfo( static_cast< FrameIndex >( current_present_index ) ) };
 
 		m_swapchain->transitionImages( buffer, PresentSwapChain::INITAL, current_present_index );
 

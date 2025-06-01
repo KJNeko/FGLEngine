@@ -18,7 +18,10 @@ namespace fgl::engine::descriptors
 {
 
 	static const std::unordered_map< vk::DescriptorType, float > DESCRIPTOR_ALLOCATION_RATIOS {
-		{ vk::DescriptorType::eUniformBuffer, 2.0f }, { vk::DescriptorType::eCombinedImageSampler, 2.0f }
+		{ vk::DescriptorType::eUniformBuffer, 2.0f },
+		{ vk::DescriptorType::eCombinedImageSampler, 2.0f },
+		{ vk::DescriptorType::eStorageBuffer, 2.0f },
+		{ vk::DescriptorType::eInputAttachment, 2.0f }
 	};
 
 	class DescriptorPool

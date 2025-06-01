@@ -57,7 +57,7 @@ namespace fgl::engine
 		return command_buffer;
 	}
 
-	void LineDrawer::pass( FrameInfo& info )
+	void LineDrawer::pass( [[maybe_unused]] FrameInfo& info )
 	{
 		/*
 		ZoneScopedN( "LineDrawer::pass" );

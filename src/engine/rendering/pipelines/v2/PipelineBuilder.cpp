@@ -309,7 +309,7 @@ namespace fgl::engine
 		//info.dynamic_state_info.flags = 0;
 	}
 
-	PipelineBuilder::BuilderState::BuilderState( std::uint32_t subpass ) : m_subpass_stage( subpass )
+	PipelineBuilder::BuilderState::BuilderState( std::uint32_t subpass ) : m_subpass_stage( subpass ), bind_point()
 	{
 		setDefault();
 	}

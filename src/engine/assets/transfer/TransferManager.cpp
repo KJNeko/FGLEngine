@@ -379,6 +379,7 @@ namespace fgl::engine::memory
 	  m_graphics_queue_index( device.phyDevice().queueInfo().getIndex( vk::QueueFlagBits::eGraphics ) ),
 	  m_transfer_queue( device->getQueue( m_transfer_queue_index, 0 ) ),
 	  m_transfer_semaphore( device->createSemaphore( {} ) ),
+	  m_cmd_buffer_allocinfo(),
 	  m_transfer_buffers(
 		  Device::getInstance().getCmdBufferPool().getCommandBuffers( 1, CommandBufferHandle::Primary ) ),
 	  m_completion_fence( device->createFence( {} ) )

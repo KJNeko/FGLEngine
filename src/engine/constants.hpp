@@ -49,7 +49,8 @@ namespace fgl::engine::constants
 
 	constexpr TextureID INVALID_TEXTURE_ID { 0 };
 
-	constexpr std::uint8_t MAX_FRAMES_IN_FLIGHT { 2 };
+	using FrameIndex = std::uint8_t;
+	constexpr FrameIndex MAX_FRAMES_IN_FLIGHT { 2 };
 
 	constexpr glm::vec3 DEFAULT_SCALE { 1.0f };
 

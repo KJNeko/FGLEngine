@@ -104,6 +104,7 @@ namespace fgl::engine
 		vk::PhysicalDeviceProperties m_properties;
 
 		vk::CommandPoolCreateInfo commandPoolInfo();
+
 		CommandBufferPool& getCmdBufferPool() { return m_command_pool; }
 
 		Device( Window&, Instance& );

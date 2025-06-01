@@ -12,8 +12,8 @@ namespace fgl::engine
 	{
 		union
 		{
-			QuatRotation q_rotation;
-			EulerRotation e_rotation { constants::DEFAULT_ROTATION };
+			QuatRotation m_quat_rot;
+			EulerRotation m_euler_rot { constants::DEFAULT_ROTATION };
 		};
 
 		//! If true then the rotation is in a
@@ -21,11 +21,11 @@ namespace fgl::engine
 
 	  public:
 
-		[[nodiscard]] UniversalRotation() : e_rotation( constants::DEFAULT_ROTATION ), m_euler( true ) {}
+		[[nodiscard]] UniversalRotation() : m_euler_rot( constants::DEFAULT_ROTATION ), m_euler( true ) {}
 
-		[[nodiscard]] UniversalRotation( const EulerRotation& euler ) : e_rotation( euler ) {}
+		[[nodiscard]] UniversalRotation( const EulerRotation& euler ) : m_euler_rot( euler ) {}
 
-		[[nodiscard]] UniversalRotation( const QuatRotation& q_rotation ) : q_rotation( q_rotation ) {}
+		[[nodiscard]] UniversalRotation( const QuatRotation& q_rotation ) : m_quat_rot( q_rotation ) {}
 
 		FGL_DEFAULT_MOVE( UniversalRotation );
 		FGL_DEFAULT_COPY( UniversalRotation );
@@ -44,35 +44,35 @@ namespace fgl::engine
 		FGL_HOT [[nodiscard]] QuatRotation forcedQuat() const
 		{
 			if ( m_euler ) [[unlikely]]
-				return e_rotation.toRotation();
+				return m_euler_rot.toRotation();
 			else [[likely]]
-				return q_rotation;
+				return m_quat_rot;
 		}
 
 		// Marked cold because it's only usd in the editor
 		FGL_COLD EulerRotation& euler()
 		{
 			FGL_ASSERT( isEuler(), "Rotation is not euler" );
-			return e_rotation;
+			return m_euler_rot;
 		}
 
 		// Marked cold because it's only usd in the editor
 		FGL_COLD const EulerRotation& euler() const
 		{
 			FGL_ASSERT( isEuler(), "Rotation is not euler" );
-			return e_rotation;
+			return m_euler_rot;
 		}
 
 		FGL_HOT QuatRotation& quat()
 		{
 			FGL_ASSERT( isQuat(), "Rotation is not quat" );
-			return q_rotation;
+			return m_quat_rot;
 		}
 
 		FGL_HOT const QuatRotation& quat() const
 		{
 			FGL_ASSERT( isQuat(), "Rotation is not quat" );
-			return q_rotation;
+			return m_quat_rot;
 		}
 
 		// Universal modification

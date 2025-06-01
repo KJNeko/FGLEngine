@@ -10,16 +10,16 @@
 namespace fgl::engine::descriptors
 {
 
-	DescriptorSetLayout::DescriptorSetLayout(
-		const DescriptorIDX set_idx, const std::vector< std::reference_wrapper< const Descriptor > >& descriptors ) :
+	DescriptorSetLayout::
+		DescriptorSetLayout( const DescriptorIDX set_idx, const std::vector< const Descriptor* >& descriptors ) :
 	  m_set_idx( set_idx ),
 	  m_binding_count( descriptors.size() )
 	{
 		FGL_ASSERT( !descriptors.empty(), "Must have more then 1 descriptor set" );
 
-		for ( const auto& descriptor_w : descriptors )
+		for ( const auto* descriptor_w : descriptors )
 		{
-			const auto& descriptor { descriptor_w.get() };
+			const auto& descriptor { *descriptor_w };
 			vk::DescriptorSetLayoutBinding binding {};
 			binding.binding = descriptor.m_index;
 			binding.descriptorType = descriptor.m_type;

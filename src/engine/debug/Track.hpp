@@ -2,7 +2,12 @@
 // Created by kj16609 on 1/22/25.
 //
 #pragma once
+
+// Disable -Wanalyzer-malloc-leak as it seems to break internally
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wanalyzer-malloc-leak"
 #include <stacktrace>
+#pragma GCC diagnostic pop
 #include <vector>
 
 #include "utility/TString.hpp"

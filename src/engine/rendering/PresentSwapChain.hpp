@@ -80,7 +80,7 @@ namespace fgl::engine
 
 		~PresentSwapChain();
 
-		[[nodiscard]] vk::RenderingInfo getRenderingInfo( const FrameIndex frame_index );
+		[[nodiscard]] vk::RenderingInfo getRenderingInfo( FrameIndex frame_index );
 
 		// Image& getInputImage( PresentIndex present_index ) const;
 
@@ -88,7 +88,7 @@ namespace fgl::engine
 
 		[[nodiscard]] PresentIndex imageCount() const
 		{
-			return static_cast< std::uint16_t >( m_swap_chain_images.size() );
+			return static_cast< PresentIndex >( m_swap_chain_images.size() );
 		}
 
 		[[nodiscard]] vk::Extent2D getSwapChainExtent() const { return m_swapchain_extent; }

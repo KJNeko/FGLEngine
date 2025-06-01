@@ -16,7 +16,7 @@ namespace fgl::engine::components
 
 	  public:
 
-		TransformComponent() = default;
+		TransformComponent();
 		explicit TransformComponent( const WorldTransform& transform );
 
 		void drawImGui() override;
