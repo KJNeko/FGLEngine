@@ -1,8 +1,11 @@
-# /CMakeLists.txt
-cmake_minimum_required(VERSION 3.25.0)
-
-set(CMAKE_CXX_STANDARD 26)
+#set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "a9e1cf81-9932-4810-974b-6eccaf14e457")
+#set(CMAKE_CXX_SCAN_FOR_MODULES ON)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# /CMakeLists.txt
+cmake_minimum_required(VERSION 4.0 FATAL_ERROR)
+project(Titor LANGUAGES CXX C)
 
 find_program(CCACHE_FOUND ccache)
 if (CCACHE_FOUND)
