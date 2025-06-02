@@ -61,3 +61,6 @@
 [submodule "dependencies/json"]
 	path = dependencies/json
 	url = https://github.com/nlohmann/json.git
+[submodule "dependencies/libFGL"]
+	path = dependencies/libFGL
+	url = https://github.com/KJNeko/libFGL

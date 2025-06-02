@@ -18,14 +18,15 @@ option(FGL_ENABLE_PROFILING OFF)
 
 project(TitorGameEngine LANGUAGES CXX C)
 
-add_subdirectory(fgl_cmake_modules)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules")
+include(dependencies/libFGL)
+#add_subdirectory(fgl_cmake_modules)
 
 PreSetup()
 
 #file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/data)
 
 #Enable cmake_modules
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules")
 
 message("-- CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
 string(TOUPPER ${CMAKE_BUILD_TYPE} UPPER_BUILD_TYPE)
