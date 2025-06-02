@@ -10,8 +10,6 @@
 #include <glm/vec3.hpp>
 #pragma GCC diagnostic pop
 
-#include "types.hpp"
-
 namespace fgl::engine::constants
 {
 
