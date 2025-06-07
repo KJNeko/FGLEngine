@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "engine/memory/buffers/BufferHandle.hpp"
+#include <variant>
 
 namespace vk
 {

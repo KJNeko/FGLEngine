@@ -9,10 +9,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-#include "../../engine/primitives/rotation/QuatRotation.hpp"
 #include "engine/primitives/Scale.hpp"
 #include "engine/primitives/matricies/Matrix.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
+#include "engine/primitives/rotation/EulerRotation.hpp"
+#include "engine/primitives/rotation/QuatRotation.hpp"
 #include "engine/primitives/vectors/Vector.hpp"
 
 namespace Catch
@@ -63,7 +64,7 @@ namespace Catch
 	template <>
 	struct StringMaker< fgl::engine::EulerRotation >
 	{
-		static std::string convert( const fgl::engine::QuatRotation& rot )
+		static std::string convert( const fgl::engine::EulerRotation& rot )
 		{
 			return StringMaker< glm::vec3 >::convert( glm::vec3( rot.x, rot.y, rot.z ) );
 		}

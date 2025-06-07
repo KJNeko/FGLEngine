@@ -10,6 +10,7 @@
 #include "engine/primitives/points/Coordinate.hpp"
 #include "rotation/QuatRotation.hpp"
 #include "rotation/UniversalRotation.hpp"
+#include <variant>
 
 namespace fgl::engine
 {
