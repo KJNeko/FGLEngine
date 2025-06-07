@@ -121,7 +121,7 @@ namespace fgl::engine
 	{
 		ZoneScoped;
 
-		m_images_in_flight[ present_index ] = m_in_flight_fence[ m_current_frame_index ];
+		m_images_in_flight[ present_index ] = m_in_flight_fence[ present_index ];
 
 		std::vector< vk::Fence > fences { m_images_in_flight[ present_index ] };
 
@@ -143,14 +143,14 @@ namespace fgl::engine
 		m_submit_info.commandBufferCount = 1;
 		m_submit_info.pCommandBuffers = &( **buffers );
 
-		std::vector< vk::Semaphore > signaled_semaphores { m_render_finished_sem[ m_current_frame_index ] };
+		std::vector< vk::Semaphore > signaled_semaphores { m_render_finished_sem[ present_index ] };
 		m_submit_info.setSignalSemaphores( signaled_semaphores );
 
 		Device::getInstance().device().resetFences( fences );
 
 		std::vector< vk::SubmitInfo > submit_infos { m_submit_info };
 
-		Device::getInstance().graphicsQueue().submit( m_submit_info, m_in_flight_fence[ m_current_frame_index ] );
+		Device::getInstance().graphicsQueue().submit( m_submit_info, m_in_flight_fence[ present_index ] );
 
 		vk::PresentInfoKHR presentInfo = {};
 
@@ -315,7 +315,7 @@ namespace fgl::engine
 		vk::FenceCreateInfo fenceInfo {};
 		fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
 
-		for ( size_t i = 0; i < constants::MAX_FRAMES_IN_FLIGHT; i++ )
+		for ( size_t i = 0; i < imageCount(); i++ )
 		{
 			auto& device { Device::getInstance() };
 
