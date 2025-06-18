@@ -24,7 +24,7 @@ Titor rendering engine.
 
 ---
 
-### 3. SLANG (CURRENT)
+### 3. SLANG
 
 - [x] Convert all shaders to slang
 - [x] Figure out SubpassInput grouping, If it's even possible(?)
@@ -51,6 +51,10 @@ Titor rendering engine.
 - [ ] Implement object spawner
 - [ ] Implement component modification for objects
 - [ ] Figure out how glTF does components saving/loading. If it even does?
+
+### 7. Fixes (CURRENT)
+- [ ] Fix the memory management systems
+- [ ] Fix the transfer system
 
 Long term plans:
 - [Nanite-like implementation.](https://dev.epicgames.com/documentation/en-us/unreal-engine/nanite-virtualized-geometry-in-unreal-engine?application_version=5.0)
