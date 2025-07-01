@@ -74,6 +74,8 @@ int main()
 
 			constexpr std::string_view sponza_path {
 				"/home/kj16609/Desktop/Projects/cxx/Mecha/src/assets/khronos-sponza/Sponza.gltf"
+				// "/home/kj16609/Desktop/Projects/cxx/Mecha/src/assets/TransferTest/Orbs.gltf"
+				// "/home/kj16609/Desktop/Projects/cxx/Mecha/src/assets/Cube.gltf"
 			};
 
 			builder.loadScene( sponza_path );

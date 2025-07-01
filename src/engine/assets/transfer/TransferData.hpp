@@ -6,10 +6,10 @@
 
 #include <memory>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 #include "engine/memory/buffers/BufferHandle.hpp"
-#include <variant>
 
 namespace vk
 {
@@ -25,7 +25,6 @@ namespace fgl::engine
 {
 	class Texture;
 	class ImageHandle;
-	class Image;
 
 	namespace memory
 	{
@@ -57,10 +56,10 @@ namespace fgl::engine::memory
 		//! Type of transfer this data represents
 		enum TransferType
 		{
-			IMAGE_FROM_RAW,
-			IMAGE_FROM_BUFFER,
-			BUFFER_FROM_BUFFER,
-			BUFFER_FROM_RAW
+			eImageFromRaw,
+			eImageFromBuffer,
+			eBufferFromBuffer,
+			eBufferFromRaw
 		} m_type;
 
 		using RawData = std::vector< std::byte >;
@@ -72,11 +71,13 @@ namespace fgl::engine::memory
 
 		//! Source data. Data type depends on m_type
 		SourceData m_source;
+		vk::DeviceSize m_source_offset;
 
 		//! Target data. Data type depends on m_type
 		TargetData m_target;
+		vk::DeviceSize m_target_offset;
 
-		std::size_t m_target_offset;
+		vk::DeviceSize m_size;
 
 		//! Performs copy of raw data to the staging buffer
 		bool convertRawToBuffer( Buffer& staging_buffer );
@@ -120,27 +121,38 @@ namespace fgl::engine::memory
 			std::uint32_t graphics_idx );
 
 		//! Marks the target as not staged/not ready
-		void markBad();
+		void markBad() const;
 
 		//! Marks the target as staged/ready
-		void markGood();
+		void markGood() const;
 
 		//BUFFER_FROM_X
 		TransferData(
 			const std::shared_ptr< BufferSuballocationHandle >& source,
 			const std::shared_ptr< BufferSuballocationHandle >& target,
-			std::size_t offset );
+			vk::DeviceSize size = 0,
+			vk::DeviceSize dst_offset = 0,
+			vk::DeviceSize src_offset = 0 );
 
 		TransferData(
 			std::vector< std::byte >&& source,
 			const std::shared_ptr< BufferSuballocationHandle >& target,
-			std::size_t offset );
+			vk::DeviceSize size = 0,
+			vk::DeviceSize dst_offset = 0,
+			vk::DeviceSize src_offset = 0 );
 
 		//IMAGE_FROM_X
 		TransferData(
-			const std::shared_ptr< BufferSuballocationHandle >& source, const std::shared_ptr< ImageHandle >& target );
+			const std::shared_ptr< BufferSuballocationHandle >& source,
+			const std::shared_ptr< ImageHandle >& target,
+			vk::DeviceSize size = 0,
+			vk::DeviceSize src_offset = 0 );
 
-		TransferData( std::vector< std::byte >&& source, const std::shared_ptr< ImageHandle >& target );
+		TransferData(
+			std::vector< std::byte >&& source,
+			const std::shared_ptr< ImageHandle >& target,
+			vk::DeviceSize size = 0,
+			vk::DeviceSize src_offset = 0 );
 	};
 
 } // namespace fgl::engine::memory

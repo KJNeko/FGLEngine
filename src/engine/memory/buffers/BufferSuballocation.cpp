@@ -118,10 +118,11 @@ namespace fgl::engine::memory
 	}
 
 	BufferSuballocation::BufferSuballocation( const Buffer& buffer, const vk::DeviceSize size ) :
-	  BufferSuballocation( buffer->allocate( size ) )
+	  BufferSuballocation( buffer->allocate( size, 1 ) )
 	{}
 
-	BufferSuballocation::BufferSuballocation( const Buffer& buffer, const std::size_t t_size, const std::uint32_t t_align ) :
+	BufferSuballocation::
+		BufferSuballocation( const Buffer& buffer, const std::size_t t_size, const std::uint32_t t_align ) :
 	  BufferSuballocation( buffer->allocate( t_size, t_align ) )
 	{}
 

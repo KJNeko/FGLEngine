@@ -14,6 +14,7 @@
 
 namespace fgl::engine
 {
+	class Image;
 	class Device;
 
 	namespace memory
@@ -64,7 +65,7 @@ namespace fgl::engine::memory
 
 		void recordCommands( vk::raii::CommandBuffer& command_buffer );
 
-		void submitBuffer( vk::raii::CommandBuffer& command_buffer );
+		void submitBuffer( const vk::raii::CommandBuffer& command_buffer ) const;
 
 		//! Creates barriers that releases ownership from the graphics family to the transfer queue.
 		std::vector< vk::BufferMemoryBarrier > createFromGraphicsBarriers();
@@ -103,15 +104,19 @@ namespace fgl::engine::memory
 		void copySuballocationRegion(
 			const std::shared_ptr< BufferSuballocationHandle >& src,
 			const std::shared_ptr< BufferSuballocationHandle >& dst,
-			const std::size_t offset = 0 )
+			const vk::DeviceSize size = 0,
+			const vk::DeviceSize dst_offset = 0,
+			const std::size_t src_offset = 0 )
 		{
 			FGL_ASSERT( src->m_size == dst->m_size, "Source and destination suballocations must be the same size" );
 
-			TransferData transfer_data {
-				src,
-				dst,
-				offset,
-			};
+			//! If the buffer has not been staged, Then there is nothing to copy in the first place.
+			if ( !src->m_staged ) return;
+
+			// Makes the dst as requiring the src to be stable (no pending writes) before it's used.
+			dst->markRequiresStable( src );
+
+			TransferData transfer_data { src, dst, size, dst_offset, src_offset };
 
 			m_queue.emplace( std::move( transfer_data ) );
 		}
@@ -119,12 +124,17 @@ namespace fgl::engine::memory
 		//! Queues a buffer to be transfered
 		template < typename DeviceVectorT >
 			requires is_device_vector< DeviceVectorT >
-		void copyToVector( std::vector< std::byte >&& data, DeviceVectorT& device_vector, std::size_t byte_offset = 0 )
+		void copyToVector(
+			std::vector< std::byte >&& data,
+			DeviceVectorT& device_vector,
+			const vk::DeviceSize size = 0,
+			const vk::DeviceSize dst_offset = 0,
+			const vk::DeviceSize src_offset = 0 )
 		{
-			assert( data.size() > 0 );
-			TransferData transfer_data { std::forward< std::vector< std::byte > >( data ),
-				                         device_vector.m_handle,
-				                         byte_offset };
+			assert( !data.empty() );
+			TransferData transfer_data {
+				std::forward< std::vector< std::byte > >( data ), device_vector.m_handle, size, dst_offset, src_offset
+			};
 
 			m_queue.emplace( std::move( transfer_data ) );
 		}
@@ -140,7 +150,10 @@ namespace fgl::engine::memory
 
 			std::memcpy( data.data(), &t, sizeof( T ) );
 
-			copyToVector( std::move( data ), device_vector, idx * sizeof( T ) );
+			const auto size { sizeof( T ) };
+			const auto dst_offset { idx * size };
+
+			copyToVector( std::move( data ), device_vector, size, dst_offset );
 		}
 
 		//! Queues a data copy from a STL vector to a device vector
@@ -154,7 +167,7 @@ namespace fgl::engine::memory
 
 			std::memcpy( punned_data.data(), data.data(), sizeof( T ) * data.size() );
 
-			copyToVector( std::move( punned_data ), device_vector, 0 );
+			copyToVector( std::move( punned_data ), device_vector, punned_data.size() );
 		}
 
 		void copyToVector( BufferVector& source, BufferVector& target, std::size_t target_offset );
@@ -163,6 +176,8 @@ namespace fgl::engine::memory
 
 		//! Forces the queue to be submitted now before the buffer is filled.
 		void submitNow();
+
+		void drawImGui() const;
 	};
 
 } // namespace fgl::engine::memory

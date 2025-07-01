@@ -44,7 +44,7 @@ namespace fgl::engine::components
 		{
 			return m_transform;
 		}
-		void updateTransform( TransformComponent & transform )
+		void updateTransform( const TransformComponent& transform )
 		{
 			m_transform = transform;
 		}

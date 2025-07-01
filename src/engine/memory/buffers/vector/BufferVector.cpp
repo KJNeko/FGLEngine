@@ -6,15 +6,14 @@
 
 #include "engine/assets/transfer/TransferManager.hpp"
 #include "engine/memory/buffers/BufferHandle.hpp"
-#include "memory/buffers/BufferHandle.hpp"
 
 namespace fgl::engine::memory
 {
 
 	constexpr std::uint32_t min_capacity { 1024 };
 
-	[[nodiscard]] BufferVector::BufferVector( Buffer& buffer, std::uint32_t count, std::uint32_t stride ) :
-	  BufferSuballocation( buffer->allocate( std::max( count, min_capacity ) * stride, stride ) ),
+	[[nodiscard]] BufferVector::BufferVector( Buffer& buffer, const std::uint32_t count, const std::uint32_t stride ) :
+	  BufferSuballocation( buffer.allocate( std::max( count, min_capacity ) * stride, stride ) ),
 	  m_count( count ),
 	  m_capacity( std::max( count, min_capacity ) ),
 	  m_stride( stride )

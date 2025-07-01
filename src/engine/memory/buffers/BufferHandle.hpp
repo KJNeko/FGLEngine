@@ -9,8 +9,7 @@
 
 #include <cassert>
 #include <cmath>
-#include <cstdint>
-#include <map>
+#include <expected>
 #include <memory>
 #include <stacktrace>
 #include <unordered_map>
@@ -35,6 +34,12 @@ namespace fgl::engine::memory
 {
 	class BufferSuballocation;
 	struct BufferSuballocationHandle;
+
+	enum AllocationStatus : std::uint8_t
+	{
+		eFailedUnk,
+		eFailedOOM
+	};
 
 	//TODO: Dynamic/onDemand resizing of Buffer for suballocations
 	//TODO: Defragmentation
@@ -119,15 +124,20 @@ namespace fgl::engine::memory
 
 		bool isMappable() const { return m_alloc_info.pMappedData != nullptr; }
 
-		void resize( vk::DeviceSize new_size );
-		//! Returns a allocation block from this buffer. Block will be aligned with nonUniformBufferOffsetAlignment
-		//! and nonCoherentAtomSize if required (is_uniform_buffer and is_host_visible respectively)
+	  private:
+
+		friend struct Buffer;
+		std::shared_ptr< BufferHandle > remake( vk::DeviceSize new_size );
+		// void resize( vk::DeviceSize new_size );
+
+	  public:
 
 		/**
 		 * @param desired_memory_size Size of each N
-		 * @param alignment The alignment to use.
+		 * @param t_alignment
 		 * @param source_loc Source location.
 		 * @return
+		 * @brief Returns a allocation block from this buffer. Block will be aligned with nonUniformBufferOffsetAlignment and nonCoherentAtomSize if required (is_uniform_buffer and is_host_visible respectively)
 		 *
 		 * @note Alignment is forced to be at least the size of the largest alignment required by the device.
 		 * (`alignment` vs `nonCoherentAtomSize` vs `minUniformBufferOffsetAlignment`)
@@ -137,11 +147,11 @@ namespace fgl::engine::memory
 		 * @note Alignment for atom_size is 0 if buffer is not host visible
 		 */
 		std::shared_ptr< BufferSuballocationHandle >
-			allocate( vk::DeviceSize desired_memory_size, std::uint32_t alignment = 1 );
+			allocate( vk::DeviceSize desired_memory_size, vk::DeviceSize t_alignment );
 
-		bool canAllocate( vk::DeviceSize memory_size, std::uint32_t alignment = 1 );
+		bool canAllocate( vk::DeviceSize memory_size, vk::DeviceSize alignment = 1 );
 
-		//! Frees a given suballocation. After calling this the handle is invalid and accessing it is UB
+		//! Frees a given suballocation. After calling this, the handle is invalid and accessing it is UB
 		void free( BufferSuballocationHandle& info );
 
 		void mergeFreeBlocks();
@@ -165,6 +175,12 @@ namespace fgl::engine::memory
 		{}
 
 		Buffer( const std::shared_ptr< BufferHandle >& buffer ) : std::shared_ptr< BufferHandle >( buffer ) {}
+
+		BufferSuballocation allocate( vk::DeviceSize desired_size, std::uint32_t alignment = 1 );
+
+		vk::DeviceSize size() const { return std::shared_ptr< BufferHandle >::operator->()->size(); }
+
+		void resize( vk::DeviceSize size );
 
 		~Buffer() = default;
 	};

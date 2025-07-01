@@ -41,12 +41,12 @@ namespace fgl::engine::memory
 	}
 
 	vk::BufferCopy BufferSuballocationHandle::
-		copyRegion( const BufferSuballocationHandle& target, const std::size_t offset ) const
+		copyRegion( const BufferSuballocationHandle& target, const std::size_t suballocation_offset ) const
 	{
 		vk::BufferCopy copy {};
 		copy.size = std::min( this->m_size, target.m_size );
 		copy.srcOffset = this->getOffset();
-		copy.dstOffset = target.getOffset() + offset;
+		copy.dstOffset = target.getOffset() + suballocation_offset;
 		return copy;
 	}
 

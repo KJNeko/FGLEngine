@@ -12,6 +12,10 @@
 #include "engine/memory/buffers/BufferSuballocation.hpp"
 #include "engine/memory/buffers/vector/HostVector.hpp"
 
+#ifdef ENABLE_IMGUI
+#include "imgui.h"
+#endif
+
 namespace fgl::engine::memory
 {
 	void TransferManager::recordCommands( vk::raii::CommandBuffer& command_buffer )
@@ -92,10 +96,10 @@ namespace fgl::engine::memory
 
 	void TransferManager::resizeBuffer( const std::uint64_t size )
 	{
-		m_staging_buffer->resize( size );
+		m_staging_buffer.resize( size );
 	}
 
-	void TransferManager::submitBuffer( vk::raii::CommandBuffer& command_buffer )
+	void TransferManager::submitBuffer( const vk::raii::CommandBuffer& command_buffer ) const
 	{
 		ZoneScoped;
 
@@ -299,6 +303,7 @@ namespace fgl::engine::memory
 		log::info( "Transfer manager created with size {}", literals::size_literals::toString( buffer_size ) );
 
 		GLOBAL_TRANSFER_MANAGER = this;
+		m_staging_buffer->setDebugName( "Staging buffer" );
 	}
 
 	void TransferManager::submitNow()
@@ -318,7 +323,13 @@ namespace fgl::engine::memory
 
 		submitBuffer( transfer_buffer );
 
-		if ( m_processing.size() > 0 ) log::debug( "Submitted {} objects to be transfered", m_processing.size() );
+		if ( m_processing.size() > 0 )
+		{
+			log::debug(
+				"Submitted {} objects to be transfered, Transfer buffer usage: {}",
+				m_processing.size(),
+				literals::size_literals::toString( m_staging_buffer->used() ) );
+		}
 
 		for ( auto& processed : m_processing )
 		{
@@ -327,6 +338,21 @@ namespace fgl::engine::memory
 
 		//Drop the data
 		m_processing.clear();
+	}
+
+	void TransferManager::drawImGui() const
+	{
+#ifdef ENABLE_IMGUI
+		ImGui::Text( "|- %s Allocated", literals::size_literals::toString( m_staging_buffer->size() ).c_str() );
+		ImGui::Text( "|- %s Used ", literals::size_literals::toString( m_staging_buffer->used() ).c_str() );
+		ImGui::Text(
+			"|- %s Unused",
+			literals::size_literals::toString( m_staging_buffer->size() - m_staging_buffer->used() ).c_str() );
+
+		ImGui::Text( "|- %i transfer remaining", m_queue.size() );
+		ImGui::Text( "|- %zu objects being processed", m_processing.size() );
+		ImGui::Text( "|- %zu total copy regions", m_copy_regions.size() );
+#endif
 	}
 
 } // namespace fgl::engine::memory

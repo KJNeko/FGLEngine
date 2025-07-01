@@ -154,6 +154,7 @@ namespace fgl::engine::memory
 		HostVector< std::byte > vector { staging_buffer, std::get< RawData >( m_source ) };
 
 		m_source = vector.getHandle();
+		std::get< TransferBufferHandle >( m_source )->setReady( true );
 
 		return true;
 	}
@@ -162,55 +163,66 @@ namespace fgl::engine::memory
 		vk::raii::CommandBuffer& buffer,
 		Buffer& staging_buffer,
 		CopyRegionMap& copy_regions,
-		std::uint32_t transfer_idx,
-		std::uint32_t graphics_idx )
+		const std::uint32_t transfer_idx,
+		const std::uint32_t graphics_idx )
 	{
 		ZoneScoped;
+
 		switch ( m_type )
 		{
 			default:
 				throw std::runtime_error( "Invalid transfer type" );
-			case IMAGE_FROM_RAW:
-				return performRawImageStage( buffer, staging_buffer, transfer_idx, graphics_idx );
-			case IMAGE_FROM_BUFFER:
-				return performImageStage( buffer, transfer_idx, graphics_idx );
-			case BUFFER_FROM_RAW:
-				return performRawBufferStage( staging_buffer, copy_regions );
-			case BUFFER_FROM_BUFFER:
-				return performBufferStage( copy_regions );
+			case eImageFromRaw:
+				{
+					return performRawImageStage( buffer, staging_buffer, transfer_idx, graphics_idx );
+				}
+			case eImageFromBuffer:
+				{
+					if ( !std::get< TransferBufferHandle >( m_source )->transferReady() ) return false;
+					return performImageStage( buffer, transfer_idx, graphics_idx );
+				}
+			case eBufferFromRaw:
+				{
+					return performRawBufferStage( staging_buffer, copy_regions );
+				}
+			case eBufferFromBuffer:
+				{
+					if ( !std::get< TransferBufferHandle >( m_source )->transferReady() ) return false;
+					return performBufferStage( copy_regions );
+				}
 		}
 
 		FGL_UNREACHABLE();
 	}
 
-	void TransferData::markBad()
+	void TransferData::markBad() const
 	{
 		switch ( m_type )
 		{
-			case BUFFER_FROM_RAW:
+			case eBufferFromRaw:
 				[[fallthrough]];
-			case BUFFER_FROM_BUFFER:
+			case eBufferFromBuffer:
 				std::get< TransferBufferHandle >( m_target )->setReady( false );
 				break;
-			case IMAGE_FROM_RAW:
+			case eImageFromRaw:
 				[[fallthrough]];
-			case IMAGE_FROM_BUFFER:
+			case eImageFromBuffer:
 				std::get< TransferImageHandle >( m_target )->setReady( false );
 		}
 	}
 
-	void TransferData::markGood()
+	void TransferData::markGood() const
 	{
 		switch ( m_type )
 		{
-			case BUFFER_FROM_RAW:
+			case eBufferFromRaw:
 				[[fallthrough]];
-			case BUFFER_FROM_BUFFER:
+			case eBufferFromBuffer:
 				std::get< TransferBufferHandle >( m_target )->setReady( true );
 				break;
-			case IMAGE_FROM_RAW:
+			case eImageFromRaw:
 				[[fallthrough]];
-			case IMAGE_FROM_BUFFER:
+			case eImageFromBuffer:
 				std::get< TransferImageHandle >( m_target )->setReady( true );
 		}
 	}
@@ -221,12 +233,17 @@ namespace fgl::engine::memory
 	TransferData::TransferData(
 		const std::shared_ptr< BufferSuballocationHandle >& source,
 		const std::shared_ptr< BufferSuballocationHandle >& target,
-		const std::size_t offset ) :
-	  m_type( BUFFER_FROM_BUFFER ),
+		const vk::DeviceSize size,
+		const vk::DeviceSize dst_offset,
+		const vk::DeviceSize src_offset ) :
+	  m_type( eBufferFromBuffer ),
 	  m_source( source ),
+	  m_source_offset( src_offset ),
 	  m_target( target ),
-	  m_target_offset( offset )
+	  m_target_offset( dst_offset ),
+	  m_size( size == 0 ? source->m_size : size )
 	{
+		FGL_ASSERT( m_size <= target->m_size, "Attempting to copy to beyond size of target" );
 		markBad();
 	}
 
@@ -234,32 +251,48 @@ namespace fgl::engine::memory
 	TransferData::TransferData(
 		std::vector< std::byte >&& source,
 		const std::shared_ptr< BufferSuballocationHandle >& target,
-		const std::size_t offset ) :
-	  m_type( BUFFER_FROM_RAW ),
+		const vk::DeviceSize size,
+		const vk::DeviceSize dst_offset,
+		const vk::DeviceSize src_offset ) :
+	  m_type( eBufferFromRaw ),
 	  m_source( std::forward< std::vector< std::byte > >( source ) ),
+	  m_source_offset( src_offset ),
 	  m_target( target ),
-	  m_target_offset( offset )
+	  m_target_offset( dst_offset ),
+	  m_size( size == 0 ? source.size() : size )
 	{
+		FGL_ASSERT( m_size <= target->m_size, "Attempting to copy to beyond size of target" );
 		markBad();
 	}
 
 	//! IMAGE_FROM_BUFFER
 	TransferData::TransferData(
-		const std::shared_ptr< BufferSuballocationHandle >& source, const std::shared_ptr< ImageHandle >& target ) :
-	  m_type( IMAGE_FROM_BUFFER ),
+		const std::shared_ptr< BufferSuballocationHandle >& source,
+		const std::shared_ptr< ImageHandle >& target,
+		const vk::DeviceSize size,
+		const vk::DeviceSize src_offset ) :
+	  m_type( eImageFromBuffer ),
 	  m_source( source ),
+	  m_source_offset( src_offset ),
 	  m_target( target ),
-	  m_target_offset( 0 )
+	  m_target_offset( 0 ),
+	  m_size( size == 0 ? source->m_size : size )
 	{
 		markBad();
 	}
 
 	//! IMAGE_FROM_RAW
-	TransferData::TransferData( std::vector< std::byte >&& source, const std::shared_ptr< ImageHandle >& target ) :
-	  m_type( IMAGE_FROM_RAW ),
+	TransferData::TransferData(
+		std::vector< std::byte >&& source,
+		const std::shared_ptr< ImageHandle >& target,
+		const vk::DeviceSize size,
+		const vk::DeviceSize src_offset ) :
+	  m_type( eImageFromRaw ),
 	  m_source( std::forward< std::vector< std::byte > >( source ) ),
+	  m_source_offset( src_offset ),
 	  m_target( target ),
-	  m_target_offset( 0 )
+	  m_target_offset( 0 ),
+	  m_size( size == 0 ? source.size() : size )
 	{
 		assert( std::get< RawData >( m_source ).size() > 0 );
 		markBad();

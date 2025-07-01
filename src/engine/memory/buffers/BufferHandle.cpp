@@ -14,6 +14,7 @@
 #include "engine/memory/buffers/BufferHandle.hpp"
 #include "engine/memory/buffers/exceptions.hpp"
 #include "engine/rendering/devices/Device.hpp"
+#include "math/literals/size.hpp"
 #include "memory/DefferedCleanup.hpp"
 
 namespace fgl::engine::memory
@@ -187,6 +188,67 @@ namespace fgl::engine::memory
 			} );
 	}
 
+	BufferSuballocation Buffer::allocate( const vk::DeviceSize desired_size, const std::uint32_t alignment )
+	{
+		auto allocation { operator->()->allocate( desired_size, alignment ) };
+
+		if ( !allocation )
+		{
+			// Resize to x1.5 the size, or the size plus the desired size x1.5, Whichever is bigger
+			const auto optimal_size { std::max( this->size() * 2, this->size() + desired_size * 2 ) };
+			this->resize( optimal_size );
+
+			FGL_ASSERT( optimal_size == this->size(), "Optimal size not met!" );
+
+			allocation = operator->()->allocate( desired_size, alignment );
+		}
+
+		return allocation;
+	}
+
+	void Buffer::resize( const vk::DeviceSize size )
+	{
+		const std::shared_ptr< BufferHandle > old_handle { *this };
+		const auto new_handle { old_handle->remake( size ) };
+		new_handle->setDebugName( old_handle->m_debug_name );
+
+		*this = new_handle;
+	}
+
+	std::shared_ptr< BufferHandle > BufferHandle::remake( vk::DeviceSize new_size )
+	{
+		ZoneScoped;
+		auto new_handle { std::make_shared< BufferHandle >( new_size, m_usage, m_memory_properties ) };
+
+		const auto& old_allocations { m_active_suballocations };
+		const auto& old_allocations_traces { m_allocation_traces };
+
+		// Remake all allocations into the new buffer
+		std::vector<
+			std::pair< std::shared_ptr< BufferSuballocationHandle >, std::shared_ptr< BufferSuballocationHandle > > >
+			allocations {};
+		allocations.reserve( old_allocations.size() );
+
+		for ( const auto& suballocation_weak : old_allocations )
+		{
+			if ( suballocation_weak.expired() ) continue;
+
+			auto suballocation { suballocation_weak.lock() };
+
+			if ( auto new_suballocation { new_handle->allocate( suballocation->m_size, suballocation->m_alignment ) } )
+			{
+				allocations.emplace_back( suballocation, new_suballocation );
+				// Copy the data from the old allocation to the new allocation
+				TransferManager::getInstance().copySuballocationRegion( suballocation, new_suballocation );
+			}
+			else
+				throw std::runtime_error( "The fuck" );
+		}
+
+		return new_handle;
+	}
+
+	/*
 	void BufferHandle::resize( const vk::DeviceSize new_size )
 	{
 		log::warn( "Resizing buffer from {} to {}", size(), new_size );
@@ -208,7 +270,7 @@ namespace fgl::engine::memory
 				auto suballocation { suballocation_weak.lock() };
 
 				auto new_suballocation { new_handle->allocate( suballocation->m_size, suballocation->m_alignment ) };
-				allocations.emplace_back( std::make_pair( suballocation, new_suballocation ) );
+				allocations.emplace_back( suballocation, new_suballocation );
 			}
 			catch ( std::bad_weak_ptr& e )
 			{
@@ -242,38 +304,28 @@ namespace fgl::engine::memory
 			TransferManager::getInstance().copySuballocationRegion( old_suballocation, new_suballocation );
 		}
 	}
+	*/
 
 	std::shared_ptr< BufferSuballocationHandle > BufferHandle::
-		allocate( vk::DeviceSize desired_memory_size, const std::uint32_t t_alignment )
+		allocate( vk::DeviceSize desired_memory_size, const vk::DeviceSize t_alignment )
 	{
 		ZoneScoped;
 		//Calculate alignment from alignment, ubo_alignment, and atom_size_alignment
 		desired_memory_size = align( desired_memory_size, alignment() );
 
-		assert( desired_memory_size <= this->size() );
-
-		//findAvailableBlock( memory_size, t_alignment );
-
 		if ( !canAllocate( desired_memory_size, t_alignment ) )
 		{
-			// Resize to x1.5 the size, or the size plus the desired size x1.5, Whichever is bigger
-			const auto optimal_size { std::
-				                          max( static_cast< vk::DeviceSize >( this->size() * 2 ),
-				                               this->size()
-				                                   + static_cast< vk::DeviceSize >( desired_memory_size * 2 ) ) };
-			this->resize( optimal_size );
-
-			FGL_ASSERT( optimal_size == this->size(), "Optimal size not met!" );
+			return { nullptr };
 		}
 
 		auto itter { findAvailableBlock( desired_memory_size, t_alignment ) };
 
 		if ( itter == m_free_blocks.end() )
 		{
-			throw BufferOOM();
+			// Could not find a block that is available.
+			return { nullptr };
 		}
 
-		//Allocate
 		auto [ selected_block_offset, selected_block_size ] = *itter;
 		m_free_blocks.erase( itter );
 
@@ -289,7 +341,7 @@ namespace fgl::engine::memory
 			//Insert the space left over before the block starts back into the free blocks
 			const std::size_t leftover_start_size { aligned_offset - selected_block_offset };
 
-			m_free_blocks.emplace_back( std::make_pair( selected_block_offset, leftover_start_size ) );
+			m_free_blocks.emplace_back( selected_block_offset, leftover_start_size );
 
 			mergeFreeBlocks();
 
@@ -325,7 +377,7 @@ namespace fgl::engine::memory
 		return suballocation_handle;
 	}
 
-	bool BufferHandle::canAllocate( const vk::DeviceSize memory_size, const std::uint32_t alignment )
+	bool BufferHandle::canAllocate( const vk::DeviceSize memory_size, const vk::DeviceSize alignment )
 	{
 		// TODO: This check can be optimized by itterating through and virtually combining blocks that would be combined.
 		// If the combined block is large enough then we should consider it being capable of allocation.
@@ -386,12 +438,13 @@ namespace fgl::engine::memory
 
 	void BufferHandle::setDebugName( const std::string& str )
 	{
+		m_debug_name = str;
+		std::string sized_name { std::format( "{}: {}", m_debug_name, literals::size_literals::toString( size() ) ) };
+
 		vk::DebugUtilsObjectNameInfoEXT info {};
 		info.objectType = vk::ObjectType::eBuffer;
-		info.pObjectName = str.c_str();
+		info.pObjectName = sized_name.c_str();
 		info.objectHandle = reinterpret_cast< std::uint64_t >( static_cast< VkBuffer >( this->m_buffer ) );
-
-		m_debug_name = str;
 
 		Device::getInstance().setDebugUtilsObjectName( info );
 	}
@@ -418,9 +471,9 @@ namespace fgl::engine::memory
 #ifndef NDEBUG
 		//Check that we haven't lost any memory
 		std::size_t sum { 0 };
-		for ( const auto& free_blocks : this->m_free_blocks )
+		for ( const auto& size : this->m_free_blocks | std::views::values )
 		{
-			sum += free_blocks.second;
+			sum += size;
 		}
 
 		for ( auto& suballocation : m_active_suballocations )
@@ -441,6 +494,7 @@ namespace fgl::engine::memory
 
 		for ( auto& suballocation : m_active_suballocations )
 		{
+			if ( suballocation.expired() ) continue;
 			total_size += suballocation.lock()->m_size;
 		}
 
@@ -451,9 +505,9 @@ namespace fgl::engine::memory
 	{
 		vk::DeviceSize largest { 0 };
 
-		for ( const auto& blocks : m_free_blocks )
+		for ( const auto& size : m_free_blocks | std::views::values )
 		{
-			largest = std::max( largest, blocks.second );
+			largest = std::max( largest, size );
 		}
 
 		return largest;

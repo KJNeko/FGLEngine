@@ -1,6 +1,7 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "assets/transfer/TransferManager.hpp"
 #include "core.hpp"
 #include "engine/debug/profiling/counters.hpp"
 #include "engine/debug/timing/FlameGraph.hpp"
@@ -90,6 +91,13 @@ namespace fgl::engine::gui
 			ImGui::TreePop();
 		}
 		ImGui::Separator();
+
+		if ( ImGui::TreeNode( "Transfer Buffer" ) )
+		{
+			memory::TransferManager::getInstance().drawImGui();
+
+			ImGui::TreePop();
+		}
 
 		if ( ImGui::CollapsingHeader( "Buffers" ) )
 		{
