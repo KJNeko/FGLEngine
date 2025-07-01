@@ -72,7 +72,7 @@ void computeMain( uint3 dispatch_id : SV_DispatchThreadID)
 
 		commands[ instance_index ] = command;
 
-		out_instances[instance_index].mat_id = instance.material_id;
+		out_instances[ instance_index ].mat_id = instance.material_id;
 
 		const ModelInstanceInfo model_instance = model_instances[ instance.model_index ];
 		out_instances[ instance_index ].matrix = model_instance.model_matrix;
