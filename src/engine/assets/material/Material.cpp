@@ -5,6 +5,7 @@
 #include "Material.hpp"
 
 #include "EngineContext.hpp"
+#include "assets/stores.hpp"
 #include "engine/assets/texture/Texture.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/utility/IDPool.hpp"
@@ -52,6 +53,19 @@ namespace fgl::engine
 		return data;
 	}
 
+	MaterialProperties::MaterialProperties()
+	{
+		Sampler sampler {};
+
+		std::shared_ptr< Texture > texture { getTextureStore().load( "assets/invalid.png", std::move( sampler ) ) };
+
+		//Prepare the texture into the global system
+		Texture::getDescriptorSet().bindTexture( 0, texture );
+		Texture::getDescriptorSet().update();
+
+		if ( !this->pbr.color_tex ) this->pbr.color_tex = texture;
+	}
+
 	Material::Material() : m_id( material_id_counter.getID() )
 	{
 		auto& descriptor_set { getDescriptorSet() };
@@ -83,6 +97,16 @@ namespace fgl::engine
 	std::shared_ptr< Material > Material::createMaterial()
 	{
 		return std::shared_ptr< Material >( new Material() );
+	}
+
+	std::shared_ptr< Material > Material::createNullMaterial()
+	{
+		//TODO: Make this a special material that will be rendered properly inside of the editor to represent no material was set
+		auto mat { std::shared_ptr< Material >( new Material() ) };
+
+		mat->update();
+
+		return mat;
 	}
 
 	Material::~Material()

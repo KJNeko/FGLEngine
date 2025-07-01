@@ -44,7 +44,7 @@ namespace fgl::engine
 	{
 		struct
 		{
-			std::shared_ptr< Texture > color_tex;
+			std::shared_ptr< Texture > color_tex {};
 			glm::vec4 color_factors { 0.0f };
 
 			std::shared_ptr< Texture > metallic_roughness_tex;
@@ -72,6 +72,8 @@ namespace fgl::engine
 
 		void writeData( DeviceMaterialData& data ) const;
 		DeviceMaterialData data() const;
+
+		MaterialProperties();
 	};
 
 	using MaterialID = std::uint32_t;
@@ -168,6 +170,7 @@ namespace fgl::engine
 		MaterialID getID() const;
 
 		static std::shared_ptr< Material > createMaterial();
+		static std::shared_ptr< Material > createNullMaterial();
 
 		~Material();
 

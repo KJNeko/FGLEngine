@@ -546,9 +546,13 @@ namespace fgl::engine
 		loadMaterial( const tinygltf::Primitive& prim, const tinygltf::Model& root )
 	{
 		const auto& material_id { prim.material };
-		const auto& gltf_material { root.materials[ material_id ] };
+
+		// No material
+		if ( material_id == -1 ) return Material::createNullMaterial();
 
 		auto material { Material::createMaterial() };
+
+		const auto& gltf_material { root.materials[ material_id ] };
 
 		{
 			const auto& metallic_roughness { gltf_material.pbrMetallicRoughness };

@@ -4,12 +4,9 @@
 
 #include "Texture.hpp"
 
-#include <initializer_list>
-
 #include "engine/FrameInfo.hpp"
 #include "engine/assets/image/Image.hpp"
 #include "engine/assets/image/ImageView.hpp"
-#include "engine/assets/transfer/TransferManager.hpp"
 #include "engine/debug/logging/logging.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/math/noise/perlin/generator.hpp"
@@ -32,7 +29,9 @@ namespace fgl::engine
 		loadTexture( const std::filesystem::path& path, Sampler&& sampler, vk::Format format = vk::Format::eUndefined )
 	{
 		ZoneScoped;
-		if ( !std::filesystem::exists( path ) ) throw std::runtime_error( "Failed to open file: " + path.string() );
+		if ( !std::filesystem::exists( path ) )
+			throw std::
+				runtime_error( std::format( "Failed to open file: {}", std::filesystem::absolute( path ).string() ) );
 
 		//TODO: More robust image loading. I should be checking what channels images have and what they are using for their bits per channel.
 		if ( format == vk::Format::eUndefined ) format = vk::Format::eR8G8B8A8Unorm;
