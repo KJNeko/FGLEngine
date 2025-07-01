@@ -95,6 +95,8 @@ namespace fgl::engine
 
 		SessionDesc session_desc {};
 		session_desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
+		session_desc.preprocessorMacros = nullptr;
+		session_desc.preprocessorMacroCount = 0;
 
 #ifdef NDEBUG
 		std::array< CompilerOptionEntry, 1 > options {
@@ -102,20 +104,18 @@ namespace fgl::engine
 			    .value = { .kind = CompilerOptionValueKind::Int, .intValue0 = 1 } } }
 		};
 #else
-		std::array< CompilerOptionEntry, 4 > options { {
-			{ .name = CompilerOptionName::VulkanUseEntryPointName,
-			  .value = { .kind = CompilerOptionValueKind::Int, .intValue0 = true } },
-			{ .name = CompilerOptionName::Optimization,
-			  .value = { .kind = CompilerOptionValueKind::Int,
-			             .intValue0 = static_cast< int32_t >( SLANG_OPTIMIZATION_LEVEL_NONE ) } },
-			// .intValue0 = static_cast< int32_t >( SLANG_OPTIMIZATION_LEVEL_HIGH ) } },
-			{ .name = CompilerOptionName::DebugInformation,
-			  .value = { .kind = CompilerOptionValueKind::Int,
-			             .intValue0 = static_cast< int32_t >( SLANG_DEBUG_INFO_LEVEL_MAXIMAL ) } },
-			// .intValue0 = static_cast< int32_t >( SLANG_DEBUG_INFO_LEVEL_MINIMAL ) } },
-			{ .name = CompilerOptionName::EmitSpirvDirectly,
-			  .value = { .kind = CompilerOptionValueKind::Int, .intValue0 = static_cast< int32_t >( true ) } },
-		} };
+		std::array< CompilerOptionEntry, 5 > options {
+			{ { .name = CompilerOptionName::VulkanUseEntryPointName,
+			    .value = { .kind = CompilerOptionValueKind::Int, .intValue0 = true } },
+			  { .name = CompilerOptionName::Optimization,
+			    .value = { .kind = CompilerOptionValueKind::Int,
+			               .intValue0 = static_cast< int32_t >( SLANG_OPTIMIZATION_LEVEL_NONE ) } },
+			  { .name = CompilerOptionName::DebugInformation,
+			    .value = { .kind = CompilerOptionValueKind::Int,
+			               .intValue0 = static_cast< int32_t >( SLANG_DEBUG_INFO_LEVEL_MAXIMAL ) } },
+			  { .name = CompilerOptionName::EmitSpirvDirectly,
+			    .value = { .kind = CompilerOptionValueKind::Int, .intValue0 = static_cast< int32_t >( true ) } } }
+		};
 #endif
 
 		session_desc.compilerOptionEntries = options.data();
@@ -132,9 +132,12 @@ namespace fgl::engine
 
 		const auto search_path { std::filesystem::path() / "shaders" };
 		const std::string search_path_str { search_path.string() };
-		const char* const search_pathr_str_ptr { search_path_str.data() };
-		session_desc.searchPaths = &search_pathr_str_ptr;
-		session_desc.searchPathCount = 1;
+
+		// Add the source directory to search paths
+		const auto source_dir = path.parent_path().string();
+		std::array< const char*, 2 > search_paths = { search_path_str.c_str(), source_dir.c_str() };
+		session_desc.searchPaths = search_paths.data();
+		session_desc.searchPathCount = search_paths.size();
 
 		Slang::ComPtr< ISession > session {};
 		global_session->createSession( session_desc, session.writeRef() );
