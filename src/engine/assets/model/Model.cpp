@@ -30,7 +30,7 @@ namespace fgl::engine
 		  vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible ),
 	  m_vertex_buffer(
-		  2_MiB,
+		  2_GiB,
 		  vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eStorageBuffer
 			  | vk::BufferUsageFlagBits::eTransferDst,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal ),
@@ -38,11 +38,14 @@ namespace fgl::engine
 		  1_GiB,
 		  vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal ),
+	  m_generated_instance_info( constructPerFrame< DeviceVector< PerVertexInstanceInfo > >( m_vertex_buffer ) ),
 	  m_primitive_info( m_long_buffer ),
 	  m_primitive_instances( m_short_buffer ),
-	  m_model_instances( m_short_buffer ),
-	  m_generated_instance_info( constructPerFrame< DeviceVector< PerVertexInstanceInfo > >( m_vertex_buffer ) )
+	  m_model_instances( m_short_buffer )
 	{
+		m_vertex_buffer->setDebugName( "Vertex buffer" );
+		m_index_buffer->setDebugName( "Index buffer" );
+
 		m_primitives_desc = PRIMITIVE_SET.create();
 		m_primitives_desc->bindStorageBuffer( 0, m_primitive_info );
 		m_primitives_desc->update();
@@ -93,7 +96,7 @@ namespace fgl::engine
 
 		WorldTransform transform {};
 		transform.translation = Coordinate< CoordinateSpace::World >( glm::vec3( 0.0, 0.0, 0.0 ) );
-		transform.scale = glm::vec3( 0.007 );
+		transform.scale = glm::vec3( constants::DEFAULT_MODEL_SCALE );
 		transform.rotation = { glm::quat( 1.0, 0.0, 0.0, 0.0 ) };
 
 		const ModelInstanceInfo model_info { transform.mat4() };

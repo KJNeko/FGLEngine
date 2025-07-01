@@ -602,11 +602,12 @@ namespace fgl::engine
 			std::make_unique< components::ModelComponent >( std::move( model ) )
 		};
 
+		const auto transform { loadTransform( node_idx, root ) };
+		// component->updateTransform( transform );
+
 		obj.addComponent( std::move( component ) );
 
 		obj.addFlag( IsVisible | IsEntity );
-
-		const auto transform { loadTransform( node_idx, root ) };
 
 		// obj.getTransform() = transform;
 

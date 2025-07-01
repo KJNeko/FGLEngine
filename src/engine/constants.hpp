@@ -17,6 +17,8 @@ namespace fgl::engine::constants
 
 	constexpr glm::vec3 DEFAULT_VEC3 { std::numeric_limits< float >::signaling_NaN() };
 
+	constexpr float DEFAULT_MODEL_SCALE { 0.07f };
+
 	constexpr glm::vec3 WORLD_CENTER { 0.0f, 0.0f, 0.0f };
 
 	// X RIGHT

@@ -87,6 +87,7 @@ namespace fgl::engine
 	static_assert( offsetof( PerVertexInstanceInfo, material_id ) == 64 );
 	static_assert( sizeof( MaterialID ) == 4 );
 
+	// Padding check
 	static_assert( sizeof( PerVertexInstanceInfo ) == 64 + ( 4 * 4 ) );
 
 	struct ModelGPUBuffers
