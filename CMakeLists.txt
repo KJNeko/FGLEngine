@@ -1,19 +1,11 @@
-# /CMakeLists.txt
 cmake_minimum_required(VERSION 3.25.0)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-find_program(CCACHE_FOUND ccache)
-if (CCACHE_FOUND)
-	set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
-else ()
-	message("ccache not found. Not using it")
-endif ()
 
 project(TitorGameEngine LANGUAGES CXX C)
 
-add_subdirectory(fgl_cmake_modules)
+add_subdirectory(dependencies/libFGL)
 
 PreSetup()
 
