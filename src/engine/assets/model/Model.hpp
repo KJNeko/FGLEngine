@@ -126,6 +126,8 @@ namespace fgl::engine
 
 		std::vector< Primitive > m_primitives {};
 
+		friend class components::ModelComponent;
+
 	  public:
 
 		Model( std::vector< Primitive >&& primitives, const std::string& name = {} );

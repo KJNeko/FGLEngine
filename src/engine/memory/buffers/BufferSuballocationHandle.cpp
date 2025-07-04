@@ -45,8 +45,8 @@ namespace fgl::engine::memory
 	{
 		vk::BufferCopy copy {};
 		copy.size = std::min( this->m_size, target.m_size );
-		copy.srcOffset = this->getOffset();
-		copy.dstOffset = target.getOffset() + suballocation_offset;
+		copy.srcOffset = this->offset();
+		copy.dstOffset = target.offset() + suballocation_offset;
 		return copy;
 	}
 
@@ -62,4 +62,34 @@ namespace fgl::engine::memory
 		cmd_buffer.copyBuffer( this->getVkBuffer(), other.getVkBuffer(), copy_regions );
 	}
 
+	std::pair< std::shared_ptr< BufferSuballocationHandle >, std::shared_ptr< BufferSuballocationHandle > >
+		BufferSuballocationHandle::reallocate( const std::shared_ptr< BufferHandle >& shared )
+	{
+		auto old_allocation { this->shared_from_this() };
+		auto new_allocation { shared->allocate( m_size, m_alignment ) };
+
+		return { old_allocation, new_allocation };
+	}
+
+	void BufferSuballocationHandle::markSource( const std::shared_ptr< BufferSuballocationHandle >& source )
+	{
+		m_dependents.push_back( source );
+	}
+
+	bool BufferSuballocationHandle::stable() const
+	{
+		return std::ranges::
+			all_of( m_dependents, []( const auto& handle ) { return handle.expired() || handle.lock()->ready(); } );
+	}
+
+	bool BufferSuballocationHandle::ready() const
+	{
+		return m_staged;
+	}
+
+	void BufferSuballocationHandle::setReady( const bool value )
+	{
+		std::ranges::remove_if( m_dependents, []( const auto& handle ) { return handle.expired(); } );
+		m_staged = value;
+	}
 } // namespace fgl::engine::memory

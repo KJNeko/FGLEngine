@@ -30,12 +30,12 @@ namespace fgl::engine
 		  vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eTransferDst,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible ),
 	  m_vertex_buffer(
-		  2_GiB,
+		  2_MiB,
 		  vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eStorageBuffer
 			  | vk::BufferUsageFlagBits::eTransferDst,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal ),
 	  m_index_buffer(
-		  1_GiB,
+		  1_MiB,
 		  vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal ),
 	  m_generated_instance_info( constructPerFrame< DeviceVector< PerVertexInstanceInfo > >( m_vertex_buffer ) ),
@@ -43,7 +43,7 @@ namespace fgl::engine
 	  m_primitive_instances( m_short_buffer ),
 	  m_model_instances( m_short_buffer )
 	{
-		m_vertex_buffer->setDebugName( "Vertex buffer" );
+		m_vertex_buffer->setDebugName( "Vertex buffer GPU" );
 		m_index_buffer->setDebugName( "Index buffer" );
 
 		m_primitives_desc = PRIMITIVE_SET.create();
@@ -103,14 +103,14 @@ namespace fgl::engine
 
 		ModelInstanceInfoIndex model_instance { buffers.m_model_instances.acquire( model_info ) };
 
-		for ( std::size_t i = 0; i < m_primitives.size(); i++ )
+		for ( auto& primitive : m_primitives )
 		{
-			auto render_info { m_primitives[ i ].renderInstanceInfo() };
+			const auto render_info { primitive.renderInstanceInfo() };
 
 			PrimitiveInstanceInfo instance_info {};
 			instance_info.m_primitive_info = render_info->idx();
 			instance_info.m_model_info = model_instance.idx();
-			instance_info.m_material = m_primitives[ i ].default_material->getID();
+			instance_info.m_material = primitive.default_material->getID();
 
 			primitive_instances.emplace_back( buffers.m_primitive_instances.acquire( instance_info ) );
 		}

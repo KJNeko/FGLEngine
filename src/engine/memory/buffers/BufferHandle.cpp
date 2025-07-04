@@ -62,8 +62,8 @@ namespace fgl::engine::memory
 			{
 				if ( suballocation.expired() ) continue;
 				auto suballoc_ptr { suballocation.lock() };
-				const auto offset { suballoc_ptr->m_offset };
-				const auto size { suballoc_ptr->m_size };
+				const auto offset { suballoc_ptr->offset() };
+				const auto size { suballoc_ptr->size() };
 				log::info( "Stacktrace: Offset at {} with a size of {}", offset, size );
 
 				const auto itter = this->m_allocation_traces.find( offset );
@@ -87,10 +87,10 @@ namespace fgl::engine::memory
 	{
 		if ( m_alloc_info.pMappedData == nullptr ) return nullptr;
 
-		return static_cast< std::byte* >( m_alloc_info.pMappedData ) + handle.m_offset;
+		return static_cast< std::byte* >( m_alloc_info.pMappedData ) + handle.offset();
 	}
 
-	void BufferHandle::deallocBuffer( vk::Buffer& buffer, VmaAllocation& allocation )
+	void BufferHandle::deallocBuffer( const vk::Buffer& buffer, const VmaAllocation& allocation )
 	{
 		vmaDestroyBuffer( Device::getInstance().allocator(), buffer, allocation );
 	}
@@ -235,14 +235,14 @@ namespace fgl::engine::memory
 
 			auto suballocation { suballocation_weak.lock() };
 
-			if ( auto new_suballocation { new_handle->allocate( suballocation->m_size, suballocation->m_alignment ) } )
-			{
-				allocations.emplace_back( suballocation, new_suballocation );
-				// Copy the data from the old allocation to the new allocation
-				TransferManager::getInstance().copySuballocationRegion( suballocation, new_suballocation );
-			}
-			else
-				throw std::runtime_error( "The fuck" );
+			auto [ old_suballocation, new_suballocation ] = suballocation->reallocate( new_handle );
+
+			allocations.emplace_back( old_suballocation, new_suballocation );
+
+			// Copy the data from the old allocation to the new allocation
+			TransferManager::getInstance().copySuballocationRegion( old_suballocation, new_suballocation );
+
+			old_suballocation->flagReallocated( new_suballocation );
 		}
 
 		return new_handle;
@@ -453,18 +453,18 @@ namespace fgl::engine::memory
 	{
 		ZoneScoped;
 
-		if ( info.m_offset >= this->size() ) throw std::runtime_error( "Offset was outside of bounds of buffer" );
-		if ( info.m_offset + info.m_size > this->size() )
+		if ( info.offset() >= this->size() ) throw std::runtime_error( "Offset was outside of bounds of buffer" );
+		if ( info.offset() + info.size() > this->size() )
 			throw std::runtime_error(
 				std::format(
-					"m_offset + m_size was outside the bounds of the buffer ({} + {} == {} >= {})",
-					info.m_offset,
-					info.m_size,
-					info.m_offset + info.m_size,
+					"offset() + size() was outside the bounds of the buffer ({} + {} == {} >= {})",
+					info.offset(),
+					info.size(),
+					info.offset() + info.size(),
 					size() ) );
 
 		//Add the block back to the free blocks
-		m_free_blocks.emplace_back( info.m_offset, info.m_size );
+		m_free_blocks.emplace_back( info.offset(), info.size() );
 
 		mergeFreeBlocks();
 
@@ -479,7 +479,7 @@ namespace fgl::engine::memory
 		for ( auto& suballocation : m_active_suballocations )
 		{
 			if ( suballocation.expired() ) continue;
-			sum += suballocation.lock()->m_size;
+			sum += suballocation.lock()->size();
 		}
 
 		if ( sum != this->size() )
@@ -495,7 +495,7 @@ namespace fgl::engine::memory
 		for ( auto& suballocation : m_active_suballocations )
 		{
 			if ( suballocation.expired() ) continue;
-			total_size += suballocation.lock()->m_size;
+			total_size += suballocation.lock()->size();
 		}
 
 		return total_size;

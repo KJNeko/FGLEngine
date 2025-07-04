@@ -11,6 +11,7 @@
 #include <imgui_internal.h> // Included for DockBuilder since it's not exposed yet
 #pragma GCC diagnostic pop
 
+#include "EngineContext.hpp"
 #include "FileBrowser.hpp"
 #include "engine/assets/model/Model.hpp"
 #include "engine/debug/DEBUG_NAMES.hpp"
@@ -95,7 +96,7 @@ namespace fgl::engine::gui
 		// ImGui::PopStyleVar();
 	}
 
-	static GameObject* selected_object { nullptr };
+	static std::weak_ptr< GameObject > selected_object {};
 
 	void itterateGameObjectNode( FrameInfo& info, OctTreeNode& node )
 	{
@@ -152,6 +153,20 @@ namespace fgl::engine::gui
 		ZoneScoped;
 		ImGui::Begin( OBJECT_TREE_VIEW_NAME );
 
+		auto& game_objects { info.m_game_objects };
+
+		for ( auto& object : game_objects )
+		{
+			ImGui::PushID( object->getId() );
+
+			if ( ImGui::Selectable( object->getName().c_str() ) )
+			{
+				selected_object = object;
+			}
+
+			ImGui::PopID();
+		}
+
 		// itterateGameObjectNode( info, info.game_objects );
 
 		/*
@@ -179,14 +194,16 @@ namespace fgl::engine::gui
 		ZoneScoped;
 		ImGui::Begin( ENTITY_INFO_NAME );
 
-		if ( !selected_object )
+		if ( selected_object.expired() )
 		{
 			ImGui::End();
 			return;
 		}
 
-		drawObject( *selected_object );
-		drawComponentsList( *selected_object );
+		const auto object { selected_object.lock() };
+
+		drawObject( *object );
+		drawComponentsList( *object );
 
 		ImGui::End();
 	}

@@ -53,7 +53,7 @@ namespace fgl::engine
 		memory::Buffer m_vertex_buffer;
 		memory::Buffer m_index_buffer;
 
-		std::vector< GameObject > game_objects {};
+		std::vector< std::shared_ptr< GameObject > > m_game_objects {};
 
 		void handleScene( const tinygltf::Scene& scene, const tinygltf::Model& root );
 		void handleNode( int node_idx, const tinygltf::Model& root );
@@ -88,7 +88,7 @@ namespace fgl::engine
 
 	  public:
 
-		std::vector< GameObject > getGameObjects();
+		std::vector< std::shared_ptr< GameObject > > getGameObjects();
 
 		SceneBuilder() = delete;
 

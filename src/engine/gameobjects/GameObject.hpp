@@ -127,7 +127,7 @@ namespace fgl::engine
 		void removeFlag( GameObjectFlagType flag ) { object_flags &= ( ~flag ); }
 
 		//Misc
-		static GameObject createGameObject();
+		static std::shared_ptr< GameObject > createGameObject();
 
 		GameObjectID getId() const { return m_id; }
 

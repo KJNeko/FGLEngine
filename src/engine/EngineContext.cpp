@@ -150,7 +150,7 @@ namespace fgl::engine
 				                   *m_model_buffers.m_instances_desc,
 				                   *m_gpu_draw_cmds_desc[ in_flight_idx ],
 				                   m_gpu_draw_commands[ in_flight_idx ],
-				                   game_objects,
+				                   m_game_objects,
 				                   this->m_renderer.getSwapChain() };
 
 			{

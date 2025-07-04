@@ -72,7 +72,7 @@ namespace fgl::engine
 
 	  public:
 
-		std::vector< GameObject > game_objects {};
+		std::vector< std::shared_ptr< GameObject > > m_game_objects {};
 
 		ModelGPUBuffers m_model_buffers {};
 
@@ -87,7 +87,7 @@ namespace fgl::engine
 
 		CameraManager m_camera_manager {};
 
-		memory::TransferManager m_transfer_manager { m_device, 32_MiB };
+		memory::TransferManager m_transfer_manager { m_device, 512_MiB };
 
 		std::chrono::time_point< Clock > m_last_tick { Clock::now() };
 		DeltaTime m_delta_time;

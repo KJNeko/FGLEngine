@@ -34,7 +34,7 @@ namespace fgl::engine::memory
 		vk::Buffer getVkBuffer();
 
 		//! Returns the offset of this view within the buffer
-		vk::DeviceSize getOffset();
+		vk::DeviceSize offset();
 	};
 
 } // namespace fgl::engine::memory

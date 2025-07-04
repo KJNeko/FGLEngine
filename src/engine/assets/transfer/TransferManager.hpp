@@ -104,22 +104,9 @@ namespace fgl::engine::memory
 		void copySuballocationRegion(
 			const std::shared_ptr< BufferSuballocationHandle >& src,
 			const std::shared_ptr< BufferSuballocationHandle >& dst,
-			const vk::DeviceSize size = 0,
-			const vk::DeviceSize dst_offset = 0,
-			const std::size_t src_offset = 0 )
-		{
-			FGL_ASSERT( src->m_size == dst->m_size, "Source and destination suballocations must be the same size" );
-
-			//! If the buffer has not been staged, Then there is nothing to copy in the first place.
-			if ( !src->m_staged ) return;
-
-			// Makes the dst as requiring the src to be stable (no pending writes) before it's used.
-			dst->markRequiresStable( src );
-
-			TransferData transfer_data { src, dst, size, dst_offset, src_offset };
-
-			m_queue.emplace( std::move( transfer_data ) );
-		}
+			vk::DeviceSize size = 0,
+			vk::DeviceSize dst_offset = 0,
+			std::size_t src_offset = 0 );
 
 		//! Queues a buffer to be transfered
 		template < typename DeviceVectorT >

@@ -277,11 +277,9 @@ namespace fgl::engine
 		return textures;
 	}
 
-	std::vector< GameObject > SceneBuilder::getGameObjects()
+	std::vector< std::shared_ptr< GameObject > > SceneBuilder::getGameObjects()
 	{
-		std::vector< GameObject > objects { std::move( this->game_objects ) };
-
-		return objects;
+		return this->m_game_objects;
 	}
 
 	std::vector< glm::vec3 > SceneBuilder::
@@ -592,7 +590,7 @@ namespace fgl::engine
 		const int mesh_idx { node.mesh };
 		const int skin_idx { node.skin };
 
-		GameObject obj { GameObject::createGameObject() };
+		auto obj { GameObject::createGameObject() };
 
 		std::shared_ptr< Model > model { loadModel( mesh_idx, root ) };
 
@@ -605,18 +603,18 @@ namespace fgl::engine
 		const auto transform { loadTransform( node_idx, root ) };
 		// component->updateTransform( transform );
 
-		obj.addComponent( std::move( component ) );
+		obj->addComponent( std::move( component ) );
 
-		obj.addFlag( IsVisible | IsEntity );
+		obj->addFlag( IsVisible | IsEntity );
 
 		// obj.getTransform() = transform;
 
 		if ( node.name.empty() )
-			obj.setName( "Unnamed Game Object" );
+			obj->setName( "Unnamed Game Object" );
 		else
-			obj.setName( node.name );
+			obj->setName( node.name );
 
-		this->game_objects.emplace_back( std::move( obj ) );
+		this->m_game_objects.emplace_back( std::move( obj ) );
 	}
 
 	void SceneBuilder::handleScene( const tinygltf::Scene& scene, const tinygltf::Model& root )

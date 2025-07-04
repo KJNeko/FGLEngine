@@ -99,6 +99,24 @@ namespace fgl::engine::memory
 		m_staging_buffer.resize( size );
 	}
 
+	void TransferManager::copySuballocationRegion(
+		const std::shared_ptr< BufferSuballocationHandle >& src,
+		const std::shared_ptr< BufferSuballocationHandle >& dst,
+		const vk::DeviceSize size,
+		const vk::DeviceSize dst_offset,
+		const std::size_t src_offset )
+	{
+		FGL_ASSERT( src->size() == dst->size(), "Source and destination suballocations must be the same size" );
+
+		//! If the buffer has not been staged, Then there is nothing to copy in the first place.
+		//! If the source is not stable, Then it might be staged in the future.
+		if ( !src->ready() ) return;
+
+		TransferData transfer_data { src, dst, size, dst_offset, src_offset };
+
+		m_queue.emplace( std::move( transfer_data ) );
+	}
+
 	void TransferManager::submitBuffer( const vk::raii::CommandBuffer& command_buffer ) const
 	{
 		ZoneScoped;

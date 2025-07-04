@@ -20,8 +20,10 @@ namespace fgl::engine::memory
 {
 	class BufferHandle;
 
-	struct BufferSuballocationHandle : public std::enable_shared_from_this< BufferSuballocationHandle >
+	class BufferSuballocationHandle : public std::enable_shared_from_this< BufferSuballocationHandle >
 	{
+		friend class BufferSuballocation;
+
 		Buffer m_parent_buffer;
 
 		debug::Track< "GPU", "BufferSuballocationHandle" > m_track {};
@@ -37,10 +39,13 @@ namespace fgl::engine::memory
 
 		void* m_ptr { nullptr };
 
-		bool m_staged { false };
+		bool m_reallocated { false };
+		std::shared_ptr< BufferSuballocationHandle > m_reallocated_to { nullptr };
 
-		//! A list of all sources that are wanting to write to this buffer.
-		std::queue< std::shared_ptr< BufferSuballocationHandle > > m_pending_sources {};
+		bool m_staged { false };
+		std::vector< std::weak_ptr< BufferSuballocationHandle > > m_dependents {};
+
+	  public:
 
 		BufferSuballocationHandle(
 			const Buffer& p_buffer, vk::DeviceSize offset, vk::DeviceSize memory_size, vk::DeviceSize alignment );
@@ -51,32 +56,44 @@ namespace fgl::engine::memory
 
 		~BufferSuballocationHandle();
 
-		[[nodiscard]] vk::Buffer getBuffer() const;
-		[[nodiscard]] vk::Buffer getVkBuffer() const;
-
-		[[nodiscard]] vk::BufferCopy
-			copyRegion( const BufferSuballocationHandle& target, std::size_t suballocation_offset ) const;
-
 		void copyTo(
 			const vk::raii::CommandBuffer& cmd_buffer,
 			const BufferSuballocationHandle& other,
 			std::size_t offset ) const;
 
-		void markRequiresStable( const std::shared_ptr< BufferSuballocationHandle >& src )
+		void flagReallocated( const std::shared_ptr< BufferSuballocationHandle >& shared )
 		{
-			m_pending_sources.push( src );
+			m_reallocated = true;
+			m_reallocated_to = shared;
 		}
 
-		//! Returns true if this data is stable (No pending writes)
-		bool stable() const { return m_pending_sources.empty(); }
+		std::pair< std::shared_ptr< BufferSuballocationHandle >, std::shared_ptr< BufferSuballocationHandle > >
+			reallocate( const std::shared_ptr< BufferHandle >& shared );
 
-		[[nodiscard]] vk::DeviceSize getOffset() const { return m_offset; }
+		bool reallocated() const { return m_reallocated; }
 
-		bool transferReady() const { return m_staged && m_pending_sources.empty(); }
+		std::shared_ptr< BufferSuballocationHandle > reallocatedTo() const { return m_reallocated_to; }
 
-		bool ready() const { return m_staged && m_pending_sources.empty(); }
+		void markSource( const std::shared_ptr< BufferSuballocationHandle >& source );
 
-		void setReady( const bool value ) { m_staged = value; }
+		void setReady( bool value );
+
+		[[nodiscard]] vk::BufferCopy
+			copyRegion( const BufferSuballocationHandle& target, std::size_t suballocation_offset ) const;
+
+		[[nodiscard]] vk::Buffer getBuffer() const;
+		[[nodiscard]] vk::Buffer getVkBuffer() const;
+
+		vk::DeviceSize offset() const { return m_offset; }
+
+		//! True if there are no pending writes
+		bool stable() const;
+		//! True if the data in the buffer is valid (Written to at least once)
+		bool ready() const;
+
+		vk::DeviceSize size() const { return m_size; }
+
+		vk::DeviceSize alignment() const { return m_alignment; }
 	};
 
 } // namespace fgl::engine::memory

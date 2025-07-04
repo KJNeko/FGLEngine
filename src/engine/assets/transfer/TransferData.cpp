@@ -61,7 +61,7 @@ namespace fgl::engine::memory
 			barriers_to );
 
 		vk::BufferImageCopy region {};
-		region.bufferOffset = source_buffer->getOffset();
+		region.bufferOffset = source_buffer->offset();
 		region.bufferRowLength = 0;
 		region.bufferImageHeight = 0;
 
@@ -178,7 +178,7 @@ namespace fgl::engine::memory
 				}
 			case eImageFromBuffer:
 				{
-					if ( !std::get< TransferBufferHandle >( m_source )->transferReady() ) return false;
+					if ( !std::get< TransferBufferHandle >( m_source )->stable() ) return false;
 					return performImageStage( buffer, transfer_idx, graphics_idx );
 				}
 			case eBufferFromRaw:
@@ -187,7 +187,7 @@ namespace fgl::engine::memory
 				}
 			case eBufferFromBuffer:
 				{
-					if ( !std::get< TransferBufferHandle >( m_source )->transferReady() ) return false;
+					if ( !std::get< TransferBufferHandle >( m_source )->stable() ) return false;
 					return performBufferStage( copy_regions );
 				}
 		}
@@ -241,9 +241,9 @@ namespace fgl::engine::memory
 	  m_source_offset( src_offset ),
 	  m_target( target ),
 	  m_target_offset( dst_offset ),
-	  m_size( size == 0 ? source->m_size : size )
+	  m_size( size == 0 ? source->size() : size )
 	{
-		FGL_ASSERT( m_size <= target->m_size, "Attempting to copy to beyond size of target" );
+		FGL_ASSERT( m_size <= target->size(), "Attempting to copy to beyond size of target" );
 		markBad();
 	}
 
@@ -261,7 +261,7 @@ namespace fgl::engine::memory
 	  m_target_offset( dst_offset ),
 	  m_size( size == 0 ? source.size() : size )
 	{
-		FGL_ASSERT( m_size <= target->m_size, "Attempting to copy to beyond size of target" );
+		FGL_ASSERT( m_size <= target->size(), "Attempting to copy to beyond size of target" );
 		markBad();
 	}
 
@@ -276,7 +276,7 @@ namespace fgl::engine::memory
 	  m_source_offset( src_offset ),
 	  m_target( target ),
 	  m_target_offset( 0 ),
-	  m_size( size == 0 ? source->m_size : size )
+	  m_size( size == 0 ? source->size() : size )
 	{
 		markBad();
 	}

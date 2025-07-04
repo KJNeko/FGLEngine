@@ -8,7 +8,6 @@
 #include "engine/EngineContext.hpp"
 #include "engine/camera/CameraManager.hpp"
 #include "engine/debug/timing/FlameGraph.hpp"
-#include "engine/gameobjects/components/CameraComponent.hpp"
 #include "gui/EditorGuiContext.hpp"
 
 int main()
@@ -80,19 +79,19 @@ int main()
 
 			builder.loadScene( sponza_path );
 
-			std::vector< GameObject > objs { builder.getGameObjects() };
+			std::vector< std::shared_ptr< GameObject > > objs { builder.getGameObjects() };
 
 			for ( auto& obj : objs )
 			{
-				if ( obj.hasComponent< components::ModelComponent >() )
+				if ( obj->hasComponent< components::ModelComponent >() )
 				{
-					auto model_components { obj.getComponents< components::ModelComponent >() };
+					auto model_components { obj->getComponents< components::ModelComponent >() };
 
 					for ( auto& component : model_components )
 					{}
 				}
 
-				engine_ctx.game_objects.emplace_back( std::move( obj ) );
+				engine_ctx.m_game_objects.emplace_back( std::move( obj ) );
 			}
 		}
 

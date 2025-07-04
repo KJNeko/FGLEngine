@@ -17,6 +17,18 @@ namespace fgl::engine::components
 
 	void ModelComponent::drawImGui()
 	{
+		ImGui::Text( "Primitives: " );
+		ImGui::SameLine();
+		ImGui::Text( "%li", m_model_instance->m_model->m_primitives.size() );
+
+		// list each primitive and list the buffer that it is stored in
+		for ( const auto& primitive : m_model_instance->m_model->m_primitives )
+		{
+			ImGui::Text( "Primitive: %s", primitive.m_name.c_str() );
+			ImGui::SameLine();
+			ImGui::Text( "Buffer: %s", primitive.m_vertex_buffer.getBuffer()->sizeName().c_str() );
+		}
+
 		// drawComponentTransform( m_transform );
 
 		// TODO: If the model is not set then we should be able to set it to one from the file selection

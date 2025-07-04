@@ -9,7 +9,6 @@
 
 #include <cassert>
 #include <cmath>
-#include <expected>
 #include <memory>
 #include <stacktrace>
 #include <unordered_map>
@@ -17,6 +16,7 @@
 
 #include "FGL_DEFINES.hpp"
 #include "engine/debug/Track.hpp"
+#include "math/literals/size.hpp"
 #include "vma/vma_impl.hpp"
 
 namespace fgl::engine
@@ -33,7 +33,7 @@ namespace fgl::engine
 namespace fgl::engine::memory
 {
 	class BufferSuballocation;
-	struct BufferSuballocationHandle;
+	class BufferSuballocationHandle;
 
 	enum AllocationStatus : std::uint8_t
 	{
@@ -79,7 +79,7 @@ namespace fgl::engine::memory
 
 		static std::tuple< vk::Buffer, VmaAllocationInfo, VmaAllocation > allocBuffer(
 			vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags property_flags );
-		static void deallocBuffer( vk::Buffer&, VmaAllocation& );
+		static void deallocBuffer( const vk::Buffer&, const VmaAllocation& );
 
 		BufferHandle() = delete;
 		BufferHandle( const BufferHandle& other ) = delete;
@@ -117,6 +117,11 @@ namespace fgl::engine::memory
 			return m_alloc_info.deviceMemory;
 		}
 
+		FGL_FORCE_INLINE std::string sizeName() const
+		{
+			return std::format( "{}: {}", m_debug_name, literals::size_literals::toString( size() ) );
+		}
+
 		friend struct BufferSuballocationHandle;
 		friend class BufferSuballocation; //TODO: Remove this
 
@@ -126,7 +131,7 @@ namespace fgl::engine::memory
 
 	  private:
 
-		friend struct Buffer;
+		friend class Buffer;
 		std::shared_ptr< BufferHandle > remake( vk::DeviceSize new_size );
 		// void resize( vk::DeviceSize new_size );
 
@@ -168,17 +173,28 @@ namespace fgl::engine::memory
 		decltype( m_free_blocks )::iterator findAvailableBlock( vk::DeviceSize memory_size, std::uint32_t t_alignment );
 	};
 
-	struct Buffer final : public std::shared_ptr< BufferHandle >
+	class Buffer final : public std::shared_ptr< BufferHandle >
 	{
-		Buffer( vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties ) :
+		Buffer operator=( const std::shared_ptr< BufferHandle >& other )
+		{
+			std::shared_ptr< BufferHandle >::operator=( other );
+			return *this;
+		}
+
+	  public:
+
+		[[nodiscard]] Buffer(
+			vk::DeviceSize memory_size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags memory_properties ) :
 		  std::shared_ptr< BufferHandle >( std::make_shared< BufferHandle >( memory_size, usage, memory_properties ) )
 		{}
 
-		Buffer( const std::shared_ptr< BufferHandle >& buffer ) : std::shared_ptr< BufferHandle >( buffer ) {}
+		[[nodiscard]] explicit Buffer( const std::shared_ptr< BufferHandle >& buffer ) :
+		  std::shared_ptr< BufferHandle >( buffer )
+		{}
 
 		BufferSuballocation allocate( vk::DeviceSize desired_size, std::uint32_t alignment = 1 );
 
-		vk::DeviceSize size() const { return std::shared_ptr< BufferHandle >::operator->()->size(); }
+		[[nodiscard]] vk::DeviceSize size() const { return std::shared_ptr< BufferHandle >::operator->()->size(); }
 
 		void resize( vk::DeviceSize size );
 

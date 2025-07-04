@@ -15,9 +15,9 @@ namespace fgl::engine::memory
 		return m_suballocation->getVkBuffer();
 	}
 
-	vk::DeviceSize SuballocationView::getOffset()
+	vk::DeviceSize SuballocationView::offset()
 	{
-		return m_offset + m_suballocation->getOffset();
+		return m_offset + m_suballocation->offset();
 	}
 
 	void SuballocationView::setOffset( vk::DeviceSize offset )

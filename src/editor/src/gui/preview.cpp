@@ -42,19 +42,19 @@ namespace fgl::engine::gui
 						case filesystem::MODEL:
 							{
 								// Load model and drop it into the game objects
-								GameObject obj { GameObject::createGameObject() };
+								auto obj { GameObject::createGameObject() };
 
 								std::shared_ptr< Model > model { Model::createModel( data->m_path ) };
 
-								obj.addFlag( IsEntity | IsVisible );
+								obj->addFlag( IsEntity | IsVisible );
 
 								// info.context.models().loadModel( data->m_path );
 
 								auto component { std::make_unique< components::ModelComponent >( model ) };
 
-								obj.addComponent( std::move( component ) );
+								obj->addComponent( std::move( component ) );
 
-								info.game_objects.emplace_back( std::move( obj ) );
+								info.m_game_objects.emplace_back( std::move( obj ) );
 
 								break;
 							}
@@ -65,11 +65,11 @@ namespace fgl::engine::gui
 
 								builder.loadScene( data->m_path );
 
-								std::vector< GameObject > objs { builder.getGameObjects() };
+								std::vector< std::shared_ptr< GameObject > > objs { builder.getGameObjects() };
 
 								for ( auto& obj : objs )
 								{
-									info.game_objects.emplace_back( std::move( obj ) );
+									info.m_game_objects.emplace_back( std::move( obj ) );
 								}
 							}
 					}

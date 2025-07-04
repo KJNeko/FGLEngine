@@ -37,10 +37,10 @@ namespace fgl::engine
 		other.m_id = INVALID_ID;
 	}
 
-	GameObject GameObject::createGameObject()
+	std::shared_ptr< GameObject > GameObject::createGameObject()
 	{
 		static GameObjectID current_id { 0 };
-		return GameObject( current_id++ );
+		return std::shared_ptr< GameObject >( new GameObject( current_id++ ) );
 	}
 
 } // namespace fgl::engine

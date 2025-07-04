@@ -10,6 +10,11 @@
 
 namespace fgl::engine
 {
+	namespace components
+	{
+		class ModelComponent;
+	}
+
 	class Model;
 
 	using InstanceIndex = std::uint32_t;
@@ -23,6 +28,8 @@ namespace fgl::engine
 
 		//! True if the last frame changed this instance in any way
 		bool m_updated { false };
+
+		friend class components::ModelComponent;
 
 	  public:
 

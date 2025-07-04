@@ -96,7 +96,7 @@ namespace fgl::engine
 
 		//! Populated commands buffer by the culling pass
 		DeviceVector< vk::DrawIndexedIndirectCommand >& m_commands;
-		std::vector< GameObject >& game_objects;
+		std::vector< std::shared_ptr< GameObject > >& m_game_objects;
 
 		// descriptors::DescriptorSet& gui_input_descriptor;
 
