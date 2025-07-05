@@ -38,7 +38,7 @@ namespace fgl::engine
 		  1_GiB,
 		  vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
 		  vk::MemoryPropertyFlagBits::eDeviceLocal ),
-	  m_generated_instance_info( constructPerFrame< DeviceVector< PerVertexInstanceInfo > >( m_vertex_buffer ) ),
+	  m_generated_instance_info( constructPerFrame< DeviceVector< InstanceRenderInfo > >( m_vertex_buffer ) ),
 	  m_primitive_info( m_long_buffer ),
 	  m_primitive_instances( m_short_buffer ),
 	  m_model_instances( m_short_buffer )

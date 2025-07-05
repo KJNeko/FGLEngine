@@ -6,7 +6,6 @@
 #include <memory>
 
 #include "ComponentIDS.hpp"
-#include "TransformComponent.hpp"
 #include "assets/model/ModelInstance.hpp"
 #include "interface/GameObjectComponent.hpp"
 
@@ -24,8 +23,6 @@ namespace fgl::engine::components
 	COMPONENT_CLASS( ModelComponent, ModelComponentID )
 	{
 		std::shared_ptr< ModelInstance > m_model_instance;
-		TransformComponent m_transform {};
-		// In the future this should also contain a handle to the pipeline that is going to be used for rendering this model.
 
 	  public:
 
@@ -37,17 +34,13 @@ namespace fgl::engine::components
 		std::string_view humanName() const override;
 		std::string_view className() const override;
 
+		std::shared_ptr< ModelInstance >& getModelInstance()
+		{
+			return m_model_instance;
+		}
+
 		virtual ~ModelComponent() override
 		{}
-
-		TransformComponent getTransform() const
-		{
-			return m_transform;
-		}
-		void updateTransform( const TransformComponent& transform )
-		{
-			m_transform = transform;
-		}
 
 		// Model* operator->();
 

@@ -36,23 +36,14 @@ namespace fgl::engine
 		ModelInstance(
 			std::vector< PrimitiveInstanceInfoIndex >&& primative_instances,
 			ModelInstanceInfoIndex&& model_instance,
-			const std::shared_ptr< Model >& model ) noexcept :
-		  m_model( model ),
-		  m_model_instance( std::move( model_instance ) ),
-		  m_primitive_instances( std::move( primative_instances ) )
-		{}
+			const std::shared_ptr< Model >& model ) noexcept;
+
+		void flagUpdate() { m_updated = true; }
 
 		//! Returns the current update state and sets it to false if it was true.
-		bool acquireNeedsUpdate()
-		{
-			if ( m_updated ) [[unlikely]]
-			{
-				m_updated = false;
-				return true;
-			}
+		bool acquireNeedsUpdate();
 
-			return false;
-		}
+		void setTransform( const WorldTransform& transform );
 	};
 
 } // namespace fgl::engine

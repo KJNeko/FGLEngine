@@ -1,7 +1,7 @@
 #version 450
 
 
-struct Frustum
+public struct Frustum
 {
 
 };

@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "ModelVertex.hpp"
+#include "VertexAttribute.hpp"
 
 namespace fgl::engine
 {
@@ -19,11 +20,12 @@ namespace fgl::engine
 
 	std::vector< vk::VertexInputAttributeDescription > SimpleVertex::getAttributeDescriptions()
 	{
-		// {location, binding, format, offset}
-		return {
-			{ 0, 0, vk::Format::eR32G32B32Sfloat, offsetof( SimpleVertex, m_position ) },
-			{ 1, 0, vk::Format::eR32G32B32Sfloat, offsetof( SimpleVertex, m_color ) },
-		};
+		AttributeBuilder builder {};
+
+		builder.add< decltype( SimpleVertex::m_position ), offsetof( SimpleVertex, m_position ) >( 0 );
+		builder.add< decltype( SimpleVertex::m_color ), offsetof( SimpleVertex, m_color ) >( 0 );
+
+		return builder.get();
 	}
 
 } // namespace fgl::engine

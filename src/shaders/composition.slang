@@ -96,6 +96,8 @@ CompositeFragment fragmentMain( Vertex vertex )
     // r,        g,         b
 	const vec3 metallic_comb = gbuffer.metallic.SubpassLoad().xyz;
 
+	// frag.color = vec4(albedo, 1.0f);
+
 	const float metallic = metallic_comb.r;
 	const float roughness = metallic_comb.g;
 	const float occlusion = metallic_comb.b;
@@ -120,14 +122,19 @@ CompositeFragment fragmentMain( Vertex vertex )
 
 	vec3 Lh = normalize( Li + Lo );
 
+	float t = dot(normal, sun_dir);
+
+	// frag.color = vec4( vec3( t ), 1.0 );
+	// frag.color = vec4(normal, 1.0);
+
 	float cosLi = max( dot( N, Li ), 0.0 );
 	float cosLh = max( dot( N, Lh ), 0.0 );
 
 	float cosTheta = dot( Li, N );
 
-	vec3 F = schlick( F0, cosTheta );
-	float D = ndfGGX( cosLh, roughness );
-	float G = gaSchlickGGX( cosLi, cosLo, roughness );
+	const vec3 F = schlick( F0, cosTheta );
+	const float D = ndfGGX( cosLh, roughness );
+	const float G = gaSchlickGGX( cosLi, cosLo, roughness );
 
 	vec3 kb = mix( vec3( 1.0 ) - F, vec3( 0.0 ), metallic );
 	vec3 diffuse_BRDF = kb * albedo;
@@ -137,7 +144,6 @@ CompositeFragment fragmentMain( Vertex vertex )
 
 	vec3 ambient_lighting = albedo * 0.1;
 
-	CompositeFragment frag;
 	frag.color = vec4( direct_lighting + ambient_lighting, 1.0 );
 
 	return frag;

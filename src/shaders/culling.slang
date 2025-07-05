@@ -72,10 +72,11 @@ void computeMain( uint3 dispatch_id : SV_DispatchThreadID)
 
 		commands[ instance_index ] = command;
 
-		out_instances[ instance_index ].mat_id = instance.material_id;
+		out_instances[ instance_index ].material_id = instance.material_id;
 
 		const ModelInstanceInfo model_instance = model_instances[ instance.model_index ];
-		out_instances[ instance_index ].matrix = model_instance.model_matrix;
+		out_instances[ instance_index ].model_matrix = model_instance.model_matrix;
+		out_instances[ instance_index ].normal_matrix = model_instance.normal_matrix;
 	}
 	else
 	{

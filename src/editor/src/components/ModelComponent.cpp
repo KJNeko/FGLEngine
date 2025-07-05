@@ -11,8 +11,7 @@ namespace fgl::engine::components
 {
 
 	ModelComponent::ModelComponent( const std::shared_ptr< Model >& model ) :
-	  m_model_instance( model->createInstance() ),
-	  m_transform()
+	  m_model_instance( model->createInstance() )
 	{}
 
 	void ModelComponent::drawImGui()

@@ -18,6 +18,7 @@
 #include "engine/debug/logging/logging.hpp"
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/gameobjects/GameObject.hpp"
+#include "gameobjects/components/TransformComponent.hpp"
 
 namespace fgl::engine
 {
@@ -557,10 +558,10 @@ namespace fgl::engine
 			const auto& pbr_tex_id { metallic_roughness.baseColorTexture.index };
 			material->properties.pbr.color_tex = loadTexture( pbr_tex_id, root );
 
-			material->properties.pbr.color_factors = { metallic_roughness.baseColorFactor[ 0 ],
-				                                       metallic_roughness.baseColorFactor[ 1 ],
-				                                       metallic_roughness.baseColorFactor[ 2 ],
-				                                       metallic_roughness.baseColorFactor[ 3 ] };
+			material->properties.m_pbr.m_color_factors = { metallic_roughness.baseColorFactor[ 0 ],
+				                                           metallic_roughness.baseColorFactor[ 1 ],
+				                                           metallic_roughness.baseColorFactor[ 2 ],
+				                                           metallic_roughness.baseColorFactor[ 3 ] };
 
 			material->properties.pbr.metallic_roughness_tex =
 				loadTexture( metallic_roughness.metallicRoughnessTexture.index, root );
@@ -596,14 +597,16 @@ namespace fgl::engine
 
 		assert( model );
 
-		std::unique_ptr< components::ModelComponent > component {
-			std::make_unique< components::ModelComponent >( std::move( model ) )
-		};
+		auto model_component { std::make_unique< components::ModelComponent >( std::move( model ) ) };
 
 		const auto transform { loadTransform( node_idx, root ) };
-		// component->updateTransform( transform );
+		auto transform_component { std::make_unique< components::TransformComponent >( transform ) };
+		transform_component->setTransform( transform );
 
-		obj->addComponent( std::move( component ) );
+		transform_component->addUpdateTarget( model_component->getModelInstance() );
+
+		obj->addComponent( std::move( transform_component ) );
+		obj->addComponent( std::move( model_component ) );
 
 		obj->addFlag( IsVisible | IsEntity );
 

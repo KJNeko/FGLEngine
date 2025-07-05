@@ -29,7 +29,7 @@ namespace fgl::engine
 
 	PerFrameArray< std::unique_ptr< descriptors::DescriptorSet > > createDrawCommandsDescriptors(
 		PerFrameArray< DeviceVector< vk::DrawIndexedIndirectCommand > >& gpu_draw_commands,
-		PerFrameArray< DeviceVector< PerVertexInstanceInfo > >& per_vertex_info )
+		PerFrameArray< DeviceVector< InstanceRenderInfo > >& per_vertex_info )
 	{
 		PerFrameArray< std::unique_ptr< descriptors::DescriptorSet > > descriptors {};
 

@@ -29,8 +29,8 @@ CoarseVertex vertexMain( ModelVertex in_vertex )
 
 	mat3 normal_matrix = transpose( inverse( mat3( in_vertex.model_matrix ) ) );
 
-	out_vertex.normal = normalize( mul(normal_matrix, in_vertex.simple.normal) );
-	out_vertex.tex_coord = in_vertex.simple.uv;
+	out_vertex.normal = normalize( mul(normal_matrix, in_vertex.normal) );
+	out_vertex.tex_coord = in_vertex.uv;
 	out_vertex.material_id = in_vertex.material_id;
 
 	return out_vertex;
@@ -100,10 +100,26 @@ GBufferFragment fragmentMain( CoarseVertex vertex )
 	frag.metallic = vec3( metallic_scalar, roughness_scalar, occlusion_scalar );
 
 	var normal = material.normal;
+	// if ( normal.isTexture() && false )
 	if ( normal.isTexture() )
 	{
-		const vec3 sample = texture( tex[ normal.texture_id ], vertex.tex_coord ).rgb;
-		const vec3 scaled_sample = mul( sample, vec3(normal.scale) );
+		// TANGENT SPACE WOOOOOOOOOOOOOOOOO
+		// Y = V
+		// X = U
+		// Z = 1
+		const vec3 sample = normalize((2.0 * texture( tex[ normal.texture_id ], vertex.tex_coord ).rgb) - 1.0);
+		// const vec3 sample = texture( tex[ normal.texture_id ], vertex.tex_coord ).rgb;
+
+		// frag.normal = vec4( .scale)), 1.0f );
+
+		// const vec3 transformed_sample = normalize(mul( vertex.matrix, vec4(sample, 0.0f) ).xyz);
+
+		// const vec3 scaled_sample = sample.xyz * normal.scale;
+		const vec3 scaled_sample = normalize((vertex.normal_matrix * vec4(sample.xyz, 0.0f)).xyz);
+		// const vec3 vertex_normal = sample * vertex.normal;
+
+		// Combine the normal into the 
+
 		frag.normal = vec4( scaled_sample, 1.0 );
     }
 	else

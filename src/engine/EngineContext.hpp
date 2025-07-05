@@ -80,7 +80,7 @@ namespace fgl::engine
 
 		PerFrameArray< DeviceVector< vk::DrawIndexedIndirectCommand > > m_gpu_draw_commands;
 		//TODO: Outright remove this. Or the one in model buffers.
-		PerFrameArray< DeviceVector< PerVertexInstanceInfo > >& m_per_vertex_infos;
+		PerFrameArray< DeviceVector< InstanceRenderInfo > >& m_per_vertex_infos;
 		PerFrameArray< std::unique_ptr< descriptors::DescriptorSet > > m_gpu_draw_cmds_desc;
 
 		MaterialManager m_material_manager {};

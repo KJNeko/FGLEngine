@@ -14,6 +14,7 @@
 
 #include "Model.hpp"
 #include "ModelInstance.hpp"
+#include "VertexAttribute.hpp"
 #include "engine/utils.hpp"
 
 namespace fgl::engine
@@ -29,7 +30,7 @@ namespace fgl::engine
 	{
 		std::vector< vk::VertexInputBindingDescription > binding_descriptions {
 			{ 0, sizeof( ModelVertex ), vk::VertexInputRate::eVertex },
-			{ 1, sizeof( PerVertexInstanceInfo ), vk::VertexInputRate::eInstance }
+			{ 1, sizeof( InstanceRenderInfo ), vk::VertexInputRate::eInstance }
 		};
 
 		return binding_descriptions;
@@ -37,29 +38,28 @@ namespace fgl::engine
 
 	std::vector< vk::VertexInputAttributeDescription > ModelVertex::getAttributeDescriptions()
 	{
-		std::vector< vk::VertexInputAttributeDescription > attribute_descriptions {
-			SimpleVertex::getAttributeDescriptions()
-		};
+		AttributeBuilder builder { SimpleVertex::getAttributeDescriptions() };
 
-		// {location, binding, format, offset}
-		// attribute_descriptions.emplace_back( 0, 0, vk::Format::eR32G32B32Sfloat, offsetof( ModelVertex, m_position ) );
-		// attribute_descriptions.emplace_back( 1, 0, vk::Format::eR32G32B32Sfloat, offsetof( ModelVertex, m_color ) );
-#pragma GCC diagnostic push
+#pragma GCC diagnostic push // TODO: Fix with reflection once we get it in 20 years
 #pragma GCC diagnostic ignored "-Winvalid-offsetof"
-		attribute_descriptions.emplace_back( 2, 0, vk::Format::eR32G32B32Sfloat, offsetof( ModelVertex, m_normal ) );
-		attribute_descriptions.emplace_back( 3, 0, vk::Format::eR32G32Sfloat, offsetof( ModelVertex, m_uv ) );
+		// builder.add< decltype( ModelVertex::m_position ), offsetof( ModelVertex, m_position ) >( 0 );
+		// builder.add< decltype( ModelVertex::m_color ), offsetof( ModelVertex, m_color ) >( 0 );
+		builder.add< decltype( ModelVertex::m_normal ), offsetof( ModelVertex, m_normal ) >( 0 );
+		builder.add< decltype( ModelVertex::m_tangent ), offsetof( ModelVertex, m_tangent ) >( 0 );
+		builder.add< decltype( ModelVertex::m_uv ), offsetof( ModelVertex, m_uv ) >( 0 );
 #pragma GCC diagnostic pop
 
-		//Normal Matrix
-		attribute_descriptions.emplace_back( 4, 1, vk::Format::eR32G32B32A32Sfloat, 0 );
-		attribute_descriptions.emplace_back( 5, 1, vk::Format::eR32G32B32A32Sfloat, 1 * sizeof( glm::vec4 ) );
-		attribute_descriptions.emplace_back( 6, 1, vk::Format::eR32G32B32A32Sfloat, 2 * sizeof( glm::vec4 ) );
-		attribute_descriptions.emplace_back( 7, 1, vk::Format::eR32G32B32A32Sfloat, 3 * sizeof( glm::vec4 ) );
+		builder
+			.add< decltype( InstanceRenderInfo::m_model_matrix ), offsetof( InstanceRenderInfo, m_model_matrix ) >( 1 );
 
-		attribute_descriptions
-			.emplace_back( 8, 1, vk::Format::eR32Uint, offsetof( PerVertexInstanceInfo, material_id ) );
+		builder.add<
+			decltype( InstanceRenderInfo::m_normal_matrix ),
+			offsetof( InstanceRenderInfo, m_normal_matrix ) >( 1 );
 
-		return attribute_descriptions;
+		builder
+			.add< decltype( InstanceRenderInfo::m_material_id ), offsetof( InstanceRenderInfo, m_material_id ) >( 1 );
+
+		return builder.get();
 	}
 
 } // namespace fgl::engine

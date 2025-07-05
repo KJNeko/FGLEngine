@@ -20,6 +20,7 @@ namespace fgl::engine
 	struct ModelVertex : public SimpleVertex
 	{
 		glm::vec3 m_normal { 0.0f, 0.0f, 0.0f };
+		glm::vec3 m_tangent { 0.0f, 0.0f, 0.0f };
 		glm::vec2 m_uv { 0.0f, 0.0f };
 
 		ModelVertex( const glm::vec3 pos, const glm::vec3 color, const glm::vec3 norm, const glm::vec2 uv ) noexcept :

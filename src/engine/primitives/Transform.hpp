@@ -4,13 +4,14 @@
 
 #pragma once
 
+#include <variant>
+
 #include "Scale.hpp"
 #include "engine/FGL_DEFINES.hpp"
 #include "engine/debug/logging/logging.hpp"
 #include "engine/primitives/points/Coordinate.hpp"
 #include "rotation/QuatRotation.hpp"
 #include "rotation/UniversalRotation.hpp"
-#include <variant>
 
 namespace fgl::engine
 {
@@ -41,7 +42,7 @@ namespace fgl::engine
 	struct Transform
 	{
 		Coordinate< CType > translation { constants::WORLD_CENTER };
-		Scale scale { 1.0f, 1.0f, 1.0f };
+		Scale scale { constants::DEFAULT_SCALE };
 		UniversalRotation rotation { constants::DEFAULT_ROTATION };
 
 		//TODO: Figure this out and replace Transform with a template of CType instead
