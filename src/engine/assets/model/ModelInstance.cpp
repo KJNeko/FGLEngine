@@ -29,7 +29,7 @@ namespace fgl::engine
 	{
 		ModelInstanceInfo info {};
 		info.m_model_matrix = transform.mat4();
-		info.m_normal_matrix = glm::transpose( glm::inverse( info.m_model_matrix ) );
+		// info.m_normal_matrix = glm::transpose( glm::inverse( info.m_model_matrix ) );
 
 		m_model_instance.update( info );
 

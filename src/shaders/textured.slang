@@ -104,22 +104,19 @@ GBufferFragment fragmentMain( CoarseVertex vertex )
 	if ( normal.isTexture() )
 	{
 		// TANGENT SPACE WOOOOOOOOOOOOOOOOO
-		// Y = V
-		// X = U
-		// Z = 1
-		const vec3 sample = normalize((2.0 * texture( tex[ normal.texture_id ], vertex.tex_coord ).rgb) - 1.0);
-		// const vec3 sample = texture( tex[ normal.texture_id ], vertex.tex_coord ).rgb;
+		// W is for some reason used to determine the signed direction of the tangent, Not sure why they do this
+		// Perhaps look into it and figure out if we can save a packed byte?
+		frag.normal = vec4( vertex.tangent.xyz * vertex.tangent.w, 1.0 );
 
-		// frag.normal = vec4( .scale)), 1.0f );
+		const vec3 N = vertex.normal;
+		const vec3 T = vertex.tangent.xyz * vertex.tangent.w;
+		const vec3 B = cross( N, T );
+		const mat3 TBN = mat3( T, B, N );
 
-		// const vec3 transformed_sample = normalize(mul( vertex.matrix, vec4(sample, 0.0f) ).xyz);
-
-		// const vec3 scaled_sample = sample.xyz * normal.scale;
-		const vec3 scaled_sample = normalize((vertex.normal_matrix * vec4(sample.xyz, 0.0f)).xyz);
-		// const vec3 vertex_normal = sample * vertex.normal;
-
-		// Combine the normal into the 
-
+		// Sample is in tangent space
+		const vec3 sample_N = normalize( ( 2.0 * texture( tex[ normal.texture_id ], vertex.tex_coord ).rgb ) - 1.0 );
+		const vec3 sample_NW = normalize( TBN * sample_N );
+		const vec3 scaled_sample = normalize( sample_NW * normal.scale );
 		frag.normal = vec4( scaled_sample, 1.0 );
     }
 	else

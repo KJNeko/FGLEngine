@@ -75,6 +75,8 @@ namespace fgl::engine
 		//! Returns an empty vector if no normals could be extracted
 		std::vector< glm::vec3 > extractNormalInfo( const tinygltf::Primitive& prim, const tinygltf::Model& root );
 
+		std::vector< glm::vec4 > extractTangentInfo( const tinygltf::Primitive& prim, const tinygltf::Model& root );
+
 		std::vector< glm::vec2 > extractUVInfo( const tinygltf::Primitive& prim, const tinygltf::Model& root );
 
 		bool hasAttribute( const tinygltf::Primitive& prim, std::string_view str );

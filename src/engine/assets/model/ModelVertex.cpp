@@ -52,9 +52,9 @@ namespace fgl::engine
 		builder
 			.add< decltype( InstanceRenderInfo::m_model_matrix ), offsetof( InstanceRenderInfo, m_model_matrix ) >( 1 );
 
-		builder.add<
-			decltype( InstanceRenderInfo::m_normal_matrix ),
-			offsetof( InstanceRenderInfo, m_normal_matrix ) >( 1 );
+		// builder.add<
+		// 	decltype( InstanceRenderInfo::m_normal_matrix ),
+		// 	offsetof( InstanceRenderInfo, m_normal_matrix ) >( 1 );
 
 		builder
 			.add< decltype( InstanceRenderInfo::m_material_id ), offsetof( InstanceRenderInfo, m_material_id ) >( 1 );

@@ -96,7 +96,7 @@ CompositeFragment fragmentMain( Vertex vertex )
     // r,        g,         b
 	const vec3 metallic_comb = gbuffer.metallic.SubpassLoad().xyz;
 
-	// frag.color = vec4(albedo, 1.0f);
+	//frag.color = vec4(albedo, 1.0f);
 
 	const float metallic = metallic_comb.r;
 	const float roughness = metallic_comb.g;

@@ -23,7 +23,7 @@ public struct PrimitiveInstanceInfo
 public struct InstanceRenderInfo
 {
 	public mat4x4 model_matrix;
-	public mat4x4 normal_matrix;
+	// public mat4x4 normal_matrix;
 	public uint32_t material_id;
 };
 
@@ -31,5 +31,5 @@ public struct InstanceRenderInfo
 public struct ModelInstanceInfo 
 {
 	public mat4x4 model_matrix;
-	public mat4x4 normal_matrix;
+	// public mat4x4 normal_matrix;
 };

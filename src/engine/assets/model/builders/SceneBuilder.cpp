@@ -19,6 +19,7 @@
 #include "engine/descriptors/DescriptorSet.hpp"
 #include "engine/gameobjects/GameObject.hpp"
 #include "gameobjects/components/TransformComponent.hpp"
+#include "mikktspace/mikktspace.hpp"
 
 namespace fgl::engine
 {
@@ -302,6 +303,16 @@ namespace fgl::engine
 		return extractData< glm::vec3 >( root, accessor );
 	}
 
+	std::vector< glm::vec4 > SceneBuilder::
+		extractTangentInfo( const tinygltf::Primitive& prim, const tinygltf::Model& root )
+	{
+		ZoneScoped;
+		if ( !hasAttribute( prim, "TANGENT" ) ) return {};
+		const tinygltf::Accessor& accessor { getAccessorForAttribute( prim, root, "TANGENT" ) };
+
+		return extractData< glm::vec4 >( root, accessor );
+	}
+
 	std::vector< glm::vec2 > SceneBuilder::extractUVInfo( const tinygltf::Primitive& prim, const tinygltf::Model& root )
 	{
 		ZoneScoped;
@@ -330,6 +341,7 @@ namespace fgl::engine
 		verts.reserve( pos.size() );
 
 		const std::vector< glm::vec3 > normals { extractNormalInfo( prim, root ) };
+		[[maybe_unused]] const std::vector< glm::vec4 > tangents { extractTangentInfo( prim, root ) };
 
 		//TODO: If we don't have normals we likely will need to compute them ourselves.
 		// I have no idea if this is actually going to be needed for us. But I might wanna implement it
@@ -352,6 +364,85 @@ namespace fgl::engine
 		return verts;
 	}
 
+	inline void generateTrisTangents( std::vector< ModelVertex >& verts, const std::vector< std::uint32_t >& indicies )
+	{
+		ZoneScoped;
+		SMikkTSpaceContext context {};
+		SMikkTSpaceInterface interface {};
+
+		context.m_pUserData = &interface;
+		context.m_pInterface = &interface;
+
+		auto getNumFaces = [ & ]( [[maybe_unused]] const SMikkTSpaceContext* ctx ) -> int
+		{ return static_cast< int >( indicies.size() ) / 3; };
+
+		auto getNumVerticesOfFace =
+			[ & ]( [[maybe_unused]] const SMikkTSpaceContext* ctx, [[maybe_unused]] const int i_face ) -> int
+		{ return 3; };
+
+		auto getPosition = [ & ](
+							   [[maybe_unused]] const SMikkTSpaceContext* ctx,
+							   float fv_pos_out[],
+							   const int i_face,
+							   const int i_vert ) -> void
+		{
+			const auto idx { indicies[ i_face * 3 + i_vert ] };
+			const auto& vert { verts.at( idx ) };
+
+			static_assert( sizeof( glm::vec3 ) == sizeof( float ) * 3 );
+			std::memcpy( fv_pos_out, &vert.m_position, sizeof( glm::vec3 ) );
+		};
+
+		auto getNormal = [ & ](
+							 [[maybe_unused]] const SMikkTSpaceContext* ctx,
+							 float fv_norm_out[],
+							 const int i_face,
+							 const int i_vert ) -> void
+		{
+			const auto idx { indicies[ i_face * 3 + i_vert ] };
+			const auto& vert { verts.at( idx ) };
+
+			static_assert( sizeof( glm::vec3 ) == sizeof( float ) * 3 );
+			std::memcpy( fv_norm_out, &vert.m_normal, sizeof( glm::vec3 ) );
+		};
+
+		auto getTexCoord = [ & ](
+							   [[maybe_unused]] const SMikkTSpaceContext* ctx,
+							   float fv_texc_out[],
+							   const int i_face,
+							   const int i_vert ) -> void
+		{
+			const auto idx { indicies[ i_face * 3 + i_vert ] };
+			const auto& vert { verts.at( idx ) };
+
+			static_assert( sizeof( glm::vec2 ) == sizeof( float ) * 2 );
+			std::memcpy( fv_texc_out, &vert.m_uv, sizeof( glm::vec2 ) );
+		};
+
+		auto setTSpaceBasic = [ & ](
+								  [[maybe_unused]] const SMikkTSpaceContext* ctx,
+								  float fv_tangent[],
+								  float f_sign,
+								  const int i_face,
+								  const int i_vert ) -> void
+		{
+			const auto idx { indicies[ i_face * 3 + i_vert ] };
+			auto& vert { verts.at( idx ) };
+
+			static_assert( sizeof( glm::vec3 ) == sizeof( float ) * 3 );
+			vert.m_tangent = { fv_tangent[ 0 ], fv_tangent[ 1 ], fv_tangent[ 2 ], f_sign };
+		};
+
+		interface.m_getNumFaces = getNumFaces;
+		interface.m_getNumVerticesOfFace = getNumVerticesOfFace;
+		interface.m_getPosition = getPosition;
+		interface.m_getNormal = getNormal;
+		interface.m_getTexCoord = getTexCoord;
+		interface.m_setTSpaceBasic = setTSpaceBasic;
+
+		genTangSpaceDefault( &context );
+	}
+
 	Primitive SceneBuilder::loadPrimitive( const tinygltf::Primitive& prim, const tinygltf::Model& root )
 	{
 		ZoneScoped;
@@ -361,7 +452,6 @@ namespace fgl::engine
 			att_str += attrib.first + ", ";
 		}
 
-		//TODO: Get normal colors from texture
 		[[maybe_unused]] const bool has_normal { hasAttribute( prim, "NORMAL" ) };
 		const bool has_position { hasAttribute( prim, "POSITION" ) };
 		const bool has_texcoord { hasAttribute( prim, "TEXCOORD_0" ) };
@@ -369,8 +459,14 @@ namespace fgl::engine
 
 		if ( !has_position ) throw std::runtime_error( "Failed to load model. Missing expected POSITION attribute" );
 
+		std::vector< ModelVertex > verts { extractVertexInfo( prim, root ) };
+		std::vector< std::uint32_t > indicies { extractIndicies( prim, root ) };
+
 		switch ( static_cast< PrimitiveMode >( prim.mode ) )
 		{
+			case TRIS:
+				generateTrisTangents( verts, indicies );
+				break;
 			case POINTS:
 				[[fallthrough]];
 			case LINE:
@@ -379,30 +475,10 @@ namespace fgl::engine
 				[[fallthrough]];
 			case LINE_STRIP:
 				[[fallthrough]];
-			case TRIS:
-				[[fallthrough]];
 			case TRI_STRIP:
 				[[fallthrough]];
 			case TRI_FAN:
-				{
-					std::vector< ModelVertex > verts { extractVertexInfo( prim, root ) };
-					std::vector< std::uint32_t > indicies { extractIndicies( prim, root ) };
-
-					Primitive primitive_mesh { Primitive::fromVerts(
-						std::move( verts ),
-						static_cast< PrimitiveMode >( prim.mode ),
-						std::move( indicies ),
-						m_vertex_buffer,
-						m_index_buffer ) };
-
-					// If we have a texcoord then we have a UV map. Meaning we likely have textures to use
-					if ( !has_texcoord ) return primitive_mesh;
-
-					//primitive_mesh.m_textures = loadTextures( prim, root );
-					primitive_mesh.default_material = loadMaterial( prim, root );
-
-					return primitive_mesh;
-				}
+				[[fallthrough]];
 			default:
 				{
 					log::error( "Unsupported mode for primtiive loading: {}", prim.mode );
@@ -410,7 +486,20 @@ namespace fgl::engine
 				}
 		}
 
-		FGL_UNREACHABLE();
+		Primitive primitive_mesh { Primitive::fromVerts(
+			std::move( verts ),
+			static_cast< PrimitiveMode >( prim.mode ),
+			std::move( indicies ),
+			m_vertex_buffer,
+			m_index_buffer ) };
+
+		// If we have a texcoord then we have a UV map. Meaning we likely have textures to use
+		if ( !has_texcoord ) return primitive_mesh;
+
+		//primitive_mesh.m_textures = loadTextures( prim, root );
+		primitive_mesh.default_material = loadMaterial( prim, root );
+
+		return primitive_mesh;
 	}
 
 	OrientedBoundingBox< CoordinateSpace::Model > createModelBoundingBox( const std::vector< Primitive >& primitives )

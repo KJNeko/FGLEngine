@@ -21,12 +21,10 @@
  *  3. This notice may not be removed or altered from any source distribution.
  */
 
-#ifndef __MIKKTSPACE_H__
-#define __MIKKTSPACE_H__
+#pragma once
+#include <functional>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+// ReSharper disable CppInconsistentNaming
 
 /* Author: Morten S. Mikkelsen
  * Version: 1.0
@@ -57,23 +55,32 @@ extern "C" {
  * and also quad triangulator plugin.
  */
 
-typedef int tbool;
-typedef struct SMikkTSpaceContext SMikkTSpaceContext;
+using tbool = int;
+using SMikkTSpaceContext = struct SMikkTSpaceContext;
 
-typedef struct
+struct SMikkTSpaceInterface
 {
 	// Returns the number of faces (triangles/quads) on the mesh to be processed.
-	int ( *m_getNumFaces )( const SMikkTSpaceContext* pContext );
+	// int ( *m_getNumFaces )( const SMikkTSpaceContext* pContext );
+	using NumFacesFunc = std::function< int( const SMikkTSpaceContext* ) >;
+	NumFacesFunc m_getNumFaces;
 
 	// Returns the number of vertices on face number iFace
 	// iFace is a number in the range {0, 1, ..., getNumFaces()-1}
-	int ( *m_getNumVerticesOfFace )( const SMikkTSpaceContext* pContext, const int iFace );
+	using NumVerticesOfFaceFunc = std::function< int( const SMikkTSpaceContext*, int ) >;
+	NumVerticesOfFaceFunc m_getNumVerticesOfFace;
+	// int ( *m_getNumVerticesOfFace )( const SMikkTSpaceContext* pContext, int iFace );
 
 	// returns the position/normal/texcoord of the referenced face of vertex number iVert.
 	// iVert is in the range {0,1,2} for triangles and {0,1,2,3} for quads.
-	void ( *m_getPosition )( const SMikkTSpaceContext* pContext, float fvPosOut[], const int iFace, const int iVert );
-	void ( *m_getNormal )( const SMikkTSpaceContext* pContext, float fvNormOut[], const int iFace, const int iVert );
-	void ( *m_getTexCoord )( const SMikkTSpaceContext* pContext, float fvTexcOut[], const int iFace, const int iVert );
+	using GetVec3AttributeFunc = std::function< void( const SMikkTSpaceContext*, float*, int, int ) >;
+	GetVec3AttributeFunc m_getPosition;
+	GetVec3AttributeFunc m_getNormal;
+	using GetVec2AttributeFunc = std::function< void( const SMikkTSpaceContext*, float*, int, int ) >;
+	GetVec2AttributeFunc m_getTexCoord;
+	// void ( *m_getPosition )( const SMikkTSpaceContext* pContext, float fvPosOut[], int iFace, int iVert );
+	// void ( *m_getNormal )( const SMikkTSpaceContext* pContext, float fvNormOut[], int iFace, int iVert );
+	// void ( *m_getTexCoord )( const SMikkTSpaceContext* pContext, float fvTexcOut[], int iFace, int iVert );
 
 	// either (or both) of the two setTSpace callbacks can be set.
 	// The call-back m_setTSpaceBasic() is sufficient for basic normal mapping.
@@ -85,12 +92,10 @@ typedef struct
 	// Note that the results are returned unindexed. It is possible to generate a new index list
 	// But averaging/overwriting tangent spaces by using an already existing index list WILL produce INCRORRECT results.
 	// DO NOT! use an already existing index list.
-	void ( *m_setTSpaceBasic )(
-		const SMikkTSpaceContext* pContext,
-		const float fvTangent[],
-		const float fSign,
-		const int iFace,
-		const int iVert );
+	using SetTSpaceBasicFunc = std::function< void( const SMikkTSpaceContext*, float*, float, int, int ) >;
+	SetTSpaceBasicFunc m_setTSpaceBasic;
+	//void ( *m_setTSpaceBasic )(
+	//	const SMikkTSpaceContext* pContext, const float fvTangent[], float fSign, int iFace, int iVert );
 
 	// This function is used to return tangent space results to the application.
 	// fvTangent and fvBiTangent are unit length vectors and fMagS and fMagT are their
@@ -107,12 +112,12 @@ typedef struct
 		const SMikkTSpaceContext* pContext,
 		const float fvTangent[],
 		const float fvBiTangent[],
-		const float fMagS,
-		const float fMagT,
-		const tbool bIsOrientationPreserving,
-		const int iFace,
-		const int iVert );
-} SMikkTSpaceInterface;
+		float fMagS,
+		float fMagT,
+		tbool bIsOrientationPreserving,
+		int iFace,
+		int iVert );
+};
 
 struct SMikkTSpaceContext
 {
@@ -125,7 +130,7 @@ struct SMikkTSpaceContext
 tbool genTangSpaceDefault(
 	const SMikkTSpaceContext*
 		pContext ); // Default (recommended) fAngularThreshold is 180 degrees (which means threshold disabled)
-tbool genTangSpace( const SMikkTSpaceContext* pContext, const float fAngularThreshold );
+tbool genTangSpace( const SMikkTSpaceContext* pContext, float fAngularThreshold );
 
 // To avoid visual errors (distortions/unwanted hard edges in lighting), when using sampled normal maps, the
 // normal map sampler must use the exact inverse of the pixel shader transformation.
@@ -150,9 +155,3 @@ tbool genTangSpace( const SMikkTSpaceContext* pContext, const float fAngularThre
 // eventhough the vertex level tangent spaces match. This can be solved either by triangulating before
 // sampling/exporting or by using the order-independent choice of diagonal for splitting quads suggested earlier.
 // However, this must be used both by the sampler and your tools/rendering pipeline.
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif

@@ -76,7 +76,7 @@ void computeMain( uint3 dispatch_id : SV_DispatchThreadID)
 
 		const ModelInstanceInfo model_instance = model_instances[ instance.model_index ];
 		out_instances[ instance_index ].model_matrix = model_instance.model_matrix;
-		out_instances[ instance_index ].normal_matrix = model_instance.normal_matrix;
+		// out_instances[ instance_index ].normal_matrix = model_instance.normal_matrix;
 	}
 	else
 	{

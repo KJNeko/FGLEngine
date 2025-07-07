@@ -78,7 +78,7 @@ namespace fgl::engine
 	struct InstanceRenderInfo
 	{
 		alignas( 4 * 4 ) glm::mat4x4 m_model_matrix;
-		alignas( 4 * 4 ) glm::mat4x4 m_normal_matrix;
+		// alignas( 4 * 4 ) glm::mat4x4 m_normal_matrix;
 		MaterialID m_material_id;
 
 		// This struct is purely for vulkan and type info.
@@ -88,14 +88,11 @@ namespace fgl::engine
 	static_assert( offsetof( InstanceRenderInfo, m_model_matrix ) == 0 );
 	static_assert( sizeof( glm::mat4x4 ) == 64 );
 
-	static_assert( offsetof( InstanceRenderInfo, m_normal_matrix ) == 64 );
-	static_assert( sizeof( glm::mat4x4 ) == 64 );
-
-	static_assert( offsetof( InstanceRenderInfo, m_material_id ) == 128 );
+	static_assert( offsetof( InstanceRenderInfo, m_material_id ) == 64 );
 	static_assert( sizeof( MaterialID ) == 4 );
 
 	// Padding check
-	static_assert( sizeof( InstanceRenderInfo ) == ( 64 * 2 ) + ( 4 * 4 ) );
+	static_assert( sizeof( InstanceRenderInfo ) == ( 64 * 1 ) + ( 4 * 4 ) );
 
 	struct ModelGPUBuffers
 	{
