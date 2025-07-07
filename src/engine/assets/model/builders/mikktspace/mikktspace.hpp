@@ -55,7 +55,7 @@
  * and also quad triangulator plugin.
  */
 
-using tbool = int;
+using tbool = bool;
 using SMikkTSpaceContext = struct SMikkTSpaceContext;
 
 struct SMikkTSpaceInterface

@@ -28,7 +28,6 @@
 #include <cassert>
 #include <cfloat>
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <numbers>
@@ -36,8 +35,8 @@
 #include "glm/geometric.hpp"
 #include "glm/vec3.hpp"
 
-#define TFALSE 0
-#define TTRUE 1
+#define TFALSE false
+#define TTRUE true
 
 #define INTERNAL_RND_SORT_SEED 39871946
 
@@ -98,19 +97,19 @@ tbool VNotZero( const SVec3 v )
 	return NotZero( v.x ) || NotZero( v.y ) || NotZero( v.z );
 }
 
-typedef struct
+struct SSubGroup
 {
 	int iNrFaces;
 	int* pTriMembers;
-} SSubGroup;
+};
 
-typedef struct
+struct SGroup
 {
 	int iNrFaces;
 	int* pFaceIndices;
 	int iVertexRepresentitive;
 	tbool bOrientPreservering;
-} SGroup;
+};
 
 //
 #define MARK_DEGENERATE 1
@@ -118,7 +117,7 @@ typedef struct
 #define GROUP_WITH_ANY 4
 #define ORIENT_PRESERVING 8
 
-typedef struct
+struct STriInfo
 {
 	int FaceNeighbors[ 3 ];
 	SGroup* AssignedGroup[ 3 ];
@@ -131,9 +130,9 @@ typedef struct
 	int iOrgFaceNumber;
 	int iFlag, iTSpacesOffs;
 	unsigned char vert_num[ 4 ];
-} STriInfo;
+};
 
-typedef struct
+struct STSpace
 {
 	SVec3 vOs;
 	float fMagS;
@@ -141,7 +140,7 @@ typedef struct
 	float fMagT;
 	int iCounter; // this is to average back into quads.
 	tbool bOrient;
-} STSpace;
+};
 
 int GenerateInitialVerticesIndexList(
 	STriInfo pTriInfos[], int piTriList_out[], const SMikkTSpaceContext* pContext, int iNrTrianglesIn );
@@ -446,7 +445,11 @@ constexpr int FindGridCell( const float fMin, const float fMax, const float fVal
 }
 
 void MergeVertsFast(
-	int piTriList_in_and_out[], STmpVert pTmpVert[], const SMikkTSpaceContext* pContext, int iL_in, int iR_in );
+	int piTriList_in_and_out[],
+	std::vector< STmpVert > pTmpVert,
+	const SMikkTSpaceContext* pContext,
+	int iL_in,
+	int iR_in );
 void MergeVertsSlow( int piTriList_in_and_out[], const SMikkTSpaceContext* pContext, const int pTable[], int iEntries );
 void GenerateSharedVerticesIndexListSlow(
 	int piTriList_in_and_out[], const SMikkTSpaceContext* pContext, int iNrTrianglesIn );
@@ -456,7 +459,6 @@ void GenerateSharedVerticesIndexList(
 {
 	// Generate bounding box
 	int *piHashTable = nullptr, *piHashCount = nullptr, *piHashOffsets = nullptr, *piHashCount2 = nullptr;
-	STmpVert* pTmpVert = nullptr;
 	// int k = 0, e = 0;
 	int iMaxCount = 0;
 	SVec3 vMin = GetPosition( pContext, 0 ), vMax = vMin;
@@ -549,7 +551,10 @@ void GenerateSharedVerticesIndexList(
 	iMaxCount = piHashCount[ 0 ];
 	for ( int k = 1; k < g_iCells; k++ )
 		if ( iMaxCount < piHashCount[ k ] ) iMaxCount = piHashCount[ k ];
-	pTmpVert = static_cast< STmpVert* >( malloc( sizeof( STmpVert ) * iMaxCount ) );
+	// STmpVert* pTmpVert = nullptr;
+	std::vector< STmpVert > pTmpVert {};
+	pTmpVert.resize( iMaxCount );
+	// pTmpVert = static_cast< STmpVert* >( malloc( sizeof( STmpVert ) * iMaxCount ) );
 
 	// complete the merge
 	for ( int k = 0; k < g_iCells; k++ )
@@ -559,7 +564,9 @@ void GenerateSharedVerticesIndexList(
 		const int iEntries = piHashCount[ k ];
 		if ( iEntries < 2 ) continue;
 
-		if ( pTmpVert != nullptr )
+		if ( pTmpVert.empty() ) [[unlikely]]
+			MergeVertsSlow( piTriList_in_and_out, pContext, pTable, iEntries );
+		else
 		{
 			for ( int e = 0; e < iEntries; e++ )
 			{
@@ -572,14 +579,8 @@ void GenerateSharedVerticesIndexList(
 			}
 			MergeVertsFast( piTriList_in_and_out, pTmpVert, pContext, 0, iEntries - 1 );
 		}
-		else
-			MergeVertsSlow( piTriList_in_and_out, pContext, pTable, iEntries );
 	}
 
-	if ( pTmpVert != nullptr )
-	{
-		free( pTmpVert );
-	}
 	free( piHashTable );
 	free( piHashCount );
 	free( piHashOffsets );
@@ -587,7 +588,7 @@ void GenerateSharedVerticesIndexList(
 
 void MergeVertsFast(
 	int piTriList_in_and_out[],
-	STmpVert pTmpVert[],
+	std::vector< STmpVert > pTmpVert,
 	const SMikkTSpaceContext* pContext,
 	const int iL_in,
 	const int iR_in )
@@ -855,7 +856,7 @@ int GenerateInitialVerticesIndexList(
 					const float distSQ_02 = LengthSquared( vsub( P2, P0 ) );
 					const float distSQ_13 = LengthSquared( vsub( P3, P1 ) );
 
-					bQuadDiagIs_02 = distSQ_13 < distSQ_02 ? TFALSE : TTRUE;
+					bQuadDiagIs_02 = distSQ_13 >= distSQ_02;
 				}
 
 				if ( bQuadDiagIs_02 )
@@ -1724,7 +1725,7 @@ void BuildNeighborsSlow( STriInfo pTriInfos[], const int piTriListIn[], const in
 	}
 }
 
-void QuickSortEdges( SEdge* pSortBuffer, int iLeft, int iRight, const int channel, unsigned int uSeed )
+void QuickSortEdges( SEdge* pSortBuffer, const int iLeft, const int iRight, const int channel, unsigned int uSeed )
 {
 	// early out
 	SEdge sTmp;
@@ -1751,8 +1752,10 @@ void QuickSortEdges( SEdge* pSortBuffer, int iLeft, int iRight, const int channe
 	int iL = iLeft;
 	int iR = iRight;
 	const int n = ( iR - iL ) + 1;
-	assert( n >= 0 );
-	const int index = static_cast< int >( uSeed % n );
+	// assert( n >= 0 );
+	// const int index = static_cast< int >( uSeed % n );
+	// Set index to half of the n range, min of 1
+	const int index { std::max( 1, n / 2 ) };
 
 	const int iMid = pSortBuffer[ index + iL ].array[ channel ];
 
