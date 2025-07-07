@@ -52,7 +52,7 @@ int main()
 
 				profiling::resetCounters();
 			} );
-		engine_ctx.hookLateFrame( [ & ]( [[maybe_unused]] FrameInfo& info ) { editor_ctx.draw( info ); } );
+		engine_ctx.hookEarlyFrame( [ & ]( [[maybe_unused]] FrameInfo& info ) { editor_ctx.draw( info ); } );
 		engine_ctx.hookLateFrame( [ & ]( FrameInfo& info ) { editor_ctx.endDraw( info ); } );
 
 		// Now we need to create the camera for the editor.
