@@ -24,24 +24,24 @@ namespace fgl::engine
 		};
 
 		// PBR
-		data.color.color_texture_id = getTexID( pbr.color_tex );
-		data.color.color_factors = pbr.color_factors;
+		data.color.color_texture_id = getTexID( m_pbr.m_color_tex );
+		data.color.color_factors = m_pbr.m_color_factors;
 
-		data.metallic.metallic_texture_id = getTexID( pbr.metallic_roughness_tex );
-		data.metallic.roughness_factor = pbr.roughness_factor;
-		data.metallic.metallic_factor = pbr.metallic_factor;
+		data.metallic.metallic_texture_id = getTexID( m_pbr.m_metallic_roughness_tex );
+		data.metallic.roughness_factor = m_pbr.m_roughness_factor;
+		data.metallic.metallic_factor = m_pbr.m_metallic_factor;
 
 		// Normal
-		data.normal.normal_texture_id = getTexID( normal.texture );
-		data.normal.normal_tex_scale = normal.scale;
+		data.normal.normal_texture_id = getTexID( m_normal.m_texture );
+		data.normal.normal_tex_scale = m_normal.m_scale;
 
 		// Occlusion
-		data.occlusion.occlusion_texture_id = getTexID( occlusion.texture );
-		data.occlusion.occlusion_tex_strength = occlusion.strength;
+		data.occlusion.occlusion_texture_id = getTexID( m_occlusion.m_texture );
+		data.occlusion.occlusion_tex_strength = m_occlusion.m_strength;
 
 		// Emissive
-		data.emissive.emissive_texture_id = getTexID( emissive.texture );
-		data.emissive.emissive_factors = emissive.factors;
+		data.emissive.emissive_texture_id = getTexID( m_emissive.m_texture );
+		data.emissive.emissive_factors = m_emissive.m_factors;
 	}
 
 	DeviceMaterialData MaterialProperties::data() const
@@ -63,7 +63,7 @@ namespace fgl::engine
 		Texture::getDescriptorSet().bindTexture( 0, texture );
 		Texture::getDescriptorSet().update();
 
-		if ( !this->pbr.color_tex ) this->pbr.color_tex = texture;
+		if ( !this->m_pbr.m_color_tex ) this->m_pbr.m_color_tex = texture;
 	}
 
 	Material::Material() : m_id( material_id_counter.getID() )
@@ -89,9 +89,9 @@ namespace fgl::engine
 			return true;
 		};
 
-		return checkTex( properties.pbr.color_tex ) && checkTex( properties.pbr.metallic_roughness_tex )
-		    && checkTex( properties.normal.texture ) && checkTex( properties.occlusion.texture )
-		    && checkTex( properties.emissive.texture );
+		return checkTex( properties.m_pbr.m_color_tex ) && checkTex( properties.m_pbr.m_metallic_roughness_tex )
+		    && checkTex( properties.m_normal.m_texture ) && checkTex( properties.m_occlusion.m_texture )
+		    && checkTex( properties.m_emissive.m_texture );
 	}
 
 	std::shared_ptr< Material > Material::createMaterial()

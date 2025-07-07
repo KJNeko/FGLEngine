@@ -44,31 +44,31 @@ namespace fgl::engine
 	{
 		struct
 		{
-			std::shared_ptr< Texture > color_tex {};
-			glm::vec4 color_factors { 0.0f };
+			std::shared_ptr< Texture > m_color_tex {};
+			glm::vec4 m_color_factors { 0.0f };
 
-			std::shared_ptr< Texture > metallic_roughness_tex;
-			float metallic_factor { 0.0f };
-			float roughness_factor { 0.0f };
-		} pbr;
-
-		struct
-		{
-			float scale { 0.0f };
-			std::shared_ptr< Texture > texture;
-		} normal;
+			std::shared_ptr< Texture > m_metallic_roughness_tex;
+			float m_metallic_factor { 0.0f };
+			float m_roughness_factor { 0.0f };
+		} m_pbr;
 
 		struct
 		{
-			float strength { 0.0f };
-			std::shared_ptr< Texture > texture;
-		} occlusion;
+			float m_scale { 0.0f };
+			std::shared_ptr< Texture > m_texture;
+		} m_normal;
 
 		struct
 		{
-			glm::vec3 factors { 0.0f };
-			std::shared_ptr< Texture > texture;
-		} emissive;
+			float m_strength { 0.0f };
+			std::shared_ptr< Texture > m_texture;
+		} m_occlusion;
+
+		struct
+		{
+			glm::vec3 m_factors { 0.0f };
+			std::shared_ptr< Texture > m_texture;
+		} m_emissive;
 
 		void writeData( DeviceMaterialData& data ) const;
 		DeviceMaterialData data() const;
