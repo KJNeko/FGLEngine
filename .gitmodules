@@ -37,3 +37,6 @@
 [submodule "dependencies/slang"]
 	path = dependencies/slang
 	url = https://github.com/shader-slang/slang.git
+[submodule "dependencies/libFGL"]
+    path = dependencies/libFGL
+    url = git@github.com:KJNeko/libFGL.git
