@@ -14,4 +14,8 @@ public struct CameraData
 		return vec3( inverse_view[ 0 ][ 3 ], inverse_view[ 1 ][ 3 ], inverse_view[ 2 ][ 3 ] );
 	}
 
-}
+	public mat4x4 mat() 
+	{
+		return mul( projection, view );
+	}
+};

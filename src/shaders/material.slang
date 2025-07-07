@@ -24,7 +24,7 @@ public struct Metallic
     {
         return texture_id != INVALID_TEXTURE_ID;
     }
-}
+};
 
 public struct Normal
 {
@@ -35,7 +35,7 @@ public struct Normal
     {
         return texture_id != INVALID_TEXTURE_ID;
     }
-}
+};
 
 public struct Occlusion
 {
@@ -46,7 +46,7 @@ public struct Occlusion
     {
         return texture_id != INVALID_TEXTURE_ID;
     }
-}
+};
 
 public struct Emissive
 {
@@ -57,7 +57,7 @@ public struct Emissive
     {
         return texture_id != INVALID_TEXTURE_ID;
     }
-}
+};
 
 
 public struct Material 
@@ -67,5 +67,5 @@ public struct Material
 	public Normal normal;
 	public Occlusion occlusion;
 	public Emissive emissive;
-}
+};
 

@@ -11,7 +11,9 @@ struct CoarseVertex {
 	float4 position : SV_Position;
 	float3 world_pos;
 	uint material_id;
-}
+	mat4x4 matrix;
+	vec4 tangent;
+};
 
 [ [ vk::binding( 0, 1 ) ] ]
 ConstantBuffer< CameraData > camera : CAMERA;
@@ -21,17 +23,19 @@ CoarseVertex vertexMain( ModelVertex in_vertex )
 {
 	CoarseVertex out_vertex;
 
-    vec4 world_pos = mul(in_vertex.model_matrix, vec4(in_vertex.simple.position, 1.0));
+    vec4 world_pos = mul(in_vertex.instance.model_matrix, vec4(in_vertex.simple.position, 1.0));
 
-	const float4 transformed_pos = mul( mul( camera.projection, camera.view ), world_pos );
+	const float4 transformed_pos = mul( camera.mat(), world_pos );
 	out_vertex.position = transformed_pos;
 	out_vertex.world_pos = world_pos.xyz;
 
-	mat3 normal_matrix = transpose( inverse( mat3( in_vertex.model_matrix ) ) );
+	mat3 normal_matrix = transpose( inverse( mat3( in_vertex.instance.model_matrix ) ) );
 
 	out_vertex.normal = normalize( mul(normal_matrix, in_vertex.normal) );
 	out_vertex.tex_coord = in_vertex.uv;
-	out_vertex.material_id = in_vertex.material_id;
+	out_vertex.material_id = in_vertex.instance.material_id;
+	out_vertex.matrix = in_vertex.instance.model_matrix;
+	out_vertex.tangent = in_vertex.tangent;
 
 	return out_vertex;
 }
@@ -77,6 +81,8 @@ GBufferFragment fragmentMain( CoarseVertex vertex )
 	{
 		frag.color = material.color.factors;
   	}
+
+	if ( frag.color.w <= 0.0f ) discard;
 
 	float metallic_scalar = 0.0;
 	float roughness_scalar = 0.0;

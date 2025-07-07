@@ -22,7 +22,7 @@ Vertex vertexMain( uint index : SV_VertexID )
 
 struct CompositeFragment {
 	vec4 color;
-}
+};
 
 struct GBufferInput {
 	SubpassInput<vec4> color : COLOR;
@@ -48,7 +48,9 @@ ParameterBlock< CameraData > camera : CAMERA;
 
 //TODO: constant flags
 
-vec3 sun_dir = normalize(vec3(-1.0, -1.0, -1.0));
+// Direction the sun is facing
+vec3 sun_dir = -normalize( vec3( 0.0, 0.0, 1.0 ) );
+vec3 anti_sun_dir = -sun_dir;
 
 // GGX/Towbridge-Reitz normal distribution function.
 // Uses Disney's reparametrization of alpha = roughness^2.
@@ -81,17 +83,17 @@ vec3 schlick(vec3 F0, float cosTheta)
     return F0 + (vec3(1.0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
-
 [shader("fragment")]
 CompositeFragment fragmentMain( Vertex vertex )
 {
+	CompositeFragment frag;
+
 	// const vec3 test_sample = test.SubpassLoad().xyz;
 	// const vec3 albedo = gbuffer.color.SubpassLoad().xyz * test_sample;
 	const vec3 albedo = gbuffer.color.SubpassLoad().xyz;
 
 	const vec3 position = gbuffer.position.SubpassLoad().xyz;
 	const vec3 normal = gbuffer.normal.SubpassLoad().xyz;
-
     // metallic, roughness, occlusion
     // r,        g,         b
 	const vec3 metallic_comb = gbuffer.metallic.SubpassLoad().xyz;
@@ -117,7 +119,7 @@ CompositeFragment fragmentMain( Vertex vertex )
 
 	vec3 direct_lighting = vec3( 0.0 );
 
-	vec3 Li = -sun_dir;
+	vec3 Li = anti_sun_dir;
     vec3 Lradiance = vec3(1.0);
 
 	vec3 Lh = normalize( Li + Lo );
