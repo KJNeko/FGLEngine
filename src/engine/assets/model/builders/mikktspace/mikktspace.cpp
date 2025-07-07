@@ -33,82 +33,66 @@
 #include <cstring>
 #include <numbers>
 
+#include "glm/geometric.hpp"
+#include "glm/vec3.hpp"
+
 #define TFALSE 0
 #define TTRUE 1
 
 #define INTERNAL_RND_SORT_SEED 39871946
 
-// internal structure
-typedef struct
-{
-	float x, y, z;
-} SVec3;
+using SVec3 = glm::vec3;
 
-static tbool veq( const SVec3 v1, const SVec3 v2 )
+tbool veq( const SVec3 v1, const SVec3 v2 )
 {
 	return ( v1.x == v2.x ) && ( v1.y == v2.y ) && ( v1.z == v2.z );
 }
 
-static SVec3 vadd( const SVec3 v1, const SVec3 v2 )
+SVec3 vadd( const SVec3 v1, const SVec3 v2 )
 {
-	SVec3 vRes;
-
-	vRes.x = v1.x + v2.x;
-	vRes.y = v1.y + v2.y;
-	vRes.z = v1.z + v2.z;
-
-	return vRes;
+	return { v1 + v2 };
 }
 
-static SVec3 vsub( const SVec3 v1, const SVec3 v2 )
+SVec3 vsub( const SVec3 v1, const SVec3 v2 )
 {
-	SVec3 vRes;
-
-	vRes.x = v1.x - v2.x;
-	vRes.y = v1.y - v2.y;
-	vRes.z = v1.z - v2.z;
-
-	return vRes;
+	return { v1 - v2 };
 }
 
-static SVec3 vscale( const float fS, const SVec3 v )
+SVec3 vscale( const float fS, const SVec3 v )
 {
-	SVec3 vRes;
-
-	vRes.x = fS * v.x;
-	vRes.y = fS * v.y;
-	vRes.z = fS * v.z;
-
-	return vRes;
+	return v * fS;
 }
 
-static float LengthSquared( const SVec3 v )
+float LengthSquared( const SVec3 v )
 {
 	return v.x * v.x + v.y * v.y + v.z * v.z;
 }
 
-static float Length( const SVec3 v )
+float Length( const SVec3 v )
 {
-	return sqrtf( LengthSquared( v ) );
+	return glm::length( v );
+	// return sqrtf( LengthSquared( v ) );
 }
 
-static SVec3 Normalize( const SVec3 v )
+SVec3 Normalize( const SVec3 v )
 {
+	return glm::normalize( v );
 	return vscale( 1 / Length( v ), v );
 }
 
-static float vdot( const SVec3 v1, const SVec3 v2 )
+float vdot( const SVec3 v1, const SVec3 v2 )
 {
-	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+	return glm::dot( v1, v2 );
+	// return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
-static tbool NotZero( const float fX )
+tbool NotZero( const float fX )
 {
 	// could possibly use FLT_EPSILON instead
 	return fabsf( fX ) > FLT_MIN;
 }
 
-static tbool VNotZero( const SVec3 v )
+tbool VNotZero( const SVec3 v )
 {
 	// might change this to an epsilon based test
 	return NotZero( v.x ) || NotZero( v.y ) || NotZero( v.z );
@@ -159,15 +143,15 @@ typedef struct
 	tbool bOrient;
 } STSpace;
 
-static int GenerateInitialVerticesIndexList(
+int GenerateInitialVerticesIndexList(
 	STriInfo pTriInfos[], int piTriList_out[], const SMikkTSpaceContext* pContext, int iNrTrianglesIn );
-static void GenerateSharedVerticesIndexList(
+void GenerateSharedVerticesIndexList(
 	int piTriList_in_and_out[], const SMikkTSpaceContext* pContext, int iNrTrianglesIn );
-static void InitTriInfo(
+void InitTriInfo(
 	STriInfo pTriInfos[], const int piTriListIn[], const SMikkTSpaceContext* pContext, int iNrTrianglesIn );
-static int Build4RuleGroups(
+int Build4RuleGroups(
 	STriInfo pTriInfos[], SGroup pGroups[], int piGroupTrianglesBuffer[], const int piTriListIn[], int iNrTrianglesIn );
-static tbool GenerateTSpaces(
+tbool GenerateTSpaces(
 	STSpace psTspace[],
 	const STriInfo pTriInfos[],
 	const SGroup pGroups[],
@@ -176,19 +160,19 @@ static tbool GenerateTSpaces(
 	float fThresCos,
 	const SMikkTSpaceContext* pContext );
 
-static int MakeIndex( const int iFace, const int iVert )
+int MakeIndex( const int iFace, const int iVert )
 {
 	assert( iVert >= 0 && iVert < 4 && iFace >= 0 );
 	return ( iFace << 2 ) | ( iVert & 0x3 );
 }
 
-static void IndexToData( int* piFace, int* piVert, const int iIndexIn )
+void IndexToData( int* piFace, int* piVert, const int iIndexIn )
 {
 	piVert[ 0 ] = iIndexIn & 0x3;
 	piFace[ 0 ] = iIndexIn >> 2;
 }
 
-static STSpace AvgTSpace( const STSpace* pTS0, const STSpace* pTS1 )
+STSpace AvgTSpace( const STSpace* pTS0, const STSpace* pTS1 )
 {
 	STSpace ts_res {};
 
@@ -216,13 +200,13 @@ static STSpace AvgTSpace( const STSpace* pTS0, const STSpace* pTS1 )
 	return ts_res;
 }
 
-static SVec3 GetPosition( const SMikkTSpaceContext* pContext, int index );
-static SVec3 GetNormal( const SMikkTSpaceContext* pContext, int index );
-static SVec3 GetTexCoord( const SMikkTSpaceContext* pContext, int index );
+SVec3 GetPosition( const SMikkTSpaceContext* pContext, int index );
+SVec3 GetNormal( const SMikkTSpaceContext* pContext, int index );
+SVec3 GetTexCoord( const SMikkTSpaceContext* pContext, int index );
 
 // degen triangles
-static void DegenPrologue( STriInfo pTriInfos[], int piTriList_out[], int iNrTrianglesIn, int iTotTris );
-static void DegenEpilogue(
+void DegenPrologue( STriInfo pTriInfos[], int piTriList_out[], int iNrTrianglesIn, int iTotTris );
+void DegenEpilogue(
 	STSpace psTspace[],
 	STriInfo pTriInfos[],
 	int piTriListIn[],
@@ -441,7 +425,7 @@ typedef struct
 	int index;
 } STmpVert;
 
-static const int g_iCells = 2048;
+constexpr int g_iCells = 2048;
 
 #ifdef _MSC_VER
 #define NOINLINE __declspec( noinline )
@@ -452,27 +436,28 @@ static const int g_iCells = 2048;
 // it is IMPORTANT that this function is called to evaluate the hash since
 // inlining could potentially reorder instructions and generate different
 // results for the same effective input value fVal.
-static NOINLINE int FindGridCell( const float fMin, const float fMax, const float fVal )
+// static NOINLINE int FindGridCell( const float fMin, const float fMax, const float fVal )
+// What the fuck?
+constexpr int FindGridCell( const float fMin, const float fMax, const float fVal )
 {
 	const float fIndex = g_iCells * ( ( fVal - fMin ) / ( fMax - fMin ) );
 	const int iIndex = static_cast< int >( fIndex );
 	return iIndex < g_iCells ? ( iIndex >= 0 ? iIndex : 0 ) : ( g_iCells - 1 );
 }
 
-static void MergeVertsFast(
+void MergeVertsFast(
 	int piTriList_in_and_out[], STmpVert pTmpVert[], const SMikkTSpaceContext* pContext, int iL_in, int iR_in );
-static void
-	MergeVertsSlow( int piTriList_in_and_out[], const SMikkTSpaceContext* pContext, const int pTable[], int iEntries );
-static void GenerateSharedVerticesIndexListSlow(
+void MergeVertsSlow( int piTriList_in_and_out[], const SMikkTSpaceContext* pContext, const int pTable[], int iEntries );
+void GenerateSharedVerticesIndexListSlow(
 	int piTriList_in_and_out[], const SMikkTSpaceContext* pContext, int iNrTrianglesIn );
 
-static void GenerateSharedVerticesIndexList(
+void GenerateSharedVerticesIndexList(
 	int piTriList_in_and_out[], const SMikkTSpaceContext* pContext, const int iNrTrianglesIn )
 {
 	// Generate bounding box
 	int *piHashTable = nullptr, *piHashCount = nullptr, *piHashOffsets = nullptr, *piHashCount2 = nullptr;
 	STmpVert* pTmpVert = nullptr;
-	int iChannel = 0, k = 0, e = 0;
+	// int k = 0, e = 0;
 	int iMaxCount = 0;
 	SVec3 vMin = GetPosition( pContext, 0 ), vMax = vMin;
 	for ( int i = 1; i < ( iNrTrianglesIn * 3 ); i++ )
@@ -495,7 +480,7 @@ static void GenerateSharedVerticesIndexList(
 	}
 
 	SVec3 vDim = vsub( vMax, vMin );
-	iChannel = 0;
+	int iChannel = 0;
 	float fMin = vMin.x;
 	float fMax = vMax.x;
 	if ( vDim.y > vDim.x && vDim.y > vDim.z )
@@ -541,7 +526,7 @@ static void GenerateSharedVerticesIndexList(
 
 	// evaluate start index of each cell.
 	piHashOffsets[ 0 ] = 0;
-	for ( k = 1; k < g_iCells; k++ ) piHashOffsets[ k ] = piHashOffsets[ k - 1 ] + piHashCount[ k - 1 ];
+	for ( int k = 1; k < g_iCells; k++ ) piHashOffsets[ k ] = piHashOffsets[ k - 1 ] + piHashCount[ k - 1 ];
 
 	// insert vertices
 	for ( int i = 0; i < ( iNrTrianglesIn * 3 ); i++ )
@@ -557,28 +542,28 @@ static void GenerateSharedVerticesIndexList(
 		pTable[ piHashCount2[ iCell ] ] = i; // vertex i has been inserted.
 		++piHashCount2[ iCell ];
 	}
-	for ( k = 0; k < g_iCells; k++ ) assert( piHashCount2[ k ] == piHashCount[ k ] ); // verify the count
+	for ( int k = 0; k < g_iCells; k++ ) assert( piHashCount2[ k ] == piHashCount[ k ] ); // verify the count
 	free( piHashCount2 );
 
 	// find maximum amount of entries in any hash entry
 	iMaxCount = piHashCount[ 0 ];
-	for ( k = 1; k < g_iCells; k++ )
+	for ( int k = 1; k < g_iCells; k++ )
 		if ( iMaxCount < piHashCount[ k ] ) iMaxCount = piHashCount[ k ];
 	pTmpVert = static_cast< STmpVert* >( malloc( sizeof( STmpVert ) * iMaxCount ) );
 
 	// complete the merge
-	for ( k = 0; k < g_iCells; k++ )
+	for ( int k = 0; k < g_iCells; k++ )
 	{
 		// extract table of cell k and amount of entries in it
-		int* pTable = &piHashTable[ piHashOffsets[ k ] ];
+		const int* pTable = &piHashTable[ piHashOffsets[ k ] ];
 		const int iEntries = piHashCount[ k ];
 		if ( iEntries < 2 ) continue;
 
 		if ( pTmpVert != nullptr )
 		{
-			for ( e = 0; e < iEntries; e++ )
+			for ( int e = 0; e < iEntries; e++ )
 			{
-				int i = pTable[ e ];
+				const int i = pTable[ e ];
 				const SVec3 vP = GetPosition( pContext, piTriList_in_and_out[ i ] );
 				pTmpVert[ e ].vert[ 0 ] = vP.x;
 				pTmpVert[ e ].vert[ 1 ] = vP.y;
@@ -600,7 +585,7 @@ static void GenerateSharedVerticesIndexList(
 	free( piHashOffsets );
 }
 
-static void MergeVertsFast(
+void MergeVertsFast(
 	int piTriList_in_and_out[],
 	STmpVert pTmpVert[],
 	const SMikkTSpaceContext* pContext,
@@ -729,7 +714,7 @@ static void MergeVertsFast(
 	}
 }
 
-static void MergeVertsSlow(
+void MergeVertsSlow(
 	int piTriList_in_and_out[], const SMikkTSpaceContext* pContext, const int pTable[], const int iEntries )
 {
 	// this can be optimized further using a tree structure or more hashing.
@@ -764,7 +749,7 @@ static void MergeVertsSlow(
 	}
 }
 
-static void GenerateSharedVerticesIndexListSlow(
+void GenerateSharedVerticesIndexListSlow(
 	int piTriList_in_and_out[], const SMikkTSpaceContext* pContext, const int iNrTrianglesIn )
 {
 	int iNumUniqueVerts = 0, t = 0, i = 0;
@@ -811,7 +796,7 @@ static void GenerateSharedVerticesIndexListSlow(
 	}
 }
 
-static int GenerateInitialVerticesIndexList(
+int GenerateInitialVerticesIndexList(
 	STriInfo pTriInfos[], int piTriList_out[], const SMikkTSpaceContext* pContext, const int iNrTrianglesIn )
 {
 	int iTSpacesOffs = 0, f = 0, t = 0;
@@ -932,7 +917,7 @@ static int GenerateInitialVerticesIndexList(
 	return iTSpacesOffs;
 }
 
-static SVec3 GetPosition( const SMikkTSpaceContext* pContext, const int index )
+SVec3 GetPosition( const SMikkTSpaceContext* pContext, const int index )
 {
 	int iF, iI;
 	SVec3 res;
@@ -945,7 +930,7 @@ static SVec3 GetPosition( const SMikkTSpaceContext* pContext, const int index )
 	return res;
 }
 
-static SVec3 GetNormal( const SMikkTSpaceContext* pContext, const int index )
+SVec3 GetNormal( const SMikkTSpaceContext* pContext, const int index )
 {
 	int iF, iI;
 	SVec3 res;
@@ -958,7 +943,7 @@ static SVec3 GetNormal( const SMikkTSpaceContext* pContext, const int index )
 	return res;
 }
 
-static SVec3 GetTexCoord( const SMikkTSpaceContext* pContext, const int index )
+SVec3 GetTexCoord( const SMikkTSpaceContext* pContext, const int index )
 {
 	int iF, iI;
 	SVec3 res;
@@ -984,11 +969,11 @@ typedef union
 	int array[ 3 ];
 } SEdge;
 
-static void BuildNeighborsFast( STriInfo pTriInfos[], SEdge* pEdges, const int piTriListIn[], int iNrTrianglesIn );
-static void BuildNeighborsSlow( STriInfo pTriInfos[], const int piTriListIn[], int iNrTrianglesIn );
+void BuildNeighborsFast( STriInfo pTriInfos[], SEdge* pEdges, const int piTriListIn[], int iNrTrianglesIn );
+void BuildNeighborsSlow( STriInfo pTriInfos[], const int piTriListIn[], int iNrTrianglesIn );
 
 // returns the texture area times 2
-static float CalcTexArea( const SMikkTSpaceContext* pContext, const int indices[] )
+float CalcTexArea( const SMikkTSpaceContext* pContext, const int indices[] )
 {
 	const SVec3 t1 = GetTexCoord( pContext, indices[ 0 ] );
 	const SVec3 t2 = GetTexCoord( pContext, indices[ 1 ] );
@@ -1004,7 +989,7 @@ static float CalcTexArea( const SMikkTSpaceContext* pContext, const int indices[
 	return fSignedAreaSTx2 < 0 ? ( -fSignedAreaSTx2 ) : fSignedAreaSTx2;
 }
 
-static void InitTriInfo(
+void InitTriInfo(
 	STriInfo pTriInfos[], const int piTriListIn[], const SMikkTSpaceContext* pContext, const int iNrTrianglesIn )
 {
 	int f = 0, i = 0, t = 0;
@@ -1134,10 +1119,10 @@ static void InitTriInfo(
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static tbool AssignRecur( const int piTriListIn[], STriInfo psTriInfos[], const int iMyTriIndex, SGroup* pGroup );
-static void AddTriToGroup( SGroup* pGroup, const int iTriIndex );
+tbool AssignRecur( const int piTriListIn[], STriInfo psTriInfos[], const int iMyTriIndex, SGroup* pGroup );
+void AddTriToGroup( SGroup* pGroup, const int iTriIndex );
 
-static int Build4RuleGroups(
+int Build4RuleGroups(
 	STriInfo pTriInfos[],
 	SGroup pGroups[],
 	int piGroupTrianglesBuffer[],
@@ -1203,13 +1188,13 @@ static int Build4RuleGroups(
 	return iNrActiveGroups;
 }
 
-static void AddTriToGroup( SGroup* pGroup, const int iTriIndex )
+void AddTriToGroup( SGroup* pGroup, const int iTriIndex )
 {
 	pGroup->pFaceIndices[ pGroup->iNrFaces ] = iTriIndex;
 	++pGroup->iNrFaces;
 }
 
-static tbool AssignRecur( const int piTriListIn[], STriInfo psTriInfos[], const int iMyTriIndex, SGroup* pGroup )
+tbool AssignRecur( const int piTriListIn[], STriInfo psTriInfos[], const int iMyTriIndex, SGroup* pGroup )
 {
 	STriInfo* pMyTriInfo = &psTriInfos[ iMyTriIndex ];
 
@@ -1263,17 +1248,17 @@ static tbool AssignRecur( const int piTriListIn[], STriInfo psTriInfos[], const 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static tbool CompareSubGroups( const SSubGroup* pg1, const SSubGroup* pg2 );
-static void QuickSort( int* pSortBuffer, int iLeft, int iRight, unsigned int uSeed );
-static STSpace EvalTspace(
-	int face_indices[],
+tbool CompareSubGroups( const SSubGroup* pg1, const SSubGroup* pg2 );
+void QuickSort( int* pSortBuffer, int iLeft, int iRight, unsigned int uSeed );
+STSpace EvalTspace(
+	const int face_indices[],
 	const int iFaces,
 	const int piTriListIn[],
 	const STriInfo pTriInfos[],
 	const SMikkTSpaceContext* pContext,
 	const int iVertexRepresentitive );
 
-static tbool GenerateTSpaces(
+tbool GenerateTSpaces(
 	STSpace psTspace[],
 	const STriInfo pTriInfos[],
 	const SGroup pGroups[],
@@ -1447,8 +1432,8 @@ static tbool GenerateTSpaces(
 	return TTRUE;
 }
 
-static STSpace EvalTspace(
-	int face_indices[],
+STSpace EvalTspace(
+	const int face_indices[],
 	const int iFaces,
 	const int piTriListIn[],
 	const STriInfo pTriInfos[],
@@ -1513,7 +1498,7 @@ static STSpace EvalTspace(
 			// between the two edge vectors
 			fCos = vdot( v1, v2 );
 			fCos = fCos > 1 ? 1 : ( fCos < ( -1 ) ? ( -1 ) : fCos );
-			fAngle = (float)acos( fCos );
+			fAngle = std::acos( fCos );
 			fMagS = pTriInfos[ f ].fMagS;
 			fMagT = pTriInfos[ f ].fMagT;
 
@@ -1537,7 +1522,7 @@ static STSpace EvalTspace(
 	return res;
 }
 
-static tbool CompareSubGroups( const SSubGroup* pg1, const SSubGroup* pg2 )
+tbool CompareSubGroups( const SSubGroup* pg1, const SSubGroup* pg2 )
 {
 	tbool bStillSame = TTRUE;
 	int i = 0;
@@ -1550,7 +1535,7 @@ static tbool CompareSubGroups( const SSubGroup* pg1, const SSubGroup* pg2 )
 	return bStillSame;
 }
 
-static void QuickSort( int* pSortBuffer, int iLeft, int iRight, unsigned int uSeed )
+void QuickSort( int* pSortBuffer, int iLeft, int iRight, unsigned int uSeed )
 {
 	// Random
 	unsigned int t = uSeed & 31;
@@ -1588,11 +1573,10 @@ static void QuickSort( int* pSortBuffer, int iLeft, int iRight, unsigned int uSe
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-static void QuickSortEdges( SEdge* pSortBuffer, int iLeft, int iRight, const int channel, unsigned int uSeed );
-static void
-	GetEdge( int* i0_out, int* i1_out, int* edgenum_out, const int indices[], const int i0_in, const int i1_in );
+void QuickSortEdges( SEdge* pSortBuffer, int iLeft, int iRight, const int channel, unsigned int uSeed );
+void GetEdge( int* i0_out, int* i1_out, int* edgenum_out, const int indices[], const int i0_in, const int i1_in );
 
-static void BuildNeighborsFast( STriInfo pTriInfos[], SEdge* pEdges, const int piTriListIn[], const int iNrTrianglesIn )
+void BuildNeighborsFast( STriInfo pTriInfos[], SEdge* pEdges, const int piTriListIn[], const int iNrTrianglesIn )
 {
 	// build array of edges
 	unsigned int uSeed = INTERNAL_RND_SORT_SEED; // could replace with a random seed?
@@ -1691,7 +1675,7 @@ static void BuildNeighborsFast( STriInfo pTriInfos[], SEdge* pEdges, const int p
 	}
 }
 
-static void BuildNeighborsSlow( STriInfo pTriInfos[], const int piTriListIn[], const int iNrTrianglesIn )
+void BuildNeighborsSlow( STriInfo pTriInfos[], const int piTriListIn[], const int iNrTrianglesIn )
 {
 	int f = 0, i = 0;
 	for ( f = 0; f < iNrTrianglesIn; f++ )
@@ -1740,7 +1724,7 @@ static void BuildNeighborsSlow( STriInfo pTriInfos[], const int piTriListIn[], c
 	}
 }
 
-static void QuickSortEdges( SEdge* pSortBuffer, int iLeft, int iRight, const int channel, unsigned int uSeed )
+void QuickSortEdges( SEdge* pSortBuffer, int iLeft, int iRight, const int channel, unsigned int uSeed )
 {
 	// early out
 	SEdge sTmp;
@@ -1792,7 +1776,7 @@ static void QuickSortEdges( SEdge* pSortBuffer, int iLeft, int iRight, const int
 }
 
 // resolve ordering and edge number
-static void GetEdge( int* i0_out, int* i1_out, int* edgenum_out, const int indices[], const int i0_in, const int i1_in )
+void GetEdge( int* i0_out, int* i1_out, int* edgenum_out, const int indices[], const int i0_in, const int i1_in )
 {
 	*edgenum_out = -1;
 
@@ -1825,7 +1809,7 @@ static void GetEdge( int* i0_out, int* i1_out, int* edgenum_out, const int indic
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////// Degenerate triangles ////////////////////////////////////
 
-static void DegenPrologue( STriInfo pTriInfos[], int piTriList_out[], const int iNrTrianglesIn, const int iTotTris )
+void DegenPrologue( STriInfo pTriInfos[], int piTriList_out[], const int iNrTrianglesIn, const int iTotTris )
 {
 	int iNextGoodTriangleSearchIndex = -1;
 
@@ -1908,7 +1892,7 @@ static void DegenPrologue( STriInfo pTriInfos[], int piTriList_out[], const int 
 	assert( iNrTrianglesIn == t );
 }
 
-static void DegenEpilogue(
+void DegenEpilogue(
 	STSpace psTspace[],
 	STriInfo pTriInfos[],
 	int piTriListIn[],
