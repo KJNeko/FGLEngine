@@ -645,27 +645,27 @@ namespace fgl::engine
 		{
 			const auto& metallic_roughness { gltf_material.pbrMetallicRoughness };
 			const auto& pbr_tex_id { metallic_roughness.baseColorTexture.index };
-			material->properties.pbr.color_tex = loadTexture( pbr_tex_id, root );
+			material->properties.m_pbr.m_color_tex = loadTexture( pbr_tex_id, root );
 
 			material->properties.m_pbr.m_color_factors = { metallic_roughness.baseColorFactor[ 0 ],
 				                                           metallic_roughness.baseColorFactor[ 1 ],
 				                                           metallic_roughness.baseColorFactor[ 2 ],
 				                                           metallic_roughness.baseColorFactor[ 3 ] };
 
-			material->properties.pbr.metallic_roughness_tex =
+			material->properties.m_pbr.m_metallic_roughness_tex =
 				loadTexture( metallic_roughness.metallicRoughnessTexture.index, root );
-			material->properties.pbr.metallic_factor = metallic_roughness.metallicFactor;
-			material->properties.pbr.roughness_factor = metallic_roughness.roughnessFactor;
+			material->properties.m_pbr.m_metallic_factor = metallic_roughness.metallicFactor;
+			material->properties.m_pbr.m_roughness_factor = metallic_roughness.roughnessFactor;
 		}
 
-		material->properties.normal.texture = loadTexture( gltf_material.normalTexture.index, root );
-		material->properties.normal.scale = gltf_material.normalTexture.scale;
+		material->properties.m_normal.m_texture = loadTexture( gltf_material.normalTexture.index, root );
+		material->properties.m_normal.m_scale = gltf_material.normalTexture.scale;
 
-		material->properties.occlusion.texture = loadTexture( gltf_material.occlusionTexture.index, root );
-		material->properties.occlusion.strength = gltf_material.occlusionTexture.strength;
+		material->properties.m_occlusion.m_texture = loadTexture( gltf_material.occlusionTexture.index, root );
+		material->properties.m_occlusion.m_strength = gltf_material.occlusionTexture.strength;
 
-		material->properties.emissive.texture = loadTexture( gltf_material.emissiveTexture.index, root );
-		material->properties.emissive.factors = convertToVec3( gltf_material.emissiveFactor );
+		material->properties.m_emissive.m_texture = loadTexture( gltf_material.emissiveTexture.index, root );
+		material->properties.m_emissive.m_factors = convertToVec3( gltf_material.emissiveFactor );
 
 		material->update();
 
